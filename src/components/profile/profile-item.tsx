@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { mutate } from "swr";
-import { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { useLockFn } from "ahooks";
 import { useRecoilState } from "recoil";
 import { useTranslation } from "react-i18next";
@@ -13,7 +13,7 @@ import {
   MenuItem,
   Menu,
   CircularProgress,
-  ButtonGroup,
+  SxProps,
 } from "@mui/material";
 import {
   LocalFireDepartmentRounded,
@@ -27,6 +27,10 @@ import { ProfileBox } from "./profile-box";
 import parseTraffic from "@/utils/parse-traffic";
 import { ConfirmViewer } from "./confirm-viewer";
 import { open } from "@tauri-apps/api/shell";
+import { CSS, Transform } from "@dnd-kit/utilities";
+import { DraggableAttributes } from "@dnd-kit/core";
+import { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
+
 const round = keyframes`
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -34,17 +38,35 @@ const round = keyframes`
 
 interface Props {
   id: string;
+  sx?: SxProps;
   selected: boolean;
   activating: boolean;
   itemData: IProfileItem;
+  attributes?: DraggableAttributes;
+  listeners?: SyntheticListenerMap;
+  transform?: Transform | null;
+  isDragging?: boolean;
+  transition?: string;
   onSelect: (force: boolean) => void;
   onEdit: () => void;
   onReactivate: () => void;
 }
 
-export const ProfileItem = (props: Props) => {
-  const { selected, activating, itemData, onSelect, onEdit, onReactivate } =
-    props;
+export const ProfileItem = forwardRef((props: Props, ref) => {
+  const {
+    sx,
+    selected,
+    activating,
+    itemData,
+    attributes,
+    listeners,
+    transform,
+    isDragging,
+    transition,
+    onSelect,
+    onEdit,
+    onReactivate,
+  } = props;
 
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<any>(null);
@@ -215,13 +237,23 @@ export const ProfileItem = (props: Props) => {
 
   return (
     <Box
+      ref={ref}
       sx={{
         display: "flex",
         flexGrow: "1",
         margin: "5px",
         width: "260px",
-      }}>
+        // zIndex: isDragging ? 9999 : 1,
+        transform: CSS.Transform.toString(transform ?? null),
+        transition,
+        ...sx,
+      }}
+      {...attributes}
+      {...listeners}>
       <ProfileBox
+        sx={{
+          bgcolor: isDragging ? "var(--background-color-alpha)" : "",
+        }}
         aria-selected={selected}
         onMouseEnter={() => {
           setSideBtnShow(true);
@@ -441,7 +473,7 @@ export const ProfileItem = (props: Props) => {
       />
     </Box>
   );
-};
+});
 
 function parseUrl(url?: string) {
   if (!url) return "";

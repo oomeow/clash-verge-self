@@ -56,6 +56,7 @@
   "Reactivate Profiles": "重新激活订阅",
   "Confirm deletion": "确认删除",
   "This operation is not reversible": "此操作不可逆",
+  "Scripts in different states do not support sorting": "不同状态的脚本不支持排序",
 
   "Location": "当前节点",
   "Delay check": "延迟测试",
