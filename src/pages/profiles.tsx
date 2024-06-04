@@ -46,15 +46,18 @@ import {
   closestCenter,
   useSensor,
   useSensors,
-  TouchSensor,
   MouseSensor,
-  KeyboardSensor,
   DragOverlay,
-  DragStartEvent,
-  DragOverEvent,
   DragEndEvent,
+  DropAnimation,
+  defaultDropAnimationSideEffects,
+  UniqueIdentifier,
 } from "@dnd-kit/core";
-import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
+import {
+  arrayMove,
+  rectSortingStrategy,
+  SortableContext,
+} from "@dnd-kit/sortable";
 import { DraggableProfileItem } from "@/components/profile/draggable-profile-item";
 import { DraggableChainItem } from "@/components/profile/draggable-chain-item";
 import { createPortal } from "react-dom";
@@ -92,24 +95,25 @@ const ProfilePage = () => {
     useSensor(MouseSensor, {
       activationConstraint: { distance: 5 },
     }),
-    useSensor(TouchSensor),
   );
+
+  const [profileList, setProfileList] = useState<ISortableItem[]>([]);
+  const [chainList, setChainList] = useState<ISortableItem[]>([]);
+
+  const [profileIdItems, setProfileIdItems] = useState<UniqueIdentifier[]>([]);
+  const [chainIdItems, setChainIdItems] = useState<UniqueIdentifier[]>([]);
+
+  const dropAnimationConfig: DropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: { active: { opacity: "0.5" } },
+    }),
+  };
 
   const [draggingProfileItem, setDraggingProfileItem] =
     useState<ISortableItem | null>(null);
   const [draggingChainItem, setDraggingChainItem] =
     useState<ISortableItem | null>(null);
   const [overItemWidth, setOverItemWidth] = useState(260);
-
-  const handleProfileDragOver = (event: DragOverEvent) => {
-    const item = regularItems.find((i) => i.id === event.active.id)!;
-    const itemWidth = event.over?.rect.width || 260;
-    setDraggingProfileItem(item);
-    setOverItemWidth(itemWidth);
-  };
-
-  const [profileList, setProfileList] = useState<ISortableItem[]>([]);
-  const [chainList, setChainList] = useState<ISortableItem[]>([]);
 
   // distinguish type
   const { regularItems } = useMemo(() => {
@@ -142,8 +146,21 @@ const ProfilePage = () => {
       .map((i) => restMap[i]!)
       .filter(Boolean)
       .concat(restItems.filter((i) => !chainIds.includes(i.id)));
+
+    // profiles
     setProfileList(regularItems);
+    const profileIdItems = regularItems.map((i) => {
+      return i.id as UniqueIdentifier;
+    });
+    setProfileIdItems(profileIdItems);
+
+    // chains
     setChainList(enhanceItems);
+    const chainIdItems = enhanceItems.map((i) => {
+      return i.id as UniqueIdentifier;
+    });
+    setChainIdItems(chainIdItems);
+
     return { regularItems };
   }, [profiles]);
 
@@ -175,14 +192,41 @@ const ProfilePage = () => {
     };
   }, []);
 
+  const getDraggingIndex = (
+    type: "chain" | "profile",
+    id: UniqueIdentifier | undefined,
+  ) => {
+    if (id) {
+      if (type === "profile") {
+        return profileIdItems.indexOf(id);
+      } else {
+        return chainIdItems.indexOf(id);
+      }
+    } else {
+      return -1;
+    }
+  };
+
+  const draggingProfileIndex = getDraggingIndex(
+    "profile",
+    draggingProfileItem?.id,
+  );
+  const draggingChainIndex = getDraggingIndex("chain", draggingChainItem?.id);
+
   const handleProfileDragEnd = async (event: DragEndEvent) => {
     setDraggingProfileItem(null);
     const { active, over } = event;
     if (over) {
+      const overIndex = getDraggingIndex("profile", over.id);
+      if (draggingProfileIndex !== overIndex) {
+        setProfileIdItems((items) =>
+          arrayMove(items, draggingProfileIndex, overIndex),
+        );
+      }
       const activeId = active.id.toString();
       const overId = over.id.toString();
       if (activeId !== overId) {
-        await reorderProfile(activeId.toString(), overId.toString());
+        reorderProfile(activeId.toString(), overId.toString());
         mutateProfiles();
       }
     }
@@ -192,32 +236,31 @@ const ProfilePage = () => {
     setDraggingChainItem(null);
     const { active, over } = event;
     if (over) {
+      // check it can drag and sort
       const activeItemSelected = active.data.current?.activated;
       const overItemSelected = over.data.current?.activated;
       if (activeItemSelected !== overItemSelected) {
         Notice.error(t("Scripts in different states do not support sorting"));
+        return;
       }
-      if (activeItemSelected && overItemSelected) {
-        const acIndex = chain.findIndex(
-          (item) => item === active.id.toString(),
+      // can drag and sort
+      const overIndex = getDraggingIndex("chain", over.id);
+      if (draggingChainIndex !== overIndex) {
+        const newChainIdItems = arrayMove(
+          chainIdItems,
+          draggingChainIndex,
+          overIndex,
         );
-        const ovIndex = chain.findIndex((item) => item === over.id.toString());
-        const newChain = [...chain];
-        newChain[acIndex] = over.id.toString();
-        newChain[ovIndex] = active.id.toString();
-        const list = newChain.map(
-          (item) => chainList.find((e) => e.id === item)!,
-        );
-        if (list && list.length > 0) {
-          setChainList(list.concat(chainList.filter((e) => !list.includes(e))));
-          await setList(list);
-        }
-      } else {
-        const activeId = active.id.toString();
-        const overId = over.id.toString();
-        if (activeId !== overId) {
-          await reorderProfile(activeId, overId);
-          mutateProfiles();
+        setChainIdItems(newChainIdItems);
+        if (activeItemSelected && overItemSelected) {
+          setActiveChainList(newChainIdItems);
+        } else {
+          const activeId = active.id.toString();
+          const overId = over.id.toString();
+          if (activeId !== overId) {
+            await reorderProfile(activeId, overId);
+            mutateProfiles();
+          }
         }
       }
     }
@@ -271,23 +314,24 @@ const ProfilePage = () => {
     }
   });
 
-  const setList = async (newList: ISortableItem[]) => {
-    const newChain = newList
-      .filter((item) => chain.includes(item.id))
-      .map((item) => item.id);
-    let needUpdate = false;
+  const setActiveChainList = async (newList: UniqueIdentifier[]) => {
+    const newActiveChain = newList
+      .filter((item) => chain.includes(item.toString()))
+      .map((item) => item.toString());
+
+    let needReactive = false;
     for (let index = 0; index < chain.length; index++) {
       const chainId = chain[index];
-      const newChainId = newChain[index];
+      const newChainId = newActiveChain[index];
       if (chainId !== newChainId) {
-        needUpdate = true;
+        needReactive = true;
         break;
       }
     }
-    if (needUpdate && !reactivating) {
+    if (needReactive && !reactivating) {
       try {
         setReactivating(true);
-        await patchProfiles({ chain: newChain });
+        await patchProfiles({ chain: newActiveChain });
         mutateLogs();
         Notice.success("Refresh clash config", 1000);
       } catch (err: any) {
@@ -497,50 +541,63 @@ const ProfilePage = () => {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          // modifiers={[restrictToParentElement]}
-          onDragOver={handleProfileDragOver}
-          onDragEnd={handleProfileDragEnd}>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              width: "calc(100% - 15px)",
-            }}>
-            <SortableContext items={profileList.map((item) => item.id)}>
-              {profileList.map((item) => (
-                <DraggableProfileItem
-                  key={item.id}
-                  id={item.id}
-                  selected={
-                    (activating === "" && profiles.current === item.id) ||
-                    activating === item.id
-                  }
-                  activating={
-                    activating === item.id ||
-                    (profiles.current === item.id && reactivating)
-                  }
-                  itemData={item.profileItem}
-                  onSelect={(f) => onSelect(item.id, f)}
-                  onEdit={() => viewerRef.current?.edit(item.profileItem)}
-                  onReactivate={onEnhance}
-                />
-              ))}
-            </SortableContext>
-            {[...new Array(20)].map((_) => (
-              <i
-                style={{
+          onDragStart={(e) => {
+            const item = profileList.find((i) => i.id === e.active.id)!;
+            setDraggingProfileItem(item);
+          }}
+          onDragOver={(e) => {
+            const itemWidth = e.over?.rect.width || 260;
+            if (itemWidth !== overItemWidth) {
+              setOverItemWidth(itemWidth);
+            }
+          }}
+          onDragEnd={handleProfileDragEnd}
+          onDragCancel={() => setDraggingProfileItem(null)}>
+          <Box sx={{ width: "100%" }}>
+            <SortableContext items={profileIdItems}>
+              <Box
+                sx={{
                   display: "flex",
-                  flexGrow: "1",
-                  margin: "0 5px",
-                  width: "260px",
-                  height: "0",
-                }}></i>
-            ))}
+                  flexWrap: "wrap",
+                  width: "calc(100% - 15px)",
+                }}>
+                {profileIdItems.map((o) => {
+                  const item = profileList.find((i) => i.id === o)!;
+                  return (
+                    <DraggableProfileItem
+                      key={item.id}
+                      id={item.id}
+                      selected={
+                        (activating === "" && profiles.current === item.id) ||
+                        activating === item.id
+                      }
+                      activating={
+                        activating === item.id ||
+                        (profiles.current === item.id && reactivating)
+                      }
+                      itemData={item.profileItem}
+                      onSelect={(f) => onSelect(item.id, f)}
+                      onEdit={() => viewerRef.current?.edit(item.profileItem)}
+                      onReactivate={onEnhance}
+                    />
+                  );
+                })}
+                {[...new Array(20)].map((_) => (
+                  <i
+                    style={{
+                      display: "flex",
+                      flexGrow: "1",
+                      margin: "0 5px",
+                      width: "260px",
+                      height: "0",
+                    }}></i>
+                ))}
+              </Box>
+            </SortableContext>
           </Box>
-          <DragOverlay dropAnimation={null}>
+          <DragOverlay adjustScale dropAnimation={dropAnimationConfig}>
             {draggingProfileItem ? (
               <ProfileItem
-                id={draggingProfileItem.id}
                 sx={{ width: overItemWidth }}
                 selected={
                   (activating === "" &&
@@ -563,100 +620,106 @@ const ProfilePage = () => {
         </DndContext>
 
         {chainList.length > 0 && (
-          <Divider
-            variant="middle"
-            flexItem
-            sx={{
-              width: `calc(100% - 32px)`,
-              my: 1,
-              borderColor: dividercolor,
-            }}>
-            {t("Enhance Scripts")}
-          </Divider>
-        )}
-
-        {chainList.length > 0 && (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragOver={(event) => {
-              const item = chainList.find(
-                (item) => item.id === event.active.id,
-              )!;
-              const itemWidth = event.over?.rect.width || 260;
-              setDraggingChainItem(item);
-              setOverItemWidth(itemWidth);
-            }}
-            onDragCancel={() => {
-              setDraggingChainItem(null);
-            }}
-            onDragEnd={handleChainDragEnd}>
-            <Box
+          <>
+            <Divider
+              variant="middle"
+              flexItem
               sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                width: "calc(100% - 15px)",
+                width: `calc(100% - 32px)`,
+                my: 1,
+                borderColor: dividercolor,
               }}>
-              <SortableContext
-                items={chainList.map((item) => item.id)}
-                strategy={rectSortingStrategy}>
-                {chainList.map((item) => (
-                  <DraggableChainItem
-                    key={item.id}
-                    id={item.id}
-                    selected={!!chain.includes(item.id)}
-                    itemData={item.profileItem}
-                    enableNum={chain.length || 0}
-                    logInfo={chainLogs[item.id]}
-                    reactivating={
-                      !!chain.includes(item.id) &&
-                      (reactivating || activating !== "")
-                    }
-                    onEnable={() => onEnable(item.id)}
-                    onDisable={() => onDisable(item.id)}
-                    onDelete={() => onDelete(item.id)}
-                    onEdit={() => viewerRef.current?.edit(item.profileItem)}
-                    onActivatedSave={onEnhance}
-                  />
-                ))}
-              </SortableContext>
-              {[...new Array(20)].map((_) => (
-                <i
-                  style={{
-                    display: "flex",
-                    flexGrow: "1",
-                    margin: "0 5px",
-                    width: "260px",
-                    height: "0",
-                  }}></i>
-              ))}
-            </Box>
-            {createPortal(
-              <DragOverlay dropAnimation={null}>
-                {draggingChainItem && (
-                  <ProfileMore
-                    selected={!!chain.includes(draggingChainItem.id)}
-                    itemData={draggingChainItem.profileItem}
-                    sx={{ width: overItemWidth }}
-                    enableNum={chain.length || 0}
-                    logInfo={chainLogs[draggingChainItem.id]}
-                    reactivating={
-                      !!chain.includes(draggingChainItem.id) &&
-                      (reactivating || activating !== "")
-                    }
-                    onEnable={() => onEnable(draggingChainItem.id)}
-                    onDisable={() => onDisable(draggingChainItem.id)}
-                    onDelete={() => onDelete(draggingChainItem.id)}
-                    onEdit={() =>
-                      viewerRef.current?.edit(draggingChainItem.profileItem)
-                    }
-                    onActivatedSave={onEnhance}
-                  />
-                )}
-              </DragOverlay>,
-              document.body,
-            )}
-          </DndContext>
+              {t("Enhance Scripts")}
+            </Divider>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={(e) => {
+                const item = chainList.find((item) => item.id === e.active.id)!;
+                setDraggingChainItem(item);
+              }}
+              onDragOver={(event) => {
+                const itemWidth = event.over?.rect.width || 260;
+                if (itemWidth !== overItemWidth) {
+                  setOverItemWidth(itemWidth);
+                }
+              }}
+              onDragEnd={handleChainDragEnd}
+              onDragCancel={() => setDraggingChainItem(null)}>
+              <Box sx={{ width: "100%" }}>
+                <SortableContext
+                  items={chainIdItems}
+                  strategy={rectSortingStrategy}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      width: "calc(100% - 15px)",
+                    }}>
+                    {chainIdItems.map((o) => {
+                      const item = chainList.find((item) => item.id === o)!;
+                      return (
+                        <DraggableChainItem
+                          key={item.id}
+                          id={item.id}
+                          selected={!!chain.includes(item.id)}
+                          itemData={item.profileItem}
+                          enableNum={chain.length || 0}
+                          logInfo={chainLogs[item.id]}
+                          reactivating={
+                            !!chain.includes(item.id) &&
+                            (reactivating || activating !== "")
+                          }
+                          onEnable={() => onEnable(item.id)}
+                          onDisable={() => onDisable(item.id)}
+                          onDelete={() => onDelete(item.id)}
+                          onEdit={() =>
+                            viewerRef.current?.edit(item.profileItem)
+                          }
+                          onActivatedSave={onEnhance}
+                        />
+                      );
+                    })}
+                    {[...new Array(20)].map((_) => (
+                      <i
+                        style={{
+                          display: "flex",
+                          flexGrow: "1",
+                          margin: "0 5px",
+                          width: "260px",
+                          height: "0",
+                        }}></i>
+                    ))}
+                  </Box>
+                </SortableContext>
+              </Box>
+              {createPortal(
+                <DragOverlay adjustScale dropAnimation={dropAnimationConfig}>
+                  {draggingChainItem ? (
+                    <ProfileMore
+                      selected={!!chain.includes(draggingChainItem.id)}
+                      itemData={draggingChainItem.profileItem}
+                      sx={{ width: overItemWidth }}
+                      enableNum={chain.length || 0}
+                      logInfo={chainLogs[draggingChainItem.id]}
+                      reactivating={
+                        !!chain.includes(draggingChainItem.id) &&
+                        (reactivating || activating !== "")
+                      }
+                      onEnable={() => onEnable(draggingChainItem.id)}
+                      onDisable={() => onDisable(draggingChainItem.id)}
+                      onDelete={() => onDelete(draggingChainItem.id)}
+                      onEdit={() =>
+                        viewerRef.current?.edit(draggingChainItem.profileItem)
+                      }
+                      onActivatedSave={onEnhance}
+                    />
+                  ) : null}
+                </DragOverlay>,
+                document.body,
+              )}
+            </DndContext>
+          </>
         )}
       </Box>
       <ProfileViewer ref={viewerRef} onChange={() => mutateProfiles()} />

@@ -37,7 +37,6 @@ const round = keyframes`
 `;
 
 interface Props {
-  id: string;
   sx?: SxProps;
   selected: boolean;
   activating: boolean;
