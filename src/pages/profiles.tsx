@@ -59,9 +59,8 @@ import {
   rectSortingStrategy,
   SortableContext,
 } from "@dnd-kit/sortable";
-import { DraggableProfileItem } from "@/components/profile/draggable-profile-item";
-import { DraggableChainItem } from "@/components/profile/draggable-chain-item";
 import { createPortal } from "react-dom";
+import { DraggableItem } from "@/components/profile/draggable-item";
 
 interface ISortableItem {
   id: string;
@@ -255,6 +254,8 @@ const ProfilePage = () => {
           overIndex,
         );
         setChainList(newChainList);
+        console.log("activeItemSelected", activeItemSelected);
+        console.log("overItemSelected", overItemSelected);
         if (activeItemSelected && overItemSelected) {
           setActiveChainList(newChainList);
         } else {
@@ -318,9 +319,11 @@ const ProfilePage = () => {
   });
 
   const setActiveChainList = async (newList: ISortableItem[]) => {
+    console.log("newList", newList);
     const newActiveChain = newList
       .filter((item) => chain.includes(item.id))
       .map((item) => item.id);
+    console.log("newActiveChain", newActiveChain);
     let needReactive = false;
     for (let index = 0; index < chain.length; index++) {
       const chainId = chain[index];
@@ -330,6 +333,7 @@ const ProfilePage = () => {
         break;
       }
     }
+    console.log("needReactive", needReactive);
     if (needReactive && !reactivating) {
       try {
         setReactivating(true);
@@ -547,10 +551,13 @@ const ProfilePage = () => {
             const item = profileList.find((i) => i.id === e.active.id)!;
             setDraggingProfileItem(item);
           }}
-          onDragOver={(e) => {
-            const itemWidth = e.over?.rect.width || 260;
-            if (itemWidth !== overItemWidth) {
-              setOverItemWidth(itemWidth);
+          onDragOver={(event) => {
+            const { over } = event;
+            if (over) {
+              const itemWidth = event.over?.rect.width;
+              if (itemWidth && itemWidth !== overItemWidth) {
+                setOverItemWidth(itemWidth);
+              }
             }
           }}
           onDragEnd={handleProfileDragEnd}
@@ -559,31 +566,51 @@ const ProfilePage = () => {
             <SortableContext items={profileList.map((item) => item.id)}>
               <Box sx={{ display: "flex", flexWrap: "wrap", mr: "5px" }}>
                 {profileList.map((item) => (
-                  <DraggableProfileItem
+                  <DraggableItem
                     key={item.id}
                     id={item.id}
-                    selected={
-                      (activating === "" && profiles.current === item.id) ||
-                      activating === item.id
-                    }
-                    activating={
-                      activating === item.id ||
-                      (profiles.current === item.id && reactivating)
-                    }
-                    itemData={item.profileItem}
-                    onSelect={(f) => onSelect(item.id, f)}
-                    onEdit={() => viewerRef.current?.edit(item.profileItem)}
-                    onReactivate={onEnhance}
-                  />
+                    sx={{
+                      display: "flex",
+                      flexGrow: 1,
+                      width: "260px",
+                      margin: "5px",
+                    }}>
+                    <ProfileItem
+                      sx={{
+                        "& > .MuiBox-root": {
+                          bgcolor:
+                            draggingProfileItem?.id === item.id
+                              ? "var(--background-color-alpha)"
+                              : "",
+                        },
+                      }}
+                      selected={
+                        (activating === "" && profiles.current === item.id) ||
+                        activating === item.id
+                      }
+                      activating={
+                        activating === item.id ||
+                        (profiles.current === item.id && reactivating)
+                      }
+                      itemData={item.profileItem}
+                      onSelect={(f) => onSelect(item.id, f)}
+                      onEdit={() => viewerRef.current?.edit(item.profileItem)}
+                      onReactivate={onEnhance}
+                    />
+                  </DraggableItem>
                 ))}
                 <FlexDecorationItems />
               </Box>
             </SortableContext>
           </Box>
-          <DragOverlay adjustScale dropAnimation={dropAnimationConfig}>
+          <DragOverlay dropAnimation={dropAnimationConfig}>
             {draggingProfileItem ? (
               <ProfileItem
-                sx={{ width: overItemWidth }}
+                sx={{
+                  width: overItemWidth,
+                  borderRadius: "8px",
+                  boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
+                }}
                 selected={
                   (activating === "" &&
                     profiles.current === draggingProfileItem.id) ||
@@ -624,9 +651,12 @@ const ProfilePage = () => {
                 setDraggingChainItem(item);
               }}
               onDragOver={(event) => {
-                const itemWidth = event.over?.rect.width || 260;
-                if (itemWidth !== overItemWidth) {
-                  setOverItemWidth(itemWidth);
+                const { over } = event;
+                if (over) {
+                  const itemWidth = event.over?.rect.width;
+                  if (itemWidth && itemWidth !== overItemWidth) {
+                    setOverItemWidth(itemWidth);
+                  }
                 }
               }}
               onDragEnd={handleChainDragEnd}
@@ -637,35 +667,61 @@ const ProfilePage = () => {
                   strategy={rectSortingStrategy}>
                   <Box sx={{ display: "flex", flexWrap: "wrap", mr: "5px" }}>
                     {chainList.map((item) => (
-                      <DraggableChainItem
+                      <DraggableItem
                         key={item.id}
                         id={item.id}
-                        selected={!!chain.includes(item.id)}
-                        itemData={item.profileItem}
-                        enableNum={chain.length || 0}
-                        logInfo={chainLogs[item.id]}
-                        reactivating={
-                          !!chain.includes(item.id) &&
-                          (reactivating || activating !== "")
-                        }
-                        onEnable={() => onEnable(item.id)}
-                        onDisable={() => onDisable(item.id)}
-                        onDelete={() => onDelete(item.id)}
-                        onEdit={() => viewerRef.current?.edit(item.profileItem)}
-                        onActivatedSave={onEnhance}
-                      />
+                        data={{
+                          activated: !!chain.includes(item.id),
+                        }}
+                        sx={{
+                          display: "flex",
+                          flexGrow: 1,
+                          width: "260px",
+                          margin: "5px",
+                          borderRadius: "8px",
+                        }}>
+                        <ProfileMore
+                          sx={{
+                            "& > .MuiBox-root": {
+                              bgcolor:
+                                draggingChainItem?.id === item.id
+                                  ? "var(--background-color-alpha)"
+                                  : "",
+                            },
+                          }}
+                          selected={!!chain.includes(item.id)}
+                          itemData={item.profileItem}
+                          enableNum={chain.length || 0}
+                          logInfo={chainLogs[item.id]}
+                          reactivating={
+                            !!chain.includes(item.id) &&
+                            (reactivating || activating !== "")
+                          }
+                          onEnable={() => onEnable(item.id)}
+                          onDisable={() => onDisable(item.id)}
+                          onDelete={() => onDelete(item.id)}
+                          onEdit={() =>
+                            viewerRef.current?.edit(item.profileItem)
+                          }
+                          onActivatedSave={onEnhance}
+                        />
+                      </DraggableItem>
                     ))}
                     <FlexDecorationItems />
                   </Box>
                 </SortableContext>
               </Box>
               {createPortal(
-                <DragOverlay adjustScale dropAnimation={dropAnimationConfig}>
+                <DragOverlay dropAnimation={dropAnimationConfig}>
                   {draggingChainItem ? (
                     <ProfileMore
                       selected={!!chain.includes(draggingChainItem.id)}
                       itemData={draggingChainItem.profileItem}
-                      sx={{ width: overItemWidth }}
+                      sx={{
+                        width: overItemWidth,
+                        borderRadius: "8px",
+                        boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
+                      }}
                       enableNum={chain.length || 0}
                       logInfo={chainLogs[draggingChainItem.id]}
                       reactivating={

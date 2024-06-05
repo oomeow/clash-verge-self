@@ -21,9 +21,6 @@ import { LogViewer } from "./log-viewer";
 import { ConfirmViewer } from "./confirm-viewer";
 import JSIcon from "@/assets/image/js.svg?react";
 import YamlIcon from "@/assets/image/yaml.svg?react";
-import { CSS, Transform } from "@dnd-kit/utilities";
-import { DraggableAttributes } from "@dnd-kit/core";
-import { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 interface Props {
   sx?: SxProps;
@@ -32,11 +29,6 @@ interface Props {
   enableNum: number;
   logInfo?: [string, string][];
   reactivating: boolean;
-  attributes?: DraggableAttributes;
-  listeners?: SyntheticListenerMap;
-  transform?: Transform | null;
-  isDragging?: boolean;
-  transition?: string;
   onEnable: () => Promise<void>;
   onDisable: () => Promise<void>;
   onDelete: () => Promise<void>;
@@ -53,11 +45,6 @@ export const ProfileMore = forwardRef((props: Props, ref) => {
     enableNum,
     logInfo = [],
     reactivating,
-    attributes,
-    listeners,
-    transform,
-    isDragging,
-    transition,
     onEnable,
     onDisable,
     onDelete,
@@ -152,25 +139,8 @@ export const ProfileMore = forwardRef((props: Props, ref) => {
   };
 
   return (
-    <Box
-      ref={ref}
-      className={selected ? "enable-enhanced-item" : ""}
-      sx={{
-        display: "flex",
-        flexGrow: "1",
-        margin: "5px",
-        width: "260px",
-        // zIndex: isDragging ? 9999 : 1,
-        transform: CSS.Transform.toString(transform ?? null),
-        transition,
-        ...sx,
-      }}
-      {...attributes}
-      {...listeners}>
+    <Box sx={{ width: "100%", ...sx }}>
       <ProfileBox
-        sx={{
-          bgcolor: isDragging ? "var(--background-color-alpha)" : "",
-        }}
         aria-selected={selected}
         onDoubleClick={onEditFile}
         // onClick={() => onSelect(false)}

@@ -27,9 +27,6 @@ import { ProfileBox } from "./profile-box";
 import parseTraffic from "@/utils/parse-traffic";
 import { ConfirmViewer } from "./confirm-viewer";
 import { open } from "@tauri-apps/api/shell";
-import { CSS, Transform } from "@dnd-kit/utilities";
-import { DraggableAttributes } from "@dnd-kit/core";
-import { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 const round = keyframes`
   from { transform: rotate(0deg); }
@@ -41,31 +38,14 @@ interface Props {
   selected: boolean;
   activating: boolean;
   itemData: IProfileItem;
-  attributes?: DraggableAttributes;
-  listeners?: SyntheticListenerMap;
-  transform?: Transform | null;
-  isDragging?: boolean;
-  transition?: string;
   onSelect: (force: boolean) => void;
   onEdit: () => void;
   onReactivate: () => void;
 }
 
 export const ProfileItem = forwardRef((props: Props, ref) => {
-  const {
-    sx,
-    selected,
-    activating,
-    itemData,
-    attributes,
-    listeners,
-    transform,
-    isDragging,
-    transition,
-    onSelect,
-    onEdit,
-    onReactivate,
-  } = props;
+  const { sx, selected, activating, itemData, onSelect, onEdit, onReactivate } =
+    props;
 
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<any>(null);
@@ -235,24 +215,8 @@ export const ProfileItem = forwardRef((props: Props, ref) => {
   };
 
   return (
-    <Box
-      ref={ref}
-      sx={{
-        display: "flex",
-        flexGrow: "1",
-        margin: "5px",
-        width: "260px",
-        // zIndex: isDragging ? 9999 : 1,
-        transform: CSS.Transform.toString(transform ?? null),
-        transition,
-        ...sx,
-      }}
-      {...attributes}
-      {...listeners}>
+    <Box sx={{ width: "100%", ...sx }}>
       <ProfileBox
-        sx={{
-          bgcolor: isDragging ? "var(--background-color-alpha)" : "",
-        }}
         aria-selected={selected}
         onMouseEnter={() => {
           setSideBtnShow(true);
