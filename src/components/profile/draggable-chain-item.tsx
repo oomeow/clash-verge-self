@@ -1,7 +1,5 @@
-import { ProfileItem } from "@/components/profile/profile-item";
 import { ProfileMore } from "@/components/profile/profile-more";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 interface Props {
   id: string;
