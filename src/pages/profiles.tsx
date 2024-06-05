@@ -100,9 +100,6 @@ const ProfilePage = () => {
   const [profileList, setProfileList] = useState<ISortableItem[]>([]);
   const [chainList, setChainList] = useState<ISortableItem[]>([]);
 
-  const [profileIdItems, setProfileIdItems] = useState<UniqueIdentifier[]>([]);
-  const [chainIdItems, setChainIdItems] = useState<UniqueIdentifier[]>([]);
-
   const dropAnimationConfig: DropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
       styles: { active: { opacity: "0.5" } },
@@ -146,21 +143,10 @@ const ProfilePage = () => {
       .map((i) => restMap[i]!)
       .filter(Boolean)
       .concat(restItems.filter((i) => !chainIds.includes(i.id)));
-
     // profiles
     setProfileList(regularItems);
-    const profileIdItems = regularItems.map((i) => {
-      return i.id as UniqueIdentifier;
-    });
-    setProfileIdItems(profileIdItems);
-
     // chains
     setChainList(enhanceItems);
-    const chainIdItems = enhanceItems.map((i) => {
-      return i.id as UniqueIdentifier;
-    });
-    setChainIdItems(chainIdItems);
-
     return { regularItems };
   }, [profiles]);
 
@@ -198,9 +184,9 @@ const ProfilePage = () => {
   ) => {
     if (id) {
       if (type === "profile") {
-        return profileIdItems.indexOf(id);
+        return profileList.findIndex((item) => item.id === id);
       } else {
-        return chainIdItems.indexOf(id);
+        return chainList.findIndex((item) => item.id === id);
       }
     } else {
       return -1;
@@ -219,7 +205,7 @@ const ProfilePage = () => {
     if (over) {
       const overIndex = getDraggingIndex("profile", over.id);
       if (draggingProfileIndex !== overIndex) {
-        setProfileIdItems((items) =>
+        setProfileList((items) =>
           arrayMove(items, draggingProfileIndex, overIndex),
         );
       }
@@ -246,14 +232,14 @@ const ProfilePage = () => {
       // can drag and sort
       const overIndex = getDraggingIndex("chain", over.id);
       if (draggingChainIndex !== overIndex) {
-        const newChainIdItems = arrayMove(
-          chainIdItems,
+        const newChainList = arrayMove(
+          chainList,
           draggingChainIndex,
           overIndex,
         );
-        setChainIdItems(newChainIdItems);
+        setChainList(newChainList);
         if (activeItemSelected && overItemSelected) {
-          setActiveChainList(newChainIdItems);
+          setActiveChainList(newChainList);
         } else {
           const activeId = active.id.toString();
           const overId = over.id.toString();
@@ -314,11 +300,10 @@ const ProfilePage = () => {
     }
   });
 
-  const setActiveChainList = async (newList: UniqueIdentifier[]) => {
+  const setActiveChainList = async (newList: ISortableItem[]) => {
     const newActiveChain = newList
-      .filter((item) => chain.includes(item.toString()))
-      .map((item) => item.toString());
-
+      .filter((item) => chain.includes(item.id))
+      .map((item) => item.id);
     let needReactive = false;
     for (let index = 0; index < chain.length; index++) {
       const chainId = chain[index];
@@ -554,34 +539,31 @@ const ProfilePage = () => {
           onDragEnd={handleProfileDragEnd}
           onDragCancel={() => setDraggingProfileItem(null)}>
           <Box sx={{ width: "100%" }}>
-            <SortableContext items={profileIdItems}>
+            <SortableContext items={profileList.map((item) => item.id)}>
               <Box
                 sx={{
                   display: "flex",
                   flexWrap: "wrap",
                   width: "calc(100% - 15px)",
                 }}>
-                {profileIdItems.map((o) => {
-                  const item = profileList.find((i) => i.id === o)!;
-                  return (
-                    <DraggableProfileItem
-                      key={item.id}
-                      id={item.id}
-                      selected={
-                        (activating === "" && profiles.current === item.id) ||
-                        activating === item.id
-                      }
-                      activating={
-                        activating === item.id ||
-                        (profiles.current === item.id && reactivating)
-                      }
-                      itemData={item.profileItem}
-                      onSelect={(f) => onSelect(item.id, f)}
-                      onEdit={() => viewerRef.current?.edit(item.profileItem)}
-                      onReactivate={onEnhance}
-                    />
-                  );
-                })}
+                {profileList.map((item) => (
+                  <DraggableProfileItem
+                    key={item.id}
+                    id={item.id}
+                    selected={
+                      (activating === "" && profiles.current === item.id) ||
+                      activating === item.id
+                    }
+                    activating={
+                      activating === item.id ||
+                      (profiles.current === item.id && reactivating)
+                    }
+                    itemData={item.profileItem}
+                    onSelect={(f) => onSelect(item.id, f)}
+                    onEdit={() => viewerRef.current?.edit(item.profileItem)}
+                    onReactivate={onEnhance}
+                  />
+                ))}
                 {[...new Array(20)].map((_) => (
                   <i
                     style={{
@@ -648,7 +630,7 @@ const ProfilePage = () => {
               onDragCancel={() => setDraggingChainItem(null)}>
               <Box sx={{ width: "100%" }}>
                 <SortableContext
-                  items={chainIdItems}
+                  items={chainList.map((item) => item.id)}
                   strategy={rectSortingStrategy}>
                   <Box
                     sx={{
@@ -656,30 +638,25 @@ const ProfilePage = () => {
                       flexWrap: "wrap",
                       width: "calc(100% - 15px)",
                     }}>
-                    {chainIdItems.map((o) => {
-                      const item = chainList.find((item) => item.id === o)!;
-                      return (
-                        <DraggableChainItem
-                          key={item.id}
-                          id={item.id}
-                          selected={!!chain.includes(item.id)}
-                          itemData={item.profileItem}
-                          enableNum={chain.length || 0}
-                          logInfo={chainLogs[item.id]}
-                          reactivating={
-                            !!chain.includes(item.id) &&
-                            (reactivating || activating !== "")
-                          }
-                          onEnable={() => onEnable(item.id)}
-                          onDisable={() => onDisable(item.id)}
-                          onDelete={() => onDelete(item.id)}
-                          onEdit={() =>
-                            viewerRef.current?.edit(item.profileItem)
-                          }
-                          onActivatedSave={onEnhance}
-                        />
-                      );
-                    })}
+                    {chainList.map((item) => (
+                      <DraggableChainItem
+                        key={item.id}
+                        id={item.id}
+                        selected={!!chain.includes(item.id)}
+                        itemData={item.profileItem}
+                        enableNum={chain.length || 0}
+                        logInfo={chainLogs[item.id]}
+                        reactivating={
+                          !!chain.includes(item.id) &&
+                          (reactivating || activating !== "")
+                        }
+                        onEnable={() => onEnable(item.id)}
+                        onDisable={() => onDisable(item.id)}
+                        onDelete={() => onDelete(item.id)}
+                        onEdit={() => viewerRef.current?.edit(item.profileItem)}
+                        onActivatedSave={onEnhance}
+                      />
+                    ))}
                     {[...new Array(20)].map((_) => (
                       <i
                         style={{
