@@ -678,7 +678,6 @@ const ProfilePage = () => {
                           flexGrow: 1,
                           width: "260px",
                           margin: "5px",
-                          borderRadius: "8px",
                         }}>
                         <ProfileMore
                           sx={{
