@@ -1,5 +1,5 @@
 import useSWR, { mutate } from "swr";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useLockFn } from "ahooks";
 import { useSetRecoilState } from "recoil";
 import { Box, Button, IconButton, Stack, Divider } from "@mui/material";
@@ -67,6 +67,19 @@ interface ISortableItem {
   id: string;
   profileItem: IProfileItem;
 }
+
+const FlexDecorationItems = memo(function FlexDecoratorItems() {
+  return [...new Array(20)].map((_) => (
+    <i
+      style={{
+        display: "flex",
+        flexGrow: "1",
+        margin: "0 5px",
+        width: "260px",
+        height: "0",
+      }}></i>
+  ));
+});
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -544,12 +557,7 @@ const ProfilePage = () => {
           onDragCancel={() => setDraggingProfileItem(null)}>
           <Box sx={{ width: "100%" }}>
             <SortableContext items={profileList.map((item) => item.id)}>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  width: "calc(100% - 15px)",
-                }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", mx: "5px" }}>
                 {profileList.map((item) => (
                   <DraggableProfileItem
                     key={item.id}
@@ -568,16 +576,7 @@ const ProfilePage = () => {
                     onReactivate={onEnhance}
                   />
                 ))}
-                {[...new Array(20)].map((_) => (
-                  <i
-                    style={{
-                      display: "flex",
-                      flexGrow: "1",
-                      margin: "0 5px",
-                      width: "260px",
-                      height: "0",
-                    }}></i>
-                ))}
+                <FlexDecorationItems />
               </Box>
             </SortableContext>
           </Box>
@@ -636,12 +635,7 @@ const ProfilePage = () => {
                 <SortableContext
                   items={chainList.map((item) => item.id)}
                   strategy={rectSortingStrategy}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      width: "calc(100% - 15px)",
-                    }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", mx: "5px" }}>
                     {chainList.map((item) => (
                       <DraggableChainItem
                         key={item.id}
@@ -661,16 +655,7 @@ const ProfilePage = () => {
                         onActivatedSave={onEnhance}
                       />
                     ))}
-                    {[...new Array(20)].map((_) => (
-                      <i
-                        style={{
-                          display: "flex",
-                          flexGrow: "1",
-                          margin: "0 5px",
-                          width: "260px",
-                          height: "0",
-                        }}></i>
-                    ))}
+                    <FlexDecorationItems />
                   </Box>
                 </SortableContext>
               </Box>
