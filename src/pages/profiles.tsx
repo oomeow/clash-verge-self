@@ -52,6 +52,7 @@ import {
   DropAnimation,
   defaultDropAnimationSideEffects,
   UniqueIdentifier,
+  TouchSensor,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -93,7 +94,10 @@ const ProfilePage = () => {
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
-      activationConstraint: { distance: 5 },
+      activationConstraint: { delay: 250, distance: 3, tolerance: 10 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, distance: 3, tolerance: 10 },
     }),
   );
 
