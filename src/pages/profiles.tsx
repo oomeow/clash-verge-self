@@ -557,7 +557,7 @@ const ProfilePage = () => {
           onDragCancel={() => setDraggingProfileItem(null)}>
           <Box sx={{ width: "100%" }}>
             <SortableContext items={profileList.map((item) => item.id)}>
-              <Box sx={{ display: "flex", flexWrap: "wrap", mx: "5px" }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", mr: "5px" }}>
                 {profileList.map((item) => (
                   <DraggableProfileItem
                     key={item.id}
@@ -635,7 +635,7 @@ const ProfilePage = () => {
                 <SortableContext
                   items={chainList.map((item) => item.id)}
                   strategy={rectSortingStrategy}>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", mx: "5px" }}>
+                  <Box sx={{ display: "flex", flexWrap: "wrap", mr: "5px" }}>
                     {chainList.map((item) => (
                       <DraggableChainItem
                         key={item.id}
