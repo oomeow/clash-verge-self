@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { mutate } from "swr";
-import { forwardRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLockFn } from "ahooks";
 import { useRecoilState } from "recoil";
 import { useTranslation } from "react-i18next";
@@ -43,7 +43,7 @@ interface Props {
   onReactivate: () => void;
 }
 
-export const ProfileItem = forwardRef((props: Props, ref) => {
+export const ProfileItem = (props: Props) => {
   const { sx, selected, activating, itemData, onSelect, onEdit, onReactivate } =
     props;
 
@@ -436,7 +436,7 @@ export const ProfileItem = forwardRef((props: Props, ref) => {
       />
     </Box>
   );
-});
+};
 
 function parseUrl(url?: string) {
   if (!url) return "";

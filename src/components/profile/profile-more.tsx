@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { forwardRef, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLockFn } from "ahooks";
 import {
@@ -37,7 +37,7 @@ interface Props {
 }
 
 // profile enhanced item
-export const ProfileMore = forwardRef((props: Props, ref) => {
+export const ProfileMore = (props: Props) => {
   const {
     sx,
     selected,
@@ -290,7 +290,7 @@ export const ProfileMore = forwardRef((props: Props, ref) => {
       )}
     </Box>
   );
-});
+};
 
 function parseExpire(expire?: number) {
   if (!expire) return "-";
