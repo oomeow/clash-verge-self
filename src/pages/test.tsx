@@ -159,6 +159,7 @@ const TestPage = () => {
     <BasePage
       full
       title={t("Test")}
+      contentStyle={{ height: "100%" }}
       header={
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Button
@@ -175,12 +176,19 @@ const TestPage = () => {
           </Button>
         </Box>
       }>
-      <Box sx={{ pt: 1.25, mb: 0.5, px: "10px" }}>
+      <Box
+        sx={{
+          pt: 1.25,
+          mb: 0.5,
+          px: "10px",
+          height: "100%",
+          overflow: "auto",
+        }}>
         <DndContext
           sensors={sensors}
-          onDragStart={(e) => {
+          onDragStart={(event) => {
             const item = sortableTestList.find(
-              (item) => item.id === e.active.id,
+              (item) => item.id === event.active.id,
             )!;
             setDraggingTestItem(item);
           }}

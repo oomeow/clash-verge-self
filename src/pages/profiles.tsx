@@ -547,8 +547,8 @@ const ProfilePage = () => {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          onDragStart={(e) => {
-            const item = profileList.find((i) => i.id === e.active.id)!;
+          onDragStart={(event) => {
+            const item = profileList.find((i) => i.id === event.active.id)!;
             setDraggingProfileItem(item);
           }}
           onDragOver={(event) => {
@@ -646,8 +646,10 @@ const ProfilePage = () => {
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
-              onDragStart={(e) => {
-                const item = chainList.find((item) => item.id === e.active.id)!;
+              onDragStart={(event) => {
+                const item = chainList.find(
+                  (item) => item.id === event.active.id,
+                )!;
                 setDraggingChainItem(item);
               }}
               onDragOver={(event) => {
