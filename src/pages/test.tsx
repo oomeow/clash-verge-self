@@ -186,12 +186,7 @@ const TestPage = () => {
         }}>
         <DndContext
           sensors={sensors}
-          onDragStart={(event) => {
-            const item = sortableTestList.find(
-              (item) => item.id === event.active.id,
-            )!;
-            setDraggingTestItem(item);
-          }}
+          // onDragStart={(event) => {}}
           onDragOver={(event) => {
             const { over } = event;
             if (over) {
@@ -199,6 +194,10 @@ const TestPage = () => {
               if (itemWidth && itemWidth !== overItemWidth) {
                 setOverItemWidth(itemWidth);
               }
+              const item = sortableTestList.find(
+                (item) => item.id === event.active.id,
+              )!;
+              setDraggingTestItem(item);
             }
           }}
           onDragEnd={handleChainDragEnd}

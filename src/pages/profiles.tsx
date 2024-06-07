@@ -547,10 +547,7 @@ const ProfilePage = () => {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          onDragStart={(event) => {
-            const item = profileList.find((i) => i.id === event.active.id)!;
-            setDraggingProfileItem(item);
-          }}
+          // onDragStart={(event) => {}}
           onDragOver={(event) => {
             const { over } = event;
             if (over) {
@@ -558,6 +555,8 @@ const ProfilePage = () => {
               if (itemWidth && itemWidth !== overItemWidth) {
                 setOverItemWidth(itemWidth);
               }
+              const item = profileList.find((i) => i.id === event.active.id)!;
+              setDraggingProfileItem(item);
             }
           }}
           onDragEnd={handleProfileDragEnd}
@@ -646,12 +645,7 @@ const ProfilePage = () => {
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
-              onDragStart={(event) => {
-                const item = chainList.find(
-                  (item) => item.id === event.active.id,
-                )!;
-                setDraggingChainItem(item);
-              }}
+              // onDragStart={(event) => {}}
               onDragOver={(event) => {
                 const { over } = event;
                 if (over) {
@@ -659,6 +653,10 @@ const ProfilePage = () => {
                   if (itemWidth && itemWidth !== overItemWidth) {
                     setOverItemWidth(itemWidth);
                   }
+                  const item = chainList.find(
+                    (item) => item.id === event.active.id,
+                  )!;
+                  setDraggingChainItem(item);
                 }
               }}
               onDragEnd={handleChainDragEnd}
