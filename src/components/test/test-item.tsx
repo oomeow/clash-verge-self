@@ -22,6 +22,7 @@ import { convertFileSrc } from "@tauri-apps/api/tauri";
 
 interface Props {
   id: string;
+  isDragging?: boolean;
   sx?: SxProps;
   itemData: IVergeTestItem;
   onEdit: () => void;
@@ -31,10 +32,13 @@ interface Props {
 let eventListener: UnlistenFn | null = null;
 
 export const TestItem = (props: Props) => {
-  const { sx, itemData, onEdit, onDelete: onDeleteItem } = props;
+  const { isDragging, sx, itemData, onEdit, onDelete: onDeleteItem } = props;
 
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<any>(null);
+  if (anchorEl && isDragging) {
+    setAnchorEl(null);
+  }
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const [delay, setDelay] = useState(-1);
   const { uid, name, icon, url } = itemData;

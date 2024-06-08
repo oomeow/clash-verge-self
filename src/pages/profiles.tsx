@@ -60,7 +60,7 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
-import { DraggableItem } from "@/components/profile/draggable-item";
+import { DraggableItem } from "@/components/base/draggable-item";
 
 interface ISortableItem {
   id: string;
@@ -587,6 +587,7 @@ const ProfilePage = () => {
                         (activating === "" && profiles.current === item.id) ||
                         activating === item.id
                       }
+                      isDragging={draggingProfileItem ? true : false}
                       activating={
                         activating === item.id ||
                         (profiles.current === item.id && reactivating)
@@ -689,6 +690,7 @@ const ProfilePage = () => {
                             },
                           }}
                           selected={!!chain.includes(item.id)}
+                          isDragging={draggingChainItem ? true : false}
                           itemData={item.profileItem}
                           enableNum={chain.length || 0}
                           logInfo={chainLogs[item.id]}

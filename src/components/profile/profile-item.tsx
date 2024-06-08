@@ -36,6 +36,7 @@ const round = keyframes`
 interface Props {
   sx?: SxProps;
   selected: boolean;
+  isDragging?: boolean;
   activating: boolean;
   itemData: IProfileItem;
   onSelect: (force: boolean) => void;
@@ -44,11 +45,22 @@ interface Props {
 }
 
 export const ProfileItem = (props: Props) => {
-  const { sx, selected, activating, itemData, onSelect, onEdit, onReactivate } =
-    props;
+  const {
+    sx,
+    selected,
+    isDragging,
+    activating,
+    itemData,
+    onSelect,
+    onEdit,
+    onReactivate,
+  } = props;
 
   const { t } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<any>(null);
+  if (anchorEl && isDragging) {
+    setAnchorEl(null);
+  }
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const [loadingCache, setLoadingCache] = useRecoilState(atomLoadingCache);
   const [sideBtnShow, setSideBtnShow] = useState(false);

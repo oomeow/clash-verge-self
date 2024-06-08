@@ -19,7 +19,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
-import { DraggableItem } from "@/components/profile/draggable-item";
+import { DraggableItem } from "@/components/base/draggable-item";
 import { createPortal } from "react-dom";
 
 interface ISortableItem {
@@ -225,6 +225,7 @@ const TestPage = () => {
                         },
                       }}
                       id={item.id}
+                      isDragging={draggingTestItem ? true : false}
                       itemData={item.itemData}
                       onEdit={() => viewerRef.current?.edit(item.itemData)}
                       onDelete={onDeleteTestListItem}

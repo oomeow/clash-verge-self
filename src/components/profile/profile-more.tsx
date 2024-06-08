@@ -25,6 +25,7 @@ import YamlIcon from "@/assets/image/yaml.svg?react";
 interface Props {
   sx?: SxProps;
   selected: boolean;
+  isDragging?: boolean;
   itemData: IProfileItem;
   enableNum: number;
   logInfo?: [string, string][];
@@ -41,6 +42,7 @@ export const ProfileMore = (props: Props) => {
   const {
     sx,
     selected,
+    isDragging,
     itemData,
     enableNum,
     logInfo = [],
@@ -55,6 +57,9 @@ export const ProfileMore = (props: Props) => {
   const { uid, type } = itemData;
   const { t, i18n } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<any>(null);
+  if (anchorEl && isDragging) {
+    setAnchorEl(null);
+  }
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const [fileOpen, setFileOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
