@@ -7,9 +7,9 @@ import {
   Divider,
   MenuItem,
   Menu,
-  styled,
   alpha,
   SxProps,
+  styled,
 } from "@mui/material";
 import { BaseLoading } from "@/components/base";
 import { LanguageTwoTone } from "@mui/icons-material";
@@ -17,7 +17,7 @@ import { Notice } from "@/components/base";
 import { TestBox } from "./test-box";
 import delayManager from "@/services/delay";
 import { cmdTestDelay, downloadIconCache } from "@/services/cmds";
-import { listen, UnlistenFn } from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 
 interface Props {
@@ -28,8 +28,6 @@ interface Props {
   onEdit: () => void;
   onDelete: (uid: string) => void;
 }
-
-let eventListener: UnlistenFn | null = null;
 
 export const TestItem = (props: Props) => {
   const { isDragging, sx, itemData, onEdit, onDelete: onDeleteItem } = props;
@@ -85,17 +83,14 @@ export const TestItem = (props: Props) => {
     { label: "Delete", handler: onDelete },
   ];
 
-  const listenTsetEvent = async () => {
-    if (eventListener !== null) {
-      eventListener();
-    }
-    eventListener = await listen("verge://test-all", () => {
+  useEffect(() => {
+    const unlisten = listen("verge://test-all", () => {
       onDelay();
     });
-  };
 
-  useEffect(() => {
-    listenTsetEvent();
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []);
 
   return (
