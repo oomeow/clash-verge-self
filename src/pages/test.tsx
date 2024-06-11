@@ -13,7 +13,6 @@ import {
   DragEndEvent,
   DragOverlay,
   MouseSensor,
-  TouchSensor,
   UniqueIdentifier,
   useSensor,
   useSensors,
@@ -44,12 +43,7 @@ const TestPage = () => {
   const { t } = useTranslation();
   const { verge, mutateVerge, patchVerge } = useVerge();
   const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: { delay: 250, distance: 3, tolerance: 10 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 250, distance: 3, tolerance: 10 },
-    }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
   );
 
   // test list

@@ -52,7 +52,6 @@ import {
   DropAnimation,
   defaultDropAnimationSideEffects,
   UniqueIdentifier,
-  TouchSensor,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -105,16 +104,13 @@ const ProfilePage = () => {
   const [reactivating, setReactivating] = useState(false);
 
   const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: { delay: 250, distance: 3, tolerance: 10 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 250, distance: 3, tolerance: 10 },
-    }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
   );
 
   const [profileList, setProfileList] = useState<ISortableItem[]>([]);
   const [chainList, setChainList] = useState<ISortableItem[]>([]);
+  const enableChains = chainList.filter((item) => chain.includes(item.id));
+  const disableChains = chainList.filter((item) => !chain.includes(item.id));
 
   const dropAnimationConfig: DropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
@@ -238,14 +234,14 @@ const ProfilePage = () => {
     setDraggingChainItem(null);
     const { active, over } = event;
     if (over) {
-      // check it can drag and sort
+      // check their status type
       const activeItemSelected = active.data.current?.activated;
       const overItemSelected = over.data.current?.activated;
       if (activeItemSelected !== overItemSelected) {
-        Notice.error(t("Scripts in different states do not support sorting"));
+        // no same type
         return;
       }
-      // can drag and sort
+      // same type, it can drag and sort
       const overIndex = getDraggingIndex("chain", over.id);
       if (draggingChainIndex !== overIndex) {
         const newChainList = arrayMove(
@@ -253,15 +249,13 @@ const ProfilePage = () => {
           draggingChainIndex,
           overIndex,
         );
-        setChainList(newChainList);
-        console.log("activeItemSelected", activeItemSelected);
-        console.log("overItemSelected", overItemSelected);
         if (activeItemSelected && overItemSelected) {
           setActiveChainList(newChainList);
         } else {
           const activeId = active.id.toString();
           const overId = over.id.toString();
           if (activeId !== overId) {
+            setChainList(newChainList);
             await reorderProfile(activeId, overId);
             mutateProfiles();
           }
@@ -319,11 +313,9 @@ const ProfilePage = () => {
   });
 
   const setActiveChainList = async (newList: ISortableItem[]) => {
-    console.log("newList", newList);
     const newActiveChain = newList
       .filter((item) => chain.includes(item.id))
       .map((item) => item.id);
-    console.log("newActiveChain", newActiveChain);
     let needReactive = false;
     for (let index = 0; index < chain.length; index++) {
       const chainId = chain[index];
@@ -333,8 +325,8 @@ const ProfilePage = () => {
         break;
       }
     }
-    console.log("needReactive", needReactive);
     if (needReactive && !reactivating) {
+      setChainList(newList);
       try {
         setReactivating(true);
         await patchProfiles({ chain: newActiveChain });
@@ -432,6 +424,7 @@ const ProfilePage = () => {
     const text = await readText();
     if (text) setUrl(text);
   };
+
   const [mode] = useRecoilState(atomThemeMode);
   const islight = mode === "light" ? true : false;
   const dividercolor = islight
@@ -662,55 +655,94 @@ const ProfilePage = () => {
               }}
               onDragEnd={handleChainDragEnd}
               onDragCancel={() => setDraggingChainItem(null)}>
-              <Box sx={{ width: "100%" }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", mr: "5px" }}>
                 <SortableContext
-                  items={chainList.map((item) => item.id)}
+                  items={enableChains.map((item) => item.id)}
                   strategy={rectSortingStrategy}>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", mr: "5px" }}>
-                    {chainList.map((item) => (
-                      <DraggableItem
-                        key={item.id}
-                        id={item.id}
-                        data={{
-                          activated: !!chain.includes(item.id),
-                        }}
+                  {enableChains.map((item) => (
+                    <DraggableItem
+                      key={item.id}
+                      id={item.id}
+                      data={{
+                        activated: !!chain.includes(item.id),
+                      }}
+                      sx={{
+                        display: "flex",
+                        flexGrow: 1,
+                        width: "260px",
+                        margin: "5px",
+                      }}>
+                      <ProfileMore
                         sx={{
-                          display: "flex",
-                          flexGrow: 1,
-                          width: "260px",
-                          margin: "5px",
-                        }}>
-                        <ProfileMore
-                          sx={{
-                            "& > .MuiBox-root": {
-                              bgcolor:
-                                draggingChainItem?.id === item.id
-                                  ? "var(--background-color-alpha)"
-                                  : "",
-                            },
-                          }}
-                          selected={!!chain.includes(item.id)}
-                          isDragging={draggingChainItem ? true : false}
-                          itemData={item.profileItem}
-                          enableNum={chain.length || 0}
-                          logInfo={chainLogs[item.id]}
-                          reactivating={
-                            !!chain.includes(item.id) &&
-                            (reactivating || activating !== "")
-                          }
-                          onEnable={() => onEnable(item.id)}
-                          onDisable={() => onDisable(item.id)}
-                          onDelete={() => onDelete(item.id)}
-                          onEdit={() =>
-                            viewerRef.current?.edit(item.profileItem)
-                          }
-                          onActivatedSave={onEnhance}
-                        />
-                      </DraggableItem>
-                    ))}
-                    <FlexDecorationItems />
-                  </Box>
+                          "& > .MuiBox-root": {
+                            bgcolor:
+                              draggingChainItem?.id === item.id
+                                ? "var(--background-color-alpha)"
+                                : "",
+                          },
+                        }}
+                        selected={!!chain.includes(item.id)}
+                        isDragging={draggingChainItem ? true : false}
+                        itemData={item.profileItem}
+                        enableNum={chain.length || 0}
+                        logInfo={chainLogs[item.id]}
+                        reactivating={
+                          !!chain.includes(item.id) &&
+                          (reactivating || activating !== "")
+                        }
+                        onEnable={() => onEnable(item.id)}
+                        onDisable={() => onDisable(item.id)}
+                        onDelete={() => onDelete(item.id)}
+                        onEdit={() => viewerRef.current?.edit(item.profileItem)}
+                        onActivatedSave={onEnhance}
+                      />
+                    </DraggableItem>
+                  ))}
                 </SortableContext>
+                <SortableContext
+                  items={disableChains.map((item) => item.id)}
+                  strategy={rectSortingStrategy}>
+                  {disableChains.map((item) => (
+                    <DraggableItem
+                      key={item.id}
+                      id={item.id}
+                      data={{
+                        activated: !!chain.includes(item.id),
+                      }}
+                      sx={{
+                        display: "flex",
+                        flexGrow: 1,
+                        width: "260px",
+                        margin: "5px",
+                      }}>
+                      <ProfileMore
+                        sx={{
+                          "& > .MuiBox-root": {
+                            bgcolor:
+                              draggingChainItem?.id === item.id
+                                ? "var(--background-color-alpha)"
+                                : "",
+                          },
+                        }}
+                        selected={!!chain.includes(item.id)}
+                        isDragging={draggingChainItem ? true : false}
+                        itemData={item.profileItem}
+                        enableNum={chain.length || 0}
+                        logInfo={chainLogs[item.id]}
+                        reactivating={
+                          !!chain.includes(item.id) &&
+                          (reactivating || activating !== "")
+                        }
+                        onEnable={() => onEnable(item.id)}
+                        onDisable={() => onDisable(item.id)}
+                        onDelete={() => onDelete(item.id)}
+                        onEdit={() => viewerRef.current?.edit(item.profileItem)}
+                        onActivatedSave={onEnhance}
+                      />
+                    </DraggableItem>
+                  ))}
+                </SortableContext>
+                <FlexDecorationItems />
               </Box>
               {createPortal(
                 <DragOverlay dropAnimation={dropAnimationConfig}>
