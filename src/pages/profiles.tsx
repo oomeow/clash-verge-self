@@ -217,14 +217,12 @@ const ProfilePage = () => {
     if (over) {
       const overIndex = getDraggingIndex("profile", over.id);
       if (draggingProfileIndex !== overIndex) {
+        const activeId = active.id.toString();
+        const overId = over.id.toString();
         setProfileList((items) =>
           arrayMove(items, draggingProfileIndex, overIndex),
         );
-      }
-      const activeId = active.id.toString();
-      const overId = over.id.toString();
-      if (activeId !== overId) {
-        reorderProfile(activeId.toString(), overId.toString());
+        await reorderProfile(activeId, overId);
         mutateProfiles();
       }
     }
@@ -254,11 +252,9 @@ const ProfilePage = () => {
         } else {
           const activeId = active.id.toString();
           const overId = over.id.toString();
-          if (activeId !== overId) {
-            setChainList(newChainList);
-            await reorderProfile(activeId, overId);
-            mutateProfiles();
-          }
+          setChainList(newChainList);
+          await reorderProfile(activeId, overId);
+          mutateProfiles();
         }
       }
     }
