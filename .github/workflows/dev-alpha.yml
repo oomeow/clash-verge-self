@@ -48,6 +48,9 @@ jobs:
         with:
           workspaces: src-tauri
 
+      - name: Install Tauri CLI
+        run: cargo install --git https://github.com/tauri-apps/tauri --branch 1.x tauri-cli
+
       - name: Install Node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
@@ -65,8 +68,9 @@ jobs:
           pnpm check ${{ matrix.target }}
 
       - name: Tauri build
-        uses: tauri-apps/tauri-action@df8b1de9c04340416fb320ad57ec7320fe484775 # v0
+        uses: tauri-apps/tauri-action@b1dc93b31afa36b1247a7a5f55c2dffbdc70dd05 # v0
         env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -76,7 +80,7 @@ jobs:
           releaseBody: "More new features are now supported."
           releaseDraft: false
           prerelease: true
-          tauriScript: pnpm
+          tauriScript: cargo tauri
           args: --target ${{ matrix.target }}
 
       - name: Portable Bundle
@@ -106,6 +110,7 @@ jobs:
       - name: Build for Linux
         uses: ./.github/build-for-linux
         env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
@@ -118,15 +123,15 @@ jobs:
           echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> $GITHUB_ENV
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
 
-      - name: Upload Release
-        if: startsWith(matrix.target, 'x86_64')
-        uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87 # v2
-        with:
-          tag_name: alpha
-          name: "Clash Verge Rev Alpha"
-          prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage*
+      # - name: Upload Release
+      #   if: startsWith(matrix.target, 'x86_64')
+      #   uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87 # v2
+      #   with:
+      #     tag_name: alpha
+      #     name: "Clash Verge Rev Alpha"
+      #     prerelease: true
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     files: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage*
 
       - name: Upload Release
         uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87 # v2
@@ -135,7 +140,9 @@ jobs:
           name: "Clash Verge Rev Alpha"
           prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+          files: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+            src-tauri/target/${{ matrix.target }}/release/bundle/rpm/*.rpm
 
   alpha-for-fixed-webview2:
     strategy:
@@ -164,6 +171,9 @@ jobs:
         with:
           workspaces: src-tauri
 
+      - name: Install Tauri CLI
+        run: cargo install --git https://github.com/tauri-apps/tauri --branch 1.x tauri-cli
+
       - name: Install Node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4
         with:
@@ -189,13 +199,14 @@ jobs:
 
       - name: Tauri build
         id: build
-        uses: tauri-apps/tauri-action@df8b1de9c04340416fb320ad57ec7320fe484775 # v0
+        uses: tauri-apps/tauri-action@b1dc93b31afa36b1247a7a5f55c2dffbdc70dd05 # v0
         env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
-          tauriScript: pnpm
+          tauriScript: cargo tauri
           args: --target ${{ matrix.target }}
 
       - name: Rename

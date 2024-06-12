@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { useRecoilValue } from "recoil";
 import { useTranslation } from "react-i18next";
 import {
   Button,
@@ -8,7 +7,7 @@ import {
   DialogContent,
   DialogTitle,
 } from "@mui/material";
-import { atomThemeMode } from "@/services/states";
+import { useThemeMode } from "@/services/states";
 
 import * as monaco from "monaco-editor";
 import { useWindowSize } from "@/hooks/use-window-size";
@@ -27,7 +26,7 @@ export const CSSEditorViewer = (props: Props) => {
   const { t } = useTranslation();
   const editorRef = useRef<any>();
   const instanceRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const themeMode = useRecoilValue(atomThemeMode);
+  const themeMode = useThemeMode();
   const { size } = useWindowSize();
 
   useEffect(() => {
