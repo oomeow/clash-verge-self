@@ -70,7 +70,7 @@ importers:
         version: 0.50.0
       monaco-yaml:
         specifier: ^5.2.0
-        version: 5.2.0(monaco-editor@0.50.0)
+        version: 5.2.1(monaco-editor@0.50.0)
       nanoid:
         specifier: ^5.0.7
         version: 5.0.7
@@ -2442,8 +2442,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  jsonc-parser@3.2.1:
-    resolution: {integrity: sha512-AilxAyFOAcK5wA1+LeaySVBrHsGQvUFCDWXKpZjzaL0PqW+xfBOttn8GNtWKFWqneyMZj41MWF9Kl6iPWLwgOA==}
+  jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
 
   jsonfile@4.0.0:
     resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
@@ -2663,8 +2663,8 @@ packages:
   monaco-languageserver-types@0.3.4:
     resolution: {integrity: sha512-d58sP5yNhjs8uG1ESXs0hFnuX2YfdMhiGeWhdgTUZyG9aaWgyI4dDwrK1khf1mPF2u9Sljv42sfYqPFZnqYMYg==}
 
-  monaco-marker-data-provider@1.2.2:
-    resolution: {integrity: sha512-vLsgwsIm4fcqQAi54SsfLYuvWuIOgPV3kmkvtXVh7SGCO2cWvkXhLm4PAHpDyaK3w8AwWAxM/sP/vKXvZJi7Pw==}
+  monaco-marker-data-provider@1.2.3:
+    resolution: {integrity: sha512-BOiQs9UNEwVrF1rwYI32HUP8D7JTuHlJRlykx83e4+jfh1ceBWIBfB5ENDVSFUz651d95kxjKj36vV2JO3zr9w==}
 
   monaco-types@0.1.0:
     resolution: {integrity: sha512-aWK7SN9hAqNYi0WosPoMjenMeXJjwCxDibOqWffyQ/qXdzB/86xshGQobRferfmNz7BSNQ8GB0MD0oby9/5fTQ==}
@@ -2674,8 +2674,8 @@ packages:
     peerDependencies:
       monaco-editor: '>=0.30.0'
 
-  monaco-yaml@5.2.0:
-    resolution: {integrity: sha512-BK9qeabDtxNlKppGrbU4yd8WTcKbk9ODqQwWy8Pb27FHtHwCQ1lTssRuB9XM2+Z4HQf6uhj3P5vFi3nsRrerGw==}
+  monaco-yaml@5.2.1:
+    resolution: {integrity: sha512-hquqqJSOf1y+rDX5FbvynsMck5OG/x2wFGac8eRNcE9jfcczodHprYwqYylDfsH6+OtNl5FuENB24UmPzk7waQ==}
     peerDependencies:
       monaco-editor: '>=0.36'
 
@@ -5980,7 +5980,7 @@ snapshots:
 
   json5@2.2.3: {}
 
-  jsonc-parser@3.2.1: {}
+  jsonc-parser@3.3.1: {}
 
   jsonfile@4.0.0:
     optionalDependencies:
@@ -6328,7 +6328,7 @@ snapshots:
       vscode-languageserver-protocol: 3.17.5
       vscode-uri: 3.0.8
 
-  monaco-marker-data-provider@1.2.2:
+  monaco-marker-data-provider@1.2.3:
     dependencies:
       monaco-types: 0.1.0
 
@@ -6338,13 +6338,12 @@ snapshots:
     dependencies:
       monaco-editor: 0.50.0
 
-  monaco-yaml@5.2.0(monaco-editor@0.50.0):
+  monaco-yaml@5.2.1(monaco-editor@0.50.0):
     dependencies:
-      '@types/json-schema': 7.0.15
-      jsonc-parser: 3.2.1
+      jsonc-parser: 3.3.1
       monaco-editor: 0.50.0
       monaco-languageserver-types: 0.3.4
-      monaco-marker-data-provider: 1.2.2
+      monaco-marker-data-provider: 1.2.3
       monaco-types: 0.1.0
       monaco-worker-manager: 2.0.1(monaco-editor@0.50.0)
       path-browserify: 1.0.1
