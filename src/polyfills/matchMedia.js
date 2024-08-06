@@ -1,15 +1,15 @@
-(function () {
-  if (window.matchMedia && window.matchMedia("all").addEventListener) {
+(() => {
+  if (window.matchMedia?.("all").addEventListener) {
     return;
   }
 
   const originalMatchMedia = window.matchMedia;
 
-  window.matchMedia = function (query) {
+  window.matchMedia = (query) => {
     const mediaQueryList = originalMatchMedia(query);
 
     if (!mediaQueryList.addEventListener) {
-      mediaQueryList.addEventListener = function (eventType, listener) {
+      mediaQueryList.addEventListener = (eventType, listener) => {
         if (eventType !== "change" || typeof listener !== "function") {
           console.error("Invalid arguments for addEventListener:", arguments);
           return;
@@ -19,7 +19,7 @@
     }
 
     if (!mediaQueryList.removeEventListener) {
-      mediaQueryList.removeEventListener = function (eventType, listener) {
+      mediaQueryList.removeEventListener = (eventType, listener) => {
         if (eventType !== "change" || typeof listener !== "function") {
           console.error(
             "Invalid arguments for removeEventListener:",

@@ -1,13 +1,13 @@
-(function () {
+(() => {
   if (typeof window.WeakRef !== "undefined") {
     return;
   }
 
-  window.WeakRef = (function (weakMap) {
+  window.WeakRef = ((weakMap) => {
     function WeakRef(target) {
       weakMap.set(this, target);
     }
-    WeakRef.prototype.deref = function () {
+    WeakRef.prototype.deref = () => {
       return weakMap.get(this);
     };
 
