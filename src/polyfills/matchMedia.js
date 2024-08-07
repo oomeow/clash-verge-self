@@ -1,11 +1,11 @@
-(() => {
+(function () {
   if (window.matchMedia?.("all").addEventListener) {
     return;
   }
 
   const originalMatchMedia = window.matchMedia;
 
-  window.matchMedia = (query) => {
+  window.matchMedia = function (query) {
     const mediaQueryList = originalMatchMedia(query);
 
     if (!mediaQueryList.addEventListener) {
@@ -19,7 +19,7 @@
     }
 
     if (!mediaQueryList.removeEventListener) {
-      mediaQueryList.removeEventListener = (eventType, listener) => {
+      mediaQueryList.removeEventListener = function (eventType, listener) {
         if (eventType !== "change" || typeof listener !== "function") {
           console.error(
             "Invalid arguments for removeEventListener:",

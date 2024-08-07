@@ -1,11 +1,11 @@
-(() => {
+(function () {
   if (typeof window.RegExp === "undefined") {
     return;
   }
 
   const originalRegExp = window.RegExp;
 
-  window.RegExp = (pattern, flags) => {
+  window.RegExp = function (pattern, flags) {
     if (pattern instanceof originalRegExp && flags === undefined) {
       flags = pattern.flags;
     }
