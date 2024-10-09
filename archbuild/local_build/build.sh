@@ -11,9 +11,9 @@ PROJECT_ROOT_DIR=$(dirname "$PARENT_DIR")
 PROJECT_PACKAGEJSON_PATH="$PROJECT_ROOT_DIR/package.json"
 VERSION=$(cat ${PROJECT_PACKAGEJSON_PATH} | jq '.version' | tr -d '"')
 # deb full name
-DEB_NAME="${APP_NAME}_${VERSION}_amd64.deb"
+DEB_FILE="${APP_NAME}_${VERSION}_amd64.deb"
 # deb path
-PROJECT_RELEASE_DEB_PATH="$PROJECT_ROOT_DIR/src-tauri/target/release/bundle/deb/${DEB_NAME}"
+PROJECT_RELEASE_DEB_PATH="$PROJECT_ROOT_DIR/src-tauri/target/release/bundle/deb/${DEB_FILE}"
 # arch build bundle name
 ARCH_PKG_NAME=$(grep "^pkgname=" ${CURRENT_SCRIPT_DIR}/PKGBUILD | sed 's/^pkgname=//')
 ARCH_PKG_VERSION=$(grep "^pkgver=" ${CURRENT_SCRIPT_DIR}/PKGBUILD | sed 's/^pkgver=//')
@@ -25,7 +25,7 @@ readonly PARENT_DIR
 readonly PROJECT_ROOT_DIR
 readonly PROJECT_PACKAGEJSON_PATH
 readonly VERSION
-readonly DEB_NAME
+readonly DEB_FILE
 readonly PROJECT_RELEASE_DEB_PATH
 readonly ARCH_PKG_NAME
 readonly ARCH_PKG_VERSION
@@ -37,13 +37,15 @@ if [[ "$rebuild" =~ ^[Yy]$ || -z $rebuild ]]; then
     pnpm build -b deb
     cp ${PROJECT_RELEASE_DEB_PATH} . || exit 1
 else
-    if [[ -f "./${DEB_NAME}" ]]; then
+    if [[ -f "./${DEB_FILE}" ]]; then
         echo -e "\e[33m skip rebuild, use current deb."
     else
         echo -e "\e[31m not found deb package, exit."
         exit 0
     fi
 fi
+
+sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum ${DEB_FILE} | awk '{print $1}')\")/" ${CURRENT_SCRIPT_DIR}/PKGBUILD
 
 # starting build arch package
 makepkg -fc
