@@ -5,18 +5,6 @@
   "baseBranches": ["dev"],
   "labels": ["dependencies"],
   "automerge": true,
-  "regexManagers": [
-    {
-      "fileMatch": ["^\\.github\\/workflows\\/.*\\.yml$"],
-      "matchStrings": [
-        "runs-on:\\s*ubuntu-(?<currentValue>\\d+\\.\\d+|latest)"
-      ],
-      "depNameTemplate": "ubuntu",
-      "datasourceTemplate": "github-releases",
-      "versioningTemplate": "loose",
-      "versioning": "22.04"
-    }
-  ],
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
@@ -27,6 +15,11 @@
     {
       "matchPackageNames": ["react-devtools"],
       "allowedVersions": "<6.0.0"
+    },
+    {
+      "matchDatasources": ["github-runners"],
+      "matchPackageNames": ["ubuntu"],
+      "versioning": "22.04"
     }
   ]
 }
