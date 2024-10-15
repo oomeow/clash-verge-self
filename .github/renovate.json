@@ -14,7 +14,7 @@
       "depNameTemplate": "ubuntu",
       "datasourceTemplate": "github-releases",
       "versioningTemplate": "loose",
-      "allowedVersions": "<=22.04"
+      "versioning": "22.04"
     }
   ],
   "packageRules": [
