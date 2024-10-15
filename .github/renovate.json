@@ -5,9 +5,21 @@
   "baseBranches": ["dev"],
   "labels": ["dependencies"],
   "automerge": true,
+  "regexManagers": [
+    {
+      "fileMatch": ["^\\.github\\/workflows\\/.*\\.yml$"],
+      "matchStrings": [
+        "runs-on:\\s*ubuntu-(?<currentValue>\\d+\\.\\d+|latest)"
+      ],
+      "depNameTemplate": "ubuntu",
+      "datasourceTemplate": "github-releases",
+      "versioningTemplate": "loose",
+      "allowedVersions": "<=22.04"
+    }
+  ],
   "packageRules": [
     {
-      "matchDepTypes": ["action"],
+      "matchManagers": ["github-actions"],
       "labels": ["github-actions"],
       "semanticCommitType": "ci",
       "semanticCommitScope": "action"
