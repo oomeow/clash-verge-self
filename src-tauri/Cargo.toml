@@ -10,7 +10,7 @@ edition = "2021"
 build = "build.rs"
 
 [build-dependencies]
-tauri-build = { version = "1.5.4", features = [] }
+tauri-build = { version = "2.0.0", features = [] }
 
 [dependencies]
 warp = "0.3"
@@ -39,7 +39,7 @@ reqwest = { version = "0.12", features = ["rustls-tls", "json"] }
 reqwest_dav = "0.1"
 zip = "2.2"
 sysproxy = { git = "https://github.com/zzzgydi/sysproxy-rs", branch = "main" }
-tauri = { version = "1.7", features = [
+tauri = { version = "2.0", features = [
     "fs-read-file",
     "fs-exists",
     "path-all",
