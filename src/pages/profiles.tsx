@@ -51,9 +51,9 @@ import {
 } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
 import { Box, Button, Divider, IconButton, Stack } from "@mui/material";
-import { readText } from "@tauri-apps/api/clipboard";
+import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { listen } from "@tauri-apps/api/event";
-import { readTextFile } from "@tauri-apps/api/fs";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useLockFn, useMemoizedFn } from "ahooks";
 import { useLocalStorage } from "foxact/use-local-storage";
 import { throttle } from "lodash-es";

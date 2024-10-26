@@ -98,7 +98,10 @@ impl WebDav {
 
     pub async fn init(&self) -> Result<(), Box<dyn std::error::Error>> {
         let verge = Config::verge().latest().clone();
-        if verge.webdav_url.is_none() || verge.webdav_username.is_none() || verge.webdav_password.is_none() {
+        if verge.webdav_url.is_none()
+            || verge.webdav_username.is_none()
+            || verge.webdav_password.is_none()
+        {
             log::trace!(target: "app", "webdav info config is empty, skip init webdav");
             return Ok(());
         }

@@ -15,13 +15,14 @@ import {
   styled,
   Tooltip,
 } from "@mui/material";
-import { open as openDialog } from "@tauri-apps/api/dialog";
-import { exists } from "@tauri-apps/api/fs";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { join } from "@tauri-apps/api/path";
-import { convertFileSrc } from "@tauri-apps/api/tauri";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { exists } from "@tauri-apps/plugin-fs";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+const appWindow = getCurrentWebviewWindow();
 
 const OS = getSystem();
 
@@ -198,20 +199,18 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
           </GuardState>
         </Item>
 
-        {OS === "windows" && (
-          <Item>
-            <ListItemText primary={t("Tray")} />
-            <GuardState
-              value={verge?.enable_tray ?? true}
-              valueProps="checked"
-              onCatch={onError}
-              onFormat={onSwitchFormat}
-              onChange={(e) => onChangeData({ enable_tray: e })}
-              onGuard={(e) => patchVerge({ enable_tray: e })}>
-              <SwitchLovely edge="end" />
-            </GuardState>
-          </Item>
-        )}
+        <Item>
+          <ListItemText primary={t("Tray")} />
+          <GuardState
+            value={verge?.enable_tray ?? true}
+            valueProps="checked"
+            onCatch={onError}
+            onFormat={onSwitchFormat}
+            onChange={(e) => onChangeData({ enable_tray: e })}
+            onGuard={(e) => patchVerge({ enable_tray: e })}>
+            <SwitchLovely edge="end" />
+          </GuardState>
+        </Item>
 
         {OS === "macos" && (
           <Item>

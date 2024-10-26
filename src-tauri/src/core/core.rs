@@ -10,7 +10,8 @@ use serde_yaml::Mapping;
 use std::path::PathBuf;
 use std::{sync::Arc, time::Duration};
 use sysinfo::System;
-use tauri::api::process::{Command, CommandChild, CommandEvent};
+use tauri_plugin_shell::process::{CommandChild, CommandEvent};
+use tauri_plugin_shell::ShellExt;
 use tokio::time::sleep;
 
 use super::verge_log::VergeLog;
@@ -73,18 +74,30 @@ impl CoreManager {
 
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
-
-        let output = Command::new_sidecar(clash_core)?
-            .args(["-t", "-d", app_dir, "-f", config_path])
-            .output()?;
+        let handle = handle::Handle::global();
+        let app_handle = handle.app_handle.lock();
+        let app_handle = app_handle.as_ref().unwrap();
+        // TODO: Cannot start a runtime from within a runtime.
+        //       This happens because a function (like `block_on`) attempted to block the current thread while the thread is being used to drive asynchronous tasks.
+        let output = tauri::async_runtime::block_on(async move {
+            app_handle
+                .shell()
+                .sidecar(clash_core)
+                .unwrap()
+                .args(["-t", "-d", app_dir, "-f", config_path])
+                .output()
+                .await
+                .unwrap()
+        });
 
         if !output.status.success() {
-            let error = clash_api::parse_check_output(output.stdout.clone());
+            let stdout = String::from_utf8_lossy(&output.stdout.clone()).into_owned();
+            let error = clash_api::parse_check_output(stdout.clone());
             let error = match !error.is_empty() {
                 true => error,
-                false => output.stdout.clone(),
+                false => stdout.clone(),
             };
-            Logger::global().set_log(output.stdout);
+            Logger::global().set_log(stdout);
             bail!("{error}");
         }
 
@@ -173,7 +186,10 @@ impl CoreManager {
         let config_path = dirs::path_to_str(&config_path)?;
         let args = vec!["-d", app_dir, "-f", config_path];
 
-        let cmd = Command::new_sidecar(clash_core)?;
+        let handle = handle::Handle::global();
+        let app_handle = handle.app_handle.lock();
+        let app_handle = app_handle.as_ref().unwrap();
+        let cmd = app_handle.shell().sidecar(clash_core)?;
         let (mut rx, cmd_child) = cmd.args(args).spawn()?;
         {
             let mut sidecar = self.sidecar.lock();
@@ -183,10 +199,12 @@ impl CoreManager {
             while let Some(event) = rx.recv().await {
                 match event {
                     CommandEvent::Stdout(line) => {
+                        let line = String::from_utf8(line).unwrap_or_default();
                         log::info!(target: "app", "[mihomo]: {line}");
                         Logger::global().set_log(line);
                     }
                     CommandEvent::Stderr(err) => {
+                        let err = String::from_utf8(err).unwrap_or_default();
                         log::error!(target: "app", "[mihomo]: {err}");
                         Logger::global().set_log(err);
                     }

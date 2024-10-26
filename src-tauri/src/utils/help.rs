@@ -3,7 +3,6 @@ use nanoid::nanoid;
 use serde::{de::DeserializeOwned, Serialize};
 use serde_yaml::{Mapping, Value};
 use std::{fs, path::PathBuf, str::FromStr};
-use tauri::{api::shell::open, Manager};
 
 /// read data from yaml as struct T
 pub fn read_yaml<T: DeserializeOwned>(path: &PathBuf) -> Result<T> {
@@ -94,6 +93,8 @@ pub fn get_last_part_and_decode(url: &str) -> Option<String> {
 /// use vscode by default
 #[cfg(not(target_os = "windows"))]
 pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
+    use tauri_plugin_shell::ShellExt;
+
     #[cfg(target_os = "macos")]
     let code = "Visual Studio Code";
     #[cfg(not(target_os = "macos"))]
@@ -103,7 +104,7 @@ pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
         Err(err) => {
             log::error!(target: "app", "Can not open file with VS code, {}", err);
             // default open
-            open(&app.shell_scope(), path.to_string_lossy(), None)
+            app.shell().open(path.to_string_lossy(), None)
         }
     };
     Ok(())

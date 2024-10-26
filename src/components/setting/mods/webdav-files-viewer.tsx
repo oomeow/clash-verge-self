@@ -27,12 +27,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useLockFn } from "ahooks";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { forwardRef, SVGProps, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+const appWindow = getCurrentWebviewWindow();
 
 dayjs.extend(customParseFormat);
 const OS = getSystem();

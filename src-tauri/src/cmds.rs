@@ -17,7 +17,7 @@ use std::{
     path::PathBuf,
 };
 use sysproxy::{Autoproxy, Sysproxy};
-use tauri::{api, Manager};
+use tauri::Manager;
 use tray::Tray;
 type CmdResult<T = ()> = Result<T, String>;
 
@@ -402,7 +402,7 @@ pub fn copy_icon_file(path: String, name: String) -> CmdResult<String> {
 
 #[tauri::command]
 pub fn open_devtools(app_handle: tauri::AppHandle) {
-    if let Some(window) = app_handle.get_window("main") {
+    if let Some(window) = app_handle.get_webview_window("main") {
         if !window.is_devtools_open() {
             window.open_devtools();
         } else {
@@ -438,7 +438,7 @@ pub async fn get_clash_configs() -> CmdResult<bool> {
 pub fn exit_app(app_handle: tauri::AppHandle) {
     let _ = resolve::save_window_size_position(&app_handle, true);
     resolve::resolve_reset();
-    api::process::kill_children();
+    // api::process::kill_children();
     app_handle.exit(0);
     std::process::exit(0);
 }

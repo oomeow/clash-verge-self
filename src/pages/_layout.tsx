@@ -11,7 +11,7 @@ import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import { CssBaseline, Paper, ThemeProvider } from "@mui/material";
 import { listen } from "@tauri-apps/api/event";
-import { appWindow } from "@tauri-apps/api/window";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import "dayjs/locale/zh-cn";
@@ -21,6 +21,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate } from "react-router-dom";
 import { SWRConfig, mutate } from "swr";
+const appWindow = getCurrentWebviewWindow();
 
 export let portableFlag = false;
 dayjs.extend(relativeTime);

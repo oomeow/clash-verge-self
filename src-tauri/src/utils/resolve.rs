@@ -1,4 +1,3 @@
-use super::dirs::APP_ID;
 use crate::config::PrfOption;
 use crate::{
     config::{Config, PrfItem},
@@ -10,7 +9,6 @@ use crate::{log_err, trace_err};
 use anyhow::Result;
 use once_cell::sync::OnceCell;
 use std::net::TcpListener;
-use tauri::api::notification;
 use tauri::{AppHandle, CloseRequestApi, Manager};
 
 pub static VERSION: OnceCell<String> = OnceCell::new();
@@ -32,7 +30,7 @@ pub fn find_unused_port() -> Result<u16> {
 /// handle something when start app
 pub async fn resolve_setup(app_handle: &AppHandle) {
     let version = app_handle.package_info().version.to_string();
-    handle::Handle::global().init(app_handle.app_handle());
+    handle::Handle::global().init(app_handle.clone());
     VERSION.get_or_init(|| version.clone());
 
     log_err!(init::init_resources());
@@ -51,19 +49,13 @@ pub async fn resolve_setup(app_handle: &AppHandle) {
 
     // setup a simple http server for singleton
     log::trace!("launch embed server");
-    server::embed_server(app_handle.app_handle());
-
-    let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
-    if enable_tray {
-        log::trace!("init system tray");
-        log_err!(tray::Tray::init(&app_handle.app_handle()));
-    }
+    server::embed_server(app_handle.clone());
 
     log_err!(sysopt::Sysopt::global().init_launch());
     log_err!(sysopt::Sysopt::global().init_sysproxy());
 
     log_err!(handle::Handle::update_systray_part());
-    log_err!(hotkey::Hotkey::global().init(app_handle.app_handle()));
+    log_err!(hotkey::Hotkey::global().init(app_handle.clone()));
     log_err!(timer::Timer::global().init());
 
     let argvs: Vec<String> = std::env::args().collect();
@@ -83,17 +75,17 @@ pub fn resolve_reset() {
 
 /// create main window
 pub fn create_window(app_handle: &AppHandle) {
-    if let Some(window) = app_handle.get_window("main") {
+    if let Some(window) = app_handle.get_webview_window("main") {
         trace_err!(window.unminimize(), "set win unminimize");
         trace_err!(window.show(), "set win visible");
         trace_err!(window.set_focus(), "set win focus");
         return;
     }
 
-    let mut builder = tauri::window::WindowBuilder::new(
+    let mut builder = tauri::WebviewWindowBuilder::new(
         app_handle,
         "main".to_string(),
-        tauri::WindowUrl::App("index.html".into()),
+        tauri::WebviewUrl::App("index.html".into()),
     )
     .title("Clash Verge")
     .visible(false)
@@ -200,7 +192,7 @@ pub fn save_window_size_position(app_handle: &AppHandle, save_to_file: bool) -> 
     }
 
     let win = app_handle
-        .get_window("main")
+        .get_webview_window("main")
         .ok_or(anyhow::anyhow!("failed to get window"))?;
 
     let scale = win.scale_factor()?;
@@ -229,18 +221,10 @@ pub async fn resolve_scheme(param: String) {
     };
     if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
         if Config::profiles().data().append_item(item).is_ok() {
-            notification::Notification::new(APP_ID)
-                .title("Clash Verge")
-                .body("Import profile success")
-                .show()
-                .unwrap();
+            let _ = handle::Handle::notification("Clash Verge", "Import profile success");
         };
     } else {
-        notification::Notification::new(APP_ID)
-            .title("Clash Verge")
-            .body("Import profile failed")
-            .show()
-            .unwrap();
+        let _ = handle::Handle::notification("Clash Verge", "Import profile failed");
         log::error!("failed to parse url: {}", url);
     }
 }
@@ -251,7 +235,11 @@ pub fn handle_window_close(api: CloseRequestApi, app_handle: &AppHandle) {
 
     let keep_ui_active = verge.enable_keep_ui_active.unwrap_or(false);
     if keep_ui_active {
-        app_handle.get_window("main").unwrap().hide().unwrap();
+        app_handle
+            .get_webview_window("main")
+            .unwrap()
+            .hide()
+            .unwrap();
         api.prevent_close();
     }
 }
