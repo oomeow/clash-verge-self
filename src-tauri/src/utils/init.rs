@@ -180,8 +180,7 @@ pub fn startup_script() -> Result<()> {
         }
         let current_dir = current_dir.parent();
         let handle = handle::Handle::global();
-        let app_handle = handle.app_handle.lock();
-        let app_handle = app_handle.as_ref().unwrap();
+        let app_handle = handle.get_app_handle()?;
         match current_dir {
             Some(dir) => {
                 let _ = app_handle

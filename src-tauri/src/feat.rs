@@ -21,15 +21,15 @@ use verge_log::VergeLog;
 // 打开面板
 pub fn open_or_close_dashboard() {
     let handle = handle::Handle::global();
-    let app_handle = handle.app_handle.lock();
-    if let Some(app_handle) = app_handle.as_ref() {
+    let app_handle = handle.get_app_handle();
+    if let Ok(app_handle) = app_handle {
         if let Some(window) = app_handle.get_webview_window("main") {
             if let Ok(true) = window.is_focused() {
                 let _ = window.close();
                 return;
             }
         }
-        resolve::create_window(app_handle);
+        resolve::create_window(&app_handle);
     }
 }
 
@@ -148,7 +148,7 @@ pub fn toggle_tun_mode() {
     tun_val.insert("enable".into(), Value::from(!enable));
     tun.insert("tun".into(), tun_val.into());
 
-    tauri::async_runtime::spawn(async move {
+    tauri::async_runtime::block_on(async move {
         if let Ok(response) = cmds::service::check_service().await {
             if response.code == 0 {
                 match patch_clash(tun).await {
@@ -459,7 +459,7 @@ pub async fn resolve_config_settings(patch: IVerge) -> Result<()> {
 pub async fn update_profile(uid: String, option: Option<PrfOption>) -> Result<()> {
     let url_opt = {
         let profiles = Config::profiles();
-        let profiles: parking_lot::lock_api::MappedMutexGuard<'_, parking_lot::RawMutex, IProfiles> = profiles.latest();
+        let profiles = profiles.latest();
         let item = profiles.get_item(&uid)?;
         let is_remote = item.itype.as_ref().map_or(false, |s| s == "remote");
 

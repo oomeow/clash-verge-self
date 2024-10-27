@@ -26,11 +26,17 @@ impl Handle {
         *self.app_handle.lock() = Some(app_handle);
     }
 
+    pub fn get_app_handle(&self) -> Result<AppHandle> {
+        if self.app_handle.lock().is_none() {
+            bail!("app_handle is none")
+        }
+        let app_handle = self.app_handle.lock().clone().unwrap();
+        Ok(app_handle)
+    }
+
     pub fn get_window(&self) -> Option<WebviewWindow> {
-        self.app_handle
-            .lock()
-            .as_ref()
-            .and_then(|a| a.get_webview_window("main"))
+        let app_handle = self.get_app_handle().expect("failed to get app handle");
+        app_handle.get_webview_window("main")
     }
 
     pub fn refresh_clash() {
@@ -59,39 +65,26 @@ impl Handle {
     }
 
     pub fn update_systray() -> Result<()> {
-        let app_handle = Self::global().app_handle.lock();
-        if app_handle.is_none() {
-            bail!("update_systray unhandled error");
-        }
-        Tray::update_systray(app_handle.as_ref().unwrap())?;
+        let app_handle = Self::global().get_app_handle()?;
+        Tray::update_systray(&app_handle)?;
         Ok(())
     }
 
     /// update the system tray state
     pub fn update_systray_part() -> Result<()> {
-        let app_handle = Self::global().app_handle.lock();
-        if app_handle.is_none() {
-            bail!("update_systray unhandled error");
-        }
-        Tray::update_part(app_handle.as_ref().unwrap())?;
+        let app_handle = Self::global().get_app_handle()?;
+        Tray::update_part(&app_handle)?;
         Ok(())
     }
 
     pub fn set_tray_visible(visible: bool) -> Result<()> {
-        let app_handle = Self::global().app_handle.lock();
-        if app_handle.is_none() {
-            bail!("set_tray_visible unhandled error");
-        }
-        Tray::set_tray_visible(app_handle.as_ref().unwrap(), visible)?;
+        let app_handle = Self::global().get_app_handle()?;
+        Tray::set_tray_visible(&app_handle, visible)?;
         Ok(())
     }
 
     pub fn notification<T: Into<String>, B: Into<String>>(title: T, body: B) -> Result<()> {
-        let app_handle = Self::global().app_handle.lock();
-        if app_handle.is_none() {
-            bail!("notification unhandled error");
-        }
-        let app_handle = app_handle.as_ref().unwrap();
+        let app_handle = Self::global().get_app_handle()?;
         let _ = app_handle
             .notification()
             .builder()
@@ -107,11 +100,7 @@ impl Handle {
         kind: MessageDialogKind,
         buttons: MessageDialogButtons,
     ) -> Result<bool> {
-        let app_handle = Self::global().app_handle.lock();
-        if app_handle.is_none() {
-            bail!("block_dialog unhandled error");
-        }
-        let app_handle = app_handle.as_ref().unwrap();
+        let app_handle = Self::global().get_app_handle()?;
         let status = app_handle
             .dialog()
             .message(message)

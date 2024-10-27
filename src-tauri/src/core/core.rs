@@ -65,7 +65,7 @@ impl CoreManager {
     }
 
     /// 检查订阅是否正确
-    pub fn check_config(&self) -> Result<()> {
+    pub async fn check_config(&self) -> Result<()> {
         let config_path = Config::generate_file(ConfigType::Check)?;
         let config_path = dirs::path_to_str(&config_path)?;
 
@@ -75,20 +75,15 @@ impl CoreManager {
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
         let handle = handle::Handle::global();
-        let app_handle = handle.app_handle.lock();
-        let app_handle = app_handle.as_ref().unwrap();
-        // TODO: Cannot start a runtime from within a runtime.
-        //       This happens because a function (like `block_on`) attempted to block the current thread while the thread is being used to drive asynchronous tasks.
-        let output = tauri::async_runtime::block_on(async move {
-            app_handle
-                .shell()
-                .sidecar(clash_core)
-                .unwrap()
-                .args(["-t", "-d", app_dir, "-f", config_path])
-                .output()
-                .await
-                .unwrap()
-        });
+        // let app_handle = handle.app_handle.lock().clone();
+        // let app_handle = app_handle.as_ref().unwrap();
+        let app_handle = handle.get_app_handle()?;
+        let output = app_handle
+            .shell()
+            .sidecar(clash_core)?
+            .args(["-t", "-d", app_dir, "-f", config_path])
+            .output()
+            .await?;
 
         if !output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout.clone()).into_owned();
@@ -187,8 +182,8 @@ impl CoreManager {
         let args = vec!["-d", app_dir, "-f", config_path];
 
         let handle = handle::Handle::global();
-        let app_handle = handle.app_handle.lock();
-        let app_handle = app_handle.as_ref().unwrap();
+        // let app_handle = handle.app_handle.lock();
+        let app_handle = handle.get_app_handle()?;
         let cmd = app_handle.shell().sidecar(clash_core)?;
         let (mut rx, cmd_child) = cmd.args(args).spawn()?;
         {
@@ -299,7 +294,7 @@ impl CoreManager {
         Config::verge().draft().clash_core = Some(clash_core);
         // 更新订阅
         Config::generate()?;
-        self.check_config()?;
+        self.check_config().await?;
         // 清掉旧日志
         Logger::global().clear_log();
 
@@ -329,7 +324,7 @@ impl CoreManager {
         Config::generate()?;
 
         // 检查订阅是否正常
-        self.check_config()?;
+        self.check_config().await?;
 
         // 是否需要重启核心
         if restart_core {
