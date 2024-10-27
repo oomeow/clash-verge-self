@@ -16,7 +16,6 @@ use crate::{
 };
 use anyhow::Result;
 use core::tray;
-use rust_i18n::t;
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     time::Duration,
