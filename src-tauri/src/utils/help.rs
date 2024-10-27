@@ -116,6 +116,7 @@ pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
 pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
     use std::os::windows::process::CommandExt;
     use std::process::Command;
+    use tauri_plugin_shell::ShellExt;
 
     let output = Command::new("cmd")
         .args(["/c", "code", &path.to_string_lossy()])
