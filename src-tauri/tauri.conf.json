@@ -36,7 +36,7 @@
   },
   "productName": "Clash Verge",
   "mainBinaryName": "Clash Verge",
-  "version": "1.7.1",
+  "version": "1.8.0",
   "identifier": "io.github.oomeow.clash-verge-self",
   "plugins": {
     "updater": {

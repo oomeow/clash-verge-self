@@ -38,25 +38,25 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       "@tauri-apps/plugin-dialog":
-        specifier: ~2.0.1
+        specifier: ~2
         version: 2.0.1
       "@tauri-apps/plugin-fs":
-        specifier: ~2.0.1
+        specifier: ~2
         version: 2.0.1
       "@tauri-apps/plugin-global-shortcut":
-        specifier: ~2.0.0
+        specifier: ~2
         version: 2.0.0
       "@tauri-apps/plugin-notification":
-        specifier: ~2.0.0
+        specifier: ~2
         version: 2.0.0
       "@tauri-apps/plugin-process":
-        specifier: ~2.0.0
+        specifier: ~2
         version: 2.0.0
       "@tauri-apps/plugin-shell":
-        specifier: ~2.0.1
+        specifier: ~2
         version: 2.0.1
       "@tauri-apps/plugin-updater":
-        specifier: ~2.0.0
+        specifier: ~2
         version: 2.0.0
       ahooks:
         specifier: ^3.8.1
