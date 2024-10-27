@@ -168,10 +168,8 @@ pub fn create_window(app_handle: &AppHandle) {
             }
 
             #[cfg(not(target_os = "linux"))]
-            {
-                use window_shadows::set_shadow;
-                trace_err!(set_shadow(&win, true), "set win shadow");
-            }
+            trace_err!(win.set_shadow(true), "set win shadow");
+
             if is_maximized {
                 trace_err!(win.maximize(), "set win maximize");
             }
