@@ -1,4 +1,5 @@
 {
+  "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "migrated",
   "description": "permissions that were migrated from v1",
   "local": true,
@@ -43,6 +44,7 @@
     "core:window:allow-set-cursor-position",
     "core:window:allow-set-ignore-cursor-events",
     "core:window:allow-start-dragging",
+    "core:window:allow-toggle-maximize",
     "core:webview:allow-print",
     "shell:allow-execute",
     "shell:allow-open",
@@ -57,7 +59,6 @@
     "process:allow-exit",
     "clipboard-manager:allow-read-text",
     "clipboard-manager:allow-write-text",
-    "notification:default",
     "shell:default",
     "process:default"
   ]

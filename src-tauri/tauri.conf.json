@@ -1,11 +1,22 @@
 {
+  "productName": "Clash Verge",
+  "mainBinaryName": "Clash Verge",
+  "version": "1.8.0",
+  "identifier": "io.github.oomeow.clash-verge-self",
   "app": {
     "security": {
       "assetProtocol": {
         "scope": ["$APPDATA/**", "$RESOURCE/../**", "$HOME/.local/**", "**"],
         "enable": true
       },
-      "csp": "default-src blob: data: filesystem: ws: wss: http: https: tauri: asset: 'unsafe-eval' 'unsafe-inline' 'self'; script-src 'unsafe-eval'; connect-src ipc: http://ipc.localhost"
+      "csp": {
+        "default-src": "'self' customprotocol: asset: tauri:",
+        "connect-src": "ipc: http://ipc.localhost http: https: ws: wss:",
+        "font-src": ["https://fonts.gstatic.com", "tauri:"],
+        "img-src": "'self' asset: http://asset.localhost blob: data: http: https:",
+        "style-src": "'unsafe-inline' 'self' https://fonts.googleapis.com",
+        "script-src": "'unsafe-eval'"
+      }
     },
     "windows": []
   },
@@ -34,10 +45,6 @@
     "beforeDevCommand": "pnpm run web:dev",
     "devUrl": "http://localhost:3000/"
   },
-  "productName": "Clash Verge",
-  "mainBinaryName": "Clash Verge",
-  "version": "1.8.0",
-  "identifier": "io.github.oomeow.clash-verge-self",
   "plugins": {
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY5REVGQ0Q1MUQ2NDhCNjYKUldSbWkyUWQxZnplK1N3aUUxbzM0TXd3NVlqbE1obXdSaVZHQ3JSTjgwUzJaZjQ1L0FFQWk0a0sK",

@@ -1,10 +1,10 @@
 {
+  "identifier": "io.github.oomeow.clash-verge-self",
   "app": {
     "trayIcon": {
       "iconPath": "icons/tray-icon.png"
     }
   },
-  "identifier": "io.github.oomeow.clash-verge-self",
   "bundle": {
     "targets": ["deb", "appimage", "rpm"],
     "linux": {
