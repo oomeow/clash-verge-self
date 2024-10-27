@@ -20,7 +20,6 @@ use std::{
     backtrace::{Backtrace, BacktraceStatus},
     time::Duration,
 };
-use tauri::menu::MenuBuilder;
 
 rust_i18n::i18n!("./src/locales", fallback = "en");
 
@@ -98,6 +97,9 @@ pub fn run() -> Result<()> {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             #[cfg(desktop)]
             app.handle().plugin(tauri_plugin_global_shortcut::Builder::new().build())?;
             #[cfg(desktop)]
@@ -106,9 +108,6 @@ pub fn run() -> Result<()> {
             let app_handle = app.handle();
             log::trace!("init system tray");
             log_err!(tray::Tray::init(app_handle));
-
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let enable_splashscreen = Config::verge().data().enable_splashscreen;
             let enable_splashscreen = enable_splashscreen.unwrap_or(true);

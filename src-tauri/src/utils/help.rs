@@ -122,7 +122,7 @@ pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
         .creation_flags(0x08000000)
         .output()?;
     if !output.status.success() {
-        let _ = open(&app.shell_scope(), path.to_string_lossy(), None);
+        let _ = app.shell().open(path.to_string_lossy(), None);
     }
     Ok(())
 }
