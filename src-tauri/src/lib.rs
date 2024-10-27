@@ -15,7 +15,7 @@ use crate::{
     utils::{init, resolve, server},
 };
 use anyhow::Result;
-use core::tray;
+use core::{tray, verge_log::VergeLog, CoreManager};
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     time::Duration,
@@ -62,31 +62,30 @@ pub fn run() -> Result<()> {
         };
 
         log::error!("panicked at {}:\n{}\n{}", location, payload, backtrace);
-        // let limit_backtrace = backtrace.lines().take(10).collect::<Vec<_>>().join("\n");
-        // let log_file = VergeLog::global().get_log_file().unwrap_or_default();
-        // let service_log_file = VergeLog::global()
-        //     .get_service_log_file()
-        //     .unwrap_or_default();
-        // let backtrace_in_dialog = format!(
-        //     "{}\n......\n\n More panic info in log file\n {}\n {}",
-        //     limit_backtrace, log_file, service_log_file
-        // );
-        // TODO: tauri dialog plugin must need app handle, so we maybe use rfd library to show dialog.
-        // let status = MessageDialogBuilder::new(
-        //     None,
-        //     "Panic Info",
-        //     format!("{}\n{}\n{}", location, payload, backtrace_in_dialog),
-        // )
-        // .kind(MessageDialogKind::Error)
-        // .buttons(MessageDialogButtons::OkWithLabel("Exit App".to_string()))
-        // .blocking_show();
-        // if status {
-        //     let task = std::thread::spawn(|| {
-        //         let _ = CoreManager::global().stop_core();
-        //     });
-        //     let _ = task.join();
-        //     std::process::exit(1);
-        // }
+        let limit_backtrace = backtrace.lines().take(10).collect::<Vec<_>>().join("\n");
+        let log_file = VergeLog::global().get_log_file().unwrap_or_default();
+        let service_log_file = VergeLog::global()
+            .get_service_log_file()
+            .unwrap_or_default();
+        let backtrace_in_dialog = format!(
+            "{}\n......\n\n More panic info in log file\n {}\n {}",
+            limit_backtrace, log_file, service_log_file
+        );
+        rfd::MessageDialog::new()
+            .set_title("Panic Info")
+            .set_description(format!(
+                "{}\n{}\n{}",
+                location, payload, backtrace_in_dialog
+            ))
+            .set_buttons(rfd::MessageButtons::Ok)
+            .set_level(rfd::MessageLevel::Error)
+            .show();
+
+        let task = std::thread::spawn(|| {
+            let _ = CoreManager::global().stop_core();
+        });
+        let _ = task.join();
+        std::process::exit(1);
     }));
 
     #[allow(unused_mut)]

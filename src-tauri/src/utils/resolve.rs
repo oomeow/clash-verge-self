@@ -41,9 +41,6 @@ pub async fn resolve_setup(app_handle: &AppHandle) {
     log::trace!("init config");
     log_err!(Config::init_config());
 
-    log::trace!("init webdav config");
-    log_err!(backup::WebDav::global().init().await);
-
     log::trace!("launch core");
     log_err!(CoreManager::global().init());
 
@@ -57,6 +54,9 @@ pub async fn resolve_setup(app_handle: &AppHandle) {
     log_err!(handle::Handle::update_systray_part());
     log_err!(hotkey::Hotkey::global().init(app_handle.clone()));
     log_err!(timer::Timer::global().init());
+
+    log::trace!("init webdav config");
+    log_err!(backup::WebDav::global().init().await);
 
     let argvs: Vec<String> = std::env::args().collect();
     if argvs.len() > 1 {
