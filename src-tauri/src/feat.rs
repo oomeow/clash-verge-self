@@ -148,7 +148,7 @@ pub fn toggle_tun_mode() {
     tun_val.insert("enable".into(), Value::from(!enable));
     tun.insert("tun".into(), tun_val.into());
 
-    tauri::async_runtime::block_on(async move {
+    tauri::async_runtime::spawn(async move {
         if let Ok(response) = cmds::service::check_service().await {
             if response.code == 0 {
                 match patch_clash(tun).await {
