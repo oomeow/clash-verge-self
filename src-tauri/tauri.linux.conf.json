@@ -1,4 +1,5 @@
 {
+  "productName": "clash-verge",
   "identifier": "io.github.oomeow.clash-verge-self",
   "app": {
     "trayIcon": {

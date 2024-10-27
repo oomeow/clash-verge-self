@@ -239,7 +239,7 @@ jobs:
       - name: Update Checksums
         run: |
           echo "version: ${{ needs.release-for-linux.outputs.VERSION }}"
-          wget https://github.com/oomeow/clash-verge-self/releases/download/v${{ needs.release-for-linux.outputs.VERSION }}/Clash.Verge_${{ needs.release-for-linux.outputs.VERSION }}_amd64.deb -O amd64.deb
+          wget https://github.com/oomeow/clash-verge-self/releases/download/v${{ needs.release-for-linux.outputs.VERSION }}/clash-verge_${{ needs.release-for-linux.outputs.VERSION }}_amd64.deb -O amd64.deb
           sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum ./amd64.deb | awk '{print $1}')\")/" archbuild/release/PKGBUILD
 
       - name: Makepkg Build and Check
