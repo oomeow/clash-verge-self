@@ -1,0 +1,18 @@
+# 系统托盘相关
+dashboard: 打开面板
+mode.rule: 规则模式
+mode.global: 全局模式
+mode.direct: 直连模式
+proxy.system: 系统代理
+proxy.tun: Tun 代理
+service: 服务模式
+copy.env: 复制环境变量
+open.dir: 打开目录
+app.dir: 应用目录
+core.dir: 应用目录
+log.dir: 日志目录
+more: 更多
+open.devtools: 打开开发者工具
+restart.clash: 重启 Clash
+restart: 重启应用
+quit: 退出

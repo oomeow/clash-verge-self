@@ -16,10 +16,13 @@ use crate::{
 };
 use anyhow::Result;
 use core::tray;
+use rust_i18n::t;
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     time::Duration,
 };
+
+rust_i18n::i18n!("./src/locales", fallback = "en");
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> Result<()> {
@@ -30,6 +33,11 @@ pub fn run() -> Result<()> {
     }
 
     crate::log_err!(init::init_config());
+
+    let verge = Config::verge().latest().clone();
+    let language = verge.language.as_deref();
+    let language = language.unwrap_or("zh");
+    rust_i18n::set_locale(language);
 
     std::panic::set_hook(Box::new(move |panic_info| {
         let payload = panic_info.payload();

@@ -56,6 +56,7 @@ tauri-plugin-process = "2"
 tauri-plugin-clipboard-manager = "2.0.1"
 tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
+rust-i18n = "3"
 
 [target.'cfg(windows)'.dependencies]
 runas = "=1.2"

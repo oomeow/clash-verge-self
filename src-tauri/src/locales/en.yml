@@ -1,0 +1,18 @@
+# system tray related
+dashboard: Dashboard
+mode.rule: Rule Mode
+mode.global: Global Mode
+mode.direct: Direct Mode
+proxy.system: System Proxy
+proxy.tun: Tun Mode
+service: Service Mode
+copy.env: Copy Env
+open.dir: Open Dir
+app.dir: App Dir
+core.dir: Core Dir
+log.dir: Log Dir
+more: More
+open.devtools: Open DevTools
+restart.clash: Restart Clash
+restart: Restart App
+quit: Quit

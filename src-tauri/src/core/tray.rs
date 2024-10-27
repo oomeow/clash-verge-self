@@ -5,19 +5,15 @@ use crate::{
     utils::{dirs, resolve},
 };
 use anyhow::Result;
-use parking_lot::Mutex;
+use rust_i18n::t;
 use tauri::{
     image::Image,
     menu::{Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder},
     tray::{TrayIcon, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, Runtime,
+    AppHandle, Runtime,
 };
 
 const TRAY_ID: &str = "verge_tray";
-
-struct TrayState<R: Runtime> {
-    menu: Mutex<Menu<R>>,
-}
 
 pub struct Tray {}
 
@@ -107,42 +103,31 @@ impl Tray {
     }
 
     pub fn tray_menu<R: Runtime>(app_handle: &AppHandle<R>) -> Result<Menu<R>> {
-        let verge = Config::verge().latest().clone();
-        let zh = verge.language == Some("zh".into());
         let version = app_handle.package_info().version.to_string();
-        macro_rules! t {
-            ($en: expr, $zh: expr) => {
-                if zh {
-                    $zh
-                } else {
-                    $en
-                }
-            };
-        }
         let menu = MenuBuilder::new(app_handle)
-            .text("open_window", t!("Dashboard", "打开面板"))
-            .check("rule_mode", t!("Rule Mode", "规则模式"))
-            .check("direct_mode", t!("Direct Mode", "直连模式"))
-            .check("global_mode", t!("Global Mode", "全局模式"))
+            .text("open_window", t!("dashboard"))
+            .check("rule_mode", t!("mode.rule"))
+            .check("global_mode", t!("mode.global"))
+            .check("direct_mode", t!("mode.direct"))
             .separator()
-            .check("system_proxy", t!("System Proxy", "系统代理"))
-            .check("tun_mode", t!("TUN Mode", "Tun 模式"))
+            .check("system_proxy", t!("proxy.system"))
+            .check("tun_mode", t!("proxy.tun"))
             .separator()
-            .check("service_mode", t!("Service Mode", "服务模式"))
+            .check("service_mode", t!("service"))
             .separator()
-            .text("copy_env", t!("Copy Env", "复制环境变量"))
+            .text("copy_env", t!("copy.env"))
             .item(
-                &SubmenuBuilder::new(app_handle, t!("Open Dir", "打开目录"))
-                    .text("open_app_dir", t!("App Dir", "应用目录"))
-                    .text("open_core_dir", t!("Core Dir", "核心目录"))
-                    .text("open_logs_dir", t!("Log Dir", "日志目录"))
+                &SubmenuBuilder::new(app_handle, t!("open.dir"))
+                    .text("open_app_dir", t!("app.dir"))
+                    .text("open_core_dir", t!("core.dir"))
+                    .text("open_logs_dir", t!("log.dir"))
                     .build()?,
             )
             .item(
-                &SubmenuBuilder::new(app_handle, t!("More", "更多"))
-                    .text("open_devtools", t!("Open DevTools", "打开开发者工具"))
-                    .text("restart_clash", t!("Restart Clash", "重启 Clash"))
-                    .text("restart_app", t!("Restart", "重启应用"))
+                &SubmenuBuilder::new(app_handle, t!("more"))
+                    .text("open_devtools", t!("open.devtools"))
+                    .text("restart_clash", t!("restart.clash"))
+                    .text("restart_app", t!("restart"))
                     .item(
                         &MenuItemBuilder::new(format!("Version: {}", version))
                             .enabled(false)
@@ -152,7 +137,7 @@ impl Tray {
                     .build()?,
             )
             .separator()
-            .text("quit", t!("Quit", "退出"));
+            .text("quit", t!("quit"));
 
         Ok(menu.build()?)
     }
@@ -169,9 +154,6 @@ impl Tray {
         if !enable_tray {
             tray.set_visible(false)?;
         }
-        app_handle.manage(TrayState {
-            menu: Mutex::new(menu),
-        });
         Self::update_systray(app_handle)?;
         Ok(())
     }
@@ -200,7 +182,6 @@ impl Tray {
         Ok(())
     }
 
-    // 参考 https://github.com/oomeow/clash-nyanpasu/blob/main/backend/tauri/src/core/tray/mod.rs#L299
     pub fn update_part<R: Runtime>(app_handle: &AppHandle<R>) -> Result<()> {
         let verge = Config::verge().latest().clone();
         let enable_tray = verge.enable_tray.unwrap_or(true);
@@ -208,24 +189,13 @@ impl Tray {
             return Ok(());
         }
         let clash = Config::clash().latest().clone();
-        // let zh = verge.language == Some("zh".into());
-        // macro_rules! t {
-        //     ($en: expr, $zh: expr) => {
-        //         if zh {
-        //             $zh
-        //         } else {
-        //             $en
-        //         }
-        //     };
-        // }
         let mode = clash.get_mode();
         let sysproxy_enabled = verge.enable_system_proxy.unwrap_or(false);
         let tun_enabled = clash.get_enable_tun();
         let service_enabled = verge.enable_service_mode.unwrap_or(false);
 
         let tray = app_handle.tray_by_id(TRAY_ID).expect("tray not found");
-        let tray_state = app_handle.state::<TrayState<R>>();
-        let menu = tray_state.menu.lock();
+        let menu = Self::tray_menu(app_handle)?;
 
         let _ = menu
             .get("rule_mode")
@@ -248,6 +218,8 @@ impl Tray {
         let _ = menu
             .get("service_mode")
             .and_then(|item| item.as_check_menuitem()?.set_checked(service_enabled).ok());
+
+        tray.set_menu(Some(menu))?;
 
         #[cfg(target_os = "macos")]
         {

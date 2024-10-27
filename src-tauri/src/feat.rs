@@ -442,6 +442,7 @@ pub async fn resolve_config_settings(patch: IVerge) -> Result<()> {
     }
 
     if language.is_some() {
+        rust_i18n::set_locale(language.unwrap().as_str());
         handle::Handle::update_systray()?;
     } else if system_proxy.is_some()
         || common_tray_icon.is_some()
