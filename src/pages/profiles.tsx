@@ -73,6 +73,10 @@ const FlexDecorationItems = memo(function FlexDecoratorItems() {
   ));
 });
 
+type FileDragDropPayload = {
+  paths: string[];
+};
+
 const ProfilePage = () => {
   const { t } = useTranslation();
 
@@ -148,7 +152,9 @@ const ProfilePage = () => {
   useEffect(() => {
     // TODO: not working in wayland
     const unlisten = listen(TauriEvent.DRAG_DROP, async (event) => {
-      const fileList = event.payload as string[];
+      console.log("drag drop event: ", event);
+      const payload = event.payload as FileDragDropPayload;
+      const fileList = payload.paths;
       for (let file of fileList) {
         if (!file.endsWith(".yaml") && !file.endsWith(".yml")) {
           Notice.error(t("Only YAML Files Supported"));
