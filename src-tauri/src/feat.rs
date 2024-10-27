@@ -126,7 +126,15 @@ pub fn toggle_service_mode() {
                 );
             }
         } else {
-            let status = handle::Handle::show_block_dialog("Installing Clash Verge Service", "Clash Verge Service not installed.\nDo you want to install and run Clash Verge Service right now?", MessageDialogKind::Info, MessageDialogButtons::OkCancel).unwrap_or(false);
+            let title = "Clash Verge Service";
+            let message = "Clash Verge Service not installed.\nDo you want to install and run Clash Verge Service right now?";
+            let status = handle::Handle::show_block_dialog(
+                title,
+                message,
+                MessageDialogKind::Info,
+                MessageDialogButtons::OkCancel,
+            )
+            .unwrap_or(false);
             if status {
                 let _ = install_and_run_service().await;
             }
@@ -187,14 +195,15 @@ pub fn toggle_tun_mode() {
                 );
             }
         } else {
-            // let status = MessageDialogBuilder::new(
-            //         "Install And Run Clash Verge Service",
-            //         "Clash Verge Service not installed.\nDo you want to install and run Clash Verge Service right now?",
-            //     )
-            //     .kind(MessageDialogKind::Info)
-            //     .buttons(MessageDialogButtons::OkCancel)
-            //     .show();
-            let status = handle::Handle::show_block_dialog("Install And Run Clash Verge Service", "Clash Verge Service not installed.\nDo you want to install and run Clash Verge Service right now?", MessageDialogKind::Info, MessageDialogButtons::OkCancel).unwrap_or(false);
+            let title = "Install And Run Clash Verge Service";
+            let message = "Clash Verge Service not installed.\nDo you want to install and run Clash Verge Service right now?";
+            let status = handle::Handle::show_block_dialog(
+                title,
+                message,
+                MessageDialogKind::Info,
+                MessageDialogButtons::OkCancel,
+            )
+            .unwrap_or(false);
             if status {
                 let _ = install_and_run_service().await;
                 if let Err(err) = cmds::service::check_service_and_clash().await {

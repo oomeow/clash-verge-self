@@ -196,10 +196,6 @@ impl Tray {
         if !enable_tray {
             return Ok(());
         }
-        // app_handle
-        //     .tray_by_id(TRAY_ID)
-        //     .expect("tray not found")
-        //     .set_menu(Some(Self::tray_menu(app_handle)?))?;
         Self::update_part(app_handle)?;
         Ok(())
     }

@@ -50,14 +50,6 @@ impl Hotkey {
         Ok(())
     }
 
-    // fn get_manager(&self) -> Result<impl GlobalShortcutManager> {
-    //     let app_handle = self.app_handle.lock();
-    //     if app_handle.is_none() {
-    //         bail!("failed to get the hotkey manager");
-    //     }
-    //     Ok(app_handle.as_ref().unwrap().global_shortcut_manager())
-    // }
-
     fn register(&self, hotkey: &str, func: &str) -> Result<()> {
         // let mut manager = self.get_manager()?;
         let app_handle = self.app_handle.lock();
@@ -161,6 +153,8 @@ impl Drop for Hotkey {
         let app_handle = self.app_handle.lock();
         let app_handle = app_handle.as_ref().unwrap();
         let shortcut = app_handle.global_shortcut();
-        let _ = shortcut.unregister_all();
+        if let Err(e) = shortcut.unregister_all() {
+            log::error!(target: "app", "unregister all hotkey error: {e}");
+        }
     }
 }
