@@ -87,12 +87,13 @@ jobs:
         include:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-          - os: ubuntu-22.04
-            target: i686-unknown-linux-gnu
-          - os: ubuntu-22.04
-            target: aarch64-unknown-linux-gnu
-          - os: ubuntu-22.04
-            target: armv7-unknown-linux-gnueabihf
+          # TODO: need to fix deps install
+          # - os: ubuntu-22.04
+          #   target: i686-unknown-linux-gnu
+          # - os: ubuntu-22.04
+          #   target: aarch64-unknown-linux-gnu
+          # - os: ubuntu-22.04
+          #   target: armv7-unknown-linux-gnueabihf
     outputs:
       VERSION: ${{ steps.get_version.outputs.VERSION }}
     runs-on: ${{ matrix.os }}
