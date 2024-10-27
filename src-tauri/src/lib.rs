@@ -20,6 +20,7 @@ use std::{
     backtrace::{Backtrace, BacktraceStatus},
     time::Duration,
 };
+use tauri::menu::MenuBuilder;
 
 rust_i18n::i18n!("./src/locales", fallback = "en");
 
@@ -218,25 +219,25 @@ pub fn run() -> Result<()> {
             cmds::set_tray_visible
         ]);
 
-    #[cfg(target_os = "macos")]
-    {
-        use tauri::{Menu, MenuItem, Submenu};
-
-        builder = builder.menu(
-            Menu::new().add_submenu(Submenu::new(
-                "Edit",
-                Menu::new()
-                    .add_native_item(MenuItem::Undo)
-                    .add_native_item(MenuItem::Redo)
-                    .add_native_item(MenuItem::Copy)
-                    .add_native_item(MenuItem::Paste)
-                    .add_native_item(MenuItem::Cut)
-                    .add_native_item(MenuItem::SelectAll)
-                    .add_native_item(MenuItem::CloseWindow)
-                    .add_native_item(MenuItem::Quit),
-            )),
-        );
-    }
+    // TODO: macos menu, but I don't know what it can do, because I don't have a macjjj
+    // #[cfg(target_os = "macos")]
+    // {
+    //     use tauri::{Menu, MenuItem, Submenu};
+    //     builder = builder.menu(
+    //         Menu::new().add_submenu(Submenu::new(
+    //             "Edit",
+    //             Menu::new()
+    //                 .add_native_item(MenuItem::Undo)
+    //                 .add_native_item(MenuItem::Redo)
+    //                 .add_native_item(MenuItem::Copy)
+    //                 .add_native_item(MenuItem::Paste)
+    //                 .add_native_item(MenuItem::Cut)
+    //                 .add_native_item(MenuItem::SelectAll)
+    //                 .add_native_item(MenuItem::CloseWindow)
+    //                 .add_native_item(MenuItem::Quit),
+    //         )),
+    //     );
+    // }
 
     let app = builder
         .build(tauri::generate_context!())

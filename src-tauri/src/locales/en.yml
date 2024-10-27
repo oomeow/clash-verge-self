@@ -16,3 +16,4 @@ open.devtools: Open DevTools
 restart.clash: Restart Clash
 restart: Restart App
 quit: Quit
+current.profile: Current Profile

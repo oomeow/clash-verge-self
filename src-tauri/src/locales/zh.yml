@@ -16,3 +16,4 @@ open.devtools: 打开开发者工具
 restart.clash: 重启 Clash
 restart: 重启应用
 quit: 退出
+current.profile: 当前订阅
