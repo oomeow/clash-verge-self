@@ -9,7 +9,7 @@ use rust_i18n::t;
 use tauri::{
     image::Image,
     menu::{Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder},
-    tray::{TrayIcon, TrayIconBuilder, TrayIconEvent},
+    tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Runtime,
 };
 
@@ -150,6 +150,7 @@ impl Tray {
             .on_tray_icon_event(Self::on_click)
             .on_menu_event(Self::on_system_tray_event)
             .build(app_handle)?;
+        tray.set_show_menu_on_left_click(false)?;
         let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
         if !enable_tray {
             tray.set_visible(false)?;
@@ -273,7 +274,11 @@ impl Tray {
     pub fn on_click(tray: &TrayIcon, event: TrayIconEvent) {
         let app_handle = tray.app_handle();
         match event {
-            TrayIconEvent::Click { .. } => {
+            TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } => {
                 let tray_event = Config::verge().latest().tray_event.clone();
                 let tray_event = tray_event.unwrap_or("main_window".into());
                 match tray_event.as_str() {
