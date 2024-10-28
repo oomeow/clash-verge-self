@@ -99,13 +99,10 @@ pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
     let code = "Visual Studio Code";
     #[cfg(not(target_os = "macos"))]
     let code = "code";
-    let _ = match open::with(&path.as_os_str(), code) {
-        Ok(()) => Ok(()),
-        Err(err) => {
-            log::error!(target: "app", "Can not open file with VS code, {}", err);
-            // default open
-            app.shell().open(path.to_string_lossy(), None)
-        }
+    if let Err(err) = open::with(&path.as_os_str(), code) {
+        log::error!(target: "app", "Can not open file with VS code, {}", err);
+        // default open
+        app.shell().open(path.to_string_lossy(), None)?;
     };
     Ok(())
 }
@@ -114,16 +111,21 @@ pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
 /// use vscode by default
 #[cfg(target_os = "windows")]
 pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
-    use std::os::windows::process::CommandExt;
-    use std::process::Command;
     use tauri_plugin_shell::ShellExt;
 
-    let output = Command::new("cmd")
-        .args(["/c", "code", &path.to_string_lossy()])
-        .creation_flags(0x08000000)
-        .output()?;
+    let shell = app.shell();
+    let path_ = path.clone();
+    let output = tauri::async_runtime::block_on(async move {
+        shell
+            .command("cmd")
+            .args(["/c", "code", &path_.to_string_lossy()])
+            .output()
+            .await
+            .unwrap()
+    });
+
     if !output.status.success() {
-        let _ = app.shell().open(path.to_string_lossy(), None);
+        app.shell().open(path.to_string_lossy(), None)?;
     }
     Ok(())
 }
