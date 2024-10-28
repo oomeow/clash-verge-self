@@ -87,6 +87,7 @@ pub fn toggle_system_proxy() {
             Ok(_) => handle::Handle::refresh_verge(),
             Err(err) => log::error!(target: "app", "{err}"),
         }
+        let _ = handle::Handle::update_systray_part();
     });
 }
 
@@ -139,6 +140,7 @@ pub fn toggle_service_mode() {
                 let _ = install_and_run_service().await;
             }
         }
+        let _ = handle::Handle::update_systray_part();
     });
 }
 
@@ -224,6 +226,7 @@ pub fn toggle_tun_mode() {
                 }
             }
         }
+        let _ = handle::Handle::update_systray_part();
     });
 }
 
