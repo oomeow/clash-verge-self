@@ -1,6 +1,4 @@
 {
-  "productName": "clash-verge",
-  "mainBinaryName": "clash-verge",
   "identifier": "io.github.oomeow.clash-verge-self",
   "bundle": {
     "targets": ["deb", "appimage", "rpm"],

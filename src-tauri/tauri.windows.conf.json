@@ -2,7 +2,6 @@
   "identifier": "io.github.oomeow.clash-verge-self",
   "bundle": {
     "targets": ["nsis"],
-    "license": "../LICENSE",
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",

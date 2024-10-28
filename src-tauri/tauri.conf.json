@@ -1,7 +1,6 @@
 {
-  "productName": "Clash Verge",
-  "mainBinaryName": "Clash Verge",
-  "version": "1.8.0",
+  "productName": "clash-verge",
+  "version": "2.0.0",
   "identifier": "io.github.oomeow.clash-verge-self",
   "app": {
     "security": {
@@ -25,6 +24,7 @@
     "windows": []
   },
   "bundle": {
+    "licenseFile": "../LICENSE",
     "active": true,
     "longDescription": "A Clash Meta GUI based on tauri.",
     "icon": [
