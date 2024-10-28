@@ -164,16 +164,8 @@ impl Tray {
 
     /// There is some bug in Linux: Tray cannot be created when opening then hiding then reopening it by clicking the switch button
     pub fn set_tray_visible(app_handle: &AppHandle, visible: bool) -> Result<()> {
-        if let Some(tray) = app_handle.tray_by_id(TRAY_ID) {
-            tray.set_visible(visible)?;
-        } else {
-            TrayIconBuilder::with_id(TRAY_ID)
-                .icon(Self::get_tray_icon())
-                .menu(&Self::tray_menu(app_handle)?)
-                .on_tray_icon_event(Self::on_click)
-                .on_menu_event(Self::on_system_tray_event)
-                .build(app_handle)?;
-        }
+        let tray = app_handle.tray_by_id(TRAY_ID).expect("set tray visible, but tray not found");
+        tray.set_visible(visible)?;
         Ok(())
     }
 
