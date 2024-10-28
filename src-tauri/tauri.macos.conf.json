@@ -1,11 +1,5 @@
 {
   "identifier": "io.github.oomeow.clash-verge-self",
-  "app": {
-    "trayIcon": {
-      "iconPath": "icons/mac-tray-icon.png",
-      "iconAsTemplate": true
-    }
-  },
   "bundle": {
     "targets": ["app", "dmg"],
     "macOS": {

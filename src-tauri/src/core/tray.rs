@@ -147,10 +147,13 @@ impl Tray {
         let tray = TrayIconBuilder::with_id(TRAY_ID)
             .icon(Self::get_tray_icon())
             .menu(&menu)
+            .menu_on_left_click(false)
             .on_tray_icon_event(Self::on_click)
             .on_menu_event(Self::on_system_tray_event)
             .build(app_handle)?;
-        tray.set_show_menu_on_left_click(false)?;
+        #[cfg(target_os = "macos")]
+        tray.set_icon_as_template(true);
+
         let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
         if !enable_tray {
             tray.set_visible(false)?;
