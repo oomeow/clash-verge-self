@@ -12,7 +12,11 @@
       "csp": {
         "default-src": "'self' customprotocol: asset: tauri:",
         "connect-src": "ipc: http://ipc.localhost http: https: ws: wss:",
-        "font-src": ["https://fonts.gstatic.com", "tauri:"],
+        "font-src": [
+          "https://fonts.gstatic.com",
+          "tauri:",
+          "http://tauri.localhost"
+        ],
         "img-src": "'self' asset: http://asset.localhost blob: data: http: https:",
         "style-src": "'unsafe-inline' 'self' https://fonts.googleapis.com",
         "script-src": "'unsafe-eval'"
