@@ -2,11 +2,6 @@
   "productName": "clash-verge",
   "mainBinaryName": "clash-verge",
   "identifier": "io.github.oomeow.clash-verge-self",
-  "app": {
-    "trayIcon": {
-      "iconPath": "icons/tray-icon.png"
-    }
-  },
   "bundle": {
     "targets": ["deb", "appimage", "rpm"],
     "linux": {
