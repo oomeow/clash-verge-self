@@ -4,7 +4,7 @@ use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 use std::{collections::HashMap, sync::Arc};
 use tauri::AppHandle;
-use tauri_plugin_global_shortcut::GlobalShortcutExt;
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 pub struct Hotkey {
     current: Arc<Mutex<Vec<String>>>, // 保存当前的热键设置
@@ -61,16 +61,21 @@ impl Hotkey {
         }
         // Fn(&AppHandle<R>, &Shortcut, ShortcutEvent)
         let f = match func.trim() {
-            "open_or_close_dashboard" => feat::open_or_close_dashboard(),
-            "clash_mode_rule" => feat::change_clash_mode("rule".into()),
-            "clash_mode_global" => feat::change_clash_mode("global".into()),
-            "clash_mode_direct" => feat::change_clash_mode("direct".into()),
-            "toggle_system_proxy" => feat::toggle_system_proxy(),
-            "toggle_tun_mode" => feat::toggle_tun_mode(),
+            "open_or_close_dashboard" => || feat::open_or_close_dashboard(),
+            "clash_mode_rule" => || feat::change_clash_mode("rule".into()),
+            "clash_mode_global" => || feat::change_clash_mode("global".into()),
+            "clash_mode_direct" => || feat::change_clash_mode("direct".into()),
+            "toggle_system_proxy" => || feat::toggle_system_proxy(),
+            "toggle_tun_mode" => || feat::toggle_tun_mode(),
             _ => bail!("invalid function \"{func}\""),
         };
 
-        manager.on_shortcut(hotkey, move |_app, _shortcut, _event| f)?;
+        manager.on_shortcut(hotkey, move |_app, hotkey, event| {
+            if let ShortcutState::Pressed = event.state {
+                log::info!("hotkey [{}] pressed", hotkey);
+                f();
+            }
+        })?;
         log::info!(target: "app", "register hotkey {hotkey} {func}");
         Ok(())
     }
