@@ -152,7 +152,7 @@ impl Tray {
             .on_menu_event(Self::on_system_tray_event)
             .build(app_handle)?;
         #[cfg(target_os = "macos")]
-        tray.set_icon_as_template(true);
+        tray.set_icon_as_template(true)?;
 
         let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
         if !enable_tray {
