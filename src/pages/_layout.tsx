@@ -40,7 +40,7 @@ const Layout = () => {
     start_page,
     enable_system_title_bar,
     enable_keep_ui_active,
-  } = verge || {};
+  } = verge;
   keepUIActive = enable_keep_ui_active ?? false;
   const navigate = useNavigate();
 

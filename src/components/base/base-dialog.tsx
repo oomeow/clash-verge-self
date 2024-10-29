@@ -1,3 +1,4 @@
+import { useVerge } from "@/hooks/use-verge";
 import { cn } from "@/utils";
 import { LoadingButton } from "@mui/lab";
 import { Button } from "@mui/material";
@@ -46,6 +47,8 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
     onCancel,
     onClose,
   } = props;
+  const { verge } = useVerge();
+  const { enable_system_title_bar } = verge;
   return (
     <AnimatePresence>
       {open && (
@@ -56,7 +59,10 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
           transition={{ duration: 0.1 }}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={onClose}
-          className="fixed inset-0 z-50 flex h-dvh items-center justify-center bg-black bg-opacity-50">
+          className={cn(
+            "fixed inset-0 z-50 flex h-dvh items-center justify-center bg-black bg-opacity-50",
+            { "rounded-md": !enable_system_title_bar },
+          )}>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
