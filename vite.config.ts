@@ -67,7 +67,7 @@ export default defineConfig({
     !!process.env.TAURI_ENV_DEBUG && devtools(),
   ],
   build: {
-    outDir: "../dist",
+    outDir: "../src-tauri/frontend/dist",
     emptyOutDir: true,
     rollupOptions: {
       input: {

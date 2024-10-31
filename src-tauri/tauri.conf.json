@@ -46,7 +46,7 @@
   },
   "build": {
     "beforeBuildCommand": "pnpm run web:build",
-    "frontendDist": "../dist",
+    "frontendDist": "./frontend/dist",
     "beforeDevCommand": "pnpm run web:dev",
     "devUrl": "http://localhost:3000/"
   },
