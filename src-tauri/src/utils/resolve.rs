@@ -110,20 +110,7 @@ pub fn create_window(app_handle: &AppHandle) {
             builder = builder.inner_size(w, h).position(pos.0, pos.1);
         }
         _ => {
-            #[cfg(target_os = "windows")]
-            {
-                builder = builder.inner_size(800.0, 636.0).center();
-            }
-
-            #[cfg(target_os = "macos")]
-            {
-                builder = builder.inner_size(800.0, 642.0).center();
-            }
-
-            #[cfg(target_os = "linux")]
-            {
-                builder = builder.inner_size(800.0, 642.0).center();
-            }
+            builder = builder.inner_size(800.0, 642.0).center();
         }
     };
     #[cfg(target_os = "windows")]
@@ -131,22 +118,20 @@ pub fn create_window(app_handle: &AppHandle) {
         .additional_browser_args("--enable-features=msWebView2EnableDraggableRegions --disable-features=OverscrollHistoryNavigation,msExperimentalScrolling")
         .transparent(true)
         .visible(false)
+        .shadow(true)
         .build();
     #[cfg(target_os = "macos")]
     let window = builder
         .decorations(true)
         .hidden_title(true)
         .title_bar_style(tauri::TitleBarStyle::Overlay)
+        .shadow(true)
         .build();
     #[cfg(target_os = "linux")]
     let window = builder.transparent(true).build();
 
     match window {
         Ok(win) => {
-            let is_maximized = Config::verge()
-                .latest()
-                .window_is_maximized
-                .unwrap_or(false);
             log::trace!("try to calculate the monitor size");
             let center = (|| -> Result<bool> {
                 let mut center = false;
@@ -167,9 +152,10 @@ pub fn create_window(app_handle: &AppHandle) {
                 trace_err!(win.center(), "set win center");
             }
 
-            #[cfg(not(target_os = "linux"))]
-            trace_err!(win.set_shadow(true), "set win shadow");
-
+            let is_maximized = Config::verge()
+                .latest()
+                .window_is_maximized
+                .unwrap_or(false);
             if is_maximized {
                 trace_err!(win.maximize(), "set win maximize");
             }
