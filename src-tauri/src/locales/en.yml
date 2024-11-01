@@ -19,8 +19,8 @@ quit: Quit
 current.profile: Current Profile
 
 # notification related
-disabled.failed: Disabled Failed
-enabled.failed: Enabled Failed
+disable.failed: Disabled Failed
+enable.failed: Enabled Failed
 install.failed: Install Failed
 service.install.run.failed: Install successfully, but Clash Verge Service run failed
 service.install.run.success: Install and run Clash Verge Service successfully

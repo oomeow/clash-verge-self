@@ -198,7 +198,7 @@ pub fn toggle_tun_mode() {
                 );
             }
         } else {
-            let title = "Install And Run Clash Verge Service";
+            let title = "Clash Verge Service";
             let message = t!("install.service.ask");
             let status = handle::Handle::show_block_dialog(
                 title,

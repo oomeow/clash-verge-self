@@ -19,8 +19,8 @@ quit: 退出
 current.profile: 当前订阅
 
 # notification related
-disabled.failed: 禁用失败
-enabled.failed: 启用失败
+disable.failed: 禁用失败
+enable.failed: 启用失败
 install.failed: 安装失败
 service.install.run.failed: 安装成功，但 Clash Verge Service 服务启动失败
 service.install.run.success: 安装成功，并且Clash Verge Service 服务启动成功
