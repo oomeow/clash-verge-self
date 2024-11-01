@@ -175,7 +175,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install jq
           echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> "$GITHUB_OUTPUT"
-          echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> "$GITHUB_ENV"
 
       - name: Upload Release
         if: startsWith(matrix.target, 'x86_64')
@@ -253,15 +252,6 @@ jobs:
           tag_name: alpha
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate Changelog
-        run: |
-          cat >> ${{ github.workspace }}/CHANGELOG.md << 'EOF'
-
-          [FAQ](https://clash-verge-rev.github.io/faq/windows.html)
-
-          Created at  ${{ env.BUILDTIME }}.
-          EOF
 
       - name: Upload Release
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2
