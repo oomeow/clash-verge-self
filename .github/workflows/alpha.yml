@@ -104,14 +104,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - name: Get Version
-        id: get_version
-        run: |
-          sudo apt-get update
-          sudo apt-get install jq
-          echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> "$GITHUB_OUTPUT"
-          echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> "$GITHUB_ENV"
-
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@stable
 
@@ -176,6 +168,14 @@ jobs:
       #   with:
       #     target: ${{ matrix.target }}
       #     alpha: true
+
+      - name: Get Version
+        id: get_version
+        run: |
+          sudo apt-get update
+          sudo apt-get install jq
+          echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> "$GITHUB_OUTPUT"
+          echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> "$GITHUB_ENV"
 
       - name: Upload Release
         if: startsWith(matrix.target, 'x86_64')
