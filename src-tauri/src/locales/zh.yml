@@ -17,3 +17,26 @@ restart.clash: 重启 Clash
 restart: 重启应用
 quit: 退出
 current.profile: 当前订阅
+
+# notification related
+disabled.failed: 禁用失败
+enabled.failed: 启用失败
+install.failed: 安装失败
+service.install.run.failed: 安装成功，但 Clash Verge Service 服务启动失败
+service.install.run.success: 安装成功，并且Clash Verge Service 服务启动成功
+import.success: 导入订阅文件成功
+import.failed: 导入订阅文件失败
+
+# dialog related
+install.service.ask: "Clash Verge Service 服务未安装\n是否现在安装并运行 Clash Verge Service 服务？"
+panic.info.title: 恐慌信息
+panic.info.backtrace: "堆栈回溯:\n%{backtrace}"
+panic.info.display.backtrace.note: "注：使用 `RUST_BACKTRACE=1` 环境变量运行以显示回溯"
+panic.info.content: "恐慌于 %{location}:\n负载: %{payload}\n%{limit_backtrace}...\n\n有关更多恐慌信息，请检查日志文件:\n  %{log_file}\n  %{service_log_file}"
+
+# error result related
+tun.busy: Tun 设备或资源繁忙
+config.parse.failed: 无法将配置解析为 yaml 文件
+config.convert.failed: 无法将配置转换为 yaml
+runtime.config.get.failed: 无法获取运行时配置
+clash.restart.failed: Clash 核心重启失败

@@ -15,6 +15,7 @@ use crate::{
     utils::{init, resolve, server},
 };
 use anyhow::Result;
+use rust_i18n::t;
 use core::{tray, verge_log::VergeLog, CoreManager};
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
@@ -56,9 +57,9 @@ pub fn run() -> Result<()> {
 
         let backtrace = Backtrace::capture();
         let backtrace = if backtrace.status() == BacktraceStatus::Captured {
-            &format!("stack backtrace:\n{}", backtrace)
+            t!("panic.info.backtrace", backtrace = backtrace)
         } else {
-            "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+            t!("panic.info.display.backtrace.note")
         };
 
         log::error!("panicked at {}:\n{}\n{}", location, payload, backtrace);
@@ -67,16 +68,17 @@ pub fn run() -> Result<()> {
         let service_log_file = VergeLog::global()
             .get_service_log_file()
             .unwrap_or_default();
-        let backtrace_in_dialog = format!(
-            "{}\n......\n\n More panic info in log file\n {}\n {}",
-            limit_backtrace, log_file, service_log_file
+        let content = t!(
+            "panic.info.content",
+            location = location,
+            payload = payload,
+            limit_backtrace = limit_backtrace,
+            log_file = log_file,
+            service_log_file = service_log_file
         );
         rfd::MessageDialog::new()
-            .set_title("Panic Info")
-            .set_description(format!(
-                "{}\n{}\n{}",
-                location, payload, backtrace_in_dialog
-            ))
+            .set_title(t!("panic.info.title"))
+            .set_description(content)
             .set_buttons(rfd::MessageButtons::Ok)
             .set_level(rfd::MessageLevel::Error)
             .show();
@@ -215,26 +217,6 @@ pub fn run() -> Result<()> {
             cmds::set_tray_visible
         ]);
 
-    // TODO: macos menu, but I don't know what it can do, because I don't have a macjjj
-    // #[cfg(target_os = "macos")]
-    // {
-    //     use tauri::{Menu, MenuItem, Submenu};
-    //     builder = builder.menu(
-    //         Menu::new().add_submenu(Submenu::new(
-    //             "Edit",
-    //             Menu::new()
-    //                 .add_native_item(MenuItem::Undo)
-    //                 .add_native_item(MenuItem::Redo)
-    //                 .add_native_item(MenuItem::Copy)
-    //                 .add_native_item(MenuItem::Paste)
-    //                 .add_native_item(MenuItem::Cut)
-    //                 .add_native_item(MenuItem::SelectAll)
-    //                 .add_native_item(MenuItem::CloseWindow)
-    //                 .add_native_item(MenuItem::Quit),
-    //         )),
-    //     );
-    // }
-
     let app = builder
         .build(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -243,10 +225,6 @@ pub fn run() -> Result<()> {
         tauri::RunEvent::ExitRequested { api, .. } => {
             api.prevent_exit();
         }
-        // tauri::RunEvent::Updater(tauri::UpdaterEvent::Downloaded) => {
-        //     resolve::resolve_reset();
-        //     tauri::api::process::kill_children();
-        // }
         tauri::RunEvent::WindowEvent { label, event, .. } => {
             if label == "main" {
                 match event {

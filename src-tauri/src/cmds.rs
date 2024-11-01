@@ -9,6 +9,7 @@ use crate::{ret_err, wrap_err};
 use anyhow::{Context, Result};
 use backup::WebDav;
 use reqwest_dav::list_cmd::ListFile;
+use rust_i18n::t;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use std::{
@@ -188,10 +189,8 @@ pub fn get_runtime_yaml() -> CmdResult<String> {
     let runtime = runtime.latest();
     let config = runtime.config.as_ref();
     wrap_err!(config
-        .ok_or(anyhow::anyhow!("failed to parse config to yaml file"))
-        .and_then(
-            |config| serde_yaml::to_string(config).context("failed to convert config to yaml")
-        ))
+        .ok_or(anyhow::anyhow!(t!("config.parse.failed")))
+        .and_then(|config| serde_yaml::to_string(config).context(t!("config.convert.failed"))))
 }
 
 #[tauri::command]

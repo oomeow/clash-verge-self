@@ -8,6 +8,7 @@ use crate::{
 use crate::{log_err, trace_err};
 use anyhow::Result;
 use once_cell::sync::OnceCell;
+use rust_i18n::t;
 use std::net::TcpListener;
 use tauri::{AppHandle, CloseRequestApi, Manager};
 
@@ -205,10 +206,10 @@ pub async fn resolve_scheme(param: String) {
     };
     if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
         if Config::profiles().data().append_item(item).is_ok() {
-            let _ = handle::Handle::notification("Clash Verge", "Import profile success");
+            let _ = handle::Handle::notification("Clash Verge", t!("import.success"));
         };
     } else {
-        let _ = handle::Handle::notification("Clash Verge", "Import profile failed");
+        let _ = handle::Handle::notification("Clash Verge", t!("import.failed"));
         log::error!("failed to parse url: {}", url);
     }
 }

@@ -10,6 +10,7 @@ use crate::core::*;
 use crate::log_err;
 use crate::utils::resolve;
 use anyhow::{anyhow, bail, Error, Result};
+use rust_i18n::t;
 use serde_yaml::{Mapping, Value};
 use tauri::AppHandle;
 use tauri::Manager;
@@ -97,9 +98,9 @@ pub fn toggle_service_mode() {
         .enable_service_mode
         .unwrap_or(false);
     let toggle_failed_msg = if enable {
-        "Disable Failed"
+        t!("disable.failed")
     } else {
-        "Enable Failed"
+        t!("enable.failed")
     };
 
     tauri::async_runtime::spawn(async move {
@@ -128,7 +129,7 @@ pub fn toggle_service_mode() {
             }
         } else {
             let title = "Clash Verge Service";
-            let message = "Clash Verge Service not installed.\nDo you want to install and run Clash Verge Service right now?";
+            let message = t!("install.service.ask");
             let status = handle::Handle::show_block_dialog(
                 title,
                 message,
@@ -148,9 +149,9 @@ pub fn toggle_service_mode() {
 pub fn toggle_tun_mode() {
     let enable = Config::clash().data().get_enable_tun();
     let toggle_failed_msg = if enable {
-        "Disable Failed"
+        t!("disable.failed")
     } else {
-        "Enable Failed"
+        t!("enable.failed")
     };
 
     let mut tun = Mapping::new();
@@ -198,7 +199,7 @@ pub fn toggle_tun_mode() {
             }
         } else {
             let title = "Install And Run Clash Verge Service";
-            let message = "Clash Verge Service not installed.\nDo you want to install and run Clash Verge Service right now?";
+            let message = t!("install.service.ask");
             let status = handle::Handle::show_block_dialog(
                 title,
                 message,
@@ -234,7 +235,7 @@ async fn install_and_run_service() -> Result<()> {
     let title = "Clash Verge Service";
 
     if let Err(err) = cmds::service::install_service().await {
-        let _ = handle::Handle::notification(title, format!("Install failed, {err}"));
+        let _ = handle::Handle::notification(title, format!("{}, {}", t!("install.failed"), err));
         Err(anyhow!(err))
     } else {
         if let Err(err) = patch_verge(IVerge {
@@ -245,14 +246,11 @@ async fn install_and_run_service() -> Result<()> {
         {
             handle::Handle::notification(
                 title,
-                format!("Install successfully, but Clash Verge Service run failed, {err}"),
+                format!("{}, {}", t!("service.install.run.failed"), err),
             )?;
             Err(err)
         } else {
-            handle::Handle::notification(
-                title,
-                "Install and run Clash Verge Service successfully",
-            )?;
+            handle::Handle::notification(title, t!("service.install.run.success"))?;
             handle::Handle::refresh_verge();
             Ok(())
         }
@@ -343,7 +341,7 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
         }
 
         if update_tun_failed {
-            <Result<(), Error>>::Err(anyhow!("Tun Device Or Resource Busy"))
+            <Result<(), Error>>::Err(anyhow!(t!("tun.busy")))
         } else {
             // 重新载入订阅
             if patch.get("unified-delay").is_some() {
