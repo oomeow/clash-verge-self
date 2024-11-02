@@ -12,6 +12,7 @@ use crate::utils::resolve;
 use anyhow::{anyhow, bail, Error, Result};
 use rust_i18n::t;
 use serde_yaml::{Mapping, Value};
+use service::JsonResponse;
 use tauri::AppHandle;
 use tauri::Manager;
 use tauri_plugin_clipboard_manager::ClipboardExt;
@@ -21,8 +22,7 @@ use verge_log::VergeLog;
 
 // 打开面板
 pub fn open_or_close_dashboard() {
-    let handle = handle::Handle::global();
-    let app_handle = handle.get_app_handle();
+    let app_handle = handle::Handle::global().get_app_handle();
     if let Ok(app_handle) = app_handle {
         if let Some(window) = app_handle.get_webview_window("main") {
             if let Ok(true) = window.is_focused() {
@@ -104,41 +104,40 @@ pub fn toggle_service_mode() {
     };
 
     tauri::async_runtime::spawn(async move {
-        if let Ok(response) = cmds::service::check_service().await {
-            if response.code == 400 || response.code == 0 {
-                match patch_verge(IVerge {
+        match cmds::service::check_service().await {
+            Ok(JsonResponse { code: 400, .. } | JsonResponse { code: 0, .. }) => {
+                let patch = IVerge {
                     enable_service_mode: Some(!enable),
                     ..IVerge::default()
-                })
-                .await
-                {
-                    Ok(_) => handle::Handle::refresh_verge(),
-                    Err(err) => {
-                        let _ = handle::Handle::notification(
-                            "Clash Verge Service",
-                            format!("{}, {}", toggle_failed_msg, err),
-                        );
-                        log::error!(target: "app", "{err}")
-                    }
+                };
+                if let Err(err) = patch_verge(patch).await {
+                    let _ = handle::Handle::notification(
+                        "Clash Verge Service",
+                        format!("{}, {}", toggle_failed_msg, err),
+                    );
+                    log::error!(target: "app", "{err}")
+                } else {
+                    handle::Handle::refresh_verge()
                 }
-            } else {
+            }
+            Ok(response) => {
                 let _ = handle::Handle::notification(
                     "Clash Verge Service",
                     format!("{}, {}", toggle_failed_msg, response.msg),
                 );
             }
-        } else {
-            let title = "Clash Verge Service";
-            let message = t!("install.service.ask");
-            let status = handle::Handle::show_block_dialog(
-                title,
-                message,
-                MessageDialogKind::Info,
-                MessageDialogButtons::OkCancel,
-            )
-            .unwrap_or(false);
-            if status {
-                let _ = install_and_run_service().await;
+            Err(err) => {
+                log::error!(target: "app", "toggle service mode failed: {err}");
+                let status = handle::Handle::show_block_dialog(
+                    "Clash Verge Service",
+                    t!("install.service.ask"),
+                    MessageDialogKind::Info,
+                    MessageDialogButtons::OkCancel,
+                )
+                .unwrap_or(false);
+                if status {
+                    let _ = install_and_run_service().await;
+                }
             }
         }
         let _ = handle::Handle::update_systray_part();
@@ -160,101 +159,96 @@ pub fn toggle_tun_mode() {
     tun.insert("tun".into(), tun_val.into());
 
     tauri::async_runtime::spawn(async move {
-        if let Ok(response) = cmds::service::check_service().await {
-            if response.code == 0 {
-                match patch_clash(tun).await {
-                    Ok(_) => log::info!(target: "app", "change tun mode to {:?}", !enable),
-                    Err(err) => {
-                        log::error!(target: "app", "{err}")
-                    }
-                }
-            } else if response.code == 400 {
+        match cmds::service::check_service().await {
+            Ok(JsonResponse { code: 0, .. }) => match patch_clash(tun).await {
+                Ok(_) => log::info!(target: "app", "change tun mode to {:?}", !enable),
+                Err(err) => log::error!(target: "app", "toggle tun mode failed: {err}"),
+            },
+            Ok(JsonResponse { code: 400, .. }) => {
                 // service installed but no enable, need to patch verge to enable service mode
-                match patch_verge(IVerge {
+                if let Err(err) = patch_verge(IVerge {
                     enable_service_mode: Some(true),
                     ..IVerge::default()
                 })
                 .await
                 {
-                    Ok(_) => {
-                        let _ = cmds::service::check_service_and_clash().await;
-                        handle::Handle::refresh_verge();
-                        match patch_clash(tun).await {
-                            Ok(_) => log::info!(target: "app", "change tun mode to {:?}", !enable),
-                            Err(err) => log::error!(target: "app", "{err}"),
-                        }
-                    }
-                    Err(err) => {
-                        let _ = handle::Handle::notification(
-                            "Tun Mode",
-                            format!("{}, {}", toggle_failed_msg, err),
-                        );
-                    }
-                }
-            } else {
-                let _ = handle::Handle::notification(
-                    "Tun Mode",
-                    format!("{}, {}", toggle_failed_msg, response.msg),
-                );
-            }
-        } else {
-            let title = "Clash Verge Service";
-            let message = t!("install.service.ask");
-            let status = handle::Handle::show_block_dialog(
-                title,
-                message,
-                MessageDialogKind::Info,
-                MessageDialogButtons::OkCancel,
-            )
-            .unwrap_or(false);
-            if status {
-                let _ = install_and_run_service().await;
-                if let Err(err) = cmds::service::check_service_and_clash().await {
                     let _ = handle::Handle::notification(
                         "Tun Mode",
                         format!("{}, {}", toggle_failed_msg, err),
                     );
                 } else {
-                    if let Err(err) = patch_clash(tun).await {
+                    let _ = cmds::service::check_service_and_clash().await;
+                    handle::Handle::refresh_verge();
+                    match patch_clash(tun).await {
+                        Ok(_) => log::info!(target: "app", "change tun mode to {:?}", !enable),
+                        Err(err) => log::error!(target: "app", "{err}"),
+                    }
+                }
+            }
+            Ok(response) => {
+                let _ = handle::Handle::notification(
+                    "Tun Mode",
+                    format!("{}, {}", toggle_failed_msg, response.msg),
+                );
+            }
+            Err(err) => {
+                log::error!(target: "app", "toggle service mode failed: {err}");
+                let status = handle::Handle::show_block_dialog(
+                    "Clash Verge Service",
+                    t!("install.service.ask"),
+                    MessageDialogKind::Info,
+                    MessageDialogButtons::OkCancel,
+                )
+                .unwrap_or(false);
+                if status {
+                    let _ = install_and_run_service().await;
+                    if let Err(err) = cmds::service::check_service_and_clash().await {
                         let _ = handle::Handle::notification(
                             "Tun Mode",
                             format!("{}, {}", toggle_failed_msg, err),
                         );
-                        log::error!(target: "app", "{err}")
                     } else {
-                        log::info!(target: "app", "change tun mode to {:?}", !enable);
+                        if let Err(err) = patch_clash(tun).await {
+                            let _ = handle::Handle::notification(
+                                "Tun Mode",
+                                format!("{}, {}", toggle_failed_msg, err),
+                            );
+                            log::error!(target: "app", "{err}")
+                        } else {
+                            log::info!(target: "app", "change tun mode to {:?}", !enable);
+                        }
                     }
                 }
             }
         }
+
         let _ = handle::Handle::update_systray_part();
     });
 }
 
 async fn install_and_run_service() -> Result<()> {
-    let title = "Clash Verge Service";
-
     if let Err(err) = cmds::service::install_service().await {
-        let _ = handle::Handle::notification(title, format!("{}, {}", t!("install.failed"), err));
-        Err(anyhow!(err))
-    } else {
-        if let Err(err) = patch_verge(IVerge {
-            enable_service_mode: Some(true),
-            ..IVerge::default()
-        })
-        .await
-        {
-            handle::Handle::notification(
-                title,
-                format!("{}, {}", t!("service.install.run.failed"), err),
-            )?;
-            Err(err)
-        } else {
-            handle::Handle::notification(title, t!("service.install.run.success"))?;
-            handle::Handle::refresh_verge();
-            Ok(())
-        }
+        handle::Handle::notification(
+            "Clash Verge Service",
+            format!("{}, {}", t!("install.failed"), err),
+        )?;
+        return Err(anyhow!(err));
     }
+    if let Err(err) = patch_verge(IVerge {
+        enable_service_mode: Some(true),
+        ..IVerge::default()
+    })
+    .await
+    {
+        handle::Handle::notification(
+            "Clash Verge Service",
+            format!("{}, {}", t!("service.install.run.failed"), err),
+        )?;
+        return Err(anyhow!(err));
+    }
+    handle::Handle::notification("Clash Verge Service", t!("service.install.run.success"))?;
+    handle::Handle::refresh_verge();
+    Ok(())
 }
 
 /// 修改clash的订阅

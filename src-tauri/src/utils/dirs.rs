@@ -53,8 +53,7 @@ pub fn app_home_dir() -> Result<PathBuf> {
 
 /// get the resources dir
 pub fn app_resources_dir() -> Result<PathBuf> {
-    let handle = handle::Handle::global();
-    let app_handle = handle.get_app_handle();
+    let app_handle = handle::Handle::global().get_app_handle();
     if let Ok(app_handle) = app_handle {
         let res_dir = resource_dir(app_handle.package_info(), &Env::default())
             .map_err(|_| anyhow::anyhow!("failed to get the resource dir"))?

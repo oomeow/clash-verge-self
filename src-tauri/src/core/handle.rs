@@ -1,6 +1,6 @@
 use super::tray::Tray;
 use crate::log_err;
-use anyhow::{bail, Ok, Result};
+use anyhow::{anyhow, Ok, Result};
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 use std::sync::Arc;
@@ -27,16 +27,20 @@ impl Handle {
     }
 
     pub fn get_app_handle(&self) -> Result<AppHandle> {
-        if self.app_handle.lock().is_none() {
-            bail!("app_handle is none")
-        }
-        let app_handle = self.app_handle.lock().clone().unwrap();
-        Ok(app_handle)
+        self.app_handle
+            .lock()
+            .clone()
+            .ok_or_else(|| anyhow!("app_handle is none"))
     }
 
     pub fn get_window(&self) -> Option<WebviewWindow> {
-        let app_handle = self.get_app_handle().expect("failed to get app handle");
-        app_handle.get_webview_window("main")
+        self.get_app_handle()
+            .and_then(|app_handle| {
+                app_handle
+                    .get_webview_window("main")
+                    .ok_or_else(|| anyhow!("get window error"))
+            })
+            .ok()
     }
 
     pub fn refresh_clash() {

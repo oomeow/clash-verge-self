@@ -179,19 +179,28 @@ pub fn startup_script() -> Result<()> {
             return Err(anyhow::anyhow!("script not found: {path}"));
         }
         let current_dir = current_dir.parent();
-        let handle = handle::Handle::global();
-        let app_handle = handle.get_app_handle()?;
+        let app_handle = handle::Handle::global().get_app_handle()?;
         match current_dir {
             Some(dir) => {
-                let _ = app_handle
-                    .shell()
-                    .command(shell)
-                    .current_dir(dir.to_path_buf())
-                    .args([path])
-                    .output();
+                let _ = tauri::async_runtime::block_on(async move {
+                    app_handle
+                        .shell()
+                        .command(shell)
+                        .current_dir(dir.to_path_buf())
+                        .args([path])
+                        .output()
+                        .await
+                });
             }
             None => {
-                let _ = app_handle.shell().command(shell).args([path]).output();
+                let _ = tauri::async_runtime::block_on(async move {
+                    app_handle
+                        .shell()
+                        .command(shell)
+                        .args([path])
+                        .output()
+                        .await
+                });
             }
         }
     }
