@@ -23,7 +23,7 @@ disable.failed: Disabled Failed
 enable.failed: Enabled Failed
 install.failed: Install Failed
 service.install.run.failed: Install successfully, but Clash Verge Service run failed
-service.install.run.success: Install and run Clash Verge Service successfully
+service.install.run.success: Clash Verge Service install and run successfully
 import.success: Import profile successfully
 import.failed: Import profile failed
 

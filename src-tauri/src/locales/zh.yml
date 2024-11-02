@@ -23,7 +23,7 @@ disable.failed: 禁用失败
 enable.failed: 启用失败
 install.failed: 安装失败
 service.install.run.failed: 安装成功，但 Clash Verge Service 服务启动失败
-service.install.run.success: 安装成功，并且Clash Verge Service 服务启动成功
+service.install.run.success: Clash Verge Service 服务安装并启动成功
 import.success: 导入订阅文件成功
 import.failed: 导入订阅文件失败
 
