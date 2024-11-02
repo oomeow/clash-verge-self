@@ -36,7 +36,7 @@ pub async fn resolve_setup(app_handle: &AppHandle) {
 
     log_err!(init::init_resources());
     log_err!(init::init_scheme());
-    log_err!(init::startup_script());
+    log_err!(init::startup_script().await);
 
     // 启动核心
     log::trace!("init config");

@@ -153,7 +153,7 @@ pub fn init_scheme() -> Result<()> {
     Ok(())
 }
 
-pub fn startup_script() -> Result<()> {
+pub async fn startup_script() -> Result<()> {
     let path = {
         let verge = Config::verge();
         let verge = verge.latest();
@@ -182,25 +182,21 @@ pub fn startup_script() -> Result<()> {
         let app_handle = handle::Handle::global().get_app_handle()?;
         match current_dir {
             Some(dir) => {
-                let _ = tauri::async_runtime::block_on(async move {
-                    app_handle
-                        .shell()
-                        .command(shell)
-                        .current_dir(dir.to_path_buf())
-                        .args([path])
-                        .output()
-                        .await
-                });
+                let _ = app_handle
+                    .shell()
+                    .command(shell)
+                    .current_dir(dir.to_path_buf())
+                    .args([path])
+                    .output()
+                    .await;
             }
             None => {
-                let _ = tauri::async_runtime::block_on(async move {
-                    app_handle
-                        .shell()
-                        .command(shell)
-                        .args([path])
-                        .output()
-                        .await
-                });
+                let _ = app_handle
+                    .shell()
+                    .command(shell)
+                    .args([path])
+                    .output()
+                    .await;
             }
         }
     }
