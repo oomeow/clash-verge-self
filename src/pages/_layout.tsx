@@ -176,7 +176,7 @@ const Layout = () => {
           }}>
           <Sidebar enableSystemTitleBar={!!enable_system_title_bar} />
 
-          <div className="flex h-full w-full flex-col">
+          <div className="flex h-full w-full flex-col overflow-hidden">
             {!enable_system_title_bar && (
               <div className="z-10 box-border flex flex-shrink-0 flex-grow-0 basis-8 justify-end">
                 <div
