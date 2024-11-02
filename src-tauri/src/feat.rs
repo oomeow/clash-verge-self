@@ -201,21 +201,22 @@ pub fn toggle_tun_mode() {
                 )
                 .unwrap_or(false);
                 if status {
-                    let _ = install_and_run_service().await;
-                    if let Err(err) = cmds::service::check_service_and_clash().await {
-                        let _ = handle::Handle::notification(
-                            "Tun Mode",
-                            format!("{}, {}", toggle_failed_msg, err),
-                        );
-                    } else {
-                        if let Err(err) = patch_clash(tun).await {
+                    if let Ok(_) = install_and_run_service().await {
+                        if let Err(err) = cmds::service::check_service_and_clash().await {
                             let _ = handle::Handle::notification(
                                 "Tun Mode",
                                 format!("{}, {}", toggle_failed_msg, err),
                             );
-                            log::error!(target: "app", "{err}")
                         } else {
-                            log::info!(target: "app", "change tun mode to {:?}", !enable);
+                            if let Err(err) = patch_clash(tun).await {
+                                let _ = handle::Handle::notification(
+                                    "Tun Mode",
+                                    format!("{}, {}", toggle_failed_msg, err),
+                                );
+                                log::error!(target: "app", "{err}")
+                            } else {
+                                log::info!(target: "app", "change tun mode to {:?}", !enable);
+                            }
                         }
                     }
                 }
