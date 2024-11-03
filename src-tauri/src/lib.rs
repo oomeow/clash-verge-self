@@ -84,7 +84,7 @@ pub fn run() -> Result<()> {
             .show();
 
         let task = std::thread::spawn(|| {
-            let _ = CoreManager::global().stop_core();
+            resolve::resolve_reset();
         });
         let _ = task.join();
         std::process::exit(1);
