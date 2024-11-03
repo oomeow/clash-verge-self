@@ -15,8 +15,8 @@ use crate::{
     utils::{init, resolve, server},
 };
 use anyhow::Result;
-use rust_i18n::t;
 use core::{tray, verge_log::VergeLog, CoreManager};
+use rust_i18n::t;
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
     time::Duration,
@@ -118,6 +118,7 @@ pub fn run() -> Result<()> {
                     "splashscreen",
                     tauri::WebviewUrl::App("splashscreen.html".into()),
                 )
+                .shadow(false)
                 .title("splashscreen")
                 .decorations(false)
                 .center()
@@ -140,7 +141,7 @@ pub fn run() -> Result<()> {
                 // initialize your app here instead of sleeping :
                 resolve::resolve_setup(&app_handle_).await;
                 // wait 2 seconds for clash core to init profile
-                std::thread::sleep(Duration::from_secs(2));
+                tokio::time::sleep(Duration::from_secs(2)).await;
                 // create main window
                 if !silent_start {
                     resolve::create_window(&app_handle_);
