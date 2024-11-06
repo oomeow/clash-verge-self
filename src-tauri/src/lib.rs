@@ -15,7 +15,7 @@ use crate::{
     utils::{init, resolve, server},
 };
 use anyhow::Result;
-use core::{tray, verge_log::VergeLog, CoreManager};
+use core::{tray, verge_log::VergeLog};
 use rust_i18n::t;
 use std::{
     backtrace::{Backtrace, BacktraceStatus},

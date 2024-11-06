@@ -51,7 +51,6 @@ impl Hotkey {
     }
 
     fn register(&self, hotkey: &str, func: &str) -> Result<()> {
-        // let mut manager = self.get_manager()?;
         let app_handle = self.app_handle.lock();
         let app_handle = app_handle.as_ref().unwrap();
         let manager = app_handle.global_shortcut();
@@ -59,7 +58,6 @@ impl Hotkey {
         if manager.is_registered(hotkey) {
             manager.unregister(hotkey)?;
         }
-        // Fn(&AppHandle<R>, &Shortcut, ShortcutEvent)
         let f = match func.trim() {
             "open_or_close_dashboard" => || feat::open_or_close_dashboard(),
             "clash_mode_rule" => || feat::change_clash_mode("rule".into()),

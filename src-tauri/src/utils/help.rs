@@ -174,6 +174,15 @@ macro_rules! wrap_err {
             }
         }
     };
+    ($stat: expr, $err_str: expr) => {
+        match $stat {
+            Ok(a) => Ok(a),
+            Err(err) => {
+                log::error!(target: "app", "{}, {}", $err_str, err.to_string());
+                Err(format!("{}, {}", $err_str, err.to_string()))
+            }
+        }
+    };
 }
 
 /// return the string literal error

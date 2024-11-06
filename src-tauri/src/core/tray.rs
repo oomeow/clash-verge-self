@@ -4,7 +4,7 @@ use crate::{
     feat,
     utils::{dirs, resolve},
 };
-use anyhow::Result;
+use anyhow::{bail, Result};
 use rust_i18n::t;
 use tauri::{
     image::Image,
@@ -164,9 +164,15 @@ impl Tray {
 
     /// There is some bug in Linux: Tray cannot be created when opening then hiding then reopening it by clicking the switch button
     pub fn set_tray_visible(app_handle: &AppHandle, visible: bool) -> Result<()> {
-        let tray = app_handle.tray_by_id(TRAY_ID).expect("set tray visible, but tray not found");
-        tray.set_visible(visible)?;
-        Ok(())
+        match app_handle.tray_by_id(TRAY_ID) {
+            Some(tray) => {
+                tray.set_visible(visible)?;
+                Ok(())
+            }
+            None => {
+                bail!("set tray visible failed, because tray not found")
+            }
+        }
     }
 
     pub fn update_systray(app_handle: &AppHandle) -> Result<()> {

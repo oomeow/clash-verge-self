@@ -395,7 +395,7 @@ pub fn copy_icon_file(path: String, name: String) -> CmdResult<String> {
             Err(err) => Err(err.to_string()),
         }
     } else {
-        Err("file not found".to_string())
+        ret_err!("file not found");
     }
 }
 
@@ -419,25 +419,19 @@ pub fn restart_app(app_handle: tauri::AppHandle) {
 
 #[tauri::command]
 pub async fn restart_clash() -> CmdResult<()> {
-    match clash_api::restart_core().await {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.to_string()),
-    }
+    wrap_err!(clash_api::restart_core().await)
 }
 
 #[tauri::command]
 pub async fn get_clash_configs() -> CmdResult<bool> {
-    match clash_api::get_configs().await {
-        Ok(_) => Ok(true),
-        Err(e) => Err(e.to_string()),
-    }
+    wrap_err!(clash_api::get_configs().await)?;
+    Ok(true)
 }
 
 #[tauri::command]
 pub fn exit_app(app_handle: tauri::AppHandle) {
     let _ = resolve::save_window_size_position(&app_handle, true);
     resolve::resolve_reset();
-    // api::process::kill_children();
     app_handle.exit(0);
     std::process::exit(0);
 }
@@ -467,7 +461,7 @@ pub mod service {
         for i in 0..5 {
             if let Err(_) = service::check_service().await {
                 if i == 4 {
-                    return Err("service check failed".to_string());
+                    ret_err!("service check failed");
                 } else {
                     sleep(Duration::from_secs(1));
                 }
@@ -476,7 +470,7 @@ pub mod service {
         for i in 0..5 {
             if let Err(_) = clash_api::get_configs().await {
                 if i == 4 {
-                    return Err("clash check failed".to_string());
+                    ret_err!("clash check failed");
                 } else {
                     sleep(Duration::from_secs(1));
                 }
@@ -521,16 +515,12 @@ pub mod uwp {
 // web dav
 #[tauri::command]
 pub async fn update_webdav_info(url: String, username: String, password: String) -> CmdResult {
-    match WebDav::global()
-        .update_webdav_info(url, username, password)
-        .await
-    {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            log::error!(target: "app", "update webdav info failed. error: {e:?}");
-            Err(format!("update webdav info failed. {:?}", e))
-        }
-    }
+    wrap_err!(
+        WebDav::global()
+            .update_webdav_info(url, username, password)
+            .await,
+        "update webdav info failed."
+    )
 }
 
 #[tauri::command]
@@ -547,21 +537,17 @@ pub async fn list_backup() -> CmdResult<Vec<ListFile>> {
 #[tauri::command]
 pub async fn download_backup_and_reload(file_name: String) -> CmdResult {
     let backup_archive = dirs::backup_archive_file().unwrap();
-    if let Err(e) = WebDav::download_file(file_name, backup_archive.clone()).await {
-        log::error!(target: "app", "download backup file failed. error: {e:?}");
-        return Err(format!("download backup file failed. error: {:?}", e));
-    }
+    wrap_err!(
+        WebDav::download_file(file_name, backup_archive.clone()).await,
+        "download backup file failed."
+    )?;
     // extract zip file
     let mut zip = zip::ZipArchive::new(fs::File::open(backup_archive).unwrap()).unwrap();
     zip.extract(dirs::app_home_dir().unwrap()).unwrap();
-    if let Err(e) = Config::reload().await {
-        log::error!(target: "app", "download backup file success, but reload config failed. error: {e:?}");
-        return Err(format!(
-            "download backup file success, but reload config failed. error: {:?}",
-            e
-        ));
-    }
-    Ok(())
+    wrap_err!(
+        Config::reload().await,
+        "download backup file success, but reload config failed."
+    )
 }
 
 #[tauri::command]
