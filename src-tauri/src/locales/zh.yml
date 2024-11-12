@@ -32,7 +32,7 @@ install.service.ask: "Clash Verge Service 服务未安装\n是否现在安装并
 panic.info.title: Clash Verge 崩溃
 panic.info.backtrace: "堆栈回溯:\n%{backtrace}"
 panic.info.display.backtrace.note: "注：使用 `RUST_BACKTRACE=1` 环境变量运行以显示回溯"
-panic.info.content: "位置： %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\n有关更多恐慌信息，请检查日志文件:\n  %{log_file}\n  %{service_log_file}"
+panic.info.content: "位置： %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\n有关更多恐慌信息，请检查日志文件:\n  %{log_file}"
 
 # error result related
 tun.busy: Tun 设备或资源繁忙

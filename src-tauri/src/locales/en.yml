@@ -32,7 +32,7 @@ install.service.ask: "Clash Verge Service not installed.\nDo you want to install
 panic.info.title: Clash Verge Crash
 panic.info.backtrace: "stack backtrace:\n%{backtrace}"
 panic.info.display.backtrace.note: "Note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
-panic.info.content: "location: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nFor more panic information, check the log file:\n  %{log_file}\n  %{service_log_file}"
+panic.info.content: "location: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nFor more panic information, check the log file:\n  %{log_file}"
 
 # error result related
 tun.busy: Tun Device Or Resource Busy

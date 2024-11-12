@@ -232,9 +232,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                     {t("Delete")}
                   </LoadingButton>
                   <Tooltip
-                    title={
-                      !file.allowApply ? t("Platform does not match") : null
-                    }>
+                    title={!file.allowApply ? t("Platform No Match") : null}>
                     <div>
                       <LoadingButton
                         sx={{ minWidth: "80px" }}

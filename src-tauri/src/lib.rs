@@ -21,6 +21,7 @@ use std::{
     backtrace::{Backtrace, BacktraceStatus},
     time::Duration,
 };
+use utils::dirs::APP_ID;
 
 rust_i18n::i18n!("./src/locales", fallback = "en");
 
@@ -65,16 +66,13 @@ pub fn run() -> Result<()> {
         log::error!("panicked at {}:\n{}\n{}", location, payload, backtrace);
         let limit_backtrace = backtrace.lines().take(10).collect::<Vec<_>>().join("\n");
         let log_file = VergeLog::global().get_log_file().unwrap_or_default();
-        let service_log_file = VergeLog::global()
-            .get_service_log_file()
-            .unwrap_or_default();
+        let log_file = log_file.split(APP_ID).last().unwrap_or_default();
         let content = t!(
             "panic.info.content",
             location = location,
             payload = payload,
             limit_backtrace = limit_backtrace,
             log_file = log_file,
-            service_log_file = service_log_file
         );
         rfd::MessageDialog::new()
             .set_title(t!("panic.info.title"))
@@ -83,6 +81,7 @@ pub fn run() -> Result<()> {
             .set_level(rfd::MessageLevel::Error)
             .show();
 
+        // avoid window freezing, spawn a new thread to resolve reset
         let task = std::thread::spawn(|| {
             resolve::resolve_reset();
         });
