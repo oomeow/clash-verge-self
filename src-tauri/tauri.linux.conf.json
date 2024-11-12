@@ -3,7 +3,7 @@
   "mainBinaryName": "clash-verge",
   "identifier": "io.github.oomeow.clash-verge-self",
   "bundle": {
-    "targets": ["deb", "appimage", "rpm"],
+    "targets": ["deb", "rpm"],
     "linux": {
       "appimage": {
         "bundleMediaFramework": false,
