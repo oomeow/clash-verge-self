@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04@sha256:99c35190e22d294cdace2783ac55effc69d32896daaa265f0bbedbcde4fbe3e5
 
 # change the sources list and install dependencies
 RUN rm -f /etc/apt/sources.list && \
