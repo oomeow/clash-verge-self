@@ -176,15 +176,15 @@ jobs:
           sudo apt-get install jq
           echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Release
-        if: startsWith(matrix.target, 'x86_64')
-        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2
-        with:
-          tag_name: alpha
-          name: "Clash Verge Self Alpha"
-          prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage*
+      # - name: Upload Release
+      #   if: startsWith(matrix.target, 'x86_64')
+      #   uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2
+      #   with:
+      #     tag_name: alpha
+      #     name: "Clash Verge Self Alpha"
+      #     prerelease: true
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     files: src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage*
 
       - name: Upload Release
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2

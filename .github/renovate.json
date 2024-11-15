@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:best-practices", ":pinDevDependencies"],
   "dependencyDashboard": true,
-  "baseBranches": ["dev"],
+  "baseBranches": ["migrate-tauri-v2"],
   "labels": ["dependencies"],
   "automerge": true,
   "packageRules": [
