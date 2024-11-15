@@ -4,6 +4,9 @@
   "dependencyDashboard": true,
   "labels": ["dependencies"],
   "automerge": true,
+  "dockerfile": {
+    "ignorePaths": ["**/cross_dockerfile/**"]
+  },
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
