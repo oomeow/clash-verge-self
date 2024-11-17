@@ -111,8 +111,10 @@ impl WebDav {
         self.update_webdav_info(url, username, password).await?;
 
         tauri::async_runtime::spawn(async move {
-            let cur_backup_files = Self::list_file_by_path(BACKUP_DIR).await.unwrap();
-            let old_backup_files = Self::list_file_by_path(OLD_BACKUP_DIR).await.unwrap();
+            let cur_backup_files = Self::list_file_by_path(BACKUP_DIR).await.unwrap_or(vec![]);
+            let old_backup_files = Self::list_file_by_path(OLD_BACKUP_DIR)
+                .await
+                .unwrap_or(vec![]);
             for old_file in old_backup_files {
                 let old_file_name = old_file.href.split("/").last().unwrap();
                 if cur_backup_files
@@ -180,7 +182,8 @@ impl WebDav {
     }
 
     pub async fn list_file() -> Result<Vec<ListFile>, Box<dyn std::error::Error>> {
-        let files = Self::list_file_by_path(BACKUP_DIR).await?;
+        let path = format!("{}/", BACKUP_DIR);
+        let files = Self::list_file_by_path(&path).await?;
         Ok(files)
     }
 
