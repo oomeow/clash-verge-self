@@ -97,7 +97,7 @@
     "tailwind-merge": "2.5.4",
     "tailwindcss": "3.4.15",
     "terser": "5.36.0",
-    "typescript": "5.6.3",
+    "typescript": "5.7.2",
     "vite": "5.4.11",
     "vite-plugin-monaco-editor": "1.1.0",
     "vite-plugin-svgr": "4.3.0"
