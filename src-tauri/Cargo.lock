@@ -929,6 +929,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "signal-hook 0.3.17",
  "sysinfo",
  "sysproxy",
  "tauri",
@@ -944,6 +945,7 @@ dependencies = [
  "tokio",
  "users",
  "warp",
+ "windows-sys 0.59.0",
  "winreg 0.52.0",
  "zip",
 ]
@@ -2575,7 +2577,7 @@ dependencies = [
  "httpdate",
  "itoa 1.0.11",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.7",
  "tokio",
  "tower-service",
  "tracing",
@@ -5507,6 +5509,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "signal-hook"
+version = "0.3.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8621587d4798caf8eb44879d42e56b9a93ea5dcd315a6487c357130095b62801"
+dependencies = [
+ "libc",
+ "signal-hook-registry",
+]
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6335,7 +6347,7 @@ dependencies = [
  "regex",
  "semver 0.11.0",
  "sha2 0.9.9",
- "signal-hook",
+ "signal-hook 0.1.17",
  "terminfo",
  "termios",
  "thiserror 1.0.69",

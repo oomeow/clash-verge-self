@@ -43,11 +43,11 @@ reqwest_dav = "0.1"
 zip = "2.2"
 sysproxy = { git = "https://github.com/zzzgydi/sysproxy-rs", branch = "main" }
 tauri = { version = "2", features = [
-    "protocol-asset",
-    "devtools",
-    "tray-icon",
-    "image-ico",
-    "image-png",
+  "protocol-asset",
+  "devtools",
+  "tray-icon",
+  "image-ico",
+  "image-png",
 ] }
 tauri-plugin-notification = "2"
 tauri-plugin-shell = "2"
@@ -57,19 +57,27 @@ tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
 rust-i18n = "3"
 rfd = { version = "0.15", default-features = false, features = [
-    "tokio",
-    "gtk3",
-    "common-controls-v6",
+  "tokio",
+  "gtk3",
+  "common-controls-v6",
 ] }
 
 [target.'cfg(windows)'.dependencies]
 runas = "=1.2"
 deelevate = "0.2"
 winreg = "0.52"
+windows-sys = { version = "0.59", features = [
+  "Win32_UI_WindowsAndMessaging",
+  "Win32_Foundation",
+  "Win32_System_SystemServices",
+  "Win32_Graphics_Gdi",
+  "Win32_UI_Shell",
+] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 users = "0.11"
 openssl = { version = "0.10", features = ["vendored"] }
+signal-hook = "0.3.17"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"

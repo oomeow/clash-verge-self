@@ -8,6 +8,7 @@ mod config;
 mod core;
 mod enhance;
 mod feat;
+mod shutdown;
 mod utils;
 
 use crate::{
@@ -150,6 +151,10 @@ pub fn run() -> Result<()> {
                     resolve::create_window(&app_handle_);
                 }
             });
+
+            log::trace!("register os shutdown handler");
+            shutdown::init();
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
