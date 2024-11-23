@@ -31,7 +31,6 @@ pub fn find_unused_port() -> Result<u16> {
 /// handle something when start app
 pub async fn resolve_setup(app_handle: &AppHandle) {
     let version = app_handle.package_info().version.to_string();
-    handle::Handle::global().init(app_handle.clone());
     VERSION.get_or_init(|| version.clone());
 
     log_err!(init::init_resources());

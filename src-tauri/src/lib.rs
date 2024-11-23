@@ -16,7 +16,7 @@ use crate::{
     utils::{init, resolve, server},
 };
 use anyhow::Result;
-use core::{tray, verge_log::VergeLog};
+use core::{handle, tray, verge_log::VergeLog};
 use rust_i18n::t;
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
@@ -109,6 +109,9 @@ pub fn run() -> Result<()> {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let app_handle = app.handle();
+
+            handle::Handle::global().init(app_handle.clone());
+
             log::trace!("init system tray");
             log_err!(tray::Tray::init(app_handle));
 
