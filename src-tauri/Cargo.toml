@@ -66,13 +66,7 @@ rfd = { version = "0.15", default-features = false, features = [
 runas = "=1.2"
 deelevate = "0.2"
 winreg = "0.52"
-windows-sys = { version = "0.59", features = [
-  "Win32_UI_WindowsAndMessaging",
-  "Win32_Foundation",
-  "Win32_System_SystemServices",
-  "Win32_Graphics_Gdi",
-  "Win32_UI_Shell",
-] }
+windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 users = "0.11"
