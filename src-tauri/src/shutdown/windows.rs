@@ -2,7 +2,7 @@ use tauri::Manager;
 use windows_sys::Win32::{
     Foundation::{HWND, LPARAM, LRESULT, WPARAM},
     UI::WindowsAndMessaging::{
-        CreateWindowExW, DefWindowProcA, DestroyWindow, RegisterClassW, CW_USEDEFAULT,
+        CreateWindowExW, DefWindowProcW, DestroyWindow, RegisterClassW, CW_USEDEFAULT,
         WM_ENDSESSION, WM_QUERYENDSESSION, WNDCLASSW, WS_EX_LAYERED, WS_EX_NOACTIVATE,
         WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT, WS_OVERLAPPED,
     },
@@ -30,11 +30,11 @@ impl Drop for ShutdownState {
 }
 
 unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+    // ref: https://learn.microsoft.com/zh-cn/windows/win32/shutdown/shutting-down#shutdown-notifications
+    // only perform reset operations in `WM_ENDSESSION`
     match msg {
         WM_QUERYENDSESSION => {
             log::info!("System is shutting down or user is logging off.");
-            resolve::resolve_reset();
-            log::info!("resolved reset finished");
         }
         WM_ENDSESSION => {
             log::info!("Session ended, system shutting down.");
@@ -43,7 +43,7 @@ unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: 
         }
         _ => {}
     };
-    DefWindowProcA(hwnd, msg, wparam, lparam)
+    DefWindowProcW(hwnd, msg, wparam, lparam)
 }
 
 fn encode_wide<S: AsRef<std::ffi::OsStr>>(string: S) -> Vec<u16> {
@@ -67,7 +67,7 @@ fn get_instance_handle() -> windows_sys::Win32::Foundation::HMODULE {
     unsafe { &__ImageBase as *const _ as _ }
 }
 
-pub fn init() {
+pub fn register() {
     let app_hanlde = handle::Handle::global()
         .get_app_handle()
         .expect("faild to get app handle");

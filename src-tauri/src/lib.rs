@@ -156,7 +156,7 @@ pub fn run() -> Result<()> {
             });
 
             log::trace!("register os shutdown handler");
-            shutdown::init();
+            shutdown::register();
 
             Ok(())
         })

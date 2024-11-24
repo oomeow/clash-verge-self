@@ -6,7 +6,7 @@ use signal_hook::{
 
 use crate::utils::resolve;
 
-pub fn init() {
+pub fn register() {
     let signals = &[SIGTERM, SIGINT, SIGHUP];
     let mut sigs = Signals::new(signals).unwrap();
     std::thread::spawn(move || {

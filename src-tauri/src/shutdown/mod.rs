@@ -3,10 +3,10 @@ mod unix;
 #[cfg(target_os = "windows")]
 mod windows;
 
-pub fn init() {
+pub fn register() {
     #[cfg(target_os = "windows")]
-    windows::init();
+    windows::register();
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
-    unix::init();
+    unix::register();
 }
