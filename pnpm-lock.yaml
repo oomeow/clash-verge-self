@@ -166,8 +166,8 @@ importers:
         specifier: 5.4.3
         version: 5.4.3(terser@5.36.0)(vite@5.4.11(@types/node@22.9.0)(sass@1.80.3)(terser@5.36.0))
       '@vitejs/plugin-react':
-        specifier: 4.3.3
-        version: 4.3.3(vite@5.4.11(@types/node@22.9.0)(sass@1.80.3)(terser@5.36.0))
+        specifier: 4.3.4
+        version: 4.3.4(vite@5.4.11(@types/node@22.9.0)(sass@1.80.3)(terser@5.36.0))
       adm-zip:
         specifier: 0.5.16
         version: 0.5.16
@@ -1794,11 +1794,11 @@ packages:
       terser: ^5.4.0
       vite: ^5.0.0
 
-  '@vitejs/plugin-react@4.3.3':
-    resolution: {integrity: sha512-NooDe9GpHGqNns1i8XDERg0Vsg5SSYRhRxxyTGogUdkdNt47jal+fbuYi+Yfq6pzRCKXyoPcWisfxE6RIM3GKA==}
+  '@vitejs/plugin-react@4.3.4':
+    resolution: {integrity: sha512-SCCPBJtYLdE8PX/7ZQAs1QAZ8Jqwih+0VBLum1EGqmCCQal+MIUqLCzj3ZUy8ufbC0cAM4LRlSTm7IQJwWT4ug==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: ^4.2.0 || ^5.0.0
+      vite: ^4.2.0 || ^5.0.0 || ^6.0.0
 
   acorn@8.14.0:
     resolution: {integrity: sha512-cl669nCJTZBsL97OF4kUQm5g5hC2uihk0NxY3WENAC0TYdILVkAyHymAntgxGkl7K+t0cXIrH5siy5S4XkFycA==}
@@ -5715,7 +5715,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitejs/plugin-react@4.3.3(vite@5.4.11(@types/node@22.9.0)(sass@1.80.3)(terser@5.36.0))':
+  '@vitejs/plugin-react@4.3.4(vite@5.4.11(@types/node@22.9.0)(sass@1.80.3)(terser@5.36.0))':
     dependencies:
       '@babel/core': 7.26.0
       '@babel/plugin-transform-react-jsx-self': 7.25.9(@babel/core@7.26.0)
