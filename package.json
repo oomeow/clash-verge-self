@@ -29,7 +29,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@juggle/resize-observer": "^3.4.0",
     "@mui/icons-material": "^6.1.6",
-    "@mui/lab": "5.0.0-alpha.173",
+    "@mui/lab": "5.0.0-alpha.174",
     "@mui/material": "^6.1.6",
     "@mui/x-data-grid": "^7.22.2",
     "@tauri-apps/api": "^2.1.1",
