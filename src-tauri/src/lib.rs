@@ -91,6 +91,9 @@ pub fn run() -> Result<()> {
             resolve::resolve_reset();
         });
         let _ = task.join();
+        let _ = handle::Handle::global()
+            .get_app_handle()
+            .map(|app_handle| app_handle.cleanup_before_exit());
         std::process::exit(1);
     }));
 

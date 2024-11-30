@@ -432,7 +432,7 @@ pub async fn get_clash_configs() -> CmdResult<bool> {
 pub fn exit_app(app_handle: tauri::AppHandle) {
     let _ = resolve::save_window_size_position(&app_handle, true);
     resolve::resolve_reset();
-    app_handle.exit(0);
+    app_handle.cleanup_before_exit();
     std::process::exit(0);
 }
 
