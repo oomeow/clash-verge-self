@@ -29,7 +29,7 @@ impl Drop for ShutdownState {
     }
 }
 
-unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+unsafe extern "system" fn shutdown_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
     // ref: https://learn.microsoft.com/zh-cn/windows/win32/shutdown/shutting-down#shutdown-notifications
     // only perform reset operations in `WM_ENDSESSION`
     match msg {
@@ -76,7 +76,7 @@ pub fn register() {
         let hinstance = get_instance_handle();
 
         let wnd_class = WNDCLASSW {
-            lpfnWndProc: Some(wndproc),
+            lpfnWndProc: Some(shutdown_proc),
             lpszClassName: class_name.as_ptr(),
             hInstance: hinstance,
             ..std::mem::zeroed()
