@@ -1,10 +1,13 @@
 import { useVerge } from "@/hooks/use-verge";
 import { cn } from "@/utils";
+import getSystem from "@/utils/get-system";
 import { LoadingButton } from "@mui/lab";
 import { Button } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { t } from "i18next";
 import { CSSProperties, ReactNode } from "react";
+
+const OS = getSystem();
 
 interface AnimatedDialogProps {
   title: ReactNode;
@@ -61,7 +64,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
           onClick={onClose}
           className={cn(
             "fixed inset-0 z-50 flex h-dvh items-center justify-center bg-black bg-opacity-50",
-            { "rounded-md": !enable_system_title_bar },
+            { "rounded-md": OS === "linux" && !enable_system_title_bar },
           )}>
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
