@@ -86,7 +86,7 @@
     "concurrently": "9.1.0",
     "cross-env": "7.0.3",
     "fs-extra": "11.2.0",
-    "https-proxy-agent": "7.0.5",
+    "https-proxy-agent": "7.0.6",
     "husky": "9.1.7",
     "node-fetch": "3.3.2",
     "postcss": "8.4.49",
