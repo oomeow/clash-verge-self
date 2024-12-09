@@ -85,10 +85,10 @@ importers:
         version: 4.17.21
       monaco-editor:
         specifier: ^0.52.0
-        version: 0.52.0
+        version: 0.52.2
       monaco-yaml:
         specifier: ^5.2.3
-        version: 5.2.3(monaco-editor@0.52.0)
+        version: 5.2.3(monaco-editor@0.52.2)
       nanoid:
         specifier: ^5.0.8
         version: 5.0.9
@@ -230,7 +230,7 @@ importers:
         version: 6.0.3(@types/node@22.9.0)(jiti@1.21.6)(sass@1.80.3)(terser@5.37.0)(yaml@2.6.0)
       vite-plugin-monaco-editor:
         specifier: 1.1.0
-        version: 1.1.0(monaco-editor@0.52.0)
+        version: 1.1.0(monaco-editor@0.52.2)
       vite-plugin-svgr:
         specifier: 4.3.0
         version: 4.3.0(rollup@4.25.0)(typescript@5.7.2)(vite@6.0.3(@types/node@22.9.0)(jiti@1.21.6)(sass@1.80.3)(terser@5.37.0)(yaml@2.6.0))
@@ -2979,8 +2979,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  monaco-editor@0.52.0:
-    resolution: {integrity: sha512-OeWhNpABLCeTqubfqLMXGsqf6OmPU6pHM85kF3dhy6kq5hnhuVS1p3VrEW/XhWHc71P2tHyS5JFySD8mgs1crw==}
+  monaco-editor@0.52.2:
+    resolution: {integrity: sha512-GEQWEZmfkOGLdd3XK8ryrfWz3AIP8YymVXiPHEdewrUq7mh0qrKrfHLNCXcbB6sTnMLnOZ3ztSiKcciFUkIJwQ==}
 
   monaco-languageserver-types@0.4.0:
     resolution: {integrity: sha512-QQ3BZiU5LYkJElGncSNb5AKoJ/LCs6YBMCJMAz9EA7v+JaOdn3kx2cXpPTcZfKA5AEsR0vc97sAw+5mdNhVBmw==}
@@ -7116,7 +7116,7 @@ snapshots:
 
   mkdirp@3.0.1: {}
 
-  monaco-editor@0.52.0: {}
+  monaco-editor@0.52.2: {}
 
   monaco-languageserver-types@0.4.0:
     dependencies:
@@ -7130,18 +7130,18 @@ snapshots:
 
   monaco-types@0.1.0: {}
 
-  monaco-worker-manager@2.0.1(monaco-editor@0.52.0):
+  monaco-worker-manager@2.0.1(monaco-editor@0.52.2):
     dependencies:
-      monaco-editor: 0.52.0
+      monaco-editor: 0.52.2
 
-  monaco-yaml@5.2.3(monaco-editor@0.52.0):
+  monaco-yaml@5.2.3(monaco-editor@0.52.2):
     dependencies:
       jsonc-parser: 3.3.1
-      monaco-editor: 0.52.0
+      monaco-editor: 0.52.2
       monaco-languageserver-types: 0.4.0
       monaco-marker-data-provider: 1.2.4
       monaco-types: 0.1.0
-      monaco-worker-manager: 2.0.1(monaco-editor@0.52.0)
+      monaco-worker-manager: 2.0.1(monaco-editor@0.52.2)
       path-browserify: 1.0.1
       prettier: 2.8.8
       vscode-languageserver-textdocument: 1.0.12
@@ -8000,9 +8000,9 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.2
 
-  vite-plugin-monaco-editor@1.1.0(monaco-editor@0.52.0):
+  vite-plugin-monaco-editor@1.1.0(monaco-editor@0.52.2):
     dependencies:
-      monaco-editor: 0.52.0
+      monaco-editor: 0.52.2
 
   vite-plugin-svgr@4.3.0(rollup@4.25.0)(typescript@5.7.2)(vite@6.0.3(@types/node@22.9.0)(jiti@1.21.6)(sass@1.80.3)(terser@5.37.0)(yaml@2.6.0)):
     dependencies:
