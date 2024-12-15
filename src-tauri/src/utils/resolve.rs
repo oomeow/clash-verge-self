@@ -175,19 +175,17 @@ pub fn save_window_size_position(app_handle: &AppHandle, save_to_file: bool) -> 
         verge.save_file()?;
     }
 
-    let win = app_handle
-        .get_webview_window("main")
-        .ok_or(anyhow::anyhow!("failed to get window"))?;
-
-    let scale = win.scale_factor()?;
-    let size = win.inner_size()?;
-    let size = size.to_logical::<f64>(scale);
-    let pos = win.outer_position()?;
-    let pos = pos.to_logical::<f64>(scale);
-    let is_maximized = win.is_maximized()?;
-    verge.window_is_maximized = Some(is_maximized);
-    if !is_maximized && size.width >= 600.0 && size.height >= 520.0 {
-        verge.window_size_position = Some(vec![size.width, size.height, pos.x, pos.y]);
+    if let Some(win) = app_handle.get_webview_window("main") {
+        let scale = win.scale_factor()?;
+        let size = win.inner_size()?;
+        let size = size.to_logical::<f64>(scale);
+        let pos = win.outer_position()?;
+        let pos = pos.to_logical::<f64>(scale);
+        let is_maximized = win.is_maximized()?;
+        verge.window_is_maximized = Some(is_maximized);
+        if !is_maximized && size.width >= 600.0 && size.height >= 520.0 {
+            verge.window_size_position = Some(vec![size.width, size.height, pos.x, pos.y]);
+        }
     }
     Ok(())
 }

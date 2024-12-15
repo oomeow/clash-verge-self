@@ -19,6 +19,7 @@ use std::{
 };
 use sysproxy::{Autoproxy, Sysproxy};
 use tauri::Manager;
+use tauri_plugin_opener::OpenerExt;
 use tray::Tray;
 type CmdResult<T = ()> = Result<T, String>;
 
@@ -290,27 +291,33 @@ pub fn get_clash_logs() -> CmdResult<VecDeque<String>> {
 }
 
 #[tauri::command]
-pub fn open_app_dir() -> CmdResult<()> {
+pub fn open_app_dir(app_handle: tauri::AppHandle) -> CmdResult<()> {
     let app_dir = wrap_err!(dirs::app_home_dir())?;
-    wrap_err!(open::that(app_dir))
+    wrap_err!(app_handle
+        .opener()
+        .open_path(app_dir.to_string_lossy(), None::<&str>))
 }
 
 #[tauri::command]
-pub fn open_core_dir() -> CmdResult<()> {
+pub fn open_core_dir(app_handle: tauri::AppHandle) -> CmdResult<()> {
     let core_dir = wrap_err!(tauri::utils::platform::current_exe())?;
     let core_dir = core_dir.parent().ok_or("failed to get core dir")?;
-    wrap_err!(open::that(core_dir))
+    wrap_err!(app_handle
+        .opener()
+        .open_path(core_dir.to_string_lossy(), None::<&str>))
 }
 
 #[tauri::command]
-pub fn open_logs_dir() -> CmdResult<()> {
+pub fn open_logs_dir(app_handle: tauri::AppHandle) -> CmdResult<()> {
     let log_dir = wrap_err!(dirs::app_logs_dir())?;
-    wrap_err!(open::that(log_dir))
+    wrap_err!(app_handle
+        .opener()
+        .open_path(log_dir.to_string_lossy(), None::<&str>))
 }
 
 #[tauri::command]
-pub fn open_web_url(url: String) -> CmdResult<()> {
-    wrap_err!(open::that(url))
+pub fn open_web_url(app_handle: tauri::AppHandle, url: String) -> CmdResult<()> {
+    wrap_err!(app_handle.opener().open_url(url, None::<&str>))
 }
 
 #[cfg(windows)]

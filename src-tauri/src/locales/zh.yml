@@ -9,7 +9,7 @@ service: 服务模式
 copy.env: 复制环境变量
 open.dir: 打开目录
 app.dir: 应用目录
-core.dir: 应用目录
+core.dir: 内核目录
 log.dir: 日志目录
 more: 更多
 open.devtools: 打开开发者工具

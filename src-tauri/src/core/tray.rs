@@ -295,6 +295,7 @@ impl Tray {
     }
 
     pub fn on_system_tray_event(app_handle: &AppHandle, event: MenuEvent) {
+        let app_handle_ = app_handle.clone();
         match event.id.as_ref() {
             mode @ ("rule_mode" | "global_mode" | "direct_mode") => {
                 let mode = &mode[0..mode.len() - 5];
@@ -305,13 +306,13 @@ impl Tray {
             "service_mode" => feat::toggle_service_mode(),
             "tun_mode" => feat::toggle_tun_mode(),
             "copy_env" => feat::copy_clash_env(app_handle),
-            "open_app_dir" => crate::log_err!(cmds::open_app_dir()),
-            "open_core_dir" => crate::log_err!(cmds::open_core_dir()),
-            "open_logs_dir" => crate::log_err!(cmds::open_logs_dir()),
-            "open_devtools" => cmds::open_devtools(app_handle.clone()),
+            "open_app_dir" => crate::log_err!(cmds::open_app_dir(app_handle_)),
+            "open_core_dir" => crate::log_err!(cmds::open_core_dir(app_handle_)),
+            "open_logs_dir" => crate::log_err!(cmds::open_logs_dir(app_handle_)),
+            "open_devtools" => cmds::open_devtools(app_handle_),
             "restart_clash" => feat::restart_clash_core(),
-            "restart_app" => cmds::restart_app(app_handle.clone()),
-            "quit" => cmds::exit_app(app_handle.clone()),
+            "restart_app" => cmds::restart_app(app_handle_),
+            "quit" => cmds::exit_app(app_handle_),
             _ => {}
         }
     }
