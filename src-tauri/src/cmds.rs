@@ -421,6 +421,7 @@ pub fn open_devtools(app_handle: tauri::AppHandle) {
 pub fn restart_app(app_handle: tauri::AppHandle) {
     let _ = resolve::save_window_size_position(&app_handle, true);
     let _ = CoreManager::global().stop_core();
+    app_handle.cleanup_before_exit();
     app_handle.restart();
 }
 
