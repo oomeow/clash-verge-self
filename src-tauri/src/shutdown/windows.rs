@@ -10,8 +10,9 @@ use windows_sys::Win32::{
 
 use crate::{core::handle, utils::resolve};
 
-// code refer to tauri's lib: global-hotkey (https://github.com/tauri-apps/global-hotkey)
-//      and tauri's plugin: Global Shortcut (https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/global-shortcut)
+// code refer to:
+//      global-hotkey (https://github.com/tauri-apps/global-hotkey)
+//      Global Shortcut (https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/global-shortcut)
 
 struct ShutdownState {
     hwnd: HWND,
@@ -22,6 +23,7 @@ unsafe impl Sync for ShutdownState {}
 
 impl Drop for ShutdownState {
     fn drop(&mut self) {
+        // this log not be printed, I don't know why.
         log::info!("Dropping ShutdownState, destroying window");
         unsafe {
             DestroyWindow(self.hwnd);
@@ -29,8 +31,13 @@ impl Drop for ShutdownState {
     }
 }
 
-unsafe extern "system" fn shutdown_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
-    // ref: https://learn.microsoft.com/zh-cn/windows/win32/shutdown/shutting-down#shutdown-notifications
+unsafe extern "system" fn shutdown_proc(
+    hwnd: HWND,
+    msg: u32,
+    wparam: WPARAM,
+    lparam: LPARAM,
+) -> LRESULT {
+    // refer: https://learn.microsoft.com/zh-cn/windows/win32/shutdown/shutting-down#shutdown-notifications
     // only perform reset operations in `WM_ENDSESSION`
     match msg {
         WM_QUERYENDSESSION => {

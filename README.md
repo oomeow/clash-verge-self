@@ -8,8 +8,9 @@
 > [!NOTE]
 >
 > 此仓库 fork 自 1.6.0 版本的 [clash-verge-rev](https://github.com/clash-verge-rev/clash-verge-rev)，仅仅是为了实现一些自己想要的功能，因为我基本上都在使用Linux，所以不能保证其他系统使用中出现的问题。
-> 
+>
 > 其他 Clash 系列桌面端软件
+>
 > - [Mihomo Party](https://github.com/mihomo-party-org/mihomo-party)
 > - [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)
 > - [Clash Nyanpasu](https://github.com/libnyanpasu/clash-nyanpasu)

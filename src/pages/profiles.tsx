@@ -150,7 +150,6 @@ const ProfilePage = () => {
   }, [regularItems, enhanceItems]);
 
   useEffect(() => {
-    // TODO: not working in wayland
     const unlisten = listen(TauriEvent.DRAG_DROP, async (event) => {
       console.log("drag drop event: ", event);
       const payload = event.payload as FileDragDropPayload;
