@@ -379,7 +379,30 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
 
 /// 修改verge的订阅
 /// 一般都是一个个的修改
-pub async fn patch_verge(patch: IVerge) -> Result<()> {
+pub async fn patch_verge(mut patch: IVerge) -> Result<()> {
+    // handle window size when toggle system title bar enable on linux wayland
+    let enable_system_title_bar = patch.enable_system_title_bar;
+    if let Some(system_title_bar) = enable_system_title_bar {
+        if cmds::is_wayland().unwrap_or(false) {
+            let verge = Config::verge();
+            let verge = verge.latest().clone();
+            let verge_size_position = verge.window_size_position;
+            if let Some(size_position) = verge_size_position {
+                let mut w = size_position[0];
+                let mut h = size_position[1];
+                let x = size_position[2];
+                let y = size_position[3];
+                if system_title_bar {
+                    w = w + 90.;
+                    h = h + 90.;
+                } else {
+                    w = w - 90.;
+                    h = h - 90.;
+                }
+                patch.window_size_position = Some(vec![w, h, x, y]);
+            }
+        }
+    }
     Config::verge().draft().patch_config(patch.clone());
 
     let res = resolve_config_settings(patch).await;

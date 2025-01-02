@@ -174,6 +174,7 @@ pub fn run() -> Result<()> {
             cmds::open_web_url,
             cmds::open_core_dir,
             cmds::get_portable_flag,
+            cmds::is_wayland,
             // cmds::kill_sidecar,
             cmds::restart_sidecar,
             cmds::grant_permission,

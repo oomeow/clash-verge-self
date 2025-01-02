@@ -320,5 +320,7 @@
   "Apply Backup Successful": "Apply Backup Successful, Will Restart App Soon",
   "Apply Backup Failed": "Apply Backup Failed, {{error}}",
   "BK_All": "Config + Profiles",
-  "BK_Profiles": "Profiles"
+  "BK_Profiles": "Profiles",
+
+  "App Will Be Restarted Soon": "App Will Be Restarted Soon"
 }
