@@ -1,11 +1,11 @@
 use crate::config::PrfOption;
+use crate::{cmds, log_err, trace_err};
 use crate::{
     config::{Config, PrfItem},
     core::*,
     utils::init,
     utils::server,
 };
-use crate::{log_err, trace_err};
 use anyhow::Result;
 use once_cell::sync::OnceCell;
 use rust_i18n::t;
@@ -82,32 +82,41 @@ pub fn create_window(app_handle: &AppHandle) {
         return;
     }
 
+    let verge = Config::verge().latest().clone();
+
     let mut builder = tauri::WebviewWindowBuilder::new(
         app_handle,
         "main".to_string(),
         tauri::WebviewUrl::App("index.html".into()),
     )
     .title("Clash Verge")
-    .visible(false)
     .fullscreen(false)
+    .maximized(verge.window_is_maximized.unwrap_or(false))
     .min_inner_size(600.0, 520.0);
 
+    let decoration = verge.enable_system_title_bar.unwrap_or(false);
     #[cfg(not(target_os = "macos"))]
     {
-        let decoration = Config::verge()
-            .latest()
-            .enable_system_title_bar
-            .unwrap_or(false);
         builder = builder.decorations(decoration);
     }
 
-    match Config::verge().latest().window_size_position.clone() {
+    match verge.window_size_position {
         Some(size_pos) if size_pos.len() == 4 => {
             let size = (size_pos[0], size_pos[1]);
             let pos = (size_pos[2], size_pos[3]);
             let w = size.0.clamp(600.0, f64::INFINITY);
             let h = size.1.clamp(520.0, f64::INFINITY);
             builder = builder.inner_size(w, h).position(pos.0, pos.1);
+            // adjust window size on wayland when it is enable decoration
+            #[cfg(target_os = "linux")]
+            {
+                let is_wayland = cmds::is_wayland().unwrap_or(false);
+                if decoration && is_wayland {
+                    builder = builder
+                        .inner_size(w - 90.0, h - 90.0)
+                        .position(pos.0, pos.1);
+                }
+            }
         }
         _ => {
             builder = builder.inner_size(800.0, 642.0).center();
@@ -123,12 +132,20 @@ pub fn create_window(app_handle: &AppHandle) {
     #[cfg(target_os = "macos")]
     let window = builder
         .decorations(true)
+        .visible(false)
         .hidden_title(true)
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .shadow(true)
         .build();
     #[cfg(target_os = "linux")]
-    let window = builder.transparent(true).build();
+    let window = {
+        let visiable = decoration && cmds::is_wayland().unwrap_or(false);
+        builder
+            .visible(visiable)
+            .shadow(true)
+            .transparent(true)
+            .build()
+    };
 
     match window {
         Ok(win) => {
@@ -151,14 +168,6 @@ pub fn create_window(app_handle: &AppHandle) {
             if center.unwrap_or(true) {
                 trace_err!(win.center(), "set win center");
             }
-
-            let is_maximized = Config::verge()
-                .latest()
-                .window_is_maximized
-                .unwrap_or(false);
-            if is_maximized {
-                trace_err!(win.maximize(), "set win maximize");
-            }
         }
         Err(_) => {
             log::error!("failed to create window");
@@ -170,10 +179,6 @@ pub fn create_window(app_handle: &AppHandle) {
 pub fn save_window_size_position(app_handle: &AppHandle, save_to_file: bool) -> Result<()> {
     let verge = Config::verge();
     let mut verge = verge.latest();
-
-    if save_to_file {
-        verge.save_file()?;
-    }
 
     if let Some(win) = app_handle.get_webview_window("main") {
         let scale = win.scale_factor()?;
@@ -187,6 +192,11 @@ pub fn save_window_size_position(app_handle: &AppHandle, save_to_file: bool) -> 
             verge.window_size_position = Some(vec![size.width, size.height, pos.x, pos.y]);
         }
     }
+
+    if save_to_file {
+        verge.save_file()?;
+    }
+
     Ok(())
 }
 

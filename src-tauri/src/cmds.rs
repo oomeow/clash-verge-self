@@ -419,7 +419,7 @@ pub fn open_devtools(app_handle: tauri::AppHandle) {
 
 #[tauri::command]
 pub fn restart_app(app_handle: tauri::AppHandle) {
-    let _ = resolve::save_window_size_position(&app_handle, true);
+    let _ = resolve::save_window_size_position(&app_handle, false);
     let _ = CoreManager::global().stop_core();
     app_handle.cleanup_before_exit();
     app_handle.restart();
@@ -566,4 +566,16 @@ pub async fn delete_backup(file_name: String) -> CmdResult {
 #[tauri::command]
 pub async fn set_tray_visible(app_handle: tauri::AppHandle, visible: bool) -> CmdResult {
     wrap_err!(Tray::set_tray_visible(&app_handle, visible))
+}
+
+#[tauri::command]
+pub fn is_wayland() -> CmdResult<bool> {
+    if cfg!(target_os = "linux") {
+        let session_type = std::env::var("XDG_SESSION_TYPE")
+            .unwrap_or("".to_string())
+            .to_lowercase();
+        Ok(session_type == "wayland")
+    } else {
+        Ok(false)
+    }
 }
