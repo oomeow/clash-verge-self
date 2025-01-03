@@ -147,7 +147,7 @@ impl Tray {
         let tray = TrayIconBuilder::with_id(TRAY_ID)
             .icon(Self::get_tray_icon())
             .menu(&menu)
-            .menu_on_left_click(false)
+            .show_menu_on_left_click(false)
             .on_tray_icon_event(Self::on_click)
             .on_menu_event(Self::on_system_tray_event)
             .build(app_handle)?;
