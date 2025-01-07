@@ -88,7 +88,7 @@ custom-protocol = ["tauri/custom-protocol"]
 verge-dev = []
 
 [profile.release]
-panic = "unwind"
+panic = "abort"
 codegen-units = 1
 lto = true
 opt-level = "s"

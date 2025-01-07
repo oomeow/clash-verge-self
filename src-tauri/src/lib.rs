@@ -51,10 +51,6 @@ pub fn run() -> Result<()> {
         } else {
             &format!("{:?}", payload)
         };
-        // TODO: ref: https://github.com/tauri-apps/tauri/issues/10546, Need to wait for tauri to fix this bug
-        if payload.contains("PostMessage failed ; is the messages queue full?") {
-            return;
-        }
 
         let location = panic_info
             .location()
