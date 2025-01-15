@@ -86,7 +86,7 @@
     "clsx": "2.1.1",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",
-    "fs-extra": "11.2.0",
+    "fs-extra": "11.3.0",
     "https-proxy-agent": "7.0.6",
     "husky": "9.1.7",
     "node-fetch": "3.3.2",
