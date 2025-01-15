@@ -65,7 +65,7 @@ rfd = { version = "0.15", default-features = false, features = [
 [target.'cfg(windows)'.dependencies]
 runas = "=1.2"
 deelevate = "0.2"
-winreg = "0.52"
+winreg = "0.55"
 windows-sys = { version = "0.59", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",
