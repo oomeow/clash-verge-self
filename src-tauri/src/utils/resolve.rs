@@ -7,6 +7,7 @@ use crate::{
     utils::server,
 };
 use anyhow::Result;
+use mihomo::MihomoClientManager;
 use once_cell::sync::OnceCell;
 use rust_i18n::t;
 use std::net::TcpListener;
@@ -33,30 +34,34 @@ pub async fn resolve_setup(app_handle: &AppHandle) {
     let version = app_handle.package_info().version.to_string();
     VERSION.get_or_init(|| version.clone());
 
+    log::trace!("init resources");
     log_err!(init::init_resources());
+    log::trace!("init scheme");
     log_err!(init::init_scheme());
+    log::trace!("init startup script");
     log_err!(init::startup_script().await);
-
     // 启动核心
     log::trace!("init config");
     log_err!(Config::init_config());
-
     log::trace!("launch core");
     log_err!(CoreManager::global().init());
-
     // setup a simple http server for singleton
     log::trace!("launch embed server");
     server::embed_server(app_handle.clone());
-
+    log::trace!("init autolaunch");
     log_err!(sysopt::Sysopt::global().init_launch());
+    log::trace!("init system proxy");
     log_err!(sysopt::Sysopt::global().init_sysproxy());
-
+    log::trace!("update system tray");
     log_err!(handle::Handle::update_systray_part());
+    log::trace!("init hotkey");
     log_err!(hotkey::Hotkey::global().init(app_handle.clone()));
+    log::trace!("init timer");
     log_err!(timer::Timer::global().init());
-
     log::trace!("init webdav config");
     log_err!(backup::WebDav::global().init().await);
+    log::trace!("init mihomo api client");
+    log_err!(MihomoClientManager::global().init());
 
     let argvs: Vec<String> = std::env::args().collect();
     if argvs.len() > 1 {

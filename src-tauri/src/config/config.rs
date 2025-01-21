@@ -1,6 +1,6 @@
 use super::{Draft, IClashConfig, IProfiles, IRuntime, IVerge};
 use crate::{
-    core::{clash_api, service},
+    core::{mihomo::MihomoClientManager, service},
     enhance, feat,
     utils::{dirs, help},
 };
@@ -159,7 +159,12 @@ impl Config {
                 log::debug!(target: "app", "check clash core run status when reload config: failed.");
                 return Err(anyhow!(t!("clash.restart.failed")));
             }
-            if clash_api::get_configs().await.is_ok() {
+            if MihomoClientManager::global()
+                .mihomo()
+                .get_base_config()
+                .await
+                .is_ok()
+            {
                 log::debug!(target: "app","check clash core run status when reload config: successful.");
                 break;
             }

@@ -1,5 +1,6 @@
 use crate::config::*;
-use crate::core::{clash_api, handle, logger::Logger, service};
+use crate::core::mihomo::MihomoClientManager;
+use crate::core::{mihomo, handle, logger::Logger, service};
 use crate::log_err;
 use crate::utils::dirs;
 use crate::utils::resolve::find_unused_port;
@@ -84,7 +85,7 @@ impl CoreManager {
 
         if !output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout.clone()).into_owned();
-            let error = clash_api::parse_check_output(stdout.clone());
+            let error = mihomo::parse_check_output(stdout.clone());
             let error = match !error.is_empty() {
                 true => error,
                 false => stdout.clone(),
@@ -110,7 +111,10 @@ impl CoreManager {
             self.sidecar.lock().take();
             // 关闭 tun 模式
             log::debug!(target: "app", "disable tun mode");
-            let _ = clash_api::patch_configs(&disable).await;
+            let _ = MihomoClientManager::global()
+                .mihomo()
+                .patch_base_config(&disable)
+                .await;
         }
 
         if *self.use_service_mode.lock() {
@@ -249,7 +253,10 @@ impl CoreManager {
             tun.insert("enable".into(), false.into());
             disable.insert("tun".into(), tun.into());
             log::debug!(target: "app", "disable tun mode");
-            let _ = clash_api::patch_configs(&disable).await;
+            let _ = MihomoClientManager::global()
+                .mihomo()
+                .patch_base_config(&disable)
+                .await;
         });
 
         if *self.use_service_mode.lock() {
@@ -333,7 +340,11 @@ impl CoreManager {
 
         // 发送请求 发送5次
         for i in 0..5 {
-            match clash_api::put_configs(path).await {
+            match MihomoClientManager::global()
+                .mihomo()
+                .reload_config(true, path)
+                .await
+            {
                 Ok(_) => break,
                 Err(err) => {
                     if i < 4 {

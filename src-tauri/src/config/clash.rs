@@ -1,4 +1,7 @@
-use crate::utils::{dirs, help};
+use crate::{
+    core::mihomo::MihomoClientManager,
+    utils::{dirs, help},
+};
 use anyhow::Result;
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
@@ -105,6 +108,16 @@ impl IClashConfig {
     }
 
     pub fn patch_and_merge_config(&mut self, patch: Mapping) {
+        if patch.get("external-controller").is_some() {
+            let external_controller = patch.get("external-controller").unwrap().as_str().unwrap();
+            let (host, port) = external_controller.split_once(':').unwrap();
+            MihomoClientManager::global().set_external_host(host);
+            MihomoClientManager::global().set_external_port(port.parse().unwrap());
+        }
+        if patch.get("secret").is_some() {
+            let secret = patch.get("secret").unwrap().as_str().unwrap();
+            MihomoClientManager::global().set_secret(secret);
+        }
         let mut dest = Value::from(self.0.clone());
         Self::merge_into(&Value::from(patch), &mut dest);
         self.0 = dest.as_mapping().unwrap().clone();

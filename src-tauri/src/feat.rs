@@ -10,6 +10,7 @@ use crate::core::*;
 use crate::log_err;
 use crate::utils::resolve;
 use anyhow::{anyhow, bail, Error, Result};
+use mihomo::MihomoClientManager;
 use rust_i18n::t;
 use serde_yaml::{Mapping, Value};
 use service::JsonResponse;
@@ -58,7 +59,11 @@ pub fn change_clash_mode(mode: String) {
     tauri::async_runtime::spawn(async move {
         log::debug!(target: "app", "change clash mode to {mode}");
 
-        match clash_api::patch_configs(&mapping).await {
+        match MihomoClientManager::global()
+            .mihomo()
+            .patch_base_config(&mapping)
+            .await
+        {
             Ok(_) => {
                 // 更新订阅
                 Config::clash().data().patch_config(mapping);
@@ -270,7 +275,10 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
         tmp_map.insert("socks-port".into(), 0.into());
         tmp_map.insert("redir-port".into(), 0.into());
         tmp_map.insert("tproxy-port".into(), 0.into());
-        let _ = clash_api::patch_configs(&tmp_map).await?;
+        let _ = MihomoClientManager::global()
+            .mihomo()
+            .patch_base_config(&tmp_map)
+            .await;
         // clash config
         Config::clash().latest().patch_config(tmp_map);
         Config::clash().latest().save_config()?;
@@ -307,20 +315,27 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
                 let value = clash_config_mapping.get(key).unwrap();
 
                 mapping.insert(key.into(), value.clone().into());
-                let _ = clash_api::patch_configs(&mapping).await?;
+                let _ = MihomoClientManager::global()
+                    .mihomo()
+                    .patch_base_config(&mapping)
+                    .await;
 
                 // handle tun config
                 if key == "tun" {
-                    let clash_basic_configs = clash_api::get_configs().await?;
+                    let clash_basic_configs = MihomoClientManager::global()
+                        .mihomo()
+                        .get_base_config()
+                        .await?;
                     let tun_enable = value
                         .as_mapping()
                         .unwrap()
                         .get("enable")
                         .map_or(false, |val| val.as_bool().unwrap_or(false));
-                    let tun_enable_by_api = clash_basic_configs
-                        .tun
-                        .get("enable")
-                        .map_or(false, |val| val.as_bool().unwrap_or(false));
+                    let tun_enable_by_api = clash_basic_configs.tun.enable;
+                    // let tun_enable_by_api = clash_basic_configs
+                    //     .tun
+                    //     .get("enable")
+                    //     .map_or(false, |val| val.as_bool().unwrap_or(false));
                     if tun_enable == tun_enable_by_api {
                         handle::Handle::update_systray_part()?;
                     } else {

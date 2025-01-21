@@ -1,5 +1,5 @@
 pub mod backup;
-pub mod clash_api;
+pub mod mihomo;
 #[allow(clippy::module_inception)]
 mod core;
 pub mod handle;
