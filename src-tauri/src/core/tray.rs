@@ -177,10 +177,9 @@ impl Tray {
 
     pub fn update_systray(app_handle: &AppHandle) -> Result<()> {
         let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
-        if !enable_tray {
-            return Ok(());
+        if enable_tray {
+            Self::update_part(app_handle)?;
         }
-        Self::update_part(app_handle)?;
         Ok(())
     }
 

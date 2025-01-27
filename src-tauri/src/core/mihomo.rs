@@ -38,14 +38,11 @@ impl MihomoClientManager {
         self.mihomo.lock().clone()
     }
 
-    pub fn set_external_host(&self, host: &str) {
+    pub fn set_external_controller(&self, external_controller: &str) {
         let mut mihomo = self.mihomo.lock();
+        let (host, port) = external_controller.split_once(':').unwrap();
         mihomo.set_external_host(host);
-    }
-
-    pub fn set_external_port(&self, port: u32) {
-        let mut mihomo = self.mihomo.lock();
-        mihomo.set_external_port(port);
+        mihomo.set_external_port(port.parse().unwrap());
     }
 
     pub fn set_secret(&self, secret: &str) {
