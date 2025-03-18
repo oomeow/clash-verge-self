@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "daisyui";
 
 /* 禁用 preflight 的 MUI 组件样式似乎没什么区别, 但是一些自定义组件样式会与之前使用的 v3 版本有差别 */
 /* @layer theme, base, components, utilities;
