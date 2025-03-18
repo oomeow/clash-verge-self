@@ -1,71 +1,109 @@
 import { getProxies, Proxy } from "tauri-plugin-mihomo-api";
 import { create } from "zustand";
+import { immer } from "zustand/middleware/immer";
 
 export type Group = Omit<Proxy, "all" | "id"> & {
-  expanded: boolean;
   all: Proxy[];
 };
 
+type ProxiesDelay = Record<string, Record<string, number | undefined>>;
+
 type State = {
   groups: Group[];
+  expandedGroups: Record<string, boolean>;
+  proxiesDelay: ProxiesDelay;
 };
 
 type Action = {
-  toggleExpandGroup: (name: string) => void;
   getGroup: (name: string) => Group | undefined;
+  toggleExpandGroup: (name: string) => void;
+  updateProxyDelay: (
+    groupName: string,
+    proxyName: string,
+    delay: number,
+  ) => void;
+  updateGroupDelay: (
+    groupName: string,
+    proxiesDelay: Record<string, number>,
+  ) => void;
   fetchGroups: () => Promise<void>;
 };
 
-const useGroupsStore = create<State & Action>()((set, get) => ({
-  groups: [],
-  toggleExpandGroup: (name: string) => {
-    const group = get().groups.find((g) => g.name === name);
-    if (!group) return;
-    const expanded = !group.expanded;
-    set((state) => ({
-      ...state,
-      groups: state.groups.map((g) =>
-        g.name === name ? { ...g, expanded } : g,
-      ),
-    }));
-  },
-
-  getGroup: (name: string) => {
-    return get().groups.find((g) => g.name === name);
-  },
-
-  fetchGroups: async () => {
-    const proxies = await getProxies();
-    const proxiesMap = proxies.proxies;
-    if (!proxiesMap) return;
-
-    // select and convert to groups
-    const entries = Object.entries(proxies.proxies);
-    const allGroups = entries
-      .filter(([_, item]) => item.all)
-      .map(([_, item]) => {
-        const group = {
-          ...item,
-          expanded: false,
-          all: [],
-        } as Group;
-        item.all.forEach((name) => {
-          group.all.push(proxiesMap[name]);
+const useGroupsStore = create<State & Action>()(
+  immer((set, get) => ({
+    groups: [],
+    expandedGroups: {},
+    proxiesDelay: {},
+    getGroup: (name: string) => {
+      return get().groups.find((g) => g.name === name);
+    },
+    toggleExpandGroup: (name: string) => {
+      const nextExpanded = !get().expandedGroups[name];
+      set((state) => {
+        state.expandedGroups[name] = nextExpanded;
+      });
+    },
+    updateProxyDelay: (groupName: string, proxyName: string, delay: number) => {
+      set((state) => {
+        state.proxiesDelay[groupName][proxyName] = delay;
+      });
+    },
+    updateGroupDelay: (
+      groupName: string,
+      proxiesDelay: Record<string, number>,
+    ) => {
+      const proxiesInGroup = get().groups.find(
+        (group) => group.name === groupName,
+      )?.all;
+      const allProxiesDelay = proxiesInGroup
+        ?.map((item) => {
+          const itemName = item.name;
+          return { [itemName]: proxiesDelay[itemName] ?? -1 } as Record<
+            string,
+            number
+          >;
+        })
+        .reduce((acc, curr) => ({ ...acc, ...curr }), {});
+      if (allProxiesDelay) {
+        set((state) => {
+          state.proxiesDelay[groupName] = allProxiesDelay;
         });
-        return group;
-      });
+      }
+    },
+    fetchGroups: async () => {
+      const proxies = await getProxies();
+      const proxiesMap = proxies.proxies;
+      if (!proxiesMap) return;
 
-    // use global all to order groups
-    const globalGroups = allGroups.find((g) => g.name === "GLOBAL")!;
-    const groups = globalGroups.all
-      .filter((item) => !!allGroups.find((group) => group.name === item.name))
-      .map((item) => {
-        const groupName = item.name;
-        return allGroups.find((g) => g.name === groupName)!;
-      });
+      // select and convert to groups
+      const entries = Object.entries(proxies.proxies);
+      const allGroups = entries
+        .filter(([_, item]) => item.all)
+        .map(([_, item]) => {
+          const group = {
+            ...item,
+            all: [],
+          } as Group;
+          item.all.forEach((name) => {
+            group.all.push(proxiesMap[name]);
+          });
+          return group;
+        });
 
-    set({ groups });
-  },
-}));
+      // use global all to order groups
+      const globalGroups = allGroups.find((g) => g.name === "GLOBAL")!;
+      const groups = globalGroups.all
+        .filter((item) => !!allGroups.find((group) => group.name === item.name))
+        .map((item) => {
+          const groupName = item.name;
+          return allGroups.find((g) => g.name === groupName)!;
+        });
+
+      set((state) => {
+        state.groups = groups;
+      });
+    },
+  })),
+);
 
 export default useGroupsStore;

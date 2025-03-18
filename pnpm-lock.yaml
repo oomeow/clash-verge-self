@@ -85,6 +85,9 @@ importers:
       i18next:
         specifier: ^24.2.3
         version: 24.2.3(typescript@5.8.2)
+      immer:
+        specifier: ^10.1.1
+        version: 10.1.1
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -144,7 +147,7 @@ importers:
         version: 1.0.3
       zustand:
         specifier: ^5.0.3
-        version: 5.0.3(@types/react@18.3.18)(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1))
+        version: 5.0.3(@types/react@18.3.18)(immer@10.1.1)(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1))
     devDependencies:
       "@actions/github":
         specifier: 6.0.0
@@ -4123,6 +4126,12 @@ packages:
         integrity: sha512-bAH5jbK/F3T3Jls4I0SO1hmPR0dKU0a7+SY6n1yzRtG54FLO8d6w/nxLFX2Nb7dBu6cCWXPaAME6cYqFUMmuCA==,
       }
     engines: { node: ">= 4" }
+
+  immer@10.1.1:
+    resolution:
+      {
+        integrity: sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==,
+      }
 
   immutable@4.3.7:
     resolution:
@@ -9233,6 +9242,8 @@ snapshots:
 
   ignore@7.0.3: {}
 
+  immer@10.1.1: {}
+
   immutable@4.3.7:
     optional: true
 
@@ -10670,9 +10681,10 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zustand@5.0.3(@types/react@18.3.18)(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1)):
+  zustand@5.0.3(@types/react@18.3.18)(immer@10.1.1)(react@18.3.1)(use-sync-external-store@1.4.0(react@18.3.1)):
     optionalDependencies:
       "@types/react": 18.3.18
+      immer: 10.1.1
       react: 18.3.1
       use-sync-external-store: 1.4.0(react@18.3.1)
 

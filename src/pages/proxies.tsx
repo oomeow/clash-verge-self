@@ -23,8 +23,13 @@ const ProxyPage = () => {
   const { t } = useTranslation();
 
   const groups = useGroupsStore((state) => state.groups);
-  const toggleExpandGroup = useGroupsStore((state) => state.toggleExpandGroup);
+  const expandedGroups = useGroupsStore((state) => state.expandedGroups);
+  const proxiesDelay = useGroupsStore((state) => state.proxiesDelay);
+
   const getGroup = useGroupsStore((state) => state.getGroup);
+  const toggleExpandGroup = useGroupsStore((state) => state.toggleExpandGroup);
+  const updateProxyDelay = useGroupsStore((state) => state.updateProxyDelay);
+  const updateGroupDelay = useGroupsStore((state) => state.updateGroupDelay);
   const fetchGroups = useGroupsStore((state) => state.fetchGroups);
 
   const { data: clashConfig, mutate: mutateClash } = useSWR(
@@ -84,64 +89,77 @@ const ProxyPage = () => {
       }>
       {/* <ProxyGroups mode={curMode!} /> */}
       {groups.map((group, index) => {
+        const groupName = group.name;
         return (
           <div
-            key={group.name}
-            className={cn("flex h-fit w-full flex-col items-center", {
+            key={groupName}
+            className={cn("mx-2 flex h-fit flex-col items-center", {
               "mt-2": index === 0,
             })}>
             <div
-              className="sticky top-0 z-10 h-16 w-full cursor-pointer bg-white px-2 shadow-md"
-              onClick={() => toggleExpandGroup(group.name)}>
-              <span className="text-lg font-bold">{group.name}</span>
+              className="sticky top-0 z-10 my-[2px] h-16 w-full cursor-pointer rounded-md bg-white px-2 shadow-md"
+              onClick={() => toggleExpandGroup(groupName)}>
+              <span className="text-lg font-bold">{groupName}</span>
               <div className="flex items-center space-x-1">
                 <button
                   className="btn btn-xs btn-circle p-1"
-                  onClick={async () => {
-                    await delayGroup(
-                      group.name,
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const res = await delayGroup(
+                      groupName,
                       "https://www.gstatic.com/generate_204",
                       5000,
                     );
-                    await fetchGroups();
+                    updateGroupDelay(groupName, res);
+                    // await fetchGroups();
                   }}>
                   <Wifi />
                 </button>
               </div>
             </div>
-            <div className="grid w-full grid-cols-3 gap-2 p-2">
-              {group.all.map((proxy) => {
-                return (
-                  <div
-                    key={proxy.name}
-                    onClick={async () => {
-                      await selectNodeForProxy(group.name, proxy.name);
-                      await fetchGroups();
-                    }}
-                    className={cn(
-                      "btn btn-sm btn-soft flex items-center justify-between",
-                      {
-                        "btn-primary btn-active": group.now === proxy.name,
-                      },
-                    )}>
-                    <p className="line-clamp-2">{proxy.name}</p>
-                    <button
-                      className="btn btn-xs btn-square px-4 text-green-500"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        await delayProxyByName(
-                          proxy.name,
-                          "https://www.gstatic.com/generate_204",
-                          5000,
-                        );
+            {expandedGroups[groupName] ? (
+              <div className="grid w-full grid-cols-3 gap-2 p-2">
+                {group.all.map((proxy) => {
+                  const { name: proxyName } = proxy;
+                  return (
+                    <div
+                      key={proxyName}
+                      onClick={async () => {
+                        await selectNodeForProxy(groupName, proxyName);
                         await fetchGroups();
-                      }}>
-                      {proxy.history[0]?.delay ?? "-"}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                      }}
+                      className={cn(
+                        "btn btn-sm btn-soft flex items-center justify-between",
+                        {
+                          "btn-primary btn-active": group.now === proxyName,
+                        },
+                      )}>
+                      <p className="line-clamp-2">{proxyName}</p>
+                      <button
+                        className="btn btn-xs btn-square px-4 text-green-500"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const delay = await delayProxyByName(
+                            proxyName,
+                            "https://www.gstatic.com/generate_204",
+                            5000,
+                          );
+                          if (delay.message) {
+                            updateProxyDelay(groupName, proxyName, -1);
+                          } else {
+                            updateProxyDelay(groupName, proxyName, delay.delay);
+                          }
+                          // await fetchGroups();
+                        }}>
+                        {proxiesDelay[groupName]?.[proxyName] ?? "check"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div></div>
+            )}
           </div>
         );
       })}
