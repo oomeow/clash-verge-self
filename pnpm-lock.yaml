@@ -34,6 +34,9 @@ importers:
       "@tailwindcss/vite":
         specifier: ^4.0.14
         version: 4.0.14(vite@6.2.2(@types/node@22.13.10)(jiti@2.4.2)(lightningcss@1.29.2)(sass@1.80.3)(terser@5.39.0)(yaml@2.7.0))
+      "@tanstack/react-virtual":
+        specifier: ^3.13.4
+        version: 3.13.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       "@tauri-apps/api":
         specifier: ^2.3.0
         version: 2.3.0
@@ -2445,6 +2448,21 @@ packages:
       }
     peerDependencies:
       vite: ^5.2.0 || ^6
+
+  "@tanstack/react-virtual@3.13.4":
+    resolution:
+      {
+        integrity: sha512-jPWC3BXvVLHsMX67NEHpJaZ+/FySoNxFfBEiF4GBc1+/nVwdRm+UcSCYnKP3pXQr0eEsDpXi/PQZhNfJNopH0g==,
+      }
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  "@tanstack/virtual-core@3.13.4":
+    resolution:
+      {
+        integrity: sha512-fNGO9fjjSLns87tlcto106enQQLycCKR4DPNpgq3djP5IdcPFdPAmaKjsgzIeRhH7hWrELgW12hYnRthS5kLUw==,
+      }
 
   "@tauri-apps/api@2.3.0":
     resolution:
@@ -8165,6 +8183,14 @@ snapshots:
       lightningcss: 1.29.2
       tailwindcss: 4.0.14
       vite: 6.2.2(@types/node@22.13.10)(jiti@2.4.2)(lightningcss@1.29.2)(sass@1.80.3)(terser@5.39.0)(yaml@2.7.0)
+
+  "@tanstack/react-virtual@3.13.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)":
+    dependencies:
+      "@tanstack/virtual-core": 3.13.4
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  "@tanstack/virtual-core@3.13.4": {}
 
   "@tauri-apps/api@2.3.0": {}
 

@@ -32,7 +32,7 @@ const devtools = () => {
 };
 
 export default defineConfig({
-  root: "src",
+  root: "src-next",
   // prevent vite from obscuring rust errors
   clearScreen: false,
   // Tauri expects a fixed port, fail if that port is not available
@@ -52,9 +52,9 @@ export default defineConfig({
       modernTargets: ["edge>=109", "safari>=13"],
       modernPolyfills: ["es.object.has-own", "web.structured-clone"],
       additionalModernPolyfills: [
-        path.resolve("./src/polyfills/matchMedia.js"),
-        path.resolve("./src/polyfills/WeakRef.js"),
-        path.resolve("./src/polyfills/RegExp.js"),
+        path.resolve("./src-next/polyfills/matchMedia.js"),
+        path.resolve("./src-next/polyfills/WeakRef.js"),
+        path.resolve("./src-next/polyfills/RegExp.js"),
       ],
     }),
     monacoEditorPlugin({
@@ -73,8 +73,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        splashscreen: path.resolve(__dirname, "src/splashscreen.html"),
-        main: path.resolve(__dirname, "src/index.html"),
+        splashscreen: path.resolve(__dirname, "src-next/splashscreen.html"),
+        main: path.resolve(__dirname, "src-next/index.html"),
       },
       output: {
         manualChunks(id: string) {
@@ -83,7 +83,7 @@ export default defineConfig({
               return "monaco-editor";
             }
             return "vendor";
-          } else if (id.includes("src/components")) {
+          } else if (id.includes("src-next/components")) {
             return "verge-components";
           }
         },
@@ -92,7 +92,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve("./src"),
+      "@": path.resolve("./src-next"),
       "@root": path.resolve("."),
     },
   },

@@ -17,9 +17,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["src-next/*"],
       "@root/*": ["./*"]
     }
   },
-  "include": ["./src"]
+  "include": ["./src-next"]
 }

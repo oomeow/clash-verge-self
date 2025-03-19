@@ -1,0 +1,44 @@
+.base-page {
+  width: 100%;
+  height: 100%;
+
+  > .base-header {
+    height: 50px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--divider-color);
+  }
+
+  .base-container {
+    height: calc(100% - 50px);
+
+    > .base-section {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      padding: 10px 0;
+      box-sizing: border-box;
+      scrollbar-gutter: stable;
+
+      .base-content {
+        width: 100%;
+      }
+    }
+
+    &.no-padding {
+      > .base-section {
+        padding: 0;
+        overflow: visible;
+
+        .base-content {
+          width: 100%;
+        }
+      }
+    }
+  }
+}
