@@ -4828,7 +4828,7 @@ dependencies = [
  "once_cell",
  "socket2 0.5.7",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -6260,9 +6260,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin"
-version = "2.0.5"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ad3021d8e60ec7672f51ecb67c5e1a514a4d7a9a5ffc9d85090739378047502"
+checksum = "9972871fcbddf16618f70412d965d4d845cd4b76d03fff168709961ef71e5cdf"
 dependencies = [
  "anyhow",
  "glob",
@@ -6578,7 +6578,7 @@ dependencies = [
  "fastrand 2.2.0",
  "once_cell",
  "rustix 0.38.40",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -7643,7 +7643,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
