@@ -1,10 +1,18 @@
 import { BasePage } from "@/components/base";
 import { ProviderButton } from "@/components/proxy/provider-button";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useVerge } from "@/hooks/use-verge";
 import { patchClashConfig } from "@/services/cmds";
 import useGroupsStore, { Group } from "@/store/use-groups-store";
 import { cn } from "@/utils";
-import { Box, Button, ButtonGroup } from "@mui/material";
 import { useLockFn, useMemoizedFn } from "ahooks";
 import { findIndex } from "lodash-es";
 import { Wifi } from "lucide-react";
@@ -107,21 +115,20 @@ const ProxyPage = () => {
       contentStyle={{ height: "100%" }}
       title={t("Proxy Groups")}
       header={
-        <Box display="flex" alignItems="center" gap={1}>
+        <div className="flex items-center gap-1">
           <ProviderButton key={"provider"} />
 
-          <ButtonGroup size="small">
-            {modeList.map((mode) => (
-              <Button
-                key={mode}
-                variant={mode === curMode ? "contained" : "outlined"}
-                onClick={() => onChangeMode(mode)}
-                sx={{ textTransform: "capitalize" }}>
-                {t(mode)}
-              </Button>
-            ))}
-          </ButtonGroup>
-        </Box>
+          {/* <ButtonGroup size="small"> */}
+          {modeList.map((mode) => (
+            <Button
+              key={mode}
+              variant={mode === curMode ? "default" : "outline"}
+              onClick={() => onChangeMode(mode)}>
+              {t(mode)}
+            </Button>
+          ))}
+          {/* </ButtonGroup> */}
+        </div>
       }>
       {/* <ProxyGroups mode={curMode!} /> */}
       {visibleItems.map((group, index) => {
@@ -135,10 +142,15 @@ const ProxyPage = () => {
             <div
               className="sticky top-2 z-10 my-[2px] h-16 w-full cursor-pointer rounded-md bg-white px-2 shadow-md"
               onClick={() => toggleExpandGroup(groupName)}>
-              <span className="text-lg font-bold">{groupName}</span>
+              <div className="flex items-center gap-1">
+                <span className="text-lg font-bold">{groupName}</span>
+                <Badge>{group.type}</Badge>
+              </div>
               <div className="flex items-center space-x-1">
-                <button
-                  className="btn btn-xs btn-circle p-1"
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-6 w-6 p-1"
                   onClick={async (e) => {
                     e.stopPropagation();
                     const res = await delayGroup(
@@ -149,7 +161,7 @@ const ProxyPage = () => {
                     updateGroupDelay(groupName, res);
                   }}>
                   <Wifi />
-                </button>
+                </Button>
               </div>
             </div>
             {!expandedGroups[groupName] ? (
@@ -164,12 +176,21 @@ const ProxyPage = () => {
                         await fetchGroups();
                       }}
                       className={cn(
-                        "btn btn-sm btn-soft flex items-center justify-between",
+                        "bg-primary text-primary-foreground flex items-center justify-between p-2",
                         {
-                          "btn-primary btn-active": group.now === proxyName,
+                          "border border-dashed border-red-500":
+                            group.now === proxyName,
                         },
                       )}>
-                      <p className="line-clamp-2">{proxyName}</p>
+                      {/* <p className="line-clamp-2">{proxyName}</p> */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>{proxyName}</TooltipTrigger>
+                          <TooltipContent>
+                            <p className="line-clamp-2">{proxyName}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       <button
                         className="btn btn-xs btn-square w-fit px-2 text-green-500"
                         onClick={async (e) => {
