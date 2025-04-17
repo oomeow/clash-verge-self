@@ -2,7 +2,7 @@
 dockerfile = "../cross_dockerfile/debian/i686/Dockerfile"
 
 [target.aarch64-unknown-linux-gnu]
-dockerfile = "../cross_dockerfile/ubuntu/aarch64/Dockerfile"
+dockerfile = "../cross_dockerfile/debian/aarch64/Dockerfile"
 
 [target.armv7-unknown-linux-gnueabihf]
-dockerfile = "../cross_dockerfile/ubuntu/armhf/Dockerfile"
+dockerfile = "../cross_dockerfile/debian/armhf/Dockerfile"
