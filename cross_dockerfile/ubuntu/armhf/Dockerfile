@@ -25,6 +25,7 @@ RUN dpkg --add-architecture armhf && \
   libwebkit2gtk-4.1-dev:armhf \
   libayatana-appindicator3-dev:armhf \
   librsvg2-dev:armhf \
+  libc6-dev:armhf \
   linux-libc-dev:armhf \
   patchelf:armhf
 

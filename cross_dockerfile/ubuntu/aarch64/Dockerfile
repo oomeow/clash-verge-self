@@ -25,6 +25,7 @@ RUN dpkg --add-architecture arm64 && \
   libwebkit2gtk-4.1-dev:arm64 \
   libayatana-appindicator3-dev:arm64 \
   librsvg2-dev:arm64 \
+  libc6-dev:arm64 \
   linux-libc-dev:arm64 \
   patchelf:arm64
 
