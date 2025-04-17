@@ -10,6 +10,7 @@ RUN rm -f /etc/apt/sources.list.d/debian.sources && \
 RUN apt-get update && \
   apt-get install -y --no-install-recommends \
   gcc-multilib g++-multilib \
+  gcc-arm-linux-gnueabihf binutils-arm-linux-gnueabihf \
   ca-certificates curl wget gnupg build-essential pkg-config file && \
   rm -rf /var/lib/apt/lists/*
 
