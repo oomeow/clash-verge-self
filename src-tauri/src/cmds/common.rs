@@ -203,7 +203,6 @@ pub fn restart_app(app_handle: tauri::AppHandle) {
     tauri::async_runtime::block_on(async {
         let _ = CoreManager::global().stop_core().await;
     });
-    app_handle.remove_tray_by_id(TRAY_ID);
     app_handle.restart();
 }
 
