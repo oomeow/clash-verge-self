@@ -286,14 +286,14 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
             .split_once(':')
             .ok_or(anyhow!("invalid external controller"))?;
         let mut mihomo = handle::Handle::get_mihomo_write().await;
-        mihomo.update_external_host(host);
-        mihomo.update_external_port(port.parse()?);
+        mihomo.update_external_host(Some(host.to_string()));
+        mihomo.update_external_port(Some(port.parse()?));
     }
     if patch.get("secret").is_some() {
         let secret = patch.get("secret").unwrap().as_str().unwrap();
         handle::Handle::get_mihomo_write()
             .await
-            .update_secret(secret);
+            .update_secret(Some(secret.to_string()));
     }
 
     Config::clash()

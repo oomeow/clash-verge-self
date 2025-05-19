@@ -120,8 +120,8 @@ pub fn run() -> Result<()> {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_mihomo::Builder::new()
-            .external_host(host.into())
-            .external_port(port.parse()?)
+            .external_host(Some(host.into()))
+            .external_port(Some(port.parse()?))
             .secret(secret)
             .build())
         .setup(|app| {

@@ -5,14 +5,13 @@ mod test {
 
     use futures_util::StreamExt;
     use http::Request;
-    use serde_json::json;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::net::UnixStream;
     use tokio_tungstenite::client_async;
     use tokio_tungstenite::tungstenite::Message;
 
-    use crate::ws_utils::{build_socket_request, parse_socket_response};
-    use crate::{ws_utils, Log};
+    use crate::utils::{build_socket_request, parse_socket_response};
+    use crate::{utils, Log};
 
     // 目前仅进行了 sock 套接字连接测试
     #[tokio::test]
@@ -29,9 +28,9 @@ mod test {
         tokio::spawn(async move {
             // 连接到 Unix 域套接字
             let mut stream = UnixStream::connect(socket_path_).await.unwrap();
-            let body = json!({
-                "name": "US AUTO"
-            });
+            // let body = json!({
+            //     "name": "US AUTO"
+            // });
             let req = reqwest::ClientBuilder::new()
                 .build()
                 .unwrap()
@@ -46,7 +45,9 @@ mod test {
             loop {
                 // write
                 stream.writable().await.unwrap();
-                stream.write(req_str.as_bytes()).await.unwrap();
+
+                // stream.write(req_str.as_bytes()).await.unwrap();
+                stream.write(b"PATCH /configs HTTP/1.1\r\nHost: clash-verge\r\nContent-Type: application/json\r\nContent-Length: 17\r\n\r\n{\"mode\":\"direct\"}").await.unwrap();
                 // read
                 stream.readable().await.unwrap();
                 let mut buf: Vec<u8> = Vec::new();
@@ -136,7 +137,7 @@ mod test {
             let request = Request::builder()
                 .uri("ws://localhost/logs") // 路径需与服务器端路由匹配
                 .header("Host", "clash-verge")
-                .header("Sec-WebSocket-Key", ws_utils::generate_websocket_key())
+                .header("Sec-WebSocket-Key", utils::generate_websocket_key())
                 .header("Connection", "Upgrade")
                 .header("Upgrade", "websocket")
                 .header("Sec-WebSocket-Version", "13")

@@ -296,31 +296,10 @@ async function upgradeUi() {
 async function upgradeGeo() {
   await core.invoke("plugin:mihomo|upgrade_geo");
 }
-class WebSocket {
+class MihomoWebSocket {
   constructor(id, listeners) {
     this.id = id;
     this.listeners = listeners;
-  }
-  /**
-   * 创建一个新的 WebSocket 连接
-   * @param url 要连接的 url
-   * @returns WebSocket 实例
-   */
-  static async connect(url) {
-    const listeners = new Set();
-    const onMessage = new core.Channel();
-    onMessage.onmessage = (message) => {
-      listeners.forEach((l) => {
-        l(message);
-      });
-    };
-    const id = await core.invoke("plugin:mihomo|ws_connect", {
-      url,
-      onMessage,
-    });
-    const instance = new WebSocket(id, listeners);
-    WebSocket.instances.add(instance);
-    return instance;
   }
   /**
    * 创建一个新的 WebSocket 连接，用于 Mihomo 的流量监控
@@ -337,8 +316,8 @@ class WebSocket {
     const id = await core.invoke("plugin:mihomo|ws_traffic", {
       onMessage,
     });
-    const instance = new WebSocket(id, listeners);
-    WebSocket.instances.add(instance);
+    const instance = new MihomoWebSocket(id, listeners);
+    MihomoWebSocket.instances.add(instance);
     return instance;
   }
   /**
@@ -356,8 +335,8 @@ class WebSocket {
     const id = await core.invoke("plugin:mihomo|ws_memory", {
       onMessage,
     });
-    const instance = new WebSocket(id, listeners);
-    WebSocket.instances.add(instance);
+    const instance = new MihomoWebSocket(id, listeners);
+    MihomoWebSocket.instances.add(instance);
     return instance;
   }
   /**
@@ -375,8 +354,8 @@ class WebSocket {
     const id = await core.invoke("plugin:mihomo|ws_connections", {
       onMessage,
     });
-    const instance = new WebSocket(id, listeners);
-    WebSocket.instances.add(instance);
+    const instance = new MihomoWebSocket(id, listeners);
+    MihomoWebSocket.instances.add(instance);
     return instance;
   }
   /**
@@ -395,8 +374,8 @@ class WebSocket {
       level,
       onMessage,
     });
-    const instance = new WebSocket(id, listeners);
-    WebSocket.instances.add(instance);
+    const instance = new MihomoWebSocket(id, listeners);
+    MihomoWebSocket.instances.add(instance);
     return instance;
   }
   /**
@@ -409,25 +388,25 @@ class WebSocket {
       this.listeners.delete(cb);
     };
   }
-  /**
-   * 发送消息到 WebSocket 连接
-   * @param message 发送的消息
-   */
-  async send(message) {
-    let m;
-    if (typeof message === "string") {
-      m = { type: "Text", data: message };
-    } else if (typeof message === "object" && "type" in message) {
-      m = message;
-    } else if (Array.isArray(message)) {
-      m = { type: "Binary", data: message };
-    } else {
-      throw new Error(
-        "invalid `message` type, expected a `{ type: string, data: any }` object, a string or a numeric array",
-      );
-    }
-    await core.invoke("plugin:mihomo|ws_send", { id: this.id, message: m });
-  }
+  // /**
+  //  * 发送消息到 WebSocket 连接
+  //  * @param message 发送的消息
+  //  */
+  // async send(message: Message | string | number[]): Promise<void> {
+  //   let m: Message;
+  //   if (typeof message === "string") {
+  //     m = { type: "Text", data: message };
+  //   } else if (typeof message === "object" && "type" in message) {
+  //     m = message;
+  //   } else if (Array.isArray(message)) {
+  //     m = { type: "Binary", data: message };
+  //   } else {
+  //     throw new Error(
+  //       "invalid `message` type, expected a `{ type: string, data: any }` object, a string or a numeric array",
+  //     );
+  //   }
+  //   await invoke("plugin:mihomo|ws_send", { id: this.id, message: m });
+  // }
   /**
    * 关闭 WebSocket 连接
    * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认超时 10 秒
@@ -437,7 +416,7 @@ class WebSocket {
       id: this.id,
       forceTimeout,
     });
-    WebSocket.instances.delete(this);
+    MihomoWebSocket.instances.delete(this);
   }
   /**
    * 清理全部的 websocket 连接资源
@@ -447,9 +426,9 @@ class WebSocket {
     this.instances.clear();
   }
 }
-WebSocket.instances = new Set();
+MihomoWebSocket.instances = new Set();
 
-exports.WebSocket = WebSocket;
+exports.MihomoWebSocket = MihomoWebSocket;
 exports.cleanFakeIp = cleanFakeIp;
 exports.closeAllConnections = closeAllConnections;
 exports.closeConnections = closeConnections;

@@ -12,7 +12,7 @@ mod test {
     use tokio_tungstenite::tungstenite::Message;
     use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
 
-    use crate::{ws_utils, Log, Rules};
+    use crate::{utils, Log, Rules};
 
     // 目前仅进行了 named pipe 连接测试
     #[tokio::test]
