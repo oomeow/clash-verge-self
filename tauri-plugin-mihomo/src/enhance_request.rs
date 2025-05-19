@@ -1,8 +1,5 @@
 use reqwest::RequestBuilder;
-use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
-    net::UnixStream,
-};
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use crate::utils::{build_socket_request, parse_socket_response};
 
@@ -12,9 +9,9 @@ pub trait LocalSocket {
 
 impl LocalSocket for RequestBuilder {
     async fn send_to_local_socket(self, socket_path: &str) -> crate::Result<reqwest::Response> {
-        if cfg!(windows) {
-            unimplemented!()
-        } else {
+        #[cfg(unix)]
+        {
+            use tokio::net::UnixStream;
             let mut stream = UnixStream::connect(socket_path).await?;
             let req_str = build_socket_request(self)?;
             println!("generate request string: {:?} \n", req_str);
@@ -33,6 +30,10 @@ impl LocalSocket for RequestBuilder {
             }
             let response = String::from_utf8_lossy(&buf);
             parse_socket_response(&response)
+        }
+        #[cfg(windows)]
+        {
+            unimplemented!()
         }
     }
 }

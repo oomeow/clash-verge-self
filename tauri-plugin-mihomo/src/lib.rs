@@ -15,9 +15,9 @@ mod enhance_request;
 mod error;
 mod mihomo;
 pub mod models;
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 mod named_pipe;
-#[cfg(target_os = "linux")]
+#[cfg(unix)]
 mod unix_sock;
 mod utils;
 

@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{collections::HashMap, path::Path, sync::Arc, time::Duration};
 use tauri::ipc::Channel;
-use tokio::{net::UnixStream, sync::Mutex};
+use tokio::sync::Mutex;
 use tokio_tungstenite::{
     client_async, connect_async,
     tungstenite::{client::IntoClientRequest, protocol::CloseFrame as ProtocolCloseFrame, Message},
@@ -276,7 +276,31 @@ impl Mihomo {
                             "need to socket path".to_string(),
                         )));
                     }
-                    let stream = UnixStream::connect(socket_path.clone()).await.unwrap();
+                    let stream = {
+                        #[cfg(unix)]
+                        {
+                            use tokio::net::UnixStream;
+                            UnixStream::connect(socket_path).await.unwrap()
+                        }
+
+                        #[cfg(windows)]
+                        {
+                            use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
+                            loop {
+                                match ClientOptions::new().open(socket_path) {
+                                    Ok(client) => break client,
+                                    Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => {
+                                        ()
+                                    }
+                                    Err(_) => {
+                                        panic!("Failed to connect to named pipe: {PIPE_NAME}")
+                                    }
+                                }
+
+                                time::sleep(Duration::from_millis(50)).await;
+                            }
+                        };
+                    };
 
                     let request = Request::builder()
                         .uri(url)
@@ -290,11 +314,16 @@ impl Mihomo {
 
                     let (ws_stream, _) = client_async(request, stream).await.unwrap();
                     let (writer, mut reader) = ws_stream.split();
+                    #[cfg(unix)]
                     manager
                         .0
                         .lock()
                         .await
                         .insert(id, WebSocketWriter::UnixStreamWriter(writer));
+                    #[cfg(windows)]
+                    {
+                        unimplemented!()
+                    }
 
                     tauri::async_runtime::spawn(async move {
                         let on_message_ = on_message.clone();
@@ -342,6 +371,7 @@ impl Mihomo {
                 WebSocketWriter::TcpStreamWriter(write) => {
                     write.send(data).await?;
                 }
+                #[cfg(unix)]
                 WebSocketWriter::UnixStreamWriter(write) => {
                     write.send(data).await?;
                 }
@@ -370,6 +400,7 @@ impl Mihomo {
                         })))
                         .await?;
                 }
+                #[cfg(unix)]
                 WebSocketWriter::UnixStreamWriter(write) => {
                     write
                         .send(Message::Close(Some(ProtocolCloseFrame {

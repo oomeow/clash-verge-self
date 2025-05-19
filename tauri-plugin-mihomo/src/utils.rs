@@ -1,5 +1,3 @@
-//! 解析 websocket 的数据，包含解析 [websocket 数据帧](https://datatracker.ietf.org/doc/html/rfc6455#section-5.2)
-
 #![allow(dead_code)]
 use core::str;
 use std::io::{BufRead, BufReader, Cursor, Read};
