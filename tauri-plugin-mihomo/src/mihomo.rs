@@ -285,6 +285,7 @@ impl Mihomo {
 
                         #[cfg(windows)]
                         {
+                            use tokio::net::windows::named_pipe::ClientOptions;
                             use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
                             loop {
                                 match ClientOptions::new().open(socket_path) {
@@ -293,11 +294,13 @@ impl Mihomo {
                                         ()
                                     }
                                     Err(_) => {
-                                        panic!("Failed to connect to named pipe: {PIPE_NAME}")
+                                        return Err(MihomoError::Io(std::io::Error::new(
+                                            std::io::ErrorKind::NotFound,
+                                            "failed to connect pipe".to_string(),
+                                        )));
                                     }
                                 }
-
-                                time::sleep(Duration::from_millis(50)).await;
+                                tokio::time::sleep(Duration::from_millis(50)).await;
                             }
                         };
                     };
