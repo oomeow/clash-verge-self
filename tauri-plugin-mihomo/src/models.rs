@@ -2,6 +2,8 @@ use std::{collections::HashMap, fmt::Display};
 
 use futures_util::stream::SplitSink;
 use serde::{Deserialize, Serialize};
+#[cfg(windows)]
+use tokio::net::windows::named_pipe::NamedPipeClient;
 use tokio::net::TcpStream;
 #[cfg(unix)]
 use tokio::net::UnixStream;
@@ -318,6 +320,8 @@ pub(crate) enum WebSocketWriter {
     TcpStreamWriter(SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>),
     #[cfg(unix)]
     UnixStreamWriter(SplitSink<WebSocketStream<UnixStream>, Message>),
+    #[cfg(windows)]
+    NamedPipeWriter(SplitSink<WebSocketStream<NamedPipeClient>, Message>),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

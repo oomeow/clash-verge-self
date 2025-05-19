@@ -290,9 +290,7 @@ impl Mihomo {
                             loop {
                                 match ClientOptions::new().open(socket_path) {
                                     Ok(client) => break client,
-                                    Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => {
-                                        ()
-                                    }
+                                    Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => {}
                                     Err(_) => {
                                         return Err(MihomoError::Io(std::io::Error::new(
                                             std::io::ErrorKind::NotFound,
@@ -302,7 +300,7 @@ impl Mihomo {
                                 }
                                 tokio::time::sleep(Duration::from_millis(50)).await;
                             }
-                        };
+                        }
                     };
 
                     let request = Request::builder()
@@ -315,7 +313,7 @@ impl Mihomo {
                         .body(())
                         .unwrap();
 
-                    let (ws_stream, _) = client_async(request, stream).await.unwrap();
+                    let (ws_stream, _) = client_async(request, stream).await?;
                     let (writer, mut reader) = ws_stream.split();
                     #[cfg(unix)]
                     manager
@@ -325,7 +323,11 @@ impl Mihomo {
                         .insert(id, WebSocketWriter::UnixStreamWriter(writer));
                     #[cfg(windows)]
                     {
-                        unimplemented!()
+                        manager
+                            .0
+                            .lock()
+                            .await
+                            .insert(id, WebSocketWriter::NamedPipeWriter(writer));
                     }
 
                     tauri::async_runtime::spawn(async move {
@@ -378,6 +380,10 @@ impl Mihomo {
                 WebSocketWriter::UnixStreamWriter(write) => {
                     write.send(data).await?;
                 }
+                #[cfg(windows)]
+                WebSocketWriter::NamedPipeWriter(write) => {
+                    write.send(data).await?;
+                }
             }
             Ok(())
         } else {
@@ -405,6 +411,15 @@ impl Mihomo {
                 }
                 #[cfg(unix)]
                 WebSocketWriter::UnixStreamWriter(write) => {
+                    write
+                        .send(Message::Close(Some(ProtocolCloseFrame {
+                            code: 1000.into(),
+                            reason: "Disconnected by client".into(),
+                        })))
+                        .await?;
+                }
+                #[cfg(windows)]
+                WebSocketWriter::NamedPipeWriter(write) => {
                     write
                         .send(Message::Close(Some(ProtocolCloseFrame {
                             code: 1000.into(),
@@ -464,10 +479,17 @@ impl Mihomo {
         on_message: Channel<serde_json::Value>,
     ) -> Result<ConnectionId> {
         let mut ws_url = self.get_websocket_url("/logs")?;
-        if self.secret.is_some() {
-            ws_url.push_str(&format!("&level={}", level));
-        } else {
-            ws_url.push_str(&format!("?level={}", level));
+        match self.protocol {
+            Protocol::Http | Protocol::Https => {
+                if self.secret.is_some() {
+                    ws_url.push_str(&format!("&level={}", level));
+                } else {
+                    ws_url.push_str(&format!("?level={}", level));
+                }
+            }
+            Protocol::LocalSocket => {
+                ws_url.push_str(&format!("?level={}", level));
+            }
         }
         let websocket_id = self.connect(ws_url, on_message).await?;
         Ok(websocket_id)
@@ -857,12 +879,21 @@ mod test {
     use super::*;
 
     fn mihomo() -> Mihomo {
-        let home_dir = std::env::home_dir().unwrap();
-        let socket_path = home_dir
-            .join(".local/share/io.github.oomeow.clash-verge-self/verge-mihomo.sock")
-            .to_str()
-            .unwrap()
-            .to_string();
+        let socket_path = {
+            #[cfg(unix)]
+            {
+                let home_dir = std::env::home_dir().unwrap();
+                home_dir
+                    .join(".local/share/io.github.oomeow.clash-verge-self/verge-mihomo.sock")
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+            }
+            #[cfg(windows)]
+            {
+                r#"\\.\pipe\verge-mihomo"#.to_string()
+            }
+        };
         Mihomo::new(
             Protocol::Http,
             Some("127.0.0.1".into()),
@@ -958,7 +989,7 @@ mod test {
 
     #[tokio::test]
     async fn test_ws_log() -> Result<()> {
-        let mihomo = mihomo();
+        let mut mihomo = mihomo();
         let on_message = Channel::new(|message| {
             match message {
                 InvokeResponseBody::Json(msg) => {
@@ -970,6 +1001,20 @@ mod test {
             }
             Ok(())
         });
+        let websocket_id = mihomo.ws_logs("debug".into(), on_message.clone()).await?;
+        println!("WebSocket ID: {}", websocket_id);
+        tokio::time::sleep(Duration::from_millis(3000)).await;
+        mihomo.disconnect(websocket_id, Some(5)).await?;
+        for i in 0..10 {
+            println!("check connection exist {}", i);
+            if !mihomo.get_connection(websocket_id).await {
+                break;
+            }
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+        tokio::time::sleep(Duration::from_secs(3)).await;
+        println!("---------------------------------");
+        mihomo.update_protocol(Protocol::LocalSocket);
         let websocket_id = mihomo.ws_logs("debug".into(), on_message).await?;
         println!("WebSocket ID: {}", websocket_id);
         tokio::time::sleep(Duration::from_millis(3000)).await;

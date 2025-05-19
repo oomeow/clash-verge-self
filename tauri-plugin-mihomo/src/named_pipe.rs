@@ -152,7 +152,7 @@ mod test {
             let request = Request::builder()
                 .uri("ws://localhost/logs") // 路径需与服务器端路由匹配
                 .header("Host", "clash-verge")
-                .header("Sec-WebSocket-Key", ws_utils::generate_websocket_key())
+                .header("Sec-WebSocket-Key", utils::generate_websocket_key())
                 .header("Connection", "Upgrade")
                 .header("Upgrade", "websocket")
                 .header("Sec-WebSocket-Version", "13")
