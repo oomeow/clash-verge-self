@@ -31,7 +31,7 @@ impl LocalSocket for RequestBuilder {
             }
         };
         let req_str = build_socket_request(self)?;
-        println!("generate request string: {:?} \n", req_str);
+        // println!("generate request string: {:?} \n", req_str);
         stream.writable().await?;
         stream.write_all(req_str.as_bytes()).await?;
         stream.readable().await?;

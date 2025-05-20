@@ -270,7 +270,7 @@ const SettingClash = ({ onError }: Props) => {
 
       <SettingItem
         onClick={() => ctrlRef.current?.open()}
-        label={t("External")}
+        label={t("External Controller")}
       />
 
       <SettingItem onClick={() => webRef.current?.open()} label={t("Web UI")} />

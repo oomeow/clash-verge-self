@@ -1,9 +1,9 @@
 use super::verge_log::VergeLog;
 use crate::core::{handle, logger::Logger, service};
-use crate::log_err;
 use crate::utils::dirs;
 use crate::utils::help::find_unused_port;
 use crate::{config::*, utils};
+use crate::{log_err, SOCKET_PATH};
 use anyhow::{bail, Result};
 
 use once_cell::sync::OnceCell;
@@ -141,6 +141,7 @@ impl CoreManager {
                     log_path
                 }
                 None => {
+                    tracing::info!("creating service log file");
                     let log_path = verge_log.create_service_log_file()?;
                     tracing::info!("service log file: {log_path}");
                     log_path
@@ -153,7 +154,7 @@ impl CoreManager {
                 Err(err) => {
                     // 修改这个值，免得stop出错
                     *self.use_service_mode.lock() = false;
-                    tracing::error!("{err}");
+                    tracing::error!("failed to run core by service, {err}");
                 }
             }
         } else {
@@ -176,7 +177,13 @@ impl CoreManager {
         let clash_core = clash_core.unwrap_or("verge-mihomo".into());
 
         let config_path = dirs::path_to_str(&config_path)?;
-        let args = vec!["-d", app_dir, "-f", config_path];
+        let mut args = vec!["-d", app_dir, "-f", config_path];
+        if cfg!(unix) {
+            args.push("-ext-ctl-unix");
+        } else {
+            args.push("-ext-ctl-pipe");
+        }
+        args.push(SOCKET_PATH);
 
         let app_handle = handle::Handle::get_app_handle();
         let cmd = app_handle.shell().sidecar(clash_core)?;
@@ -275,6 +282,13 @@ impl CoreManager {
         for proc in procs {
             tracing::debug!("kill all clash process");
             proc.kill();
+        }
+        #[cfg(unix)]
+        {
+            tokio::time::sleep(std::time::Duration::from_millis(1000)).await;
+            if std::path::Path::new(SOCKET_PATH).exists() {
+                tokio::fs::remove_file(SOCKET_PATH).await?;
+            }
         }
         Ok(())
     }

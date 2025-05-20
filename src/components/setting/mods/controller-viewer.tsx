@@ -1,4 +1,4 @@
-import { BaseDialog, DialogRef } from "@/components/base";
+import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifice";
 import { useClashInfo } from "@/hooks/use-clash";
 import { Shuffle } from "@mui/icons-material";
@@ -14,13 +14,16 @@ import { useLockFn } from "ahooks";
 import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { GuardState } from "./guard-state";
+import { useVerge } from "@/hooks/use-verge";
 
 export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
+  const { verge, mutateVerge, patchVerge } = useVerge();
   const [open, setOpen] = useState(false);
-
   const { clashInfo, patchInfo } = useClashInfo();
+  const { enable_external_controller = false } = verge;
 
   const [controller, setController] = useState(clashInfo?.server || "");
   const [secret, setSecret] = useState(clashInfo?.secret || "");
@@ -33,6 +36,14 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
     },
     close: () => setOpen(false),
   }));
+
+  const onSwitchFormat = (_e: any, value: boolean) => value;
+  const onError = (err: any) => {
+    notice("error", err.message || err.toString());
+  };
+  const onChangeData = (patch: Partial<IVergeConfig>) => {
+    mutateVerge({ ...verge, ...patch }, false);
+  };
 
   const onSave = useLockFn(async () => {
     try {
@@ -47,7 +58,20 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("External Controller")}
+      title={
+        <div className="flex items-center justify-between">
+          {t("External Controller")}
+          <GuardState
+            value={enable_external_controller}
+            valueProps="checked"
+            onCatch={onError}
+            onFormat={onSwitchFormat}
+            onChange={(e) => onChangeData({ enable_external_controller: e })}
+            onGuard={(e) => patchVerge({ enable_external_controller: e })}>
+            <SwitchLovely edge="end" />
+          </GuardState>
+        </div>
+      }
       contentStyle={{ width: 400 }}
       okBtn={t("Save")}
       cancelBtn={t("Cancel")}
@@ -56,8 +80,9 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
       onOk={onSave}>
       <List>
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("External Controller")} />
+          <ListItemText primary={t("External Controller Host")} />
           <TextField
+            disabled={!enable_external_controller}
             size="small"
             autoComplete="off"
             sx={{ width: 175 }}
@@ -76,8 +101,9 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
                   alignItems: "center",
                   gap: "3px",
                 }}>
-                <span>{t("Core Secret")}</span>
+                <span>{t("External Controller Secret")}</span>
                 <IconButton
+                  disabled={!enable_external_controller}
                   color="inherit"
                   size="small"
                   onClick={() => setSecret(nanoid())}>
@@ -87,6 +113,7 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
             }
           />
           <TextField
+            disabled={!enable_external_controller}
             size="small"
             autoComplete="off"
             sx={{ width: 175 }}

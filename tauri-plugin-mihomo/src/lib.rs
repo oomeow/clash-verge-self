@@ -39,6 +39,7 @@ pub struct Builder {
     external_host: Option<String>,
     external_port: Option<u32>,
     secret: Option<String>,
+    socket_path: Option<String>,
 }
 
 impl Default for Builder {
@@ -48,6 +49,7 @@ impl Default for Builder {
             external_host: Some(String::from("127.0.0.1")),
             external_port: Some(9090),
             secret: None,
+            socket_path: None,
         }
     }
 }
@@ -77,11 +79,17 @@ impl Builder {
         self
     }
 
+    pub fn socket_path(mut self, socket_path: Option<String>) -> Self {
+        self.socket_path = socket_path;
+        self
+    }
+
     pub fn build<R: Runtime>(self) -> TauriPlugin<R> {
         let protocol = self.protocol;
         let external_host = self.external_host;
         let external_port = self.external_port;
         let secret = self.secret;
+        let socket_path = self.socket_path;
 
         PluginBuilder::new("mihomo")
             .invoke_handler(tauri::generate_handler![
@@ -137,7 +145,7 @@ impl Builder {
                     external_host,
                     external_port,
                     secret,
-                    socket_path: None,
+                    socket_path,
                     connection_manager: Arc::new(ConnectionManager::default()),
                 }));
                 Ok(())

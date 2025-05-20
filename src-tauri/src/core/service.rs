@@ -343,9 +343,10 @@ pub(super) async fn run_core_by_service(config_file: &PathBuf, log_path: &PathBu
         config_file: config_file.to_string(),
         log_file: log_path.to_string(),
     };
+    tracing::debug!("send start clash socket command, body: {:?}", body);
     let res = send_command(SocketCommand::StartClash(body)).await?;
     if res.code != 0 {
-        bail!(res.msg);
+        bail!("start clash socket command return error: {}", res.msg);
     }
 
     Ok(())

@@ -24,6 +24,7 @@ use std::{
     time::Duration,
 };
 use tauri::AppHandle;
+use tauri_plugin_mihomo::Protocol;
 
 use utils::dirs::APP_ID;
 
@@ -31,6 +32,11 @@ rust_i18n::i18n!("./src/locales", fallback = "en");
 
 pub static APP_VERSION: OnceCell<String> = OnceCell::new();
 pub static APP_HANDLE: OnceCell<AppHandle> = OnceCell::new();
+
+#[cfg(unix)]
+pub const SOCKET_PATH: &str = "/tmp/verge-mihomo.sock";
+#[cfg(windows)]
+pub const SOCKET_PATH: &str = r#"\\.\pipe\verge-mihomo"#;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> Result<()> {
@@ -120,9 +126,11 @@ pub fn run() -> Result<()> {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_mihomo::Builder::new()
+            .protocol(Protocol::LocalSocket)
             .external_host(Some(host.into()))
             .external_port(Some(port.parse()?))
             .secret(secret)
+            .socket_path(Some(SOCKET_PATH.into()))
             .build())
         .setup(|app| {
             #[cfg(target_os = "macos")]

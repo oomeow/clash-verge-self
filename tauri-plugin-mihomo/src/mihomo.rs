@@ -129,9 +129,11 @@ impl Mihomo {
         let mut headers = HeaderMap::new();
         headers.insert(HOST, HeaderValue::from_static("clash-verge"));
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-        if let Some(secret) = self.secret.clone() {
-            let auth_value = HeaderValue::from_str(&format!("Bearer {}", secret))?;
-            headers.insert(AUTHORIZATION, auth_value);
+        if matches!(self.protocol, Protocol::Http | Protocol::Https) {
+            if let Some(secret) = self.secret.clone() {
+                let auth_value = HeaderValue::from_str(&format!("Bearer {}", secret))?;
+                headers.insert(AUTHORIZATION, auth_value);
+            }
         }
         Ok(headers)
     }

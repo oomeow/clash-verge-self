@@ -293,6 +293,7 @@ interface IVergeConfig {
   webdav_password?: string;
   enable_tray?: boolean;
   show_in_dock?: boolean;
+  enable_external_controller?: boolean;
 }
 
 type IClashConfigValue = any;
