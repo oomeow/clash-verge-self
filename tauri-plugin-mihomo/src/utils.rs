@@ -63,11 +63,11 @@ pub fn parse_socket_response(response_str: &str) -> Result<reqwest::Response> {
         Ok(httparse::Status::Complete(_)) => {
             let mut res_builder = http::Response::builder()
                 .version(Version::HTTP_11)
-                .status(res.code.unwrap());
+                .status(res.code.unwrap_or(400));
             let mut is_chunked = false;
             for header in res.headers.iter() {
                 let header_name = header.name;
-                let header_value = str::from_utf8(header.value).unwrap();
+                let header_value = str::from_utf8(header.value).unwrap_or_default();
                 res_builder = res_builder.header(header_name, header_value);
                 if header_name == "Transfer-Encoding" && header_value == "chunked" {
                     is_chunked = true;
@@ -94,7 +94,7 @@ pub fn parse_socket_response(response_str: &str) -> Result<reqwest::Response> {
     }
 }
 
-/// 解析 chunked 数据
+/// 解析 chunked 数据, https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Transfer-Encoding#examples
 fn decode_chunked(data: &str) -> Result<String> {
     let mut reader = BufReader::new(Cursor::new(data.as_bytes()));
     let mut result = Vec::new();
@@ -104,7 +104,7 @@ fn decode_chunked(data: &str) -> Result<String> {
         reader.read_line(&mut line)?;
 
         // 解析块大小（十六进制）
-        let chunk_size = usize::from_str_radix(line.trim(), 16).unwrap();
+        let chunk_size = usize::from_str_radix(line.trim(), 16)?;
         if chunk_size == 0 {
             // 结束块
             break;

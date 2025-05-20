@@ -12,7 +12,7 @@ pub enum MihomoError {
     Reqwest(#[from] reqwest::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
-    #[error("connect websocket error: {0}")]
+    #[error("websocket error: {0}")]
     Websocket(String),
     #[error("connection not found for the given id: {0}")]
     ConnectionNotFound(ConnectionId),
@@ -28,8 +28,8 @@ pub enum MihomoError {
     HttpError(#[from] http::Error),
     #[error("Http Parse failed, {0}")]
     HttpParseError(String),
-    #[error(transparent)]
-    FromStringError(#[from] std::string::FromUtf8Error),
+    #[error("Parse error, {0}")]
+    ParseError(String),
 }
 
 impl Serialize for MihomoError {
@@ -44,5 +44,17 @@ impl Serialize for MihomoError {
 impl From<tokio_tungstenite::tungstenite::Error> for MihomoError {
     fn from(e: tokio_tungstenite::tungstenite::Error) -> Self {
         MihomoError::Websocket(e.to_string())
+    }
+}
+
+impl From<std::string::FromUtf8Error> for MihomoError {
+    fn from(e: std::string::FromUtf8Error) -> Self {
+        MihomoError::ParseError(e.to_string())
+    }
+}
+
+impl From<std::num::ParseIntError> for MihomoError {
+    fn from(e: std::num::ParseIntError) -> Self {
+        MihomoError::ParseError(e.to_string())
     }
 }

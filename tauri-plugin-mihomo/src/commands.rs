@@ -295,7 +295,7 @@ pub(crate) async fn ws_logs(
     level: String,
     on_message: Channel<serde_json::Value>,
 ) -> Result<ConnectionId> {
-    state.read().await.ws_logs(level, on_message).await
+    state.read().await.ws_logs(&level, on_message).await
 }
 
 // mihomo 的 websocket 应该只读取数据，没必要发送数据

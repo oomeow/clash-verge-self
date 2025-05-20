@@ -280,7 +280,7 @@ impl Mihomo {
                         #[cfg(unix)]
                         {
                             use tokio::net::UnixStream;
-                            UnixStream::connect(socket_path).await.unwrap()
+                            UnixStream::connect(socket_path).await?
                         }
 
                         #[cfg(windows)]
@@ -310,8 +310,7 @@ impl Mihomo {
                         .header(CONNECTION, "Upgrade")
                         .header(UPGRADE, "websocket")
                         .header(SEC_WEBSOCKET_VERSION, "13")
-                        .body(())
-                        .unwrap();
+                        .body(())?;
 
                     let (ws_stream, _) = client_async(request, stream).await?;
                     let (writer, mut reader) = ws_stream.split();
@@ -475,7 +474,7 @@ impl Mihomo {
     /// Mihomo 日志监控的 WebSocket 连接
     pub async fn ws_logs(
         &self,
-        level: String,
+        level: &str,
         on_message: Channel<serde_json::Value>,
     ) -> Result<ConnectionId> {
         let mut ws_url = self.get_websocket_url("/logs")?;
@@ -898,7 +897,7 @@ mod test {
             Protocol::Http,
             Some("127.0.0.1".into()),
             Some(9090),
-            Some("blU_UYZnRbwyx3APsms6L".into()),
+            Some("ppr7qxGrVBu9E8dUX3BoS".into()),
             Some(socket_path),
         )
     }
@@ -964,6 +963,20 @@ mod test {
     }
 
     #[tokio::test]
+    async fn test_upgrade_geo() -> Result<()> {
+        let mut mihomo = mihomo();
+        if let Err(e) = mihomo.upgrade_geo().await {
+            println!("upgrade core failed, {:?}", e)
+        }
+        println!("---------------------------------");
+        mihomo.update_protocol(Protocol::LocalSocket);
+        if let Err(e) = mihomo.upgrade_geo().await {
+            println!("upgrade core failed, {:?}", e)
+        }
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn test_upgrade_core() -> Result<()> {
         let mut mihomo = mihomo();
         if let Err(e) = mihomo.upgrade_core().await {
@@ -1001,7 +1014,7 @@ mod test {
             }
             Ok(())
         });
-        let websocket_id = mihomo.ws_logs("debug".into(), on_message.clone()).await?;
+        let websocket_id = mihomo.ws_logs("debug", on_message.clone()).await?;
         println!("WebSocket ID: {}", websocket_id);
         tokio::time::sleep(Duration::from_millis(3000)).await;
         mihomo.disconnect(websocket_id, Some(5)).await?;
@@ -1015,7 +1028,7 @@ mod test {
         tokio::time::sleep(Duration::from_secs(3)).await;
         println!("---------------------------------");
         mihomo.update_protocol(Protocol::LocalSocket);
-        let websocket_id = mihomo.ws_logs("debug".into(), on_message).await?;
+        let websocket_id = mihomo.ws_logs("debug", on_message).await?;
         println!("WebSocket ID: {}", websocket_id);
         tokio::time::sleep(Duration::from_millis(3000)).await;
         mihomo.disconnect(websocket_id, Some(5)).await?;
