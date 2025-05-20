@@ -73,6 +73,7 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
         </div>
       }
       contentStyle={{ width: 400 }}
+      hideOkBtn={!enable_external_controller}
       okBtn={t("Save")}
       cancelBtn={t("Cancel")}
       onClose={() => setOpen(false)}
