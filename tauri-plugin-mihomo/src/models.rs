@@ -14,7 +14,6 @@ use tokio_tungstenite::{tungstenite::Message, MaybeTlsStream, WebSocketStream};
 pub enum Protocol {
     #[default]
     Http,
-    Https,
     LocalSocket,
 }
 
@@ -22,7 +21,6 @@ impl Display for Protocol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let protocol_str = match self {
             Protocol::Http => "http",
-            Protocol::Https => "https",
             Protocol::LocalSocket => {
                 if cfg!(windows) {
                     "named pipe"

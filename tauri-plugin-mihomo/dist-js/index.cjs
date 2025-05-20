@@ -409,9 +409,9 @@ class MihomoWebSocket {
   // }
   /**
    * 关闭 WebSocket 连接
-   * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认超时 10 秒
+   * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认超时 1 秒
    */
-  async close(forceTimeout = 10000) {
+  async close(forceTimeout = 1000) {
     await core.invoke("plugin:mihomo|ws_disconnect", {
       id: this.id,
       forceTimeout,

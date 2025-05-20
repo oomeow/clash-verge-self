@@ -109,6 +109,12 @@ pub fn run() -> Result<()> {
         }
     }));
 
+    let enable_external_controller = { verge.enable_external_controller.unwrap_or_default() };
+    let protocol = if enable_external_controller {
+        Protocol::Http
+    } else {
+        Protocol::LocalSocket
+    };
     let info = Config::clash().latest().get_client_info();
     let server = info.server;
     let (host, port) = server.split_once(':').unwrap();
@@ -126,7 +132,7 @@ pub fn run() -> Result<()> {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_mihomo::Builder::new()
-            .protocol(Protocol::LocalSocket)
+            .protocol(protocol)
             .external_host(Some(host.into()))
             .external_port(Some(port.parse()?))
             .secret(secret)

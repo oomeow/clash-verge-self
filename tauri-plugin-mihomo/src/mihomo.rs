@@ -105,7 +105,7 @@ impl Mihomo {
 
     fn get_req_url(&self, suffix_url: &str) -> Result<String> {
         let server = match self.protocol {
-            Protocol::Http | Protocol::Https => {
+            Protocol::Http => {
                 if let Some(host) = self.external_host.as_ref() {
                     format!(
                         "{}://{}:{}{}",
@@ -129,7 +129,7 @@ impl Mihomo {
         let mut headers = HeaderMap::new();
         headers.insert(HOST, HeaderValue::from_static("clash-verge"));
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-        if matches!(self.protocol, Protocol::Http | Protocol::Https) {
+        if matches!(self.protocol, Protocol::Http) {
             if let Some(secret) = self.secret.clone() {
                 let auth_value = HeaderValue::from_str(&format!("Bearer {}", secret))?;
                 headers.insert(AUTHORIZATION, auth_value);
@@ -154,7 +154,7 @@ impl Mihomo {
 
     async fn send_by_protocol(&self, client: RequestBuilder) -> Result<reqwest::Response> {
         let response = match self.protocol {
-            Protocol::Http | Protocol::Https => client.send().await?,
+            Protocol::Http => client.send().await?,
             Protocol::LocalSocket => {
                 if let Some(socket_path) = self.socket_path.as_ref() {
                     let path = Path::new(socket_path);
@@ -178,7 +178,7 @@ impl Mihomo {
 
     fn get_websocket_url(&self, suffix_url: &str) -> Result<String> {
         let ws_url = match self.protocol {
-            Protocol::Http | Protocol::Https => {
+            Protocol::Http => {
                 if let Some(host) = self.external_host.as_ref() {
                     let mut url = format!(
                         "ws://{}:{}{}",
@@ -240,7 +240,7 @@ impl Mihomo {
         };
 
         match self.protocol {
-            Protocol::Http | Protocol::Https => {
+            Protocol::Http => {
                 let request = url.into_client_request()?;
                 let (ws_stream, _) = connect_async(request).await?;
                 let (writer, mut reader) = ws_stream.split();
@@ -481,7 +481,7 @@ impl Mihomo {
     ) -> Result<ConnectionId> {
         let mut ws_url = self.get_websocket_url("/logs")?;
         match self.protocol {
-            Protocol::Http | Protocol::Https => {
+            Protocol::Http => {
                 if self.secret.is_some() {
                     ws_url.push_str(&format!("&level={}", level));
                 } else {
