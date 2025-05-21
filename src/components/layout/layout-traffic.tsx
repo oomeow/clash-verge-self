@@ -1,9 +1,7 @@
-import { useClashInfo } from "@/hooks/use-clash";
 import { useLogData } from "@/hooks/use-log-data";
 import { useVerge } from "@/hooks/use-verge";
 import { useVisibility } from "@/hooks/use-visibility";
 import parseTraffic from "@/utils/parse-traffic";
-import { createSockette } from "@/utils/websocket";
 import {
   ArrowDownward,
   ArrowUpward,
@@ -13,19 +11,15 @@ import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { t } from "i18next";
 import { useRef } from "react";
-import useSWRSubscription from "swr/subscription";
-import { restart } from "tauri-plugin-mihomo-api";
 import { useNotice } from "../base/notifice";
 import { TrafficGraph, type TrafficRef } from "./traffic-graph";
-
-interface MemoryUsage {
-  inuse: number;
-  oslimit?: number;
-}
+import { useTrafficData } from "@/hooks/use-traffic-data";
+import { useMemoryData } from "@/hooks/use-memory-data";
+import { emit } from "@tauri-apps/api/event";
+import { restart } from "tauri-plugin-mihomo-api";
 
 // setup the traffic
 export const LayoutTraffic = () => {
-  const { clashInfo } = useClashInfo();
   const { verge } = useVerge();
   const { notice } = useNotice();
 
@@ -34,90 +28,15 @@ export const LayoutTraffic = () => {
 
   const trafficRef = useRef<TrafficRef>(null);
   const pageVisible = useVisibility();
-
-  // https://swr.vercel.app/docs/subscription#deduplication
-  // useSWRSubscription auto deduplicates to one subscription per key per entire app
-  // So we can simply invoke it here acting as preconnect
-  useLogData();
-  const subscriptionTrafficKey =
-    clashInfo && pageVisible
-      ? `getRealtimeTraffic-${clashInfo?.server}-${clashInfo?.secret}-${pageVisible}`
-      : null;
-
-  const { data: traffic = { up: 0, down: 0 } } = useSWRSubscription<
-    ITrafficItem,
-    any,
-    string | null
-  >(
-    subscriptionTrafficKey,
-    (_key, { next }) => {
-      const { server = "", secret = "" } = clashInfo!;
-
-      const s = createSockette(
-        `ws://${server}/traffic?token=${encodeURIComponent(secret)}`,
-        {
-          onmessage(event) {
-            const data = JSON.parse(event.data) as ITrafficItem;
-            trafficRef.current?.appendData(data);
-            next(null, data);
-          },
-          onerror(event) {
-            this.close();
-            next(event, { up: 0, down: 0 });
-          },
-        },
-      );
-
-      return () => {
-        s.close();
-      };
-    },
-    {
-      fallbackData: { up: 0, down: 0 },
-      keepPreviousData: true,
-    },
-  );
-
-  /* --------- meta memory information --------- */
-
   const displayMemory = verge?.enable_memory_usage ?? true;
 
-  const subscriptionMemoryKey =
-    clashInfo && pageVisible && displayMemory
-      ? `getRealtimeMemory-${clashInfo?.server}-${clashInfo?.secret}-${pageVisible}`
-      : null;
-  const { data: memory = { inuse: 0 } } = useSWRSubscription<
-    MemoryUsage,
-    any,
-    string | null
-  >(
-    subscriptionMemoryKey,
-    (_key, { next }) => {
-      const { server = "", secret = "" } = clashInfo!;
-
-      const s = createSockette(
-        `ws://${server}/memory?token=${encodeURIComponent(secret)}`,
-        {
-          onmessage(event) {
-            const data = JSON.parse(event.data) as MemoryUsage;
-            next(null, data);
-          },
-          onerror(event) {
-            this.close();
-            next(event, { inuse: 0 });
-          },
-        },
-      );
-
-      return () => {
-        s.close();
-      };
-    },
-    {
-      fallbackData: { inuse: 0 },
-      keepPreviousData: true,
-    },
-  );
+  const {
+    response: { data: traffic = { up: 0, down: 0 } },
+  } = useTrafficData();
+  const {
+    response: { data: memory = { inuse: 0 } },
+  } = useMemoryData();
+  useLogData();
 
   const [up, upUnit] = parseTraffic(traffic.up);
   const [down, downUnit] = parseTraffic(traffic.down);
@@ -143,6 +62,7 @@ export const LayoutTraffic = () => {
   const restartClashCore = useLockFn(async () => {
     await restart();
     notice("success", t("Clash Core Restarted"));
+    await emit("verge://refresh-websocket");
   });
 
   return (

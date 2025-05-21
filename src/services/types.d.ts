@@ -107,6 +107,11 @@ interface ITrafficItem {
   down: number;
 }
 
+interface IMemoryUsageItem {
+  inuse: number;
+  oslimit?: number;
+}
+
 interface ILogItem {
   type: string;
   time?: string;

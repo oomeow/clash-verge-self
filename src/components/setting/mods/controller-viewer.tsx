@@ -16,6 +16,7 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { GuardState } from "./guard-state";
 import { useVerge } from "@/hooks/use-verge";
+import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 
 export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
   const { t } = useTranslation();
@@ -41,9 +42,6 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
   const onError = (err: any) => {
     notice("error", err.message || err.toString());
   };
-  const onChangeData = (patch: Partial<IVergeConfig>) => {
-    mutateVerge({ ...verge, ...patch }, false);
-  };
 
   const onSave = useLockFn(async () => {
     try {
@@ -66,8 +64,17 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
             valueProps="checked"
             onCatch={onError}
             onFormat={onSwitchFormat}
-            onChange={(e) => onChangeData({ enable_external_controller: e })}
-            onGuard={(e) => patchVerge({ enable_external_controller: e })}>
+            onGuard={async (e) => {
+              MihomoWebSocket.cleanupAll();
+              return patchVerge({ enable_external_controller: e });
+            }}
+            onSuccess={(v) => {
+              if (v) {
+                notice("success", t("External Controller Enabled"), 1000);
+              } else {
+                notice("success", t("External Controller Disabled"), 1000);
+              }
+            }}>
             <SwitchLovely edge="end" />
           </GuardState>
         </div>

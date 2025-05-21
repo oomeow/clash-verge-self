@@ -127,7 +127,7 @@ impl Mihomo {
 
     fn get_req_headers(&self) -> Result<HeaderMap<HeaderValue>> {
         let mut headers = HeaderMap::new();
-        headers.insert(HOST, HeaderValue::from_static("clash-verge"));
+        headers.insert(HOST, HeaderValue::from_static("localhost"));
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         if matches!(self.protocol, Protocol::Http) {
             if let Some(secret) = self.secret.clone() {

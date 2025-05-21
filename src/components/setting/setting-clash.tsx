@@ -56,7 +56,7 @@ const SettingClash = ({ onError }: Props) => {
     ipv6,
     "allow-lan": allowLan,
     "log-level": logLevel,
-    "unified-delay": UnifiedDelay,
+    "unified-delay": unifiedDelay,
     tun,
   } = clash ?? {};
   const { enable_random_port = false, enable_service_mode } = verge ?? {};
@@ -181,7 +181,7 @@ const SettingClash = ({ onError }: Props) => {
           </Tooltip>
         }>
         <GuardState
-          value={UnifiedDelay ?? false}
+          value={unifiedDelay ?? false}
           valueProps="checked"
           onCatch={onError}
           onFormat={onSwitchFormat}

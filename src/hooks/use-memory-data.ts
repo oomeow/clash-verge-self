@@ -1,53 +1,33 @@
-import dayjs from "dayjs";
 import { useEffect, useRef, useState } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
-import { getClashLogs } from "../services/cmds";
-import { useClashLog } from "../services/states";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { useVerge } from "./use-verge";
 import { listen } from "@tauri-apps/api/event";
 
-const MAX_LOG_NUM = 1000;
-
-export const useLogData = () => {
-  const [clashLog] = useClashLog();
-  const enableLog = clashLog.enable;
-  const logLevel = clashLog.logLevel;
-
+export const useMemoryData = () => {
   const [count, setCount] = useState(0);
-  const subscriptKey = enableLog ? `getClashLog-${count}-${logLevel}` : null;
+  const subscriptKey = `getClashMemory-${count}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);
   const ws_first_connection = useRef<boolean>(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const response = useSWRSubscription<ILogItem[], any, string | null>(
+  const response = useSWRSubscription<IMemoryUsageItem, any, string | null>(
     subscriptKey,
     (_key, { next }) => {
-      // populate the initial logs
-      getClashLogs().then(
-        (logs) => next(null, logs),
-        (err) => next(err),
-      );
-
       const connect = () =>
-        MihomoWebSocket.connect_logs("info")
+        MihomoWebSocket.connect_memory()
           .then((ws_) => {
             ws.current = ws_;
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             ws_.addListener((msg) => {
               if (msg.type === "Text") {
                 if (msg.data.startsWith("websocket error")) {
-                  next(msg.data);
+                  next(msg, { inuse: 0 });
                 } else {
-                  const data = JSON.parse(msg.data) as ILogItem;
-                  // append new log item on socket message
-                  next(null, (l = []) => {
-                    const time = dayjs().format("MM-DD HH:mm:ss");
-                    if (l.length >= MAX_LOG_NUM) l.shift();
-                    const newList = [...l, { ...data, time }];
-                    return newList;
-                  });
+                  const data = JSON.parse(msg.data) as IMemoryUsageItem;
+                  next(null, data);
                 }
               }
             });
@@ -69,7 +49,7 @@ export const useLogData = () => {
       };
     },
     {
-      fallbackData: [],
+      fallbackData: { inuse: 0 },
       keepPreviousData: true,
     },
   );
@@ -77,6 +57,7 @@ export const useLogData = () => {
   useEffect(() => {
     const unlistenRefreshWebsocket = listen("verge://refresh-websocket", () => {
       setCount((prev) => (prev += 1));
+      // mutate(`$sub$${subscriptKey}`);
     });
 
     return () => {
@@ -88,13 +69,9 @@ export const useLogData = () => {
     mutate(`$sub$${subscriptKey}`);
   }, [count]);
 
-  const refreshGetClashLog = (clear = false) => {
-    if (clear) {
-      mutate(`$sub$${subscriptKey}`, []);
-    } else {
-      setCount((prev) => (prev += 1));
-    }
+  const refreshGetClashMemory = () => {
+    setCount((prev) => (prev += 1));
   };
 
-  return { response, refreshGetClashLog };
+  return { response, refreshGetClashMemory };
 };

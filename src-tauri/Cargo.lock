@@ -944,6 +944,7 @@ dependencies = [
  "delay_timer",
  "dirs 6.0.0",
  "dunce",
+ "futures-util",
  "mihomo-rule-parser",
  "nanoid",
  "once_cell",

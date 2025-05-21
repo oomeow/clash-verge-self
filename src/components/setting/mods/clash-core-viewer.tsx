@@ -18,6 +18,7 @@ import {
   ListItemText,
   Tooltip,
 } from "@mui/material";
+import { emit } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -92,6 +93,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
         }),
         1000,
       );
+      emit("verge://refresh-websocket");
     } catch (err: any) {
       notice("error", err?.message || err.toString());
     }
@@ -101,6 +103,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
     try {
       await restartSidecar();
       notice("success", t(`Clash Core Restarted`), 1000);
+      emit("verge://refresh-websocket");
     } catch (err: any) {
       notice("error", err?.message || err.toString());
     }
