@@ -343,7 +343,7 @@ pub(super) async fn run_core_by_service(config_file: &PathBuf, log_path: &PathBu
         config_dir: config_dir.to_string(),
         config_file: config_file.to_string(),
         log_file: log_path.to_string(),
-        use_local_socket: false,
+        use_local_socket: true,
     };
     tracing::debug!("send start clash socket command, body: {:?}", body);
     let res = send_command(SocketCommand::StartClash(body)).await?;
