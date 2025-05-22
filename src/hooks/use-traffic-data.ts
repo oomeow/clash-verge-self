@@ -19,10 +19,8 @@ export const useTrafficData = () => {
     subscriptKey,
     (key, { next }) => {
       const connect = async () => {
-        console.log("start connecting");
         MihomoWebSocket.connect_traffic()
           .then((ws_) => {
-            console.log("connecting successfully");
             ws.current = ws_;
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             ws_.addListener((msg) => {
@@ -51,7 +49,6 @@ export const useTrafficData = () => {
       }
 
       return () => {
-        console.log("disconnecting", ws.current, ws_first_connection.current);
         ws.current?.close(0);
       };
     },
@@ -63,9 +60,7 @@ export const useTrafficData = () => {
 
   useEffect(() => {
     const unlistenRefreshWebsocket = listen("verge://refresh-websocket", () => {
-      const now = Date.now();
-      console.log("receiver refresh websocket event", date, now);
-      setDate(now);
+      setDate(Date.now());
     });
 
     return () => {

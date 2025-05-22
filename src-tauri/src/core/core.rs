@@ -13,7 +13,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use sysinfo::System;
-use tauri::ipc::Channel;
+// use tauri::ipc::Channel;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
@@ -27,8 +27,7 @@ pub struct CoreManager {
 
     /// true if clash core needs to be restarted when it is terminated
     need_restart_core: Arc<Mutex<bool>>,
-
-    ws_traffic_id: Arc<Mutex<Option<u32>>>,
+    // ws_traffic_id: Arc<Mutex<Option<u32>>>,
 }
 
 impl CoreManager {
@@ -39,7 +38,7 @@ impl CoreManager {
             sidecar: Arc::new(Mutex::new(None)),
             use_service_mode: Arc::new(Mutex::new(false)),
             need_restart_core: Arc::new(Mutex::new(true)),
-            ws_traffic_id: Arc::new(Mutex::new(None)),
+            // ws_traffic_id: Arc::new(Mutex::new(None)),
         })
     }
 
@@ -124,7 +123,7 @@ impl CoreManager {
         }
 
         // 服务模式
-        let enable = Config::verge().latest().enable_service_mode;
+        let enable = { Config::verge().latest().enable_service_mode };
         let enable = enable.unwrap_or(false);
         *self.use_service_mode.lock() = enable;
 
@@ -208,17 +207,29 @@ impl CoreManager {
 
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
-        let clash_core = { Config::verge().latest().clash_core.clone() };
-        let clash_core = clash_core.unwrap_or("verge-mihomo".into());
+        let (clash_core, enable_externale_controller) = {
+            let verge = Config::verge();
+            let verge = verge.latest();
+            (
+                verge.clash_core.clone().unwrap_or("verge-mihomo".into()),
+                verge.enable_external_controller.unwrap_or_default(),
+            )
+        };
 
         let config_path = dirs::path_to_str(&config_path)?;
         let mut args = vec!["-d", app_dir, "-f", config_path];
-        if cfg!(unix) {
-            args.push("-ext-ctl-unix");
-        } else {
-            args.push("-ext-ctl-pipe");
+        tracing::info!(
+            "run core with external controller: {}",
+            enable_externale_controller
+        );
+        if !enable_externale_controller {
+            if cfg!(unix) {
+                args.push("-ext-ctl-unix");
+            } else {
+                args.push("-ext-ctl-pipe");
+            }
+            args.push(SOCKET_PATH);
         }
-        args.push(SOCKET_PATH);
 
         let app_handle = handle::Handle::get_app_handle();
         let cmd = app_handle.shell().sidecar(clash_core)?;

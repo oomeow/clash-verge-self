@@ -314,8 +314,14 @@ pub(super) async fn run_core_by_service(config_file: &PathBuf, log_path: &PathBu
     check_service().await?;
     stop_core_by_service().await?;
 
-    let clash_core = Config::verge().latest().clash_core.clone();
-    let clash_core = clash_core.unwrap_or("verge-mihomo".into());
+    let (clash_core, enable_external_controller) = {
+        let verge = Config::verge();
+        let verge = verge.latest();
+        (
+            verge.clash_core.clone().unwrap_or("verge-mihomo".into()),
+            verge.enable_external_controller.unwrap_or_default(),
+        )
+    };
 
     let bin_ext = if cfg!(windows) { ".exe" } else { "" };
     let clash_bin = format!("{clash_core}{bin_ext}");
@@ -343,7 +349,7 @@ pub(super) async fn run_core_by_service(config_file: &PathBuf, log_path: &PathBu
         config_dir: config_dir.to_string(),
         config_file: config_file.to_string(),
         log_file: log_path.to_string(),
-        use_local_socket: true,
+        use_local_socket: !enable_external_controller,
     };
     tracing::debug!("send start clash socket command, body: {:?}", body);
     let res = send_command(SocketCommand::StartClash(body)).await?;
