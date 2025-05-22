@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { Message, MessageKind, MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { TrafficRef } from "@/components/layout/traffic-graph";
 import { listen } from "@tauri-apps/api/event";
+import { Channel, invoke } from "@tauri-apps/api/core";
 
 export const useTrafficData = () => {
-  const [count, setCount] = useState(0);
-  const subscriptKey = `getClashTraffic-${count}`;
+  const [date, setDate] = useState(Date.now());
+  const subscriptKey = `getClashTraffic-${date}`;
 
   const trafficRef = useRef<TrafficRef>(null);
   const ws = useRef<MihomoWebSocket | null>(null);
@@ -17,9 +18,11 @@ export const useTrafficData = () => {
   const response = useSWRSubscription<ITrafficItem, any, string | null>(
     subscriptKey,
     (key, { next }) => {
-      const connect = () => {
+      const connect = async () => {
+        console.log("start connecting");
         MihomoWebSocket.connect_traffic()
           .then((ws_) => {
+            console.log("connecting successfully");
             ws.current = ws_;
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             ws_.addListener((msg) => {
@@ -48,6 +51,7 @@ export const useTrafficData = () => {
       }
 
       return () => {
+        console.log("disconnecting", ws.current, ws_first_connection.current);
         ws.current?.close(0);
       };
     },
@@ -59,20 +63,22 @@ export const useTrafficData = () => {
 
   useEffect(() => {
     const unlistenRefreshWebsocket = listen("verge://refresh-websocket", () => {
-      setCount((prev) => (prev += 1));
+      const now = Date.now();
+      console.log("receiver refresh websocket event", date, now);
+      setDate(now);
     });
 
     return () => {
       unlistenRefreshWebsocket.then((fn) => fn());
     };
-  }, []);
+  }, [date]);
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
-  }, [count]);
+  }, [date]);
 
   const refreshGetClashTraffic = () => {
-    setCount((prev) => (prev += 1));
+    setDate(Date.now());
   };
 
   return { response, refreshGetClashTraffic };

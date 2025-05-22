@@ -12,8 +12,8 @@ const initData: IConnections = {
 };
 
 export const useConnectionData = () => {
-  const [count, setCount] = useState(0);
-  const subscriptKey = `getClashConnection-${count}`;
+  const [date, setDate] = useState(Date.now());
+  const subscriptKey = `getClashConnection-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);
   const ws_first_connection = useRef<boolean>(true);
@@ -78,14 +78,14 @@ export const useConnectionData = () => {
       };
     },
     {
-      fallbackData: [],
+      fallbackData: initData,
       keepPreviousData: true,
     },
   );
 
   useEffect(() => {
     const unlistenRefreshWebsocket = listen("verge://refresh-websocket", () => {
-      setCount((prev) => (prev += 1));
+      setDate(Date.now());
     });
 
     return () => {
@@ -95,10 +95,10 @@ export const useConnectionData = () => {
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
-  }, [count]);
+  }, [date]);
 
   const refreshGetClashConnection = () => {
-    setCount((prev) => (prev += 1));
+    setDate(Date.now());
   };
 
   return { response, refreshGetClashConnection };

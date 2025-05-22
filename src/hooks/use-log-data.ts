@@ -14,8 +14,8 @@ export const useLogData = () => {
   const enableLog = clashLog.enable;
   const logLevel = clashLog.logLevel;
 
-  const [count, setCount] = useState(0);
-  const subscriptKey = enableLog ? `getClashLog-${count}-${logLevel}` : null;
+  const [date, setDate] = useState(Date.now());
+  const subscriptKey = enableLog ? `getClashLog-${date}-${logLevel}` : null;
 
   const ws = useRef<MihomoWebSocket | null>(null);
   const ws_first_connection = useRef<boolean>(true);
@@ -76,7 +76,7 @@ export const useLogData = () => {
 
   useEffect(() => {
     const unlistenRefreshWebsocket = listen("verge://refresh-websocket", () => {
-      setCount((prev) => (prev += 1));
+      setDate(Date.now());
     });
 
     return () => {
@@ -86,13 +86,13 @@ export const useLogData = () => {
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
-  }, [count]);
+  }, [date]);
 
   const refreshGetClashLog = (clear = false) => {
     if (clear) {
       mutate(`$sub$${subscriptKey}`, []);
     } else {
-      setCount((prev) => (prev += 1));
+      setDate(Date.now());
     }
   };
 

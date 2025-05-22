@@ -211,7 +211,9 @@ impl Mihomo {
         on_message: Channel<serde_json::Value>,
     ) -> Result<ConnectionId> {
         let id = rand::random();
+        println!("[tauri-plugin-mihomo] - starting get connection manager");
         let manager = self.connection_manager.clone();
+        println!("[tauri-plugin-mihomo] - get connection manager successfully");
 
         let handle_message = |message| {
             match message {
@@ -242,13 +244,17 @@ impl Mihomo {
         match self.protocol {
             Protocol::Http => {
                 let request = url.into_client_request()?;
+                println!("[tauri-plugin-mihomo] - starting connect websocket");
                 let (ws_stream, _) = connect_async(request).await?;
+                println!("[tauri-plugin-mihomo] - connect websocket successfully");
                 let (writer, mut reader) = ws_stream.split();
+                println!("[tauri-plugin-mihomo] - starting save ws writer");
                 manager
                     .0
                     .lock()
                     .await
                     .insert(id, WebSocketWriter::TcpStreamWriter(writer));
+                println!("[tauri-plugin-mihomo] - save ws writer successfully");
 
                 tauri::async_runtime::spawn(async move {
                     let on_message_ = on_message.clone();
@@ -278,6 +284,7 @@ impl Mihomo {
                             "need to socket path".to_string(),
                         )));
                     }
+                    println!("[tauri-plugin-mihomo] - starting connect to local socket");
                     let stream = {
                         #[cfg(unix)]
                         {
@@ -304,6 +311,7 @@ impl Mihomo {
                             }
                         }
                     };
+                    println!("[tauri-plugin-mihomo] - connect to local socket successfully");
 
                     let request = Request::builder()
                         .uri(url)
@@ -314,8 +322,11 @@ impl Mihomo {
                         .header(SEC_WEBSOCKET_VERSION, "13")
                         .body(())?;
 
+                    println!("[tauri-plugin-mihomo] - starting connect websocket");
                     let (ws_stream, _) = client_async(request, stream).await?;
+                    println!("[tauri-plugin-mihomo] - connect websocket successfully");
                     let (writer, mut reader) = ws_stream.split();
+                    println!("[tauri-plugin-mihomo] - starting save ws writer");
                     #[cfg(unix)]
                     manager
                         .0
@@ -330,15 +341,16 @@ impl Mihomo {
                             .await
                             .insert(id, WebSocketWriter::NamedPipeWriter(writer));
                     }
+                    println!("[tauri-plugin-mihomo] - save ws writer successfully");
 
                     tauri::async_runtime::spawn(async move {
                         let on_message_ = on_message.clone();
                         let manager_ = manager.clone();
                         loop {
+                            if manager_.0.lock().await.get(&id).is_none() {
+                                break;
+                            }
                             if let Some(message) = reader.next().await {
-                                if manager_.0.lock().await.get(&id).is_none() {
-                                    break;
-                                }
                                 if let Ok(Message::Close(_)) = message {
                                     manager_.0.lock().await.remove(&id);
                                 }
@@ -883,12 +895,7 @@ mod test {
         let socket_path = {
             #[cfg(unix)]
             {
-                let home_dir = std::env::home_dir().unwrap();
-                home_dir
-                    .join(".local/share/io.github.oomeow.clash-verge-self/verge-mihomo.sock")
-                    .to_str()
-                    .unwrap()
-                    .to_string()
+                "/tmp/verge-mihomo.sock".to_string()
             }
             #[cfg(windows)]
             {
@@ -1005,6 +1012,7 @@ mod test {
     #[tokio::test]
     async fn test_ws_log() -> Result<()> {
         let mut mihomo = mihomo();
+        mihomo.update_protocol(Protocol::LocalSocket);
         let on_message = Channel::new(|message| {
             match message {
                 InvokeResponseBody::Json(msg) => {
@@ -1016,7 +1024,7 @@ mod test {
             }
             Ok(())
         });
-        let websocket_id = mihomo.ws_logs("debug", on_message.clone()).await?;
+        let websocket_id = mihomo.ws_traffic(on_message.clone()).await?;
         println!("WebSocket ID: {}", websocket_id);
         tokio::time::sleep(Duration::from_millis(3000)).await;
         mihomo.disconnect(websocket_id, Some(5)).await?;

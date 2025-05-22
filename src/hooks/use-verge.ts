@@ -19,13 +19,6 @@ export const useVerge = () => {
         dark: value.dark_theme_setting || themeSettings.dark,
       });
     }
-    if (
-      value.clash_core ||
-      value.enable_external_controller ||
-      value.enable_service_mode
-    ) {
-      emit("verge://refresh-websocket");
-    }
     mutateVerge();
   };
 

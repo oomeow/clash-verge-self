@@ -11,7 +11,9 @@ use parking_lot::Mutex;
 use serde_yaml::Mapping;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 use sysinfo::System;
+use tauri::ipc::Channel;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
@@ -25,6 +27,8 @@ pub struct CoreManager {
 
     /// true if clash core needs to be restarted when it is terminated
     need_restart_core: Arc<Mutex<bool>>,
+
+    ws_traffic_id: Arc<Mutex<Option<u32>>>,
 }
 
 impl CoreManager {
@@ -35,6 +39,7 @@ impl CoreManager {
             sidecar: Arc::new(Mutex::new(None)),
             use_service_mode: Arc::new(Mutex::new(false)),
             need_restart_core: Arc::new(Mutex::new(true)),
+            ws_traffic_id: Arc::new(Mutex::new(None)),
         })
     }
 
@@ -150,7 +155,37 @@ impl CoreManager {
 
             let res = service::run_core_by_service(&config_path, &PathBuf::from(log_path)).await;
             match res {
-                Ok(_) => return Ok(()),
+                Ok(_) => {
+                    tauri::async_runtime::spawn(async {
+                        tokio::time::sleep(Duration::from_secs(3)).await;
+                        handle::Handle::refresh_websocket();
+                        // let on_message = Channel::new(|msg| {
+                        //     match msg {
+                        //         tauri::ipc::InvokeResponseBody::Json(json) => {
+                        //             println!("ws traffic response {}", json);
+                        //         }
+                        //         _ => {}
+                        //     }
+                        //     Ok(())
+                        // });
+                        // println!("starting get mihomo client");
+                        // let mihomo = handle::Handle::get_mihomo_read().await;
+                        // println!(
+                        //     "get mihomo client successfully, starting connect traffic websocket"
+                        // );
+                        // match mihomo.ws_traffic(on_message).await {
+                        //     Ok(id) => {
+                        //         println!("traffic websocket connect successfully, id: {}", id);
+                        //         let mut ws_traffic_id = CoreManager::global().ws_traffic_id.lock();
+                        //         *ws_traffic_id = Some(id);
+                        //     }
+                        //     Err(e) => {
+                        //         println!("traffic websocket connect error: {:?}", e);
+                        //     }
+                        // }
+                    });
+                    return Ok(());
+                }
                 Err(err) => {
                     // 修改这个值，免得stop出错
                     *self.use_service_mode.lock() = false;
@@ -217,6 +252,33 @@ impl CoreManager {
                     _ => {}
                 }
             }
+        });
+
+        tauri::async_runtime::spawn(async {
+            tokio::time::sleep(Duration::from_secs(3)).await;
+            handle::Handle::refresh_websocket();
+            // let on_message = Channel::new(|msg| {
+            //     match msg {
+            //         tauri::ipc::InvokeResponseBody::Json(json) => {
+            //             println!("ws traffic response {}", json);
+            //         }
+            //         _ => {}
+            //     }
+            //     Ok(())
+            // });
+            // println!("starting get mihomo client");
+            // let mihomo = handle::Handle::get_mihomo_read().await;
+            // println!("get mihomo client successfully, starting connect traffic websocket");
+            // match mihomo.ws_traffic(on_message).await {
+            //     Ok(id) => {
+            //         println!("traffic websocket connect successfully, id: {}", id);
+            //         let mut ws_traffic_id = CoreManager::global().ws_traffic_id.lock();
+            //         *ws_traffic_id = Some(id);
+            //     }
+            //     Err(e) => {
+            //         println!("traffic websocket connect error: {:?}", e);
+            //     }
+            // }
         });
 
         Ok(())

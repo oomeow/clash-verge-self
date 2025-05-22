@@ -6,8 +6,8 @@ import { useVerge } from "./use-verge";
 import { listen } from "@tauri-apps/api/event";
 
 export const useMemoryData = () => {
-  const [count, setCount] = useState(0);
-  const subscriptKey = `getClashMemory-${count}`;
+  const [date, setDate] = useState(Date.now());
+  const subscriptKey = `getClashMemory-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);
   const ws_first_connection = useRef<boolean>(true);
@@ -56,8 +56,7 @@ export const useMemoryData = () => {
 
   useEffect(() => {
     const unlistenRefreshWebsocket = listen("verge://refresh-websocket", () => {
-      setCount((prev) => (prev += 1));
-      // mutate(`$sub$${subscriptKey}`);
+      setDate(Date.now());
     });
 
     return () => {
@@ -67,10 +66,10 @@ export const useMemoryData = () => {
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
-  }, [count]);
+  }, [date]);
 
   const refreshGetClashMemory = () => {
-    setCount((prev) => (prev += 1));
+    setDate(Date.now());
   };
 
   return { response, refreshGetClashMemory };
