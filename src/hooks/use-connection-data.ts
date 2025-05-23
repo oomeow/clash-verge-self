@@ -4,6 +4,7 @@ import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { useVerge } from "./use-verge";
 import { listen } from "@tauri-apps/api/event";
+import { useLocalStorage } from "foxact/use-local-storage";
 
 const initData: IConnections = {
   uploadTotal: 0,
@@ -12,7 +13,7 @@ const initData: IConnections = {
 };
 
 export const useConnectionData = () => {
-  const [date, setDate] = useState(Date.now());
+  const [date, setDate] = useLocalStorage("mihomo_connection_date", Date.now());
   const subscriptKey = `getClashConnection-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);

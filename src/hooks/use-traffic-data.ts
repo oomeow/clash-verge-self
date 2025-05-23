@@ -5,9 +5,10 @@ import { Message, MessageKind, MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { TrafficRef } from "@/components/layout/traffic-graph";
 import { listen } from "@tauri-apps/api/event";
 import { Channel, invoke } from "@tauri-apps/api/core";
+import { useLocalStorage } from "foxact/use-local-storage";
 
 export const useTrafficData = () => {
-  const [date, setDate] = useState(Date.now());
+  const [date, setDate] = useLocalStorage("mihomo_traffic_date", Date.now());
   const subscriptKey = `getClashTraffic-${date}`;
 
   const trafficRef = useRef<TrafficRef>(null);

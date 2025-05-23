@@ -156,7 +156,7 @@ impl CoreManager {
             match res {
                 Ok(_) => {
                     tauri::async_runtime::spawn(async {
-                        tokio::time::sleep(Duration::from_secs(3)).await;
+                        tokio::time::sleep(Duration::from_secs(2)).await;
                         handle::Handle::refresh_websocket();
                         // let on_message = Channel::new(|msg| {
                         //     match msg {
@@ -266,7 +266,7 @@ impl CoreManager {
         });
 
         tauri::async_runtime::spawn(async {
-            tokio::time::sleep(Duration::from_secs(3)).await;
+            tokio::time::sleep(Duration::from_secs(2)).await;
             handle::Handle::refresh_websocket();
             // let on_message = Channel::new(|msg| {
             //     match msg {

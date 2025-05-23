@@ -6,6 +6,8 @@ import { getClashLogs } from "../services/cmds";
 import { useClashLog } from "../services/states";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { listen } from "@tauri-apps/api/event";
+import { useLocalStorageState } from "ahooks";
+import { useLocalStorage } from "foxact/use-local-storage";
 
 const MAX_LOG_NUM = 1000;
 
@@ -14,7 +16,7 @@ export const useLogData = () => {
   const enableLog = clashLog.enable;
   const logLevel = clashLog.logLevel;
 
-  const [date, setDate] = useState(Date.now());
+  const [date, setDate] = useLocalStorage("mihomo_logs_date", Date.now());
   const subscriptKey = enableLog ? `getClashLog-${date}-${logLevel}` : null;
 
   const ws = useRef<MihomoWebSocket | null>(null);
@@ -31,7 +33,7 @@ export const useLogData = () => {
       );
 
       const connect = () =>
-        MihomoWebSocket.connect_logs("info")
+        MihomoWebSocket.connect_logs(logLevel)
           .then((ws_) => {
             ws.current = ws_;
             if (timeoutRef.current) clearTimeout(timeoutRef.current);

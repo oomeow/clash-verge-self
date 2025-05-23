@@ -633,7 +633,7 @@ export class MihomoWebSocket {
    * @returns WebSocket 实例
    */
   static async connect_logs(
-    level: "debug" | "info" | "warn" | "error",
+    level: "debug" | "info" | "warning" | "error" | "silent",
   ): Promise<MihomoWebSocket> {
     const listeners: Set<(arg: Message) => void> = new Set();
     const onMessage = new Channel<Message>();

@@ -412,7 +412,7 @@ export declare class MihomoWebSocket {
    * @returns WebSocket 实例
    */
   static connect_logs(
-    level: "debug" | "info" | "warn" | "error",
+    level: "debug" | "info" | "warning" | "error" | "silent",
   ): Promise<MihomoWebSocket>;
   /**
    * 添加处理 WebSocket 连接后接受的数据的回调函数
