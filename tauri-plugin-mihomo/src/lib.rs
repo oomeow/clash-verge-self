@@ -15,10 +15,6 @@ mod enhance_request;
 mod error;
 mod mihomo;
 pub mod models;
-#[cfg(windows)]
-mod named_pipe;
-#[cfg(unix)]
-mod unix_sock;
 mod utils;
 
 pub use error::{MihomoError, Result};
