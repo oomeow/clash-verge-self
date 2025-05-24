@@ -316,3 +316,8 @@ pub(crate) async fn ws_disconnect(
 ) -> Result<()> {
     state.read().await.disconnect(id, force_timeout).await
 }
+
+#[command]
+pub(crate) async fn clear_all_ws_connection(state: State<'_, RwLock<Mihomo>>) -> Result<()> {
+    state.read().await.clear_all_ws_connection().await
+}

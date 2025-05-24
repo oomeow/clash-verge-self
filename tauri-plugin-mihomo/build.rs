@@ -36,6 +36,7 @@ const COMMANDS: &[&str] = &[
     "ws_logs",
     // "ws_send",
     "ws_disconnect",
+    "clear_all_ws_connection",
 ];
 
 fn main() {

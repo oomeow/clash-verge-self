@@ -40,6 +40,7 @@ Default permissions for the plugin
 - `allow-ws-connections`
 - `allow-ws-logs`
 - `allow-ws-disconnect`
+- `allow-clear-all-ws-connection`
 
 ## Permission Table
 
@@ -72,6 +73,32 @@ Enables the clean_fakeip command without any pre-configured scope.
 <td>
 
 Denies the clean_fakeip command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`mihomo:allow-clear-all-ws-connection`
+
+</td>
+<td>
+
+Enables the clear_all_ws_connection command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`mihomo:deny-clear-all-ws-connection`
+
+</td>
+<td>
+
+Denies the clear_all_ws_connection command without any pre-configured scope.
 
 </td>
 </tr>

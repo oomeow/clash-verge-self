@@ -422,6 +422,9 @@ class MihomoWebSocket {
   static cleanupAll() {
     this.instances.forEach((instance) => instance.close(0));
     this.instances.clear();
+    invoke("plugin:mihomo|clear_all_ws_connection").then((_res) => {
+      console.log("clear all ws connection success");
+    });
   }
 }
 MihomoWebSocket.instances = new Set();

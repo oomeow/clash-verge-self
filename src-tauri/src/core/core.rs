@@ -98,6 +98,7 @@ impl CoreManager {
     }
 
     /// 启动核心
+    /// TODO: 通过 service 启动的内核，Logger会丢失, 无法通过 Logger::global().set_log() 方法更新日志
     pub async fn run_core(&self) -> Result<()> {
         let config_path = Config::generate_file(ConfigType::Run)?;
 
@@ -156,32 +157,8 @@ impl CoreManager {
             match res {
                 Ok(_) => {
                     tauri::async_runtime::spawn(async {
-                        tokio::time::sleep(Duration::from_secs(2)).await;
+                        let _ = handle::Handle::get_mihomo_read().await.clear_all_ws_connection().await;
                         handle::Handle::refresh_websocket();
-                        // let on_message = Channel::new(|msg| {
-                        //     match msg {
-                        //         tauri::ipc::InvokeResponseBody::Json(json) => {
-                        //             println!("ws traffic response {}", json);
-                        //         }
-                        //         _ => {}
-                        //     }
-                        //     Ok(())
-                        // });
-                        // println!("starting get mihomo client");
-                        // let mihomo = handle::Handle::get_mihomo_read().await;
-                        // println!(
-                        //     "get mihomo client successfully, starting connect traffic websocket"
-                        // );
-                        // match mihomo.ws_traffic(on_message).await {
-                        //     Ok(id) => {
-                        //         println!("traffic websocket connect successfully, id: {}", id);
-                        //         let mut ws_traffic_id = CoreManager::global().ws_traffic_id.lock();
-                        //         *ws_traffic_id = Some(id);
-                        //     }
-                        //     Err(e) => {
-                        //         println!("traffic websocket connect error: {:?}", e);
-                        //     }
-                        // }
                     });
                     return Ok(());
                 }
@@ -266,30 +243,8 @@ impl CoreManager {
         });
 
         tauri::async_runtime::spawn(async {
-            tokio::time::sleep(Duration::from_secs(2)).await;
+            let _ = handle::Handle::get_mihomo_read().await.clear_all_ws_connection().await;
             handle::Handle::refresh_websocket();
-            // let on_message = Channel::new(|msg| {
-            //     match msg {
-            //         tauri::ipc::InvokeResponseBody::Json(json) => {
-            //             println!("ws traffic response {}", json);
-            //         }
-            //         _ => {}
-            //     }
-            //     Ok(())
-            // });
-            // println!("starting get mihomo client");
-            // let mihomo = handle::Handle::get_mihomo_read().await;
-            // println!("get mihomo client successfully, starting connect traffic websocket");
-            // match mihomo.ws_traffic(on_message).await {
-            //     Ok(id) => {
-            //         println!("traffic websocket connect successfully, id: {}", id);
-            //         let mut ws_traffic_id = CoreManager::global().ws_traffic_id.lock();
-            //         *ws_traffic_id = Some(id);
-            //     }
-            //     Err(e) => {
-            //         println!("traffic websocket connect error: {:?}", e);
-            //     }
-            // }
         });
 
         Ok(())

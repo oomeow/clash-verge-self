@@ -133,6 +133,7 @@ impl Builder {
                 commands::ws_connections,
                 commands::ws_logs,
                 commands::ws_disconnect,
+                commands::clear_all_ws_connection,
                 // commands::ws_send,
             ])
             .setup(move |app, _api| {

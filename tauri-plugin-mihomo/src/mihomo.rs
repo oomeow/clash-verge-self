@@ -464,6 +464,13 @@ impl Mihomo {
         manager.get(&id).is_some()
     }
 
+    
+    pub async fn clear_all_ws_connection(&self) -> Result<()> {
+        let mut manager = self.connection_manager.0.lock().await;
+        manager.clear();
+        Ok(())
+    }
+
     /// Mihomo 流量监控的 WebSocket 连接
     pub async fn ws_traffic(&self, on_message: Channel<serde_json::Value>) -> Result<ConnectionId> {
         let ws_url = self.get_websocket_url("/traffic")?;
