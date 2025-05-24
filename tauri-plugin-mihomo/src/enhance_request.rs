@@ -1,10 +1,7 @@
 use reqwest::RequestBuilder;
-use tokio::io::AsyncWriteExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use crate::{
-    utils::{build_socket_request, parse_socket_response},
-    MihomoError,
-};
+use crate::utils::{build_socket_request, parse_socket_response};
 
 pub trait LocalSocket {
     async fn send_to_local_socket(self, socket_path: &str) -> crate::Result<reqwest::Response>;
@@ -20,6 +17,7 @@ impl LocalSocket for RequestBuilder {
             }
             #[cfg(windows)]
             {
+                use crate::MihomoError;
                 use std::time::Duration;
                 use tokio::net::windows::named_pipe::ClientOptions;
                 use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
@@ -47,55 +45,24 @@ impl LocalSocket for RequestBuilder {
         let mut header_judged = false;
         let mut is_chunked = false;
         loop {
-            #[cfg(unix)]
-            {
-                use tokio::io::AsyncReadExt;
-                let n = stream.read(&mut b).await?;
-                buf.extend_from_slice(&b[..n]);
-                if !header_judged {
-                    let content = String::from_utf8_lossy(&buf);
-                    if content.contains("Transfer-Encoding: chunked") {
-                        is_chunked = true;
-                    }
-                    header_judged = true;
-                }
-                // if response is chunked, wait to \r\n\r\n
-                if (!is_chunked && n < 4096 && buf.ends_with(b"\n"))
-                    || (is_chunked && buf.ends_with(b"\r\n\r\n"))
-                {
-                    break;
-                }
+            let n = stream.read(&mut b).await?;
+            if n == 0 {
+                // for named pipe
+                break;
             }
-
-            #[cfg(windows)]
-            {
-                match stream.try_read(&mut b) {
-                    Ok(0) => break,
-                    Ok(n) => {
-                        buf.extend_from_slice(&b[..n]);
-                        if !header_judged {
-                            let content = String::from_utf8_lossy(&buf);
-                            if content.contains("Transfer-Encoding: chunked") {
-                                is_chunked = true;
-                            }
-                            header_judged = true;
-                        }
-                        // if response is chunked, wait to \r\n\r\n
-                        if (!is_chunked && n < 4096 && buf.ends_with(b"\n"))
-                            || (is_chunked && buf.ends_with(b"\r\n\r\n"))
-                        {
-                            break;
-                        }
-                    }
-                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                        continue;
-                    }
-                    Err(e) => {
-                        return Err(MihomoError::FailedResponse(format!(
-                            "Failed to read from named pipe: {socket_path}, {e}"
-                        )))
-                    }
+            buf.extend_from_slice(&b[..n]);
+            if !header_judged {
+                let content = String::from_utf8_lossy(&buf);
+                if content.contains("Transfer-Encoding: chunked") {
+                    is_chunked = true;
                 }
+                header_judged = true;
+            }
+            // if response is chunked, wait to \r\n\r\n
+            if (!is_chunked && n < 4096 && buf.ends_with(b"\n"))
+                || (is_chunked && buf.ends_with(b"\r\n\r\n"))
+            {
+                break;
             }
         }
         let response = String::from_utf8_lossy(&buf);
