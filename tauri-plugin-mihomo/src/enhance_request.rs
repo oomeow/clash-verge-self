@@ -1,7 +1,10 @@
 use reqwest::RequestBuilder;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 
-use crate::{utils::{build_socket_request, parse_socket_response}, MihomoError};
+use crate::{
+    utils::{build_socket_request, parse_socket_response},
+    MihomoError,
+};
 
 pub trait LocalSocket {
     async fn send_to_local_socket(self, socket_path: &str) -> crate::Result<reqwest::Response>;
@@ -24,9 +27,11 @@ impl LocalSocket for RequestBuilder {
                     match ClientOptions::new().open(socket_path) {
                         Ok(client) => break client,
                         Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => (),
-                        Err(e) => return Err(MihomoError::FailedResponse(format!(
-                            "Failed to connect to named pipe: {socket_path}, {e}"
-                        ))),
+                        Err(e) => {
+                            return Err(MihomoError::FailedResponse(format!(
+                                "Failed to connect to named pipe: {socket_path}, {e}"
+                            )))
+                        }
                     }
                     tokio::time::sleep(Duration::from_millis(50)).await;
                 }
@@ -42,20 +47,55 @@ impl LocalSocket for RequestBuilder {
         let mut header_judged = false;
         let mut is_chunked = false;
         loop {
-            let n = stream.read(&mut b).await?;
-            buf.extend_from_slice(&b[..n]);
-            if !header_judged {
-                let content = String::from_utf8_lossy(&buf);
-                if content.contains("Transfer-Encoding: chunked") {
-                    is_chunked = true;
-                }
-                header_judged = true;
-            }
-            // if response is chunked, wait to \r\n\r\n
-            if (!is_chunked && n < 4096 && buf.ends_with(b"\n"))
-                || (is_chunked && buf.ends_with(b"\r\n\r\n"))
+            #[cfg(unix)]
             {
-                break;
+                use tokio::io::AsyncReadExt;
+                let n = stream.read(&mut b).await?;
+                buf.extend_from_slice(&b[..n]);
+                if !header_judged {
+                    let content = String::from_utf8_lossy(&buf);
+                    if content.contains("Transfer-Encoding: chunked") {
+                        is_chunked = true;
+                    }
+                    header_judged = true;
+                }
+                // if response is chunked, wait to \r\n\r\n
+                if (!is_chunked && n < 4096 && buf.ends_with(b"\n"))
+                    || (is_chunked && buf.ends_with(b"\r\n\r\n"))
+                {
+                    break;
+                }
+            }
+
+            #[cfg(windows)]
+            {
+                match stream.try_read(&mut b) {
+                    Ok(0) => break,
+                    Ok(n) => {
+                        buf.extend_from_slice(&b[..n]);
+                        if !header_judged {
+                            let content = String::from_utf8_lossy(&buf);
+                            if content.contains("Transfer-Encoding: chunked") {
+                                is_chunked = true;
+                            }
+                            header_judged = true;
+                        }
+                        // if response is chunked, wait to \r\n\r\n
+                        if (!is_chunked && n < 4096 && buf.ends_with(b"\n"))
+                            || (is_chunked && buf.ends_with(b"\r\n\r\n"))
+                        {
+                            break;
+                        }
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                        continue;
+                    }
+                    Err(e) => {
+                        return Err(MihomoError::FailedResponse(format!(
+                            "Failed to read from named pipe: {socket_path}, {e}"
+                        )))
+                    }
+                }
             }
         }
         let response = String::from_utf8_lossy(&buf);

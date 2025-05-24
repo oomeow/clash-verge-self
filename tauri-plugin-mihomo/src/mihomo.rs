@@ -464,7 +464,6 @@ impl Mihomo {
         manager.get(&id).is_some()
     }
 
-    
     pub async fn clear_all_ws_connection(&self) -> Result<()> {
         let mut manager = self.connection_manager.0.lock().await;
         manager.clear();
@@ -913,7 +912,7 @@ mod test {
             }
         };
         Mihomo::new(
-          Protocol::LocalSocket,
+            Protocol::LocalSocket,
             Some("127.0.0.1".into()),
             Some(9090),
             Some("ppr7qxGrVBu9E8dUX3BoS".into()),
@@ -972,7 +971,6 @@ mod test {
     async fn test_spawn_delay_proxies() -> Result<()> {
         let mut mihomo = mihomo();
         mihomo.update_protocol(Protocol::LocalSocket);
-        // let group_name = "PROXY";
         let proxies = [
             "AUTO",
             "HK AUTO",
@@ -987,18 +985,20 @@ mod test {
         let timeout = 5000;
         let mut tasks = Vec::new();
         let arc_mihomo = Arc::new(mihomo);
-        for proxy in proxies.into_iter() {
-            let mihomo_ = Arc::clone(&arc_mihomo);
-            tasks.push(tokio::spawn(async move {
-                match mihomo_.delay_proxy_by_name(proxy, test_url, timeout).await {
-                    Ok(delay) => {
-                        println!("{}: {:?}", proxy, delay);
+        for _ in 0..=10 {
+            for proxy in proxies.into_iter() {
+                let mihomo_ = Arc::clone(&arc_mihomo);
+                tasks.push(tokio::spawn(async move {
+                    match mihomo_.delay_proxy_by_name(proxy, test_url, timeout).await {
+                        Ok(delay) => {
+                            println!("{}: {:?}", proxy, delay);
+                        }
+                        Err(e) => {
+                            println!("{}: error: {}", proxy, e);
+                        }
                     }
-                    Err(e) => {
-                        println!("{}: error: {}", proxy, e);
-                    }
-                }
-            }));
+                }));
+            }
         }
         for task in tasks.into_iter() {
             task.await.unwrap();
