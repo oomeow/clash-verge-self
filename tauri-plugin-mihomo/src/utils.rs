@@ -55,7 +55,7 @@ pub fn build_socket_request(req: reqwest::RequestBuilder) -> Result<String> {
     Ok(raw)
 }
 
-pub fn parse_socket_response(response_str: &str) -> Result<reqwest::Response> {
+pub fn parse_socket_response(response_str: &str, is_chunked: bool) -> Result<reqwest::Response> {
     let mut headers = [EMPTY_HEADER; 16];
     let mut res = httparse::Response::new(&mut headers);
     let raw_response = response_str.as_bytes();
@@ -64,14 +64,10 @@ pub fn parse_socket_response(response_str: &str) -> Result<reqwest::Response> {
             let mut res_builder = http::Response::builder()
                 .version(Version::HTTP_11)
                 .status(res.code.unwrap_or(400));
-            let mut is_chunked = false;
             for header in res.headers.iter() {
                 let header_name = header.name;
                 let header_value = str::from_utf8(header.value).unwrap_or_default();
                 res_builder = res_builder.header(header_name, header_value);
-                if header_name == "Transfer-Encoding" && header_value == "chunked" {
-                    is_chunked = true;
-                }
             }
             let mut body = response_str
                 .split("\r\n\r\n")
@@ -118,8 +114,10 @@ fn decode_chunked(data: &str) -> Result<String> {
             // 跳过 \r\n 分隔符
             reader.read_line(&mut String::new())?;
         } else {
-            println!("Failed to parse chunk size: {}", line);
-            break;
+            return Err(MihomoError::HttpParseError(format!(
+                "Failed to parse chunk size: {}",
+                line
+            )));
         }
     }
     let body = String::from_utf8(result)?;

@@ -1,7 +1,7 @@
 use reqwest::RequestBuilder;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-use crate::utils::{build_socket_request, parse_socket_response};
+use crate::{utils::{build_socket_request, parse_socket_response}, MihomoError};
 
 pub trait LocalSocket {
     async fn send_to_local_socket(self, socket_path: &str) -> crate::Result<reqwest::Response>;
@@ -24,7 +24,9 @@ impl LocalSocket for RequestBuilder {
                     match ClientOptions::new().open(socket_path) {
                         Ok(client) => break client,
                         Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => (),
-                        Err(_) => panic!("Failed to connect to named pipe: {socket_path}"),
+                        Err(e) => return Err(MihomoError::FailedResponse(format!(
+                            "Failed to connect to named pipe: {socket_path}, {e}"
+                        ))),
                     }
                     tokio::time::sleep(Duration::from_millis(50)).await;
                 }
@@ -37,17 +39,17 @@ impl LocalSocket for RequestBuilder {
         stream.readable().await?;
         let mut buf: Vec<u8> = Vec::new();
         let mut b = [0; 4096];
-        let mut parsed_header = false;
+        let mut header_judged = false;
         let mut is_chunked = false;
         loop {
             let n = stream.read(&mut b).await?;
             buf.extend_from_slice(&b[..n]);
-            if !parsed_header {
+            if !header_judged {
                 let content = String::from_utf8_lossy(&buf);
-                if content.contains("chunked") {
+                if content.contains("Transfer-Encoding: chunked") {
                     is_chunked = true;
                 }
-                parsed_header = true;
+                header_judged = true;
             }
             // if response is chunked, wait to \r\n\r\n
             if (!is_chunked && n < 4096 && buf.ends_with(b"\n"))
@@ -57,6 +59,6 @@ impl LocalSocket for RequestBuilder {
             }
         }
         let response = String::from_utf8_lossy(&buf);
-        parse_socket_response(&response)
+        parse_socket_response(&response, is_chunked)
     }
 }
