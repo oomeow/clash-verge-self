@@ -11,9 +11,7 @@ use parking_lot::Mutex;
 use serde_yaml::Mapping;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::Duration;
 use sysinfo::System;
-// use tauri::ipc::Channel;
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 
