@@ -104,20 +104,24 @@ fn decode_chunked(data: &str) -> Result<String> {
         reader.read_line(&mut line)?;
 
         // 解析块大小（十六进制）
-        let chunk_size = usize::from_str_radix(line.trim(), 16)?;
-        if chunk_size == 0 {
-            // 结束块
+        if let Ok(chunk_size) = usize::from_str_radix(line.trim(), 16) {
+            if chunk_size == 0 {
+                // 结束块
+                break;
+            }
+
+            // 读取块数据
+            let mut chunk = vec![0; chunk_size];
+            reader.read_exact(&mut chunk)?;
+            result.extend_from_slice(&chunk);
+
+            // 跳过 \r\n 分隔符
+            reader.read_line(&mut String::new())?;
+        } else {
+            println!("Failed to parse chunk size: {}", line);
             break;
         }
-
-        // 读取块数据
-        let mut chunk = vec![0; chunk_size];
-        reader.read_exact(&mut chunk)?;
-        result.extend_from_slice(&chunk);
-
-        // 跳过 \r\n 分隔符
-        reader.read_line(&mut String::new())?;
     }
-
-    Ok(String::from_utf8(result)?)
+    let body = String::from_utf8(result)?;
+    Ok(body)
 }

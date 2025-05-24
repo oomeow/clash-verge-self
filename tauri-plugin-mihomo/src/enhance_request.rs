@@ -37,11 +37,22 @@ impl LocalSocket for RequestBuilder {
         stream.readable().await?;
         let mut buf: Vec<u8> = Vec::new();
         let mut b = [0; 4096];
+        let mut parsed_header = false;
+        let mut is_chunked = false;
         loop {
             let n = stream.read(&mut b).await?;
             buf.extend_from_slice(&b[..n]);
+            if !parsed_header {
+                let content = String::from_utf8_lossy(&buf);
+                if content.contains("chunked") {
+                    is_chunked = true;
+                }
+                parsed_header = true;
+            }
             // if response is chunked, wait to \r\n\r\n
-            if buf.ends_with(b"\r\n\r\n") || (n < 4096 && buf.ends_with(b"\n")) {
+            if (!is_chunked && n < 4096 && buf.ends_with(b"\n"))
+                || (is_chunked && buf.ends_with(b"\r\n\r\n"))
+            {
                 break;
             }
         }

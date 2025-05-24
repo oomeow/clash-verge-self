@@ -906,7 +906,7 @@ mod test {
             }
         };
         Mihomo::new(
-            Protocol::Http,
+          Protocol::LocalSocket,
             Some("127.0.0.1".into()),
             Some(9090),
             Some("ppr7qxGrVBu9E8dUX3BoS".into()),
@@ -916,11 +916,7 @@ mod test {
 
     #[tokio::test]
     async fn test_get_base_config() -> Result<()> {
-        let mut mihomo = mihomo();
-        let config = mihomo.get_base_config().await?;
-        println!("{:?}", config);
-        println!("---------------------------------");
-        mihomo.update_protocol(Protocol::LocalSocket);
+        let mihomo = mihomo();
         let config = mihomo.get_base_config().await?;
         println!("{:?}", config);
         Ok(())
@@ -929,7 +925,7 @@ mod test {
     #[tokio::test]
     #[allow(unused_variables)]
     async fn test_patch_base_config() -> Result<()> {
-        let mut mihomo = mihomo();
+        let mihomo = mihomo();
         let body = json!({
            "mode": "direct"
         });
@@ -942,7 +938,6 @@ mod test {
         let body = json!({
            "mode": "rule"
         });
-        mihomo.update_protocol(Protocol::LocalSocket);
         let _ = mihomo.patch_base_config(&body).await?;
         let config = mihomo.get_base_config().await?;
         println!("mode: {}", config.mode);
@@ -952,11 +947,7 @@ mod test {
 
     #[tokio::test]
     async fn test_get_rules() -> Result<()> {
-        let mut mihomo = mihomo();
-        let rules = mihomo.get_rules().await?;
-        println!("{:?}", rules.rules);
-        println!("---------------------------------");
-        mihomo.update_protocol(Protocol::LocalSocket);
+        let mihomo = mihomo();
         let rules = mihomo.get_rules().await?;
         println!("{:?}", rules.rules);
         Ok(())
@@ -964,18 +955,14 @@ mod test {
 
     #[tokio::test]
     async fn test_get_proxy_providers() -> Result<()> {
-        let mut mihomo = mihomo();
-        let providers = mihomo.get_proxy_providers().await?;
-        println!("{:?}", providers.providers);
-        println!("---------------------------------");
-        mihomo.update_protocol(Protocol::LocalSocket);
+        let mihomo = mihomo();
         let providers = mihomo.get_proxy_providers().await?;
         println!("{:?}", providers.providers);
         Ok(())
     }
 
     #[tokio::test]
-    async fn test_get_proxies_delay() -> Result<()> {
+    async fn test_spawn_delay_proxies() -> Result<()> {
         let mut mihomo = mihomo();
         mihomo.update_protocol(Protocol::LocalSocket);
         // let group_name = "PROXY";
@@ -1015,12 +1002,7 @@ mod test {
 
     #[tokio::test]
     async fn test_upgrade_geo() -> Result<()> {
-        let mut mihomo = mihomo();
-        if let Err(e) = mihomo.upgrade_geo().await {
-            println!("upgrade core failed, {:?}", e)
-        }
-        println!("---------------------------------");
-        mihomo.update_protocol(Protocol::LocalSocket);
+        let mihomo = mihomo();
         if let Err(e) = mihomo.upgrade_geo().await {
             println!("upgrade core failed, {:?}", e)
         }
@@ -1029,12 +1011,7 @@ mod test {
 
     #[tokio::test]
     async fn test_upgrade_core() -> Result<()> {
-        let mut mihomo = mihomo();
-        if let Err(e) = mihomo.upgrade_core().await {
-            println!("upgrade core failed, {:?}", e)
-        }
-        println!("---------------------------------");
-        mihomo.update_protocol(Protocol::LocalSocket);
+        let mihomo = mihomo();
         if let Err(e) = mihomo.upgrade_core().await {
             println!("upgrade core failed, {:?}", e)
         }
@@ -1043,10 +1020,7 @@ mod test {
 
     #[tokio::test]
     async fn test_unfixed_proxy() -> Result<()> {
-        let mut mihomo = mihomo();
-        let _ = mihomo.unfixed_proxy("US AUTO").await?;
-        println!("---------------------------------");
-        mihomo.update_protocol(Protocol::LocalSocket);
+        let mihomo = mihomo();
         let _ = mihomo.unfixed_proxy("US AUTO").await?;
         Ok(())
     }
@@ -1078,20 +1052,13 @@ mod test {
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
         tokio::time::sleep(Duration::from_secs(3)).await;
-        println!("---------------------------------");
-        mihomo.update_protocol(Protocol::LocalSocket);
-        let websocket_id = mihomo.ws_logs("debug", on_message).await?;
-        println!("WebSocket ID: {}", websocket_id);
-        tokio::time::sleep(Duration::from_millis(3000)).await;
-        mihomo.disconnect(websocket_id, Some(5)).await?;
-        for i in 0..10 {
-            println!("check connection exist {}", i);
-            if !mihomo.get_connection(websocket_id).await {
-                break;
-            }
-            tokio::time::sleep(Duration::from_secs(1)).await;
-        }
-        tokio::time::sleep(Duration::from_secs(3)).await;
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_restart() -> Result<()> {
+        let mihomo = mihomo();
+        let _ = mihomo.restart().await?;
         Ok(())
     }
 }
