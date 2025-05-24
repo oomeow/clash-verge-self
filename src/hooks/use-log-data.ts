@@ -1,13 +1,12 @@
+import { listen } from "@tauri-apps/api/event";
 import dayjs from "dayjs";
-import { useEffect, useRef, useState } from "react";
+import { useLocalStorage } from "foxact/use-local-storage";
+import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
+import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { getClashLogs } from "../services/cmds";
 import { useClashLog } from "../services/states";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
-import { listen } from "@tauri-apps/api/event";
-import { useLocalStorageState } from "ahooks";
-import { useLocalStorage } from "foxact/use-local-storage";
 
 const MAX_LOG_NUM = 1000;
 

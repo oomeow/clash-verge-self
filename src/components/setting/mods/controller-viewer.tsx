@@ -1,6 +1,7 @@
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifice";
 import { useClashInfo } from "@/hooks/use-clash";
+import { useVerge } from "@/hooks/use-verge";
 import { Shuffle } from "@mui/icons-material";
 import {
   Box,
@@ -14,9 +15,8 @@ import { useLockFn } from "ahooks";
 import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { GuardState } from "./guard-state";
-import { useVerge } from "@/hooks/use-verge";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { GuardState } from "./guard-state";
 
 export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
   const { t } = useTranslation();

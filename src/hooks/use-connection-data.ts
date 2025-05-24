@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { useLocalStorage } from "foxact/use-local-storage";
+import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
-import { useVerge } from "./use-verge";
-import { listen } from "@tauri-apps/api/event";
-import { useLocalStorage } from "foxact/use-local-storage";
 
 const initData: IConnections = {
   uploadTotal: 0,

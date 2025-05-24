@@ -1,6 +1,5 @@
 import { getVergeConfig, patchVergeConfig } from "@/services/cmds";
 import { useThemeSettings } from "@/services/states";
-import { emit } from "@tauri-apps/api/event";
 import useSWR from "swr";
 
 export const useVerge = () => {

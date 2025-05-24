@@ -157,12 +157,15 @@ impl Mihomo {
             Protocol::Http => client.send().await?,
             Protocol::LocalSocket => {
                 if let Some(socket_path) = self.socket_path.as_ref() {
-                    let path = Path::new(socket_path);
-                    if !path.exists() {
-                        return Err(MihomoError::Io(std::io::Error::new(
-                            std::io::ErrorKind::NotFound,
-                            "need to socket path".to_string(),
-                        )));
+                    #[cfg(unix)]
+                    {
+                        let path = Path::new(socket_path);
+                        if !path.exists() {
+                            return Err(MihomoError::Io(std::io::Error::new(
+                                std::io::ErrorKind::NotFound,
+                                "need to socket path".to_string(),
+                            )));
+                        }
                     }
                     client.send_to_local_socket(socket_path).await?
                 } else {
@@ -968,6 +971,45 @@ mod test {
         mihomo.update_protocol(Protocol::LocalSocket);
         let providers = mihomo.get_proxy_providers().await?;
         println!("{:?}", providers.providers);
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_proxies_delay() -> Result<()> {
+        let mut mihomo = mihomo();
+        mihomo.update_protocol(Protocol::LocalSocket);
+        // let group_name = "PROXY";
+        let proxies = [
+            "AUTO",
+            "HK AUTO",
+            "TW AUTO",
+            "JP AUTO",
+            "SG AUTO",
+            "US AUTO",
+            "Other Area",
+            "ALL NODE",
+        ];
+        let test_url = "https://www.gstatic.com/generate_204";
+        let timeout = 5000;
+        let mut tasks = Vec::new();
+        let arc_mihomo = Arc::new(mihomo);
+        for proxy in proxies.into_iter() {
+            let mihomo_ = Arc::clone(&arc_mihomo);
+            tasks.push(tokio::spawn(async move {
+                match mihomo_.delay_proxy_by_name(proxy, test_url, timeout).await {
+                    Ok(delay) => {
+                        println!("{}: {:?}", proxy, delay);
+                    }
+                    Err(e) => {
+                        println!("{}: error: {}", proxy, e);
+                    }
+                }
+            }));
+        }
+        for task in tasks.into_iter() {
+            task.await.unwrap();
+        }
+        println!("---------------------------------");
         Ok(())
     }
 
