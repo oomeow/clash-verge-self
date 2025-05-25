@@ -6,6 +6,7 @@ import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { useClashLog } from "../services/states";
+import { getClashLogs } from "@/services/cmds";
 
 const MAX_LOG_NUM = 1000;
 
@@ -25,16 +26,16 @@ export const useLogData = () => {
     subscriptKey,
     (_key, { next }) => {
       // populate the initial logs
-      // getClashLogs().then(
-      //   (logs) => next(null, logs),
-      //   (err) => next(err),
-      // );
 
       const connect = () =>
         MihomoWebSocket.connect_logs(logLevel)
           .then((ws_) => {
             ws.current = ws_;
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            getClashLogs().then(
+              (logs) => next(null, logs),
+              (err) => next(err),
+            );
             ws_.addListener((msg) => {
               if (msg.type === "Text") {
                 if (msg.data.startsWith("websocket error")) {
@@ -53,7 +54,7 @@ export const useLogData = () => {
             });
           })
           .catch((e) => {
-            timeoutRef.current = setTimeout(() => connect(), 300);
+            timeoutRef.current = setTimeout(() => connect(), 500);
           });
 
       if (

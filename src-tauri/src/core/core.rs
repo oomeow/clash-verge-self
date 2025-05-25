@@ -97,6 +97,9 @@ impl CoreManager {
     /// 启动核心
     /// TODO: 通过 service 启动的内核，Logger会丢失, 无法通过 Logger::global().set_log() 方法更新日志
     pub async fn run_core(&self) -> Result<()> {
+        // clear logs
+        Logger::global().clear_log();
+
         let config_path = Config::generate_file(ConfigType::Run)?;
 
         let mut disable = Mapping::new();
@@ -157,6 +160,7 @@ impl CoreManager {
             let res = service::run_core_by_service(&config_path, &PathBuf::from(log_path)).await;
             match res {
                 Ok(_) => {
+                    handle::Handle::refresh_websocket();
                     return Ok(());
                 }
                 Err(err) => {
@@ -207,8 +211,6 @@ impl CoreManager {
 
         let app_handle = handle::Handle::get_app_handle();
         let cmd = app_handle.shell().sidecar(clash_core)?;
-        // early send refresh websocket event to frontend
-        handle::Handle::refresh_websocket();
         let (mut rx, cmd_child) = cmd.args(args).spawn()?;
         {
             let mut sidecar = self.sidecar.lock();
@@ -241,6 +243,7 @@ impl CoreManager {
             }
         });
 
+        handle::Handle::refresh_websocket();
         Ok(())
     }
 

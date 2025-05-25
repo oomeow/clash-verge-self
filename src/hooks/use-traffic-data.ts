@@ -36,7 +36,7 @@ export const useTrafficData = () => {
             });
           })
           .catch((e) => {
-            timeoutRef.current = setTimeout(() => connect(), 1000);
+            timeoutRef.current = setTimeout(() => connect(), 500);
           });
       };
 
