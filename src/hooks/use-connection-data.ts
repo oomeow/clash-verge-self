@@ -74,7 +74,7 @@ export const useConnectionData = () => {
       }
 
       return () => {
-        ws.current?.close(0);
+        ws.current?.close();
       };
     },
     {

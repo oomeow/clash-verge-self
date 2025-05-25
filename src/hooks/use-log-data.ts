@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
-import { getClashLogs } from "../services/cmds";
 import { useClashLog } from "../services/states";
 
 const MAX_LOG_NUM = 1000;
@@ -26,10 +25,10 @@ export const useLogData = () => {
     subscriptKey,
     (_key, { next }) => {
       // populate the initial logs
-      getClashLogs().then(
-        (logs) => next(null, logs),
-        (err) => next(err),
-      );
+      // getClashLogs().then(
+      //   (logs) => next(null, logs),
+      //   (err) => next(err),
+      // );
 
       const connect = () =>
         MihomoWebSocket.connect_logs(logLevel)
@@ -54,7 +53,7 @@ export const useLogData = () => {
             });
           })
           .catch((e) => {
-            timeoutRef.current = setTimeout(() => connect(), 1000);
+            timeoutRef.current = setTimeout(() => connect(), 300);
           });
 
       if (
@@ -66,7 +65,7 @@ export const useLogData = () => {
       }
 
       return () => {
-        ws.current?.close(0);
+        ws.current?.close();
       };
     },
     {
@@ -77,6 +76,7 @@ export const useLogData = () => {
 
   useEffect(() => {
     const unlistenRefreshWebsocket = listen("verge://refresh-websocket", () => {
+      console.log("[logs] refresh-websocket");
       setDate(Date.now());
     });
 

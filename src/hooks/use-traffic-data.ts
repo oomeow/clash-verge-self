@@ -49,7 +49,7 @@ export const useTrafficData = () => {
       }
 
       return () => {
-        ws.current?.close(0);
+        ws.current?.close();
       };
     },
     {

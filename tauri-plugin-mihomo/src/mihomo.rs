@@ -414,7 +414,6 @@ impl Mihomo {
         force_timeout: Option<u64>,
     ) -> Result<()> {
         let mut manager = self.connection_manager.0.lock().await;
-        let manager_ = self.connection_manager.clone();
         if let Some(writer) = manager.get_mut(&id) {
             match writer {
                 WebSocketWriter::TcpStreamWriter(write) => {
@@ -445,6 +444,7 @@ impl Mihomo {
                 }
             }
             if let Some(timeout) = force_timeout {
+                let manager_ = self.connection_manager.clone();
                 tauri::async_runtime::spawn(async move {
                     tokio::time::sleep(Duration::from_millis(timeout)).await;
                     println!("force close websocket connection");
@@ -1033,7 +1033,7 @@ mod test {
     }
 
     #[tokio::test]
-    async fn test_ws_log() -> Result<()> {
+    async fn test_ws_traffic() -> Result<()> {
         let mut mihomo = mihomo();
         mihomo.update_protocol(Protocol::LocalSocket);
         let on_message = Channel::new(|message| {

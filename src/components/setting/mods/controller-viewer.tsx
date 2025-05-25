@@ -15,7 +15,6 @@ import { useLockFn } from "ahooks";
 import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { GuardState } from "./guard-state";
 
 export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
@@ -64,10 +63,7 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
             valueProps="checked"
             onCatch={onError}
             onFormat={onSwitchFormat}
-            onGuard={async (e) => {
-              MihomoWebSocket.cleanupAll();
-              return patchVerge({ enable_external_controller: e });
-            }}
+            onGuard={(e) => patchVerge({ enable_external_controller: e })}
             onSuccess={(v) => {
               if (v) {
                 notice("success", t("External Controller Enabled"), 1000);

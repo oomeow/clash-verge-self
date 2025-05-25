@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::core::handle;
 use crate::utils::dirs;
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
@@ -352,6 +353,8 @@ pub(super) async fn run_core_by_service(config_file: &PathBuf, log_path: &PathBu
         use_local_socket: !enable_external_controller,
     };
     tracing::debug!("send start clash socket command, body: {:?}", body);
+    // early send refresh websocket event to frontend
+    handle::Handle::refresh_websocket();
     let res = send_command(SocketCommand::StartClash(body)).await?;
     if res.code != 0 {
         bail!("start clash socket command return error: {}", res.msg);

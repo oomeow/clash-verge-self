@@ -45,7 +45,7 @@ export const useMemoryData = () => {
       }
 
       return () => {
-        ws.current?.close(0);
+        ws.current?.close();
       };
     },
     {

@@ -421,11 +421,11 @@ export declare class MihomoWebSocket {
   addListener(cb: (arg: Message) => void): () => void;
   /**
    * 关闭 WebSocket 连接
-   * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认超时 1 秒
+   * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认为 0
    */
-  close(forceTimeout?: number): Promise<void>;
+  close(): Promise<void>;
   /**
    * 清理全部的 websocket 连接资源
    */
-  static cleanupAll(): void;
+  static cleanupAll(): Promise<void>;
 }

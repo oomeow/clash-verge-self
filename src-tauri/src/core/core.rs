@@ -25,7 +25,6 @@ pub struct CoreManager {
 
     /// true if clash core needs to be restarted when it is terminated
     need_restart_core: Arc<Mutex<bool>>,
-    // ws_traffic_id: Arc<Mutex<Option<u32>>>,
 }
 
 impl CoreManager {
@@ -126,6 +125,10 @@ impl CoreManager {
         let enable = enable.unwrap_or(false);
         *self.use_service_mode.lock() = enable;
 
+        handle::Handle::get_mihomo_read()
+            .await
+            .clear_all_ws_connection()
+            .await?;
         let mut system = System::new();
         system.refresh_all();
         let procs = system.processes_by_name("verge-mihomo".as_ref());
@@ -154,10 +157,6 @@ impl CoreManager {
             let res = service::run_core_by_service(&config_path, &PathBuf::from(log_path)).await;
             match res {
                 Ok(_) => {
-                    tauri::async_runtime::spawn(async {
-                        let _ = handle::Handle::get_mihomo_read().await.clear_all_ws_connection().await;
-                        handle::Handle::refresh_websocket();
-                    });
                     return Ok(());
                 }
                 Err(err) => {
@@ -208,6 +207,8 @@ impl CoreManager {
 
         let app_handle = handle::Handle::get_app_handle();
         let cmd = app_handle.shell().sidecar(clash_core)?;
+        // early send refresh websocket event to frontend
+        handle::Handle::refresh_websocket();
         let (mut rx, cmd_child) = cmd.args(args).spawn()?;
         {
             let mut sidecar = self.sidecar.lock();
@@ -238,11 +239,6 @@ impl CoreManager {
                     _ => {}
                 }
             }
-        });
-
-        tauri::async_runtime::spawn(async {
-            let _ = handle::Handle::get_mihomo_read().await.clear_all_ws_connection().await;
-            handle::Handle::refresh_websocket();
         });
 
         Ok(())

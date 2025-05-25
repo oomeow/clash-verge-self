@@ -62,9 +62,7 @@ export const LayoutTraffic = () => {
   const restartClashCore = useLockFn(async () => {
     await restart();
     notice("success", t("Clash Core Restarted"));
-    setTimeout(async () => {
-      await emit("verge://refresh-websocket");
-    }, 500);
+    await emit("verge://refresh-websocket");
   });
 
   return (
