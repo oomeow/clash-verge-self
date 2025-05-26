@@ -53,6 +53,7 @@ export const useClashInfo = () => {
         | "redir-port"
         | "tproxy-port"
         | "external-controller"
+        | "external-controller-cors"
         | "secret"
       >
     >,

@@ -1,3 +1,4 @@
+import { useConnectionData } from "@/hooks/use-connection-data";
 import { useLogData } from "@/hooks/use-log-data";
 import { useMemoryData } from "@/hooks/use-memory-data";
 import { useTrafficData } from "@/hooks/use-traffic-data";
@@ -30,6 +31,7 @@ export const LayoutTraffic = () => {
   const pageVisible = useVisibility();
   const displayMemory = verge?.enable_memory_usage ?? true;
 
+  // init mihomo websocket data
   const {
     response: { data: traffic = { up: 0, down: 0 } },
   } = useTrafficData();
@@ -37,6 +39,7 @@ export const LayoutTraffic = () => {
     response: { data: memory = { inuse: 0 } },
   } = useMemoryData();
   useLogData();
+  useConnectionData();
 
   const [up, upUnit] = parseTraffic(traffic.up);
   const [down, downUnit] = parseTraffic(traffic.down);

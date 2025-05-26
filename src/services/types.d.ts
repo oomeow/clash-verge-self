@@ -34,6 +34,10 @@ interface IConfigData {
   "enable-random-port": boolean;
   "external-controller": string;
   secret: string;
+  "external-controller-cors": {
+    "allow-private-network": boolean;
+    "allow-origins": string[];
+  };
   "unified-delay": boolean;
   tun: {
     enable?: boolean;
@@ -162,6 +166,10 @@ interface IClashInfo {
   port?: number; // clash http port
   server?: string; // external-controller
   secret?: string;
+  cors?: {
+    allow_private_network: boolean;
+    allow_origins: string[];
+  };
 }
 
 interface IProfileItem {

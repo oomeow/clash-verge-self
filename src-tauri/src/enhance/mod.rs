@@ -155,11 +155,14 @@ pub fn enhance() -> (Mapping, HashMap<String, ResultLog>) {
             .enable_external_controller
             .unwrap_or_default()
     };
+    tracing::info!("external controller enable: {}", enable_external_controller);
     if !enable_external_controller {
-        tracing::info!("disable external controller");
         config.remove("external-controller");
+        config.remove("external-controller-cors");
         config.remove("secret");
     }
+    config.remove("external-controller-unix");
+    config.remove("external-controller-pipe");
 
     tracing::info!("setting tun");
     let enable_tun = Config::clash().latest().get_enable_tun();
