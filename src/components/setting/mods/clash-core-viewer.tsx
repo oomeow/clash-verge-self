@@ -93,7 +93,6 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
         }),
         1000,
       );
-      emit("verge://refresh-websocket");
     } catch (err: any) {
       notice("error", err?.message || err.toString());
     }
@@ -103,7 +102,6 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
     try {
       await restartSidecar();
       notice("success", t(`Clash Core Restarted`), 1000);
-      await emit("verge://refresh-websocket");
     } catch (err: any) {
       notice("error", err?.message || err.toString());
     }
@@ -117,7 +115,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       notice("success", t(`Core Version Updated`), 1000);
       setTimeout(async () => {
         await emit("verge://refresh-websocket");
-      }, 1000);
+      }, 2000);
     } catch (err: any) {
       setUpgrading(false);
       if (err.includes("already using latest version")) {
