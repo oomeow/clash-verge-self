@@ -102,8 +102,7 @@ const generateTemplate = (props: GenerateProps) => {
 
   // 增强脚本模板生成
   return monaco.languages.registerCodeLensProvider(languageSelector, {
-    provideCodeLenses(model, token) {
-      const uriPath = model.uri.path;
+    provideCodeLenses(_model, _token) {
       if (!showCondition) {
         return null;
       }
@@ -127,7 +126,7 @@ const generateTemplate = (props: GenerateProps) => {
         dispose: () => {},
       };
     },
-    resolveCodeLens(model, codeLens, token) {
+    resolveCodeLens(_model, codeLens, _token) {
       return codeLens;
     },
   });
