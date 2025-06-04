@@ -15,7 +15,6 @@ import SubjectRoundedIcon from "@mui/icons-material/SubjectRounded";
 import WifiRoundedIcon from "@mui/icons-material/WifiRounded";
 import WifiTetheringRoundedIcon from "@mui/icons-material/WifiTetheringRounded";
 import { lazy } from "react";
-import { createBrowserRouter } from "react-router-dom";
 
 const ProxiesPage = lazy(() => import("./proxies"));
 const ProfilesPage = lazy(() => import("./profiles"));
@@ -35,7 +34,7 @@ export const routers = [
   },
   {
     label: "Label-Profiles",
-    path: "/profile",
+    path: "/profiles",
     icon: [<DnsRoundedIcon />, <ProfilesSvg />],
     element: <ProfilesPage />,
   },
@@ -71,27 +70,4 @@ export const routers = [
   },
 ];
 
-const routerObj = [
-  {
-    path: "/",
-    element: <Layout />,
-    errorElement: <BaseErrorBoundary />,
-    children: [
-      {
-        errorElement: <BaseErrorBoundary />,
-        children: [
-          { index: true, element: <ProxiesPage /> },
-          ...routers.map((item) => ({
-            path: item.path,
-            element: item.element,
-          })),
-          { path: "*", element: <NotFountPage /> },
-        ],
-      },
-    ],
-  },
-];
-
-const router = createBrowserRouter(routerObj);
-
-export default router;
+export default routers;

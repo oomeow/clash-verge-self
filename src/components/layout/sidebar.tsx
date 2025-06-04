@@ -1,11 +1,12 @@
-import { LayoutItem } from "@/components/layout/layout-item";
 import { LayoutTraffic } from "@/components/layout/layout-traffic";
 import { LogoTitle } from "@/components/layout/logo-title";
+import { useVerge } from "@/hooks/use-verge";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { routers } from "@/pages/_routers";
 import { cn } from "@/utils";
 import { List } from "@mui/material";
-import { t } from "i18next";
+import { LayoutItem } from "./layout-item";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   enableSystemTitleBar: boolean;
@@ -14,6 +15,10 @@ interface Props {
 export const Sidebar = (props: Props) => {
   const { enableSystemTitleBar } = props;
   const { size } = useWindowSize();
+  // const { verge } = useVerge();
+  // const { menu_icon } = verge ?? {};
+  // const enableMenuIcon = menu_icon && menu_icon !== "disable";
+  const { t } = useTranslation();
   const open = size.width >= 650;
 
   return (
@@ -37,6 +42,12 @@ export const Sidebar = (props: Props) => {
 
       <List className="box-border flex-auto overflow-y-auto">
         {routers.map((router) => (
+          // <CustomButtonLink to={router.path} className="[&.active]:font-bold">
+          //   <div className="inline-block items-center justify-between">
+          //     {enableMenuIcon && router.icon[0]}
+          //     <span>{router.label}</span>
+          //   </div>
+          // </CustomButtonLink>
           <LayoutItem
             open={open}
             key={router.label}

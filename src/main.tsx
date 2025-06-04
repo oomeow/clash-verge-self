@@ -4,7 +4,6 @@ import {
   NoticeProvider,
 } from "@/components/base";
 import "@/index.css";
-import router from "@/pages/_routers";
 import "@/services/i18n";
 import { ResizeObserver } from "@juggle/resize-observer";
 import { StyledEngineProvider } from "@mui/material";
@@ -13,13 +12,27 @@ import { ComposeContextProvider } from "foxact/compose-context-provider";
 import { SnackbarProvider } from "notistack";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { RouterProvider } from "react-router-dom";
+// import { RouterProvider } from "react-router-dom";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import {
   LoadingCacheProvider,
   ThemeModeProvider,
   UpdateStateProvider,
-} from "./services/states";
+} from "@/services/states";
+
+import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { routeTree } from "@/routeTree.gen";
+import { SWRConfig } from "swr";
+
+// Create a new router instance
+const router = createRouter({ routeTree });
+
+// Register the router instance for type safety
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
 
 if (!window.ResizeObserver) {
   window.ResizeObserver = ResizeObserver;
