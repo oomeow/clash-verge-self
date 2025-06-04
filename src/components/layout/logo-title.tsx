@@ -27,7 +27,7 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
         </div>
         <div>
           <AppNameSvg
-            className={cn("h-full w-full !fill-(--primary-main)", {
+            className={cn("!fill-primary-main h-full w-full", {
               hidden: !open,
             })}
           />

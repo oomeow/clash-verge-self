@@ -1,12 +1,11 @@
 import { LayoutTraffic } from "@/components/layout/layout-traffic";
 import { LogoTitle } from "@/components/layout/logo-title";
-import { useVerge } from "@/hooks/use-verge";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { routers } from "@/pages/_routers";
 import { cn } from "@/utils";
 import { List } from "@mui/material";
-import { LayoutItem } from "./layout-item";
 import { useTranslation } from "react-i18next";
+import { LayoutItem } from "./layout-item";
 
 interface Props {
   enableSystemTitleBar: boolean;
