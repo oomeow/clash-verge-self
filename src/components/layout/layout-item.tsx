@@ -8,7 +8,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { Link, useMatchRoute } from "@tanstack/react-router";
+import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 
 interface Props {
@@ -23,6 +23,7 @@ export const LayoutItem = (props: Props) => {
   const matchRoute = useMatchRoute();
   const match = !!matchRoute({ to });
   const { menu_icon } = verge ?? {};
+  const navigate = useNavigate();
   const enableMenuIcon = menu_icon && menu_icon !== "disable";
 
   return (
@@ -64,9 +65,8 @@ export const LayoutItem = (props: Props) => {
               "&.Mui-selected .MuiListItemIcon-root": { color },
             };
           }}
-          onClick={() => {}}>
-          <Link
-            to={to}
+          onClick={() => navigate({ to })}>
+          <div
             className={cn("flex items-center text-center", { "w-full": open })}>
             <div className="flex h-8 w-full items-center justify-center">
               <motion.div layout className={cn({ "relative left-4": open })}>
@@ -89,7 +89,7 @@ export const LayoutItem = (props: Props) => {
                 </div>
               )}
             </div>
-          </Link>
+          </div>
         </ListItemButton>
       </ListItem>
     </Tooltip>

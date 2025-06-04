@@ -201,8 +201,8 @@ importers:
         specifier: 9.1.7
         version: 9.1.7
       meta-json-schema:
-        specifier: 1.19.9
-        version: 1.19.9
+        specifier: 1.19.10
+        version: 1.19.10
       node-fetch:
         specifier: 3.3.2
         version: 3.3.2
@@ -213,8 +213,8 @@ importers:
         specifier: 3.5.3
         version: 3.5.3
       prettier-plugin-tailwindcss:
-        specifier: 0.6.11
-        version: 0.6.11(prettier@3.5.3)
+        specifier: 0.6.12
+        version: 0.6.12(prettier@3.5.3)
       pretty-quick:
         specifier: 4.1.1
         version: 4.1.1(prettier@3.5.3)
@@ -4844,10 +4844,10 @@ packages:
         integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==,
       }
 
-  meta-json-schema@1.19.9:
+  meta-json-schema@1.19.10:
     resolution:
       {
-        integrity: sha512-0jPPlfTvzgJe7zexTegoB+YtczytkhpU7mbJJQmCEHOaceShCKaxvyM5JTt+6pEW780nVVv2OmorzsDex5gFFw==,
+        integrity: sha512-eLj5v4hlnqeHacRXDiE+/dFR2Ly0MQKCMXqRNZzbwyPXu0QPMkFu9+mYlZDHZErUJlXKM2RLbnkfVoHvxcm3DA==,
       }
     engines: { node: ">=18", pnpm: ">=9" }
 
@@ -5380,10 +5380,10 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
-  prettier-plugin-tailwindcss@0.6.11:
+  prettier-plugin-tailwindcss@0.6.12:
     resolution:
       {
-        integrity: sha512-YxaYSIvZPAqhrrEpRtonnrXdghZg1irNg4qrjboCXrpybLWVs55cW2N3juhspVJiO0JBvYJT8SYsJpc8OQSnsA==,
+        integrity: sha512-OuTQKoqNwV7RnxTPwXWzOFXy6Jc4z8oeRZYGuMpRyG3WbuR3jjXdQFK8qFBMBx8UHWdHrddARz2fgUenild6aw==,
       }
     engines: { node: ">=14.21.3" }
     peerDependencies:
@@ -9690,7 +9690,7 @@ snapshots:
 
   merge-stream@2.0.0: {}
 
-  meta-json-schema@1.19.9: {}
+  meta-json-schema@1.19.10: {}
 
   micromark-core-commonmark@2.0.3:
     dependencies:
@@ -10028,7 +10028,7 @@ snapshots:
 
   prepend-http@1.0.4: {}
 
-  prettier-plugin-tailwindcss@0.6.11(prettier@3.5.3):
+  prettier-plugin-tailwindcss@0.6.12(prettier@3.5.3):
     dependencies:
       prettier: 3.5.3
 
