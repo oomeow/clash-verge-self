@@ -1,7 +1,7 @@
 import { LayoutTraffic } from "@/components/layout/layout-traffic";
 import { LogoTitle } from "@/components/layout/logo-title";
 import { useWindowSize } from "@/hooks/use-window-size";
-import { routers } from "@/pages/_routers";
+import { routes } from "@/routes/__root";
 import { cn } from "@/utils";
 import { List } from "@mui/material";
 import { useTranslation } from "react-i18next";
@@ -37,13 +37,13 @@ export const Sidebar = (props: Props) => {
         data-tauri-drag-region="true"></div>
 
       <List className="box-border flex-auto overflow-y-auto">
-        {routers.map((router) => (
+        {routes.map((route) => (
           <LayoutItem
             open={open}
-            key={router.label}
-            to={router.path}
-            icon={router.icon}>
-            {t(router.label)}
+            key={route.label}
+            to={route.path}
+            icon={route.icon}>
+            {t(route.label)}
           </LayoutItem>
         ))}
       </List>
