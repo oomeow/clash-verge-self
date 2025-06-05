@@ -33,7 +33,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@juggle/resize-observer": "^3.4.0",
     "@mui/icons-material": "^7.0.2",
-    "@mui/lab": "7.0.0-beta.12",
+    "@mui/lab": "7.0.0-beta.13",
     "@mui/material": "^7.0.2",
     "@mui/x-data-grid": "^7.29.0",
     "@tanstack/react-router": "^1.120.15",
