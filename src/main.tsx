@@ -5,24 +5,22 @@ import {
 } from "@/components/base";
 import "@/index.css";
 import "@/services/i18n";
-import { ResizeObserver } from "@juggle/resize-observer";
-import { StyledEngineProvider } from "@mui/material";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { ComposeContextProvider } from "foxact/compose-context-provider";
-import { SnackbarProvider } from "notistack";
-import React from "react";
-import { createRoot } from "react-dom/client";
-// import { RouterProvider } from "react-router-dom";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import {
   LoadingCacheProvider,
   ThemeModeProvider,
   UpdateStateProvider,
 } from "@/services/states";
-
+import { ResizeObserver } from "@juggle/resize-observer";
+import { StyledEngineProvider } from "@mui/material";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { ComposeContextProvider } from "foxact/compose-context-provider";
+import { SnackbarProvider } from "notistack";
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+
 import { routeTree } from "@/routeTree.gen";
-import { SWRConfig } from "swr";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -76,7 +74,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // 页面关闭/刷新事件
 window.addEventListener("beforeunload", async () => {
-  await MihomoWebSocket.cleanupAll(); // 强制清理所有 WebSocket 实例
+  // 强制清理所有 WebSocket 实例
+  await MihomoWebSocket.cleanupAll();
 });
 
 const contexts = [

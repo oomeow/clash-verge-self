@@ -14,9 +14,6 @@ interface Props {
 export const Sidebar = (props: Props) => {
   const { enableSystemTitleBar } = props;
   const { size } = useWindowSize();
-  // const { verge } = useVerge();
-  // const { menu_icon } = verge ?? {};
-  // const enableMenuIcon = menu_icon && menu_icon !== "disable";
   const { t } = useTranslation();
   const open = size.width >= 650;
 
@@ -41,12 +38,6 @@ export const Sidebar = (props: Props) => {
 
       <List className="box-border flex-auto overflow-y-auto">
         {routers.map((router) => (
-          // <CustomButtonLink to={router.path} className="[&.active]:font-bold">
-          //   <div className="inline-block items-center justify-between">
-          //     {enableMenuIcon && router.icon[0]}
-          //     <span>{router.label}</span>
-          //   </div>
-          // </CustomButtonLink>
           <LayoutItem
             open={open}
             key={router.label}
@@ -60,9 +51,7 @@ export const Sidebar = (props: Props) => {
       <div
         className={cn(
           "flex shrink-0 grow-0 items-center justify-center px-4 py-2",
-          {
-            hidden: !open,
-          },
+          { hidden: !open },
         )}>
         <LayoutTraffic />
       </div>
