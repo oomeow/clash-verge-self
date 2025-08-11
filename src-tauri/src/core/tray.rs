@@ -28,7 +28,7 @@ impl Tray {
         let sysproxy_enabled = verge.enable_system_proxy.unwrap_or(false);
         let tun_enabled = clash.get_enable_tun();
         #[cfg(target_os = "macos")]
-        let tray_icon = verge.tray_icon.unwrap_or("monochrome".to_string());
+        let tray_icon = verge.tray_icon.as_deref().unwrap_or("monochrome");
         // get icon
         let common_tray_icon = verge.common_tray_icon.unwrap_or(false);
         let sysproxy_tray_icon = verge.sysproxy_tray_icon.unwrap_or(false);
@@ -44,7 +44,7 @@ impl Tray {
                     Ok(Image::from_path(icon_path)?)
                 } else {
                     #[cfg(target_os = "macos")]
-                    let icon = match tray_icon.as_str() {
+                    let icon = match tray_icon {
                         "monochrome" => include_bytes!("../../icons/tray-icon-tun-mono.ico").to_vec(),
                         "colorful" => include_bytes!("../../icons/tray-icon-tun.ico").to_vec(),
                         _ => include_bytes!("../../icons/tray-icon-tun-mono.ico").to_vec(),
@@ -63,7 +63,7 @@ impl Tray {
                     Ok(Image::from_path(icon_path)?)
                 } else {
                     #[cfg(target_os = "macos")]
-                    let icon = match tray_icon.as_str() {
+                    let icon = match tray_icon {
                         "monochrome" => include_bytes!("../../icons/tray-icon-sys-mono.ico").to_vec(),
                         "colorful" => include_bytes!("../../icons/tray-icon-sys.ico").to_vec(),
                         _ => include_bytes!("../../icons/tray-icon-sys-mono.ico").to_vec(),
@@ -82,7 +82,7 @@ impl Tray {
                     Ok(Image::from_path(icon_path)?)
                 } else {
                     #[cfg(target_os = "macos")]
-                    let icon = match tray_icon.as_str() {
+                    let icon = match tray_icon {
                         "monochrome" => include_bytes!("../../icons/tray-icon-mono.ico").to_vec(),
                         "colorful" => include_bytes!("../../icons/tray-icon.ico").to_vec(),
                         _ => include_bytes!("../../icons/tray-icon-mono.ico").to_vec(),
@@ -248,8 +248,8 @@ impl Tray {
 
         #[cfg(target_os = "macos")]
         {
-            let tray_icon = verge.tray_icon.unwrap_or("monochrome".to_string());
-            match tray_icon.as_str() {
+            let tray_icon = verge.tray_icon.as_deref().unwrap_or("monochrome");
+            match tray_icon {
                 "monochrome" => log_err!(tray.set_icon_as_template(true)),
                 "colorful" => log_err!(tray.set_icon_as_template(false)),
                 _ => {}
@@ -263,7 +263,8 @@ impl Tray {
         {
             let version = app_handle.package_info().version.to_string();
             let mut current_profile_name = "None".to_string();
-            let profiles = Config::profiles().latest();
+            let profiles = Config::profiles();
+            let profiles = profiles.latest();
             if let Some(current_profile_uid) = profiles.get_current()
                 && let Ok(current_profile) = profiles.get_item(&current_profile_uid)
                 && let Some(profile_name) = &current_profile.name
