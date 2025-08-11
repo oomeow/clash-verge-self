@@ -1,6 +1,6 @@
 use crate::config::Config;
-use crate::feat;
 use crate::utils::dirs;
+use crate::{feat, log_err};
 use anyhow::{Context, Result};
 use delay_timer::prelude::{DelayTimer, DelayTimerBuilder, TaskBuilder};
 use once_cell::sync::OnceCell;
@@ -46,7 +46,9 @@ impl Timer {
 
         let timer_map = self.timer_map.lock();
         let delay_timer = self.delay_timer.lock();
-        let profiles = Config::profiles().latest().get_profiles();
+        let profiles = Config::profiles();
+        let profiles = profiles.latest();
+        let profiles = profiles.get_profiles();
         profiles
             .iter()
             .filter_map(|item| {
@@ -192,16 +194,16 @@ impl Timer {
             match diff {
                 DiffFlag::Del(tid) => {
                     let _ = timer_map.remove(&uid);
-                    crate::log_err!(delay_timer.remove_task(tid));
+                    log_err!(delay_timer.remove_task(tid));
                 }
                 DiffFlag::Add(tid, val) => {
-                    let _ = timer_map.insert(uid.clone(), (tid, val));
-                    crate::log_err!(self.add_profiles_task(&delay_timer, uid, tid, val));
+                    log_err!(self.add_profiles_task(&delay_timer, uid.clone(), tid, val));
+                    let _ = timer_map.insert(uid, (tid, val));
                 }
                 DiffFlag::Mod(tid, val) => {
-                    let _ = timer_map.insert(uid.clone(), (tid, val));
-                    crate::log_err!(delay_timer.remove_task(tid));
-                    crate::log_err!(self.add_profiles_task(&delay_timer, uid, tid, val));
+                    log_err!(delay_timer.remove_task(tid));
+                    log_err!(self.add_profiles_task(&delay_timer, uid.clone(), tid, val));
+                    let _ = timer_map.insert(uid, (tid, val));
                 }
             }
         }
@@ -212,7 +214,9 @@ impl Timer {
     /// generate a map -> (uid, update_interval)
     fn gen_profiles_interval(&self) -> HashMap<String, u64> {
         let mut new_map = HashMap::new();
-        let profiles = Config::profiles().latest().get_profiles();
+        let profiles = Config::profiles();
+        let profiles = profiles.latest();
+        let profiles = profiles.get_profiles();
         for profile in profiles.iter() {
             if let Some(uid) = profile.uid.as_ref()
                 && let Some(option) = profile.option.as_ref()
@@ -229,7 +233,6 @@ impl Timer {
     /// generate the diff map for refresh
     fn gen_diff_profiles(&self) -> HashMap<String, DiffFlag> {
         let mut diff_map = HashMap::new();
-
         let timer_map = self.timer_map.lock();
 
         let new_map = self.gen_profiles_interval();
@@ -237,7 +240,6 @@ impl Timer {
 
         cur_map.iter().for_each(|(uid, (tid, val))| {
             let new_val = new_map.get(uid).unwrap_or(&0);
-
             if *new_val == 0 {
                 diff_map.insert(uid.clone(), DiffFlag::Del(*tid));
             } else if new_val != val {
@@ -246,11 +248,9 @@ impl Timer {
         });
 
         let mut count = self.timer_count.lock();
-
         new_map.iter().for_each(|(uid, val)| {
             if cur_map.get(uid).is_none() {
                 diff_map.insert(uid.clone(), DiffFlag::Add(*count, *val));
-
                 *count += 1;
             }
         });
@@ -276,7 +276,7 @@ impl Timer {
     /// the task runner
     async fn update_profile_task(uid: String) {
         tracing::info!("running timer task `{uid}`");
-        crate::log_err!(feat::update_profile(uid, None).await);
+        crate::log_err!(feat::update_profile(&uid, None).await);
     }
 }
 

@@ -2,7 +2,7 @@ name: Test Build
 
 on:
   push:
-    branches: [tanstack/router]
+    branches: [perf/reduce-clone]
     tags-ignore: [updater, alpha]
   workflow_dispatch:
 

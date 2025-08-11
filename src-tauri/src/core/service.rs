@@ -147,7 +147,7 @@ pub async fn install_service() -> Result<()> {
     let status = match get_effective_uid() {
         0 => StdCommand::new(installer_path)
             .arg("--log-dir")
-            .arg(log_dir.clone())
+            .arg(&log_dir)
             .status()?,
         _ => {
             let execute_cmd = format!("{} --log-dir {}", installer_path.display(), log_dir.display());

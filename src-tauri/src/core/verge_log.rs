@@ -115,7 +115,7 @@ impl VergeLog {
         }
 
         let auto_log_clean = {
-            let verge = crate::Config::verge();
+            let verge = Config::verge();
             let verge = verge.data();
             verge.auto_log_clean.unwrap_or(0)
         };

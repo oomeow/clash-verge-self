@@ -26,11 +26,11 @@ pub fn read_merge_mapping(path: &PathBuf) -> Result<Mapping> {
     }
     val.apply_merge()
         .with_context(|| format!("failed to apply merge \"{}\"", path.display()))?;
-
-    Ok(val
+    let mapping = val
         .as_mapping()
         .ok_or(anyhow!("failed to transform to yaml mapping \"{}\"", path.display()))?
-        .to_owned())
+        .to_owned();
+    Ok(mapping)
 }
 
 /// save the data to the file
@@ -137,7 +137,7 @@ pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub fn parse_check_output(log: String) -> String {
+pub fn parse_check_output(log: &str) -> &str {
     let t = log.find("time=");
     let m = log.find("msg=");
     let mr = log.rfind('"');
@@ -149,7 +149,7 @@ pub fn parse_check_output(log: String) -> String {
         };
 
         if mr > m {
-            return (log[e..mr]).to_owned();
+            return &log[e..mr];
         }
     }
 
@@ -157,7 +157,7 @@ pub fn parse_check_output(log: String) -> String {
     let r = log.find("path=").or(Some(log.len()));
 
     if let (Some(l), Some(r)) = (l, r) {
-        return (log[(l + 6)..(r - 1)]).to_owned();
+        return &log[(l + 6)..(r - 1)];
     }
 
     log
@@ -239,8 +239,8 @@ macro_rules! wrap_err {
 /// return the string literal error
 #[macro_export]
 macro_rules! ret_err {
-    ($str: expr) => {
-        return Err($str.into())
+    ($($arg: tt)*) => {
+        return Err(format!($($arg)*))
     };
 }
 

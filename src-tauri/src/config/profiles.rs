@@ -139,12 +139,12 @@ impl IProfiles {
         bail!("failed to get the profile item \"uid:{uid}\"");
     }
 
-    pub fn get_profiles(&self) -> Vec<PrfItem> {
-        let items = self.items.clone().unwrap_or_default();
+    pub fn get_profiles(&self) -> Vec<&PrfItem> {
+        let items = self.items.as_deref().unwrap_or_default();
         items
-            .into_iter()
-            .filter(|o| matches!(o.itype, Some(ProfileType::Remote) | Some(ProfileType::Local)))
-            .collect::<Vec<PrfItem>>()
+            .iter()
+            .filter(|&o| matches!(o.itype, Some(ProfileType::Remote) | Some(ProfileType::Local)))
+            .collect::<Vec<&PrfItem>>()
     }
 
     // include all enable or disable chains
@@ -167,38 +167,38 @@ impl IProfiles {
     /// if the file_data is some
     /// then should save the data to file
     pub fn append_item(&mut self, mut item: PrfItem) -> Result<()> {
-        if item.uid.is_none() {
+        if let Some(uid) = item.uid.clone() {
+            // save the file data
+            // move the field value after save
+            if let Some(file_data) = item.file_data.take()
+                && let Some(file) = item.file.as_ref()
+            {
+                let path = dirs::app_profiles_dir()?.join(file);
+                fs::File::create(path)
+                    .with_context(|| format!("failed to create file \"{file}\""))?
+                    .write(file_data.as_bytes())
+                    .with_context(|| format!("failed to write to file \"{file}\""))?;
+            }
+
+            if let Some(parent) = item.parent.as_ref() {
+                let profile = self.get_item_mut(parent)?;
+                match profile.chain.as_mut() {
+                    Some(chain) => chain.push(uid),
+                    None => profile.chain = Some(vec![uid]),
+                }
+            }
+
+            if self.items.is_none() {
+                self.items = Some(vec![]);
+            }
+
+            if let Some(items) = self.items.as_mut() {
+                items.push(item)
+            }
+            self.save_file()
+        } else {
             bail!("the uid should not be null");
         }
-
-        // save the file data
-        // move the field value after save
-        if let Some(file_data) = item.file_data.take()
-            && let Some(file) = item.file.as_ref()
-        {
-            let path = dirs::app_profiles_dir()?.join(file);
-            fs::File::create(path)
-                .with_context(|| format!("failed to create file \"{file}\""))?
-                .write(file_data.as_bytes())
-                .with_context(|| format!("failed to write to file \"{file}\""))?;
-        }
-
-        if let Some(parent) = item.parent.clone() {
-            let profile = self.get_item_mut(&parent)?;
-            match profile.chain.as_mut() {
-                Some(chain) => chain.push(item.uid.clone().unwrap()),
-                None => profile.chain = Some(vec![item.uid.clone().unwrap()]),
-            }
-        }
-
-        if self.items.is_none() {
-            self.items = Some(vec![]);
-        }
-
-        if let Some(items) = self.items.as_mut() {
-            items.push(item)
-        }
-        self.save_file()
     }
 
     /// reorder items
@@ -255,19 +255,19 @@ impl IProfiles {
 
     /// be used to update the remote item
     /// only patch `updated` `extra` `file_data`
-    pub fn update_item(&mut self, uid: String, mut item: PrfItem) -> Result<()> {
+    pub fn update_item(&mut self, uid: &str, mut item: PrfItem) -> Result<()> {
         if self.items.is_none() {
             self.items = Some(vec![]);
         }
 
         // find the item
-        self.get_item(&uid)?;
+        self.get_item(uid)?;
 
         if let Some(items) = self.items.as_mut() {
-            let some_uid = Some(uid.clone());
+            let some_uid = Some(uid);
 
             for each in items.iter_mut() {
-                if each.uid == some_uid {
+                if each.uid.as_deref() == some_uid {
                     each.extra = item.extra;
                     each.updated = item.updated;
                     each.home = item.home;
@@ -275,7 +275,7 @@ impl IProfiles {
                     // move the field value after save
                     if let Some(file_data) = item.file_data.take() {
                         let file = each.file.take();
-                        let file = file.unwrap_or(item.file.take().unwrap_or(format!("{}.yaml", &uid)));
+                        let file = file.unwrap_or(item.file.take().unwrap_or(format!("{}.yaml", uid)));
 
                         // the file must exists
                         each.file = Some(file.clone());
@@ -300,8 +300,6 @@ impl IProfiles {
     /// if delete the current then return true
     pub fn delete_item(&mut self, uid: String) -> Result<bool> {
         let current = self.current.as_ref().unwrap_or(&uid);
-        let current = current.clone();
-
         let mut filter_uids: Vec<String> = Vec::new();
 
         let profile = self.get_item(&uid)?;
@@ -320,15 +318,19 @@ impl IProfiles {
         profile.delete_file()?;
 
         // delete the original uid
-        let delete_current = current == uid;
-        let restart_core = delete_current || (profile.parent == Some(current) && profile.enable.is_some_and(|x| x));
+        let delete_current = uid == *current;
+        let mut restart_core = delete_current;
+        if let Some(parent) = profile.parent.as_ref()
+            && *parent == *current
+            && let Some(enable) = profile.enable.as_ref()
+            && *enable
+        {
+            restart_core = true;
+        }
 
         let items = self.items.take().unwrap_or_default();
-        if delete_current {
-            self.current = match !items.is_empty() {
-                true => items[0].uid.clone(),
-                false => None,
-            };
+        if delete_current && let [first, ..] = items.as_slice() {
+            self.current.replace(first.uid.clone().unwrap_or_default());
         }
 
         // generate new items
@@ -337,7 +339,7 @@ impl IProfiles {
             .into_iter()
             .filter(|p| !filter_uids.contains(&p.uid.clone().unwrap()))
             .collect::<Vec<PrfItem>>();
-        self.items = Some(new_items);
+        self.items.replace(new_items);
 
         self.save_file()?;
         Ok(restart_core)
@@ -360,41 +362,36 @@ impl IProfiles {
     }
 
     /// 获取 current 指向的订阅内容
-    pub fn current_mapping(&self) -> Result<Mapping> {
-        match self.current.as_ref() {
-            Some(current) => self.get_profile_mapping(current),
-            None => Ok(Mapping::new()),
+    pub fn current_mapping(&self) -> Option<Mapping> {
+        if let Some(current) = self.current.as_ref() {
+            self.get_profile_mapping(current)
+        } else {
+            None
         }
     }
 
-    pub fn get_profile_mapping(&self, profile_uid: &str) -> Result<Mapping> {
-        match (profile_uid, self.items.as_ref()) {
-            (profile_uid, Some(items)) => {
-                if let Some(item) = items.iter().find(|&e| e.uid == Some(profile_uid.to_string())) {
-                    let file_path = match item.file.as_ref() {
-                        Some(file) => dirs::app_profiles_dir()?.join(file),
-                        None => bail!("failed to get the file field"),
-                    };
-                    return help::read_merge_mapping(&file_path);
-                }
-                bail!("failed to find the current profile \"uid:{profile_uid}\"");
-            }
-            _ => Ok(Mapping::new()),
+    pub fn get_profile_mapping(&self, profile_uid: &str) -> Option<Mapping> {
+        if let Some(items) = self.items.as_ref()
+            && let Some(item) = items.iter().find(|&i| i.uid == Some(profile_uid.to_string()))
+            && let Some(file) = item.file.as_ref()
+        {
+            let file_path = dirs::app_profiles_dir().ok()?.join(file);
+            let mapping = help::read_merge_mapping(&file_path).ok()?;
+            Some(mapping)
+        } else {
+            None
         }
     }
 
-    pub fn get_current_profile_rule_providers(&self) -> Result<HashMap<String, PathBuf>> {
-        let current = self.get_current();
-        match current {
-            Some(current) => {
-                let item = self.get_item(&current).unwrap();
-                if let Some(rule_providers_path) = &item.rule_providers_path {
-                    Ok(rule_providers_path.clone())
-                } else {
-                    Ok(HashMap::new())
-                }
+    pub fn get_current_profile_rule_providers(&self) -> Option<&HashMap<String, PathBuf>> {
+        if let Some(current) = self.get_current() {
+            let item = self.get_item(&current).unwrap();
+            if let Some(rule_providers_path) = item.rule_providers_path.as_ref() {
+                return Some(rule_providers_path);
+            } else {
+                return None;
             }
-            None => Ok(HashMap::new()),
         }
+        None
     }
 }

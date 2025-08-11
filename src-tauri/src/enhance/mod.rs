@@ -42,7 +42,7 @@ pub struct MergeResult {
 
 pub fn generate_rule_providers(mut config: Mapping) -> Mapping {
     let profiles = Config::profiles();
-    let mut profiles = profiles.latest();
+    let mut profiles = profiles.latest_mut();
     let rp_key = Value::from("rule-providers");
     if !config.contains_key(&rp_key) {
         let _ = profiles.set_rule_providers_path(HashMap::new());
@@ -162,7 +162,7 @@ pub fn enhance() -> (Mapping, HashMap<String, ResultLog>) {
 
 pub fn get_pre_merge_result(profile_uid: Option<String>, modified_uid: String) -> Result<MergeResult> {
     let profiles = Config::profiles().latest().clone();
-    let mut config = profiles.current_mapping()?.clone();
+    let mut config = profiles.current_mapping().unwrap_or_default();
 
     // 保存脚本日志
     let mut script_logs = HashMap::new();
@@ -170,7 +170,7 @@ pub fn get_pre_merge_result(profile_uid: Option<String>, modified_uid: String) -
     match profile_uid {
         Some(profile_uid) => {
             // change current config mapping to profile mapping
-            config = profiles.get_profile_mapping(&profile_uid)?.clone();
+            config = profiles.get_profile_mapping(&profile_uid).unwrap_or_default();
 
             // execute all enabled global chain
             tracing::info!("execute all global chains");

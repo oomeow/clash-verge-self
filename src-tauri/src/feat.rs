@@ -239,13 +239,13 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
             .patch_base_config(&tmp_map)
             .await;
         // clash config
-        Config::clash().latest().patch_config(tmp_map);
+        Config::clash().latest_mut().patch_config(tmp_map);
         Config::clash().latest().save_config()?;
         // runtime config
         Config::generate()?;
         Config::generate_file(ConfigType::Run)?;
         // verge config
-        Config::verge().latest().patch_config(IVerge {
+        Config::verge().latest_mut().patch_config(IVerge {
             enable_random_port: Some(enable_random_port),
             ..IVerge::default()
         });
@@ -348,7 +348,7 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
                 log_err!(handle::Handle::update_systray_part());
             }
 
-            Config::runtime().latest().patch_config(patch);
+            Config::runtime().latest_mut().patch_config(patch);
             if generate_runtime_config {
                 // if the clash basic config changed, we need to sync the runtime configuration file now
                 Config::generate()?;
@@ -382,8 +382,8 @@ pub async fn patch_verge(mut patch: IVerge) -> Result<()> {
         && cmds::common::is_wayland().unwrap_or(false)
     {
         let verge = Config::verge();
-        let verge = verge.latest().clone();
-        let verge_size_position = verge.window_size_position;
+        let verge = verge.latest();
+        let verge_size_position = &verge.window_size_position;
         if let Some(size_position) = verge_size_position {
             let mut w = size_position[0];
             let mut h = size_position[1];
@@ -507,19 +507,19 @@ async fn resolve_config_settings(patch: IVerge) -> Result<()> {
 
 /// 更新某个profile
 /// 如果更新当前订阅就激活订阅
-pub async fn update_profile(uid: String, option: Option<PrfOption>) -> Result<()> {
+pub async fn update_profile(uid: &str, option: Option<PrfOption>) -> Result<()> {
     let url_opt = {
         let profiles = Config::profiles();
         let profiles = profiles.latest();
-        let item = profiles.get_item(&uid)?;
+        let item = profiles.get_item(uid)?;
         let is_remote = item.itype.as_ref().is_some_and(|s| *s == ProfileType::Remote);
 
-        if !is_remote {
-            None // 直接更新
-        } else if item.url.is_none() {
-            bail!("failed to get the profile item url");
+        if let Some(url) = item.url.clone() {
+            Some((url, item.option.clone()))
+        } else if !is_remote {
+            None
         } else {
-            Some((item.url.clone().unwrap(), item.option.clone()))
+            bail!("failed to get the profile item url");
         }
     };
 
@@ -529,10 +529,10 @@ pub async fn update_profile(uid: String, option: Option<PrfOption>) -> Result<()
             let item = PrfItem::from_url(&url, None, None, merged_opt).await?;
 
             let profiles = Config::profiles();
-            let mut profiles = profiles.latest();
-            profiles.update_item(uid.clone(), item)?;
+            let mut profiles = profiles.latest_mut();
+            profiles.update_item(uid, item)?;
 
-            Some(uid) == profiles.get_current()
+            Some(uid) == profiles.get_current().as_deref()
         }
         None => true,
     };
@@ -572,19 +572,22 @@ pub fn copy_clash_env(app_handle: &AppHandle) {
 
     let clipboard = app_handle.clipboard();
 
-    let env_type = { Config::verge().latest().env_type.clone() };
-    let env_type = match env_type {
+    let env_type = {
+        let verge = Config::verge();
+        let verge = verge.latest();
+        verge.env_type.clone()
+    };
+    let env_type = match env_type.as_deref() {
         Some(env_type) => env_type,
         None => {
             #[cfg(not(target_os = "windows"))]
             let default = "bash";
             #[cfg(target_os = "windows")]
             let default = "powershell";
-
-            default.to_string()
+            default
         }
     };
-    match env_type.as_str() {
+    match env_type {
         "bash" => clipboard.write_text(sh).unwrap_or_default(),
         "cmd" => clipboard.write_text(cmd).unwrap_or_default(),
         "powershell" => clipboard.write_text(ps).unwrap_or_default(),

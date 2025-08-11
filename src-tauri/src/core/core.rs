@@ -51,9 +51,9 @@ impl CoreManager {
                 ("tproxy-port".into(), 0.into()),
             ]);
             // patch config
-            Config::clash().latest().patch_config(port_mapping.clone());
+            Config::clash().latest_mut().patch_config(port_mapping.clone());
             log_err!(Config::clash().latest().save_config());
-            Config::runtime().latest().patch_config(port_mapping);
+            Config::runtime().latest_mut().patch_config(port_mapping);
         }
         // 启动 clash
         tauri::async_runtime::spawn(async move {
@@ -68,8 +68,13 @@ impl CoreManager {
         let config_path = Config::generate_file(generate_config_type)?;
         let config_path = dirs::path_to_str(&config_path)?;
 
-        let clash_core = { Config::verge().latest().clash_core.clone() };
-        let clash_core = clash_core.unwrap_or("clash".into());
+        let clash_core = {
+            Config::verge()
+                .latest()
+                .clash_core
+                .clone()
+                .unwrap_or("verge-mihomo".into())
+        };
 
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
@@ -82,13 +87,12 @@ impl CoreManager {
             .await?;
 
         if !output.status.success() {
-            let stdout = String::from_utf8_lossy(&output.stdout.clone()).into_owned();
-            let error = utils::help::parse_check_output(stdout.clone());
+            let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+            let error = utils::help::parse_check_output(&stdout);
             let error = match !error.is_empty() {
                 true => error,
-                false => stdout.clone(),
+                false => &stdout,
             };
-            Logger::global().set_log(stdout);
             bail!("{error}");
         }
 
@@ -173,9 +177,9 @@ impl CoreManager {
         } else {
             VergeLog::global().reset_service_log_file();
             // service mode is disable, patch the config: disable tun mode
-            Config::clash().latest().patch_and_merge_config(disable.clone());
+            Config::clash().latest_mut().patch_and_merge_config(disable.clone());
             Config::clash().latest().save_config()?;
-            Config::runtime().latest().patch_config(disable.clone());
+            Config::runtime().latest_mut().patch_config(disable.clone());
             Config::generate_file(ConfigType::Run)?;
             // emit refresh clash event and update tray menu
             handle::Handle::refresh_clash();

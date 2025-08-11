@@ -168,12 +168,12 @@ impl PrfItem {
     pub async fn from(item: PrfItem, file_data: Option<String>) -> Result<PrfItem> {
         match item.itype {
             None => bail!("type should not be null"),
-            Some(ProfileType::Remote) => match item.url.as_ref() {
+            Some(ProfileType::Remote) => match item.url {
                 None => bail!("url should not be null"),
                 Some(url) => {
                     let name = item.name;
                     let desc = item.desc;
-                    PrfItem::from_url(url, name, desc, item.option).await
+                    PrfItem::from_url(&url, name, desc, item.option).await
                 }
             },
             Some(ProfileType::Local) => {
@@ -237,7 +237,7 @@ impl PrfItem {
         let with_proxy = opt_ref.is_some_and(|o| o.with_proxy.unwrap_or(false));
         let self_proxy = opt_ref.is_some_and(|o| o.self_proxy.unwrap_or(false));
         let accept_invalid_certs = opt_ref.is_some_and(|o| o.danger_accept_invalid_certs.unwrap_or(false));
-        let user_agent = opt_ref.and_then(|o| o.user_agent.clone());
+        let user_agent = opt_ref.and_then(|o| o.user_agent.as_deref());
         let update_interval = opt_ref.and_then(|o| o.update_interval);
 
         let mut builder = reqwest::ClientBuilder::new()
@@ -278,8 +278,8 @@ impl PrfItem {
         }
 
         let version = match APP_VERSION.get() {
-            Some(v) => format!("clash-verge/v{v}"),
-            None => "clash-verge/unknown".to_string(),
+            Some(v) => &format!("clash-verge/v{v}"),
+            None => "clash-verge/unknown",
         };
 
         builder = builder.danger_accept_invalid_certs(accept_invalid_certs);

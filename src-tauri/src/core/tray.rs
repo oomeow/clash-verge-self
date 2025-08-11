@@ -20,8 +20,10 @@ pub struct Tray;
 
 impl Tray {
     fn get_tray_icon() -> Result<Image<'static>> {
-        let verge = Config::verge().latest().clone();
-        let clash = Config::clash().latest().clone();
+        let verge = Config::verge();
+        let verge = verge.latest();
+        let clash = Config::clash();
+        let clash = clash.latest();
         let icon_dir_path = dirs::app_home_dir()?.join("icons");
         let sysproxy_enabled = verge.enable_system_proxy.unwrap_or(false);
         let tun_enabled = clash.get_enable_tun();
@@ -101,10 +103,10 @@ impl Tray {
         let profiles = profiles.get_profiles();
         let mut switch_menu = SubmenuBuilder::new(app_handle, t!("profiles.switch"));
         for profile in profiles {
-            if let Some(uid) = profile.uid
-                && let Some(name) = profile.name
+            if let Some(uid) = &profile.uid
+                && let Some(name) = &profile.name
             {
-                if current == uid {
+                if current == *uid {
                     let checkmenu = CheckMenuItem::with_id(app_handle, uid, name, true, true, None::<&str>)?;
                     switch_menu = switch_menu.item(&checkmenu);
                 } else {
@@ -157,7 +159,9 @@ impl Tray {
 
     pub fn init() -> Result<()> {
         let app_handle = handle::Handle::get_app_handle();
+        tracing::trace!("generate tray menu");
         let menu = Self::tray_menu(app_handle)?;
+        tracing::trace!("build tray");
         let tray = TrayIconBuilder::with_id(TRAY_ID)
             .icon(Self::get_tray_icon()?)
             .menu(&menu)
@@ -168,10 +172,12 @@ impl Tray {
         #[cfg(target_os = "macos")]
         tray.set_icon_as_template(true)?;
 
-        let enable_tray = { Config::verge().latest().enable_tray.unwrap_or(true) };
+        tracing::trace!("check if enable tray");
+        let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
         if !enable_tray {
             tray.set_visible(false)?;
         }
+        tracing::trace!("update tray");
         Self::update_systray(app_handle)?;
         Ok(())
     }
@@ -190,20 +196,24 @@ impl Tray {
     }
 
     pub fn update_systray(app_handle: &AppHandle) -> Result<()> {
-        let enable_tray = { Config::verge().latest().enable_tray.unwrap_or(true) };
+        tracing::trace!("starting update tray");
+        let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
         if enable_tray {
             Self::update_part(app_handle)?;
         }
+        tracing::trace!("update tray finished");
         Ok(())
     }
 
     pub fn update_part<R: Runtime>(app_handle: &AppHandle<R>) -> Result<()> {
-        let verge = Config::verge().latest().clone();
+        let verge = Config::verge();
+        let verge = verge.latest();
         let enable_tray = verge.enable_tray.unwrap_or(true);
         if !enable_tray {
             return Ok(());
         }
-        let clash = Config::clash().latest().clone();
+        let clash = Config::clash();
+        let clash = clash.latest();
         let mode = clash.get_mode();
         let sysproxy_enabled = verge.enable_system_proxy.unwrap_or(false);
         let tun_enabled = clash.get_enable_tun();
@@ -253,7 +263,7 @@ impl Tray {
         {
             let version = app_handle.package_info().version.to_string();
             let mut current_profile_name = "None".to_string();
-            let profiles = Config::profiles().latest().clone();
+            let profiles = Config::profiles().latest();
             if let Some(current_profile_uid) = profiles.get_current()
                 && let Ok(current_profile) = profiles.get_item(&current_profile_uid)
                 && let Some(profile_name) = &current_profile.name
@@ -297,7 +307,8 @@ impl Tray {
 
     pub fn on_system_tray_event(app_handle: &AppHandle, event: MenuEvent) {
         let app_handle_ = app_handle.clone();
-        let config_profiles = Config::profiles().latest().clone();
+        let config_profiles = Config::profiles();
+        let config_profiles = config_profiles.latest();
         let profiles = config_profiles.get_profiles();
         let profile_uids = profiles
             .iter()
