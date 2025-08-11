@@ -335,7 +335,6 @@ impl IProfiles {
 
         // generate new items
         let new_items = items
-            .clone()
             .into_iter()
             .filter(|p| !filter_uids.contains(&p.uid.clone().unwrap()))
             .collect::<Vec<PrfItem>>();

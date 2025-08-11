@@ -188,11 +188,9 @@ impl CoreManager {
 
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
-        let clash_core = {
-            let verge = Config::verge();
-            let verge = verge.latest();
-            verge.clash_core.clone().unwrap_or("verge-mihomo".into())
-        };
+        let verge = Config::verge();
+        let verge = verge.latest();
+        let clash_core = verge.clash_core.as_deref().unwrap_or("verge-mihomo");
 
         let config_path = dirs::path_to_str(&config_path)?;
         let args = vec![

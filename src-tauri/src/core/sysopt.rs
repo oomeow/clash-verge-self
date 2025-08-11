@@ -98,7 +98,7 @@ impl Sysopt {
         };
         let mut sys = Sysproxy {
             enable,
-            host: "127.0.0.1".to_string(),
+            host: "127.0.0.1".into(),
             port,
             bypass: get_bypass(),
         };
