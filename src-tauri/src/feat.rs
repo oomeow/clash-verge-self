@@ -545,7 +545,7 @@ pub async fn update_profile(uid: &str, option: Option<PrfOption>) -> Result<()> 
             let mut profiles = profiles.latest_mut();
             profiles.update_item(uid, item)?;
 
-            Some(uid) == profiles.get_current().as_deref()
+            profiles.get_current().is_some_and(|v| v == uid)
         }
         None => true,
     };

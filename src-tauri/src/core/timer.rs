@@ -110,54 +110,52 @@ impl Timer {
         tracing::info!("backup file has been applied, register activating group selected task");
         let body = move || async {
             tracing::info!("starting activating selected task");
-            let current = Config::profiles().latest().get_current();
-            if current.is_none() {
-                tracing::info!("No current profile found");
-                return;
-            }
-            let current = current.unwrap_or_default();
-            let profiles = Config::profiles().latest().clone();
-            let mihomo = handle::Handle::get_mihomo_read().await;
+            let profiles = Config::profiles();
+            let profiles = profiles.latest().clone();
+            let current = profiles.get_current();
+            if let Some(current) = current {
+                let profiles = Config::profiles().latest().clone();
+                let mihomo = handle::Handle::get_mihomo_read().await;
 
-            if mihomo.get_base_config().await.is_err() {
-                tracing::error!("Failed to get base config");
-                return;
-            }
-            if profiles.get_item(&current).is_err() {
-                tracing::error!("Failed to get profile");
-                return;
-            }
-            if let Ok(profile) = profiles.get_item(&current) {
-                if let Some(selected) = profile.selected.as_ref() {
-                    for selected_item in selected {
-                        if let Some(proxy_name) = selected_item.name.as_ref()
-                            && let Some(node) = selected_item.now.as_ref()
-                        {
-                            if mihomo.select_node_for_proxy(proxy_name, node).await.is_err() {
-                                if mihomo.get_proxy_by_name(node).await.is_err() {
-                                    tracing::error!(
-                                        "Failed to select node for proxy: {}, node: {}, because the node [{}] does not exist",
-                                        proxy_name,
-                                        node,
-                                        node
-                                    );
-                                    continue;
+                if mihomo.get_base_config().await.is_err() {
+                    tracing::error!("failed to get base config");
+                    return;
+                }
+
+                match profiles.get_item(current) {
+                    Ok(profile) => {
+                        if let Some(selected) = profile.selected.as_ref() {
+                            for selected_item in selected {
+                                if let Some(proxy_name) = selected_item.name.as_ref()
+                                    && let Some(node) = selected_item.now.as_ref()
+                                {
+                                    if mihomo.select_node_for_proxy(proxy_name, node).await.is_err() {
+                                        if mihomo.get_proxy_by_name(node).await.is_err() {
+                                            tracing::error!(
+                                                "Failed to select node for proxy: {proxy_name}, node: {node}, because the node [{node}] does not exist"
+                                            );
+                                            continue;
+                                        }
+                                        tracing::error!("Failed to select node for proxy: {proxy_name}, node: {node}");
+                                        return;
+                                    } else {
+                                        tracing::info!("Selected node for proxy: {proxy_name}, node: {node}");
+                                    }
                                 }
-                                tracing::error!("Failed to select node for proxy: {}, node: {}", proxy_name, node);
-                                return;
-                            } else {
-                                tracing::info!("Selected node for proxy: {}, node: {}", proxy_name, node);
                             }
                         }
+
+                        if let Ok(archive_file) = dirs::backup_archive_file()
+                            && archive_file.exists()
+                        {
+                            log_err!(std::fs::remove_file(archive_file), "failed to remove archive file");
+                        }
+                        crate::utils::resolve::create_window();
+                    }
+                    Err(_) => {
+                        tracing::error!("Failed to get current profile [{current}]");
                     }
                 }
-
-                if let Ok(archive_file) = dirs::backup_archive_file()
-                    && archive_file.exists()
-                {
-                    let _ = std::fs::remove_file(archive_file);
-                }
-                crate::utils::resolve::create_window();
             }
         };
 

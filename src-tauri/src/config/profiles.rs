@@ -84,7 +84,7 @@ impl IProfiles {
         }
 
         if let Some(current) = patch.current {
-            let items = self.items.as_ref().unwrap();
+            let items = self.items.as_deref().unwrap_or_default();
             let some_uid = Some(current);
 
             if items.iter().any(|e| e.uid == some_uid) {
@@ -113,8 +113,8 @@ impl IProfiles {
         Ok(())
     }
 
-    pub fn get_current(&self) -> Option<String> {
-        self.current.clone()
+    pub fn get_current(&self) -> Option<&String> {
+        self.current.as_ref()
     }
 
     /// find the item by the uid
@@ -278,7 +278,7 @@ impl IProfiles {
                     // move the field value after save
                     if let Some(file_data) = item.file_data.take() {
                         let file = each.file.take();
-                        let file = file.unwrap_or(item.file.take().unwrap_or(format!("{}.yaml", uid)));
+                        let file = file.unwrap_or(item.file.take().unwrap_or(format!("{uid}.yaml")));
 
                         // the file must exists
                         each.file = Some(file.clone());
@@ -384,14 +384,12 @@ impl IProfiles {
     }
 
     pub fn get_current_profile_rule_providers(&self) -> Option<&HashMap<String, PathBuf>> {
-        if let Some(current) = self.get_current() {
-            let item = self.get_item(&current).unwrap();
-            if let Some(rule_providers_path) = item.rule_providers_path.as_ref() {
-                return Some(rule_providers_path);
-            } else {
-                return None;
-            }
+        if let Some(current) = self.get_current()
+            && let Ok(item) = self.get_item(current)
+        {
+            item.rule_providers_path.as_ref()
+        } else {
+            None
         }
-        None
     }
 }

@@ -103,7 +103,7 @@ impl VergeLog {
         if let Some(handle) = handle.as_ref() {
             handle.modify(|filter| *filter = log_level)?;
         } else {
-            bail!("log handle is none, please init log first");
+            bail!("log handle is none, need to init log");
         }
         Ok(())
     }

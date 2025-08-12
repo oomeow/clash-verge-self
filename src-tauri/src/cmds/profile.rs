@@ -118,7 +118,7 @@ pub async fn patch_profile(uid: String, profile: PrfItem) -> CmdResult {
                 handle::Handle::refresh_clash();
             }
             Some(ScopeType::Specific) => {
-                if result_item.parent == profiles.get_current() {
+                if result_item.parent.as_ref() == profiles.get_current() {
                     wrap_err!(CoreManager::global().update_config().await)?;
                     handle::Handle::refresh_clash();
                 }

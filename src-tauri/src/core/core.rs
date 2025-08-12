@@ -40,7 +40,7 @@ impl CoreManager {
     }
 
     pub fn init(&self) -> Result<()> {
-        let enable_random_port = Config::verge().latest().enable_random_port.unwrap_or(false);
+        let enable_random_port = Config::verge().latest().enable_random_port.unwrap_or_default();
         if enable_random_port {
             let port = find_unused_port().unwrap_or(Config::clash().latest().get_mixed_port());
             let port_mapping = Mapping::from_iter([
@@ -185,9 +185,11 @@ impl CoreManager {
 
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
-        let verge = Config::verge();
-        let verge = verge.latest();
-        let clash_core = verge.clash_core.as_deref().unwrap_or("verge-mihomo");
+        let clash_core = Config::verge()
+            .latest()
+            .clash_core
+            .clone()
+            .unwrap_or("verge-mihomo".to_string());
 
         let config_path = dirs::path_to_str(&config_path)?;
         let args = vec![

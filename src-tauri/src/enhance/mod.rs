@@ -90,11 +90,15 @@ pub fn enhance() -> (Mapping, HashMap<String, ResultLog>) {
         let profiles = Config::profiles();
         let profiles = profiles.latest();
         let current = profiles.current_mapping().unwrap_or_default();
-        let current_uid = profiles.get_current();
+        let current_uid = profiles.get_current().cloned();
 
         // chain
         let global_chain = profiles.get_profile_chains(None, EnableFilter::Enable);
-        let profile_chain = profiles.get_profile_chains(current_uid, EnableFilter::Enable);
+        let profile_chain = if current_uid.is_some() {
+            profiles.get_profile_chains(current_uid, EnableFilter::Enable)
+        } else {
+            Vec::new()
+        };
         (current, global_chain, profile_chain)
     };
 

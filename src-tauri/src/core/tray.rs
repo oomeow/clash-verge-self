@@ -99,14 +99,16 @@ impl Tray {
         let version = APP_VERSION.get().expect("failed to get app version");
         let profiles = Config::profiles();
         let profiles = profiles.latest();
-        let current = profiles.get_current().unwrap_or_default();
+        let current = profiles.get_current();
         let profiles = profiles.get_profiles();
         let mut switch_menu = SubmenuBuilder::new(app_handle, t!("profiles.switch"));
         for profile in profiles {
             if let Some(uid) = &profile.uid
                 && let Some(name) = &profile.name
             {
-                if current == *uid {
+                if let Some(current) = current
+                    && current == uid
+                {
                     let checkmenu = CheckMenuItem::with_id(app_handle, uid, name, true, true, None::<&str>)?;
                     switch_menu = switch_menu.item(&checkmenu);
                 } else {
@@ -324,9 +326,12 @@ impl Tray {
             "system_proxy" => feat::toggle_system_proxy(),
             "tun_mode" => feat::toggle_tun_mode(),
             profile if profile_uids.contains(&profile.to_string()) => {
-                let clicked_profile = profile.to_string();
-                let current = config_profiles.get_current().unwrap_or_default();
-                if current != clicked_profile {
+                let current = config_profiles.get_current();
+                // TODO: println!("current == profile :: {}", current.unwrap() == profile);
+                if let Some(current) = current
+                    && current != profile
+                {
+                    let clicked_profile = profile.to_string();
                     tauri::async_runtime::spawn(async move {
                         match cmds::profile::patch_profiles_config(IProfiles {
                             current: Some(clicked_profile),
