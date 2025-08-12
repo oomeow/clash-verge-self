@@ -401,14 +401,9 @@ pub async fn patch_verge(mut patch: IVerge) -> Result<()> {
             patch.window_size_position = Some(vec![w, h, x, y]);
         }
     }
-    {
-        tracing::debug!("patch draft config --> get verge");
-        let verge = Config::verge();
-        tracing::debug!("patch draft config --> get draft");
-        let mut draft_verge = verge.draft();
-        tracing::debug!("patch draft config --> patching...");
-        draft_verge.patch_config(patch.clone());
-    }
+
+    tracing::debug!("patch verge draft");
+    Config::verge().draft().patch_config(patch.clone());
 
     tracing::debug!("resolve config settings");
     let res = resolve_config_settings(patch).await;
@@ -481,14 +476,17 @@ async fn resolve_config_settings(patch: IVerge) -> Result<()> {
     }
 
     if let Some(true) = patch.enable_proxy_guard {
+        tracing::debug!("enable system proxy guard");
         sysopt::Sysopt::global().guard_proxy();
     }
 
     if let Some(hotkeys) = patch.hotkeys {
+        tracing::debug!("update global hotkeys");
         hotkey::Hotkey::global().update(hotkeys)?;
     }
 
     if let Some(language) = language {
+        tracing::debug!("change app language");
         rust_i18n::set_locale(&language);
         handle::Handle::update_systray()?;
     } else if system_proxy.is_some()
@@ -497,19 +495,23 @@ async fn resolve_config_settings(patch: IVerge) -> Result<()> {
         || tun_tray_icon.is_some()
         || service_mode.is_some()
     {
+        tracing::debug!("update tray cause by some settings changed");
         handle::Handle::update_systray_part()?;
     }
     #[cfg(target_os = "macos")]
     if tray_icon.is_some() {
+        tracing::debug!("macos tray icon changed, update tray");
         handle::Handle::update_systray_part()?;
     }
 
     if let Some(enable_tray) = enable_tray {
+        tracing::debug!("toggle tray enable: {enable_tray}");
         handle::Handle::set_tray_visible(enable_tray)?;
     }
 
     #[cfg(target_os = "macos")]
     if let Some(show_in_dock) = show_in_dock {
+        tracing::debug!("toggle show in macos dock, {show_in_dock}");
         handle::Handle::set_dock_visible(show_in_dock)?;
     }
 
