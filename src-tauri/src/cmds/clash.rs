@@ -78,7 +78,7 @@ pub async fn change_clash_core(clash_core: Option<String>) -> CmdResult {
 
 #[tauri::command]
 pub async fn get_clash_logs() -> CmdResult<VecDeque<String>> {
-    let enable_service_mode = { Config::verge().latest().enable_service_mode.unwrap_or_default() };
+    let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or_default();
     let logs = if enable_service_mode {
         let res = wrap_err!(service::get_logs().await)?;
         res.data.unwrap_or_default()

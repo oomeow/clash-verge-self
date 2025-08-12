@@ -68,13 +68,11 @@ impl CoreManager {
         let config_path = Config::generate_file(generate_config_type)?;
         let config_path = dirs::path_to_str(&config_path)?;
 
-        let clash_core = {
-            Config::verge()
-                .latest()
-                .clash_core
-                .clone()
-                .unwrap_or("verge-mihomo".into())
-        };
+        let clash_core = Config::verge()
+            .latest()
+            .clash_core
+            .clone()
+            .unwrap_or("verge-mihomo".to_string());
 
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
@@ -129,8 +127,7 @@ impl CoreManager {
         }
 
         // 服务模式
-        let enable = { Config::verge().latest().enable_service_mode };
-        let enable = enable.unwrap_or(false);
+        let enable = Config::verge().latest().enable_service_mode.unwrap_or_default();
         *self.use_service_mode.lock() = enable;
 
         handle::Handle::get_mihomo_read()
@@ -179,7 +176,7 @@ impl CoreManager {
             // service mode is disable, patch the config: disable tun mode
             Config::clash().latest_mut().patch_and_merge_config(disable.clone());
             Config::clash().latest().save_config()?;
-            Config::runtime().latest_mut().patch_config(disable.clone());
+            Config::runtime().latest_mut().patch_config(disable);
             Config::generate_file(ConfigType::Run)?;
             // emit refresh clash event and update tray menu
             handle::Handle::refresh_clash();

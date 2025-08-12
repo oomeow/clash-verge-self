@@ -38,7 +38,6 @@ pub fn use_filter(config: Mapping, filter: &[String]) -> Mapping {
 
 pub fn use_lowercase(config: Mapping) -> Mapping {
     let mut ret = Mapping::new();
-
     for (key, value) in config.into_iter() {
         if let Some(key_str) = key.as_str() {
             let mut key_str = String::from(key_str);

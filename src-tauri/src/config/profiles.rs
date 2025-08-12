@@ -2,6 +2,7 @@ use super::{EnableFilter, PrfItem};
 use crate::{
     config::ProfileType,
     enhance::chain::{ChainItem, ScopeType},
+    log_err,
     utils::{dirs, help},
 };
 use anyhow::{Context, Result, bail};
@@ -37,7 +38,7 @@ impl IProfiles {
                 if profiles.items.is_none() {
                     profiles.items = Some(vec![]);
                 }
-                let enabled_global_chain = profiles.chain.clone().unwrap_or_default();
+                let enabled_global_chain = profiles.chain.as_deref().unwrap_or_default();
                 // compatible with the old old old version
                 if let Some(items) = profiles.items.as_mut() {
                     for item in items.iter_mut() {
@@ -101,12 +102,12 @@ impl IProfiles {
                 }
             }
             // enable new chain
-            for new_uid in new_chain.clone() {
-                let item = self.get_item_mut(&new_uid)?;
+            for new_uid in new_chain.iter() {
+                let item = self.get_item_mut(new_uid)?;
                 item.enable = Some(true);
             }
 
-            self.chain = Some(new_chain.clone());
+            self.chain = Some(new_chain);
         }
 
         Ok(())
@@ -209,20 +210,22 @@ impl IProfiles {
 
         for (i, _) in items.iter().enumerate() {
             if items[i].uid == Some(active_id.clone()) {
-                old_index = Some(i);
+                old_index.replace(i);
             }
             if items[i].uid == Some(over_id.clone()) {
-                new_index = Some(i);
+                new_index.replace(i);
             }
         }
 
-        if old_index.is_none() || new_index.is_none() {
-            return Ok(());
+        if let Some(old_index) = old_index
+            && let Some(new_index) = new_index
+        {
+            let item = items.remove(old_index);
+            items.insert(new_index, item);
+            self.items.replace(items);
+            self.save_file()?;
         }
-        let item = items.remove(old_index.unwrap());
-        items.insert(new_index.unwrap(), item);
-        self.items = Some(items);
-        self.save_file()
+        Ok(())
     }
 
     /// update the item value
@@ -310,9 +313,7 @@ impl IProfiles {
             profile_chain
                 .iter()
                 .filter_map(|chain_uid| self.get_item(chain_uid).ok())
-                .for_each(|o| {
-                    let _ = o.delete_file();
-                });
+                .for_each(|o| log_err!(o.delete_file()));
         }
         // delete profile
         profile.delete_file()?;

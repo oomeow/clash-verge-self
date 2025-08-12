@@ -47,8 +47,9 @@ pub async fn resolve_setup() {
     tracing::trace!("register os shutdown handler");
     shutdown::register();
 
-    let silent_start = { Config::verge().latest().enable_silent_start.unwrap_or_default() };
-    if !silent_start || dirs::backup_archive_file().is_ok_and(|file| file.exists()) {
+    let silent_start = Config::verge().latest().enable_silent_start.unwrap_or_default();
+    let exists_archive_file = dirs::backup_archive_file().is_ok_and(|file| file.exists());
+    if !silent_start || exists_archive_file {
         create_window();
     }
 
@@ -228,7 +229,7 @@ pub fn save_window_size_position(app_handle: &AppHandle) -> Result<()> {
         let pos = win.outer_position()?;
         let pos = pos.to_logical::<f64>(scale);
         let is_maximized = win.is_maximized()?;
-        verge.window_is_maximized = Some(is_maximized);
+        verge.window_is_maximized.replace(is_maximized);
         if !is_maximized && size.width >= 600.0 && size.height >= 550.0 {
             verge.window_size_position = Some(vec![size.width, size.height, pos.x, pos.y]);
         }
@@ -259,8 +260,7 @@ pub async fn resolve_scheme(param: String) {
 }
 
 pub fn handle_window_close(api: CloseRequestApi, app_handle: &AppHandle) {
-    let keep_ui_active = { Config::verge().latest().enable_keep_ui_active.unwrap_or_default() };
-    if keep_ui_active {
+    if Config::verge().latest().enable_keep_ui_active.unwrap_or_default() {
         if let Some(window) = app_handle.get_webview_window("main") {
             let _ = window.hide();
         }

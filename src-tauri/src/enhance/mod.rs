@@ -83,7 +83,7 @@ pub fn generate_rule_providers(mut config: Mapping) -> Mapping {
 /// 返回最终订阅、该订阅包含的键、和script执行的结果
 pub fn enhance() -> (Mapping, HashMap<String, ResultLog>) {
     // config.yaml 的订阅
-    let clash_config = { Config::clash().latest().0.clone() };
+    let clash_config = Config::clash().latest().0.clone();
 
     // 从profiles里拿东西
     let (mut config, global_chain, profile_chain) = {
@@ -139,7 +139,7 @@ pub fn enhance() -> (Mapping, HashMap<String, ResultLog>) {
         config.insert(key, value);
     }
 
-    let enable_external_controller = { Config::verge().latest().enable_external_controller.unwrap_or_default() };
+    let enable_external_controller = Config::verge().latest().enable_external_controller.unwrap_or_default();
     tracing::info!("external controller enable: {}", enable_external_controller);
     if !enable_external_controller {
         config.remove("external-controller");
@@ -218,7 +218,7 @@ pub async fn test_merge_chain(
     content: String,
 ) -> Result<MergeResult> {
     let profiles = Config::profiles().latest().clone();
-    let running_chains = profiles.chain.clone().unwrap_or_default();
+    let running_chains = profiles.chain.as_deref().unwrap_or_default();
     let should_build_final_config = running_chains[running_chains.len() - 1] == modified_uid;
     // 保存脚本日志
     let mut result_map = HashMap::new();
@@ -233,12 +233,12 @@ pub async fn test_merge_chain(
             let yaml_content = serde_yaml::from_str::<Value>(&content)?
                 .as_mapping()
                 .ok_or_else(|| anyhow!("invalid yaml content"))?
-                .clone();
-            config = use_merge(yaml_content, config.to_owned());
+                .to_owned();
+            config = use_merge(yaml_content, config.clone());
         }
         Some(ProfileType::Script) => {
             let mut logs = vec![];
-            match use_script(content, config.to_owned()) {
+            match use_script(content, config.clone()) {
                 Ok((res_config, res_logs)) => {
                     config = res_config;
                     logs.extend(res_logs);
@@ -249,7 +249,7 @@ pub async fn test_merge_chain(
                     exception: Some(err.to_string()),
                 }),
             }
-            result_map.insert(modified_uid.to_string(), logs);
+            result_map.insert(modified_uid, logs);
         }
         Some(_) => {
             bail!("unsupported chain type");
@@ -265,7 +265,7 @@ pub async fn test_merge_chain(
 
     if should_build_final_config {
         //合并 verge 接管的配置
-        let clash_config = { Config::clash().latest().0.clone() };
+        let clash_config = Config::clash().latest().0.clone();
         for (key, value) in clash_config.into_iter() {
             config.insert(key, value);
         }

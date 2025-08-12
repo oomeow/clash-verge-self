@@ -15,12 +15,12 @@ impl IClashConfig {
     pub fn new() -> Self {
         let template = Self::default();
         match dirs::clash_path().and_then(|path| help::read_merge_mapping(&path)) {
-            Ok(mut map) => {
-                let mut dst_merge = Value::from(template.0.clone());
-                let config = Value::from(map.clone());
-                help::deep_merge(&mut dst_merge, &config);
-                map = dst_merge.as_mapping().unwrap().clone();
-                Self(Self::guard(map))
+            Ok(mut result) => {
+                let mut dst = Value::from(template.0.clone());
+                let src = Value::from(result.clone());
+                help::deep_merge(&mut dst, &src);
+                result = dst.as_mapping().unwrap().clone();
+                Self(Self::guard(result))
             }
             Err(err) => {
                 tracing::error!("{err}");
@@ -105,26 +105,26 @@ impl IClashConfig {
         }
     }
 
-    /// merge from src into dest
-    fn merge_into(src: &Value, dest: &mut Value) {
-        match (src, dest) {
+    /// merge from src into dst, but not deep merge
+    fn merge_into(dst: &mut Value, src: &Value) {
+        match (dst, src) {
             // handle mapping value
-            (Value::Mapping(src), Value::Mapping(dest)) => {
-                for (key, src_val) in src {
-                    match dest.get_mut(key) {
-                        Some(dest_val) => Self::merge_into(src_val, dest_val),
-                        None => _ = dest.insert(key.clone(), src_val.clone()),
+            (Value::Mapping(dst), Value::Mapping(src)) => {
+                for (k, v) in src {
+                    match dst.get_mut(k) {
+                        Some(dst_val) => Self::merge_into(dst_val, v),
+                        None => _ = dst.insert(k.clone(), v.clone()),
                     };
                 }
             }
-            (src, dest) => *dest = src.clone(),
+            (dst, src) => *dst = src.clone(),
         }
     }
 
     pub fn patch_and_merge_config(&mut self, patch: Mapping) {
-        let mut dest = Value::from(self.0.clone());
-        Self::merge_into(&Value::from(patch), &mut dest);
-        self.0 = dest.as_mapping().unwrap().clone();
+        let mut dst = Value::from(self.0.clone());
+        Self::merge_into(&mut dst, &Value::from(patch));
+        self.0 = dst.as_mapping().unwrap().clone();
     }
 
     pub fn save_config(&self) -> Result<()> {
@@ -143,21 +143,15 @@ impl IClashConfig {
 
     pub fn get_enable_tun(&self) -> bool {
         let config = &self.0;
-        let tun_val = config
-            .get("tun")
-            .and_then(|v| match v {
-                Value::Mapping(val) => Some(val.clone()),
-                _ => None,
-            })
-            .unwrap_or_default();
-        tun_val
-            .get("enable")
-            .and_then(|v| match v {
-                Value::Bool(val) => Some(val),
-                _ => None,
-            })
-            .unwrap_or(&false)
-            .to_owned()
+        if let Some(tun_val) = config.get("tun")
+            && let Some(tun_map) = tun_val.as_mapping()
+            && let Some(enable_val) = tun_map.get("enable")
+            && let Some(enable) = enable_val.as_bool()
+        {
+            enable
+        } else {
+            false
+        }
     }
 
     pub fn get_mixed_port(&self) -> u16 {
@@ -187,12 +181,9 @@ impl IClashConfig {
             tproxy_port: Self::guard_tproxy_port(config),
             port: Self::guard_port(config),
             server: Self::guard_client_ctrl(config),
-            secret: config.get("secret").and_then(|value| match value {
-                Value::String(val_str) => Some(val_str.clone()),
-                Value::Bool(val_bool) => Some(val_bool.to_string()),
-                Value::Number(val_num) => Some(val_num.to_string()),
-                _ => None,
-            }),
+            secret: config
+                .get("secret")
+                .and_then(|value| value.as_str().map(|v| v.to_string())),
             cors: Self::guard_ctrl_cors(config),
         }
     }

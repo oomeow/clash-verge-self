@@ -71,7 +71,7 @@ pub async fn update_profile(index: String, option: Option<PrfOption>) -> CmdResu
 
 #[tauri::command]
 pub async fn delete_profile(uid: String) -> CmdResult {
-    let restart_core = wrap_err!({ Config::profiles().data_mut().delete_item(uid) })?;
+    let restart_core = wrap_err!(Config::profiles().data_mut().delete_item(uid))?;
     // the running profile is deleted, update the core config
     if restart_core {
         wrap_err!(CoreManager::global().update_config().await)?;
@@ -83,7 +83,7 @@ pub async fn delete_profile(uid: String) -> CmdResult {
 /// 修改profiles的
 #[tauri::command]
 pub async fn patch_profiles_config(profiles: IProfiles) -> CmdResult {
-    wrap_err!({ Config::profiles().draft().patch_config(profiles) })?;
+    wrap_err!(Config::profiles().draft().patch_config(profiles))?;
 
     match CoreManager::global().update_config().await {
         Ok(_) => {

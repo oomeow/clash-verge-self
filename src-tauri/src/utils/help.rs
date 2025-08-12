@@ -47,14 +47,14 @@ pub fn save_yaml<T: Serialize>(path: &PathBuf, data: &T, prefix: Option<&str>) -
     fs::write(path, yaml_str.as_bytes()).with_context(|| format!("failed to save file \"{path_str}\""))
 }
 
-pub fn deep_merge(a: &mut Value, b: &Value) {
-    match (a, b) {
-        (&mut Value::Mapping(ref mut a), Value::Mapping(b)) => {
-            for (k, v) in b {
-                deep_merge(a.entry(k.clone()).or_insert(Value::Null), v);
+pub fn deep_merge(dst: &mut Value, src: &Value) {
+    match (dst, src) {
+        (Value::Mapping(dst), Value::Mapping(src)) => {
+            for (k, v) in src {
+                deep_merge(dst.entry(k.clone()).or_insert(Value::Null), v);
             }
         }
-        (a, b) => *a = b.clone(),
+        (dst, src) => *dst = src.clone(),
     }
 }
 

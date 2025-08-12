@@ -53,7 +53,6 @@ impl Config {
         crate::log_err!(Self::generate());
         if let Err(err) = Self::generate_file(ConfigType::Run) {
             tracing::error!("{err}");
-
             let runtime_path = dirs::app_home_dir()?.join(RUNTIME_CONFIG);
             // 如果不存在就将默认的clash文件拿过来
             if !runtime_path.exists() {
@@ -118,11 +117,12 @@ impl Config {
         verge_config.discard();
         profiles_config.discard();
         runtime_config.discard();
+
         // reload config data from yaml file
-        clash_config.data_mut().0 = Draft::from(IClashConfig::new()).data().0.clone();
-        *verge_config.data_mut() = Draft::from(IVerge::new()).data().clone();
-        *profiles_config.data_mut() = Draft::from(IProfiles::new()).data().clone();
-        *runtime_config.data_mut() = Draft::from(IRuntime::new()).data().clone();
+        *clash_config.data_mut() = IClashConfig::new();
+        *verge_config.data_mut() = IVerge::new();
+        *profiles_config.data_mut() = IProfiles::new();
+        *runtime_config.data_mut() = IRuntime::new();
 
         // generate runtime config
         Self::init_config()?;
