@@ -102,7 +102,7 @@ pub async fn install_service() -> AppResult<()> {
     let install_path = binary_path.with_file_name("install-service.exe");
 
     if !install_path.exists() {
-        return Err(AppError::Service("uninstaller not fount".to_string()));
+        return Err(AppError::Service("installer not fount".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -124,7 +124,7 @@ pub async fn install_service() -> AppResult<()> {
 
     if !status.success() {
         return Err(AppError::Service(format!(
-            "failed to uninstall service with status {:?}",
+            "failed to install service with status {:?}",
             status.code()
         )));
     }
@@ -179,7 +179,7 @@ pub async fn install_service() -> AppResult<()> {
     let installer_path = binary_path.with_file_name("install-service");
 
     if !installer_path.exists() {
-        return Err(AppError::Service("uninstaller not fount".to_string()));
+        return Err(AppError::Service("installer not fount".to_string()));
     }
     let log_dir = dirs::app_logs_dir()?.join("service");
     let shell = installer_path.to_string_lossy().replace(" ", "\\\\ ");
@@ -193,7 +193,7 @@ pub async fn install_service() -> AppResult<()> {
 
     if !status.success() {
         return Err(AppError::Service(format!(
-            "failed to uninstall service with status {:?}",
+            "failed to install service with status {:?}",
             status.code()
         )));
     }
@@ -272,7 +272,7 @@ pub async fn uninstall_service() -> AppResult<()> {
 
     if !status.success() {
         return Err(AppError::Service(format!(
-            "failed to install service with status {:?}",
+            "failed to uninstall service with status {:?}",
             status.code()
         )));
     }
@@ -301,7 +301,7 @@ pub async fn uninstall_service() -> AppResult<()> {
 
     if !status.success() {
         return Err(AppError::Service(format!(
-            "failed to install service with status {:?}",
+            "failed to uninstall service with status {:?}",
             status.code()
         )));
     }
