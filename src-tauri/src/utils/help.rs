@@ -1,4 +1,3 @@
-#[cfg(not(target_os = "windows"))]
 use crate::error::AppResult;
 use crate::{any_err, config::Config, error::AppError};
 use nanoid::nanoid;

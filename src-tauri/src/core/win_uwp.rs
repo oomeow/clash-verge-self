@@ -12,7 +12,7 @@ pub async fn invoke_uwptools() -> AppResult<()> {
     let tool_path = resource_dir.join("enableLoopback.exe");
 
     if !tool_path.exists() {
-        return Err(AppError::IoError(io::Error::new(
+        return Err(AppError::Io(io::Error::new(
             io::ErrorKind::NotFound,
             "enableLoopback exe not found",
         )));

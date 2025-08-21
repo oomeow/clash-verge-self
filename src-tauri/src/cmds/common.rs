@@ -47,7 +47,7 @@ pub fn grant_permission(_core: String) -> AppResult<()> {
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    Err("Unsupported target".into())
+    Err(any_err!("Unsupported target"))
 }
 
 /// get the system proxy

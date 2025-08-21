@@ -206,7 +206,7 @@ pub async fn uninstall_service() -> AppResult<()> {
     let uninstall_path = binary_path.with_file_name("uninstall-service.exe");
 
     if !uninstall_path.exists() {
-        bail!("uninstaller exe not found");
+        return Err(AppError::Service("uninstaller not fount".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -227,7 +227,10 @@ pub async fn uninstall_service() -> AppResult<()> {
     };
 
     if !status.success() {
-        bail!("failed to uninstall service with status {:?}", status.code());
+        return Err(AppError::Service(format!(
+            "failed to uninstall service with status {:?}",
+            status.code()
+        )));
     }
 
     Ok(())
@@ -277,7 +280,7 @@ pub async fn uninstall_service() -> AppResult<()> {
     let uninstaller_path = binary_path.with_file_name("uninstall-service");
 
     if !uninstaller_path.exists() {
-        bail!("uninstaller not found");
+        return Err(AppError::Service("uninstaller not fount".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -291,7 +294,10 @@ pub async fn uninstall_service() -> AppResult<()> {
     let status = StdCommand::new("osascript").args(vec!["-e", &command]).status()?;
 
     if !status.success() {
-        bail!("failed to install service with status {:?}", status.code());
+        return Err(AppError::Service(format!(
+            "failed to install service with status {:?}",
+            status.code()
+        )));
     }
 
     Ok(())

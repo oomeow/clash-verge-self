@@ -1,7 +1,6 @@
 use crate::config::{Config, IClashConfig, IProfiles, IVerge};
 use crate::core::handle;
 use crate::error::AppError;
-#[cfg(target_os = "linux")]
 use crate::error::AppResult;
 use crate::utils::{dirs, help};
 use crate::{any_err, trace_err};
