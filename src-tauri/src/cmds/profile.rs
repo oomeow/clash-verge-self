@@ -83,7 +83,6 @@ pub async fn update_profile(uid: String, option: Option<PrfOption>) -> AppResult
 
 #[tauri::command]
 pub async fn delete_profile(uid: String) -> AppResult<()> {
-    println!("delete profile {uid}");
     let restart_core = Config::profiles().data_mut().delete_item(uid)?;
     // the running profile is deleted, update the core config
     if restart_core {

@@ -302,77 +302,80 @@ impl IProfiles {
     /// if delete the current then return true
     pub fn delete_item(&mut self, uid: String) -> AppResult<bool> {
         let current = self.current.as_ref().unwrap_or(&uid);
-        let mut restart_core;
+        let delete_current = *current == uid;
+        let mut restart_core = delete_current;
 
-        let profile = self.get_item(&uid);
-        if let Some(profile) = profile {
-            // delete profile and profile chains
-            let mut remove_uids = vec![uid.clone()];
-            if let Some(profile_chain) = profile.chain.as_ref() {
-                // 删除的 profile 有 chain 时, 需要一同删除
-                remove_uids.extend(profile_chain.clone());
-                profile_chain
-                    .iter()
-                    .filter_map(|chain_uid| self.get_item(chain_uid))
-                    .for_each(|o| {
-                        tracing::debug!("delete profile chains");
-                        log_err!(o.delete_file())
+        let mut items = self.items.clone().unwrap_or_default();
+        if let Some(profile) = self.get_item(&uid) {
+            match profile.itype {
+                Some(ProfileType::Local | ProfileType::Remote) => {
+                    tracing::debug!("delete profile {:?}", profile.name);
+                    let mut remove_uids = vec![uid.clone()];
+                    if let Some(profile_chain) = profile.chain.as_ref() {
+                        remove_uids.extend(profile_chain.clone());
+                        profile_chain
+                            .iter()
+                            .filter_map(|chain_uid| self.get_item(chain_uid))
+                            .for_each(|o| {
+                                tracing::debug!("delete profile chains");
+                                log_err!(o.delete_file())
+                            });
+                    }
+
+                    profile.delete_file()?;
+                    items.retain(|i| {
+                        if let Some(uid_) = i.uid.as_ref()
+                            && !remove_uids.contains(uid_)
+                        {
+                            true
+                        } else {
+                            false
+                        }
                     });
-            }
-            profile.delete_file()?;
-
-            // check if need to restart core
-            let delete_current = uid == *current;
-            restart_core = delete_current;
-
-            let mut parent_profile = None;
-            if let Some(parent) = profile.parent.as_ref() {
-                // 修改父级订阅下的 chain，移除当前删除的 chain uid
-                parent_profile = self.get_item(parent).cloned();
-                if let Some(parent_profile) = parent_profile.as_mut()
-                    && let Some(p_chains) = parent_profile.chain.as_mut()
-                {
-                    p_chains.retain(|i| i != &uid);
-                }
-                // 判断是否需要重启内核
-                if *parent == *current
-                    && let Some(enable) = profile.enable.as_ref()
-                    && *enable
-                {
-                    restart_core = true;
-                }
-            }
-
-            let items = self.items.as_mut();
-            if let Some(items) = items {
-                // 如果删除的是某个订阅下的 chain，需要修改该订阅下的 chain 数据，移除删除的 chain 的 uid
-                // 该实现比较丑陋，需要重新优化
-                if let Some(parent_profile) = parent_profile
-                    && let Some(index) = items.iter().position(|i| i.uid == parent_profile.uid)
-                {
-                    items.retain(|i| i.uid != parent_profile.uid);
-                    items.insert(index, parent_profile);
-                }
-                // 移除当前删除的 profile 相关联的其他 profile
-                items.retain(|i| {
-                    if let Some(uid_) = i.uid.as_ref()
-                        && !remove_uids.contains(uid_)
-                    {
-                        true
-                    } else {
-                        false
-                    }
-                });
-                if delete_current {
-                    if let [first, ..] = items.as_slice()
-                        && let Some(uid) = first.uid.as_ref()
-                    {
-                        self.current = Some(uid.clone());
-                    } else {
-                        self.current = None
+                    // delete current profile, use next profile
+                    if delete_current {
+                        if let Some(first) = items.first()
+                            && let Some(uid) = first.uid.as_ref()
+                        {
+                            self.current = Some(uid.clone());
+                        } else {
+                            self.current = None
+                        }
                     }
                 }
+                Some(ProfileType::Merge | ProfileType::Script) => {
+                    tracing::debug!("delete enhance script {:?}", profile.name);
+                    // delete running profile chain, need to restart core
+                    if let Some(parent) = profile.parent.as_ref()
+                        && let Some(parent_profile) = items.iter_mut().find(|i| i.uid.as_ref() == Some(parent))
+                        && let Some(chains) = parent_profile.chain.as_mut()
+                    {
+                        // update profile chains
+                        chains.retain(|i| i != &uid);
+                        if let Some(enable) = profile.enable
+                            && enable
+                            && parent == current
+                        {
+                            restart_core = true;
+                        }
+                    }
+                    // delete running global chain, need to restart core
+                    if let Some(scope) = profile.scope.as_ref()
+                        && matches!(scope, ScopeType::Global)
+                        && let Some(enable) = profile.enable
+                        && enable
+                    {
+                        restart_core = true;
+                    }
+
+                    profile.delete_file()?;
+                    items.retain(|i| i.uid != Some(uid.clone()));
+                }
+                None => {
+                    return Err(AppError::InvalidValue("profile type is null".to_string()));
+                }
             }
+            self.items = Some(items);
         } else {
             tracing::debug!("reset profiles config");
             *self = Self::template();
