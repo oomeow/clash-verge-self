@@ -58,7 +58,6 @@ pub fn get_sys_proxy() -> AppResult<Mapping> {
     map.insert("enable".into(), current.enable.into());
     map.insert("server".into(), format!("{}:{}", current.host, current.port).into());
     map.insert("bypass".into(), current.bypass.replace("@as [", "").into());
-
     Ok(map)
 }
 

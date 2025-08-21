@@ -1,5 +1,3 @@
-use std::num::ParseIntError;
-
 use serde::Serialize;
 use thiserror::Error;
 
@@ -17,8 +15,8 @@ pub enum AppError {
     SerdeYaml(#[from] serde_yaml::Error),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
-    #[error("parse error: {0}")]
-    Parse(String),
+    #[error(transparent)]
+    ParseInt(#[from] std::num::ParseIntError),
     #[error("parse mihomo rule error: {0}")]
     RuleParse(#[from] mihomo_rule_parser::RuleParseError),
     #[error("system proxy error: {0}")]
@@ -51,8 +49,6 @@ pub enum AppError {
     // custom
     #[error("{0}")]
     Any(String),
-    #[error("patch config error: {0}")]
-    PatchConfig(String),
     #[error("invalid value: {0}")]
     InvalidValue(String),
     #[error("Clash Verge Service error: {0}")]
@@ -67,12 +63,6 @@ impl Serialize for AppError {
         S: serde::Serializer,
     {
         serializer.serialize_str(self.to_string().as_ref())
-    }
-}
-
-impl From<ParseIntError> for AppError {
-    fn from(value: ParseIntError) -> Self {
-        AppError::Parse(value.to_string())
     }
 }
 

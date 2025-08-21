@@ -257,9 +257,7 @@ impl IProfiles {
         }
 
         self.items = Some(items);
-        Err(AppError::PatchConfig(format!(
-            "failed to find the profile item \"uid:{uid}\""
-        )))
+        Err(any_err!("failed to find the profile item \"uid:{uid}\""))
     }
 
     /// be used to update the remote item

@@ -222,35 +222,35 @@ macro_rules! trace_err {
 
 /// wrap the anyhow error
 /// transform the error to String
-#[macro_export]
-macro_rules! wrap_err {
-    ($stat: expr) => {
-        match $stat {
-            Ok(a) => Ok(a),
-            Err(err) => {
-                tracing::error!("{}", err.to_string());
-                Err(format!("{}", err.to_string()))
-            }
-        }
-    };
-    ($stat: expr, $err_str: expr) => {
-        match $stat {
-            Ok(a) => Ok(a),
-            Err(err) => {
-                tracing::error!("{}, {}", $err_str, err.to_string());
-                Err(format!("{}, {}", $err_str, err.to_string()))
-            }
-        }
-    };
-}
+// #[macro_export]
+// macro_rules! wrap_err {
+//     ($stat: expr) => {
+//         match $stat {
+//             Ok(a) => Ok(a),
+//             Err(err) => {
+//                 tracing::error!("{}", err.to_string());
+//                 Err(format!("{}", err.to_string()))
+//             }
+//         }
+//     };
+//     ($stat: expr, $err_str: expr) => {
+//         match $stat {
+//             Ok(a) => Ok(a),
+//             Err(err) => {
+//                 tracing::error!("{}, {}", $err_str, err.to_string());
+//                 Err(format!("{}, {}", $err_str, err.to_string()))
+//             }
+//         }
+//     };
+// }
 
 /// return the string literal error
-#[macro_export]
-macro_rules! ret_err {
-    ($($arg: tt)*) => {
-        return Err(format!($($arg)*))
-    };
-}
+// #[macro_export]
+// macro_rules! ret_err {
+//     ($($arg: tt)*) => {
+//         return Err(format!($($arg)*))
+//     };
+// }
 
 #[test]
 fn test_parse_check_output() {

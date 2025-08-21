@@ -367,7 +367,7 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
         Err(err) => {
             tracing::error!("update failed, discard clash config");
             Config::clash().discard();
-            Err(AppError::PatchConfig(err.to_string()))
+            Err(err)
         }
     }
 }
@@ -411,7 +411,7 @@ pub async fn patch_verge(mut patch: IVerge) -> AppResult<()> {
         }
         Err(err) => {
             Config::verge().discard();
-            Err(AppError::PatchConfig(err.to_string()))
+            Err(err)
         }
     }
 }
