@@ -11,6 +11,7 @@ use crate::core::*;
 use crate::error::AppError;
 use crate::error::AppResult;
 use crate::log_err;
+// use crate::utils;
 use crate::utils::help;
 use crate::utils::resolve;
 use rust_i18n::t;
@@ -374,29 +375,29 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
 
 /// 修改verge的订阅
 /// 一般都是一个个的修改
-pub async fn patch_verge(mut patch: IVerge) -> AppResult<()> {
+pub async fn patch_verge(patch: IVerge) -> AppResult<()> {
     // handle window size when toggle system title bar enable on linux wayland
-    let enable_system_title_bar = patch.enable_system_title_bar;
-    if let Some(system_title_bar) = enable_system_title_bar
-        && cmds::common::is_wayland().unwrap_or(false)
-    {
-        tracing::debug!("calc windows size on linux wayland");
-        let verge_size_position = Config::verge().latest().window_size_position.clone();
-        if let Some(size_position) = verge_size_position {
-            let mut w = size_position[0];
-            let mut h = size_position[1];
-            let x = size_position[2];
-            let y = size_position[3];
-            if system_title_bar {
-                w += 90.;
-                h += 90.;
-            } else {
-                w -= 90.;
-                h -= 90.;
-            }
-            patch.window_size_position = Some(vec![w, h, x, y]);
-        }
-    }
+    // let enable_system_title_bar = patch.enable_system_title_bar;
+    // if let Some(system_title_bar) = enable_system_title_bar
+    //     && utils::unix_helper::is_wayland()
+    // {
+    //     tracing::debug!("calc windows size on linux wayland");
+    //     let verge_size_position = Config::verge().latest().window_size_position.clone();
+    //     if let Some(size_position) = verge_size_position {
+    //         let mut w = size_position[0];
+    //         let mut h = size_position[1];
+    //         let x = size_position[2];
+    //         let y = size_position[3];
+    //         if system_title_bar {
+    //             w += 90.;
+    //             h += 90.;
+    //         } else {
+    //             w -= 90.;
+    //             h -= 90.;
+    //         }
+    //         patch.window_size_position = Some(vec![w, h, x, y]);
+    //     }
+    // }
 
     tracing::debug!("patch verge draft");
     Config::verge().draft().patch_config(patch.clone());
