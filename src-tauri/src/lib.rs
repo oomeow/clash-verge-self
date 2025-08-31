@@ -109,7 +109,7 @@ pub fn run() -> AppResult<()> {
             cmds::common::open_logs_dir,
             cmds::common::open_web_url,
             cmds::common::open_core_dir,
-            cmds::common::get_portable_flag,
+            cmds::common::is_portable_version,
             cmds::common::is_wayland,
             cmds::common::restart_sidecar,
             cmds::common::grant_permission,

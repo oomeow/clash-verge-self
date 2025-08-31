@@ -293,8 +293,8 @@ export async function invoke_uwp_tool() {
   return invoke<void>("invoke_uwp_tool");
 }
 
-export async function getPortableFlag() {
-  return invoke<boolean>("get_portable_flag");
+export async function isPortableVersion() {
+  return invoke<boolean>("is_portable_version");
 }
 
 export async function openDevTools() {

@@ -1,7 +1,7 @@
 import { BaseDialog, DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifice";
 import { useWindowSize } from "@/hooks/use-window-size";
-import { portableFlag } from "@/pages/_layout";
+import { isPortable } from "@/pages/_layout";
 import {
   useSetUpdateState,
   useThemeMode,
@@ -60,7 +60,7 @@ export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
   }, [updateInfo]);
 
   const onUpdate = useLockFn(async () => {
-    if (portableFlag) {
+    if (isPortable) {
       notice("error", t("Portable Updater Error"));
       return;
     }

@@ -41,6 +41,7 @@ panic.info.content: "location: %{location}:\n\n%{payload}\n\n%{limit_backtrace}.
 
 # error result related
 tun.busy: Tun Device Or Resource Busy
+tun.need.permission: Please grant core permissions before turning on Tun mode
 config.parse.failed: Failed to parse config to yaml file
 config.convert.failed: Failed to convert config to yaml
 runtime.config.get.failed: Failed to get runtime config

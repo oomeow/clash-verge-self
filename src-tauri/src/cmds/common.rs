@@ -23,8 +23,8 @@ pub struct NetInfo {
 }
 
 #[tauri::command]
-pub fn get_portable_flag() -> AppResult<bool> {
-    Ok(*dirs::PORTABLE_FLAG.get().unwrap_or(&false))
+pub fn is_portable_version() -> AppResult<bool> {
+    Ok(dirs::is_portable_version())
 }
 
 #[tauri::command]

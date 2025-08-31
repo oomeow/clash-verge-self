@@ -6,7 +6,7 @@ import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { useVerge } from "@/hooks/use-verge";
 import { useVisibility } from "@/hooks/use-visibility";
 import LoadingPage from "@/pages/loading";
-import { getPortableFlag } from "@/services/cmds";
+import { isPortableVersion } from "@/services/cmds";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import { Paper, ThemeProvider } from "@mui/material";
@@ -22,7 +22,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SWRConfig, mutate } from "swr";
 
-export let portableFlag = false;
+export let isPortable = false;
 dayjs.extend(relativeTime);
 const OS = getSystem();
 let keepUIActive = false;
@@ -96,7 +96,7 @@ const Layout = () => {
     );
 
     setTimeout(async () => {
-      portableFlag = await getPortableFlag();
+      isPortable = await isPortableVersion();
       await appWindow.unminimize();
       await appWindow.show();
       await appWindow.setFocus();
