@@ -335,7 +335,7 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
 
         if update_tun_failed {
             if cfg!(target_os = "linux") && dirs::is_portable_version() {
-                Err(any_err!("{}", t!("tun.need.permission")))
+                Err(any_err!("{}", t!("tun.need.permissions")))
             } else {
                 Err(any_err!("{}", t!("tun.busy")))
             }
