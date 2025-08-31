@@ -1,5 +1,12 @@
+use std::sync::{
+    LazyLock,
+    atomic::{AtomicBool, Ordering},
+};
+
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 use crate::error::AppResult;
+
+pub static GRANT_PERMISSIONS: LazyLock<AtomicBool> = LazyLock::new(|| AtomicBool::new(false));
 
 /// 给clash内核的tun模式授权
 #[cfg(any(target_os = "macos", target_os = "linux"))]
@@ -40,6 +47,7 @@ pub fn grant_permission(core: String) -> AppResult<()> {
     };
 
     if output.status.success() {
+        GRANT_PERMISSIONS.store(true, Ordering::Release);
         Ok(())
     } else {
         use crate::{any_err, error::AppError};

@@ -22,7 +22,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SWRConfig, mutate } from "swr";
 
-export let isPortable = false;
+export let isPortable = true;
 dayjs.extend(relativeTime);
 const OS = getSystem();
 let keepUIActive = false;
@@ -96,7 +96,7 @@ const Layout = () => {
     );
 
     setTimeout(async () => {
-      isPortable = await isPortableVersion();
+      // isPortable = await isPortableVersion();
       await appWindow.unminimize();
       await appWindow.show();
       await appWindow.setFocus();

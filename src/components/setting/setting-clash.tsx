@@ -35,8 +35,9 @@ import { GuardState } from "./mods/guard-state";
 import { NetInfoViewer } from "./mods/net-info-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { WebUIViewer } from "./mods/web-ui-viewer";
+import { isPortable } from "@/pages/_layout";
 
-const isWIN = getSystem() === "windows";
+const OS = getSystem();
 
 interface Props {
   onError: (err: Error) => void;
@@ -131,11 +132,11 @@ const SettingClash = ({ onError }: Props) => {
       <NetInfoViewer ref={netInfoRef} />
 
       <SettingItem
-        disabled={serviceStatus !== "active"}
+        disabled={!isPortable && OS !== "linux" && serviceStatus !== "active"}
         label={t("Tun Mode")}
         extra={
           <>
-            {serviceStatus !== "active" ? (
+            {!isPortable && OS !== "linux" && serviceStatus !== "active" ? (
               <Tooltip title={t("Tun Mode Info")} placement="top">
                 <IconButton color="error" size="small">
                   <InfoRounded fontSize="inherit" />
@@ -158,7 +159,12 @@ const SettingClash = ({ onError }: Props) => {
           onFormat={onSwitchFormat}
           // onChange={(e) => onChangeData({ tun: { enable: e } })}
           onGuard={(e) => patchClash({ tun: { enable: e } })}>
-          <SwitchLovely disabled={serviceStatus !== "active"} edge="end" />
+          <SwitchLovely
+            disabled={
+              !isPortable && OS !== "linux" && serviceStatus !== "active"
+            }
+            edge="end"
+          />
         </GuardState>
       </SettingItem>
 
@@ -383,7 +389,7 @@ const SettingClash = ({ onError }: Props) => {
         <Typography sx={{ py: "7px", pr: 1 }}>{version}</Typography>
       </SettingItem>
 
-      {isWIN && (
+      {OS === "windows" && (
         <SettingItem onClick={invoke_uwp_tool} label={t("Open UWP tool")} />
       )}
 
