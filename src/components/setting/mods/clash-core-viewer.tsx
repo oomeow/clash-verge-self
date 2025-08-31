@@ -4,9 +4,12 @@ import { useNotice } from "@/components/base/notifice";
 import { useVerge } from "@/hooks/use-verge";
 import {
   changeClashCore,
-  grantPermission,
+  checkPermissionsGranted,
+  grantPermissions,
+  refreshPermissionsGranted,
   restartSidecar,
 } from "@/services/cmds";
+import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import { RestartAlt, SwitchAccessShortcut } from "@mui/icons-material";
 import {
@@ -21,7 +24,13 @@ import {
 import { emit } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
 import { debounce } from "lodash-es";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { PulseLoader } from "react-spinners";
 import { mutate } from "swr";
@@ -30,15 +39,12 @@ import {
   MihomoWebSocket,
   upgradeCore,
 } from "tauri-plugin-mihomo-api";
+import { isPortable } from "@/pages/_layout";
+import { useService } from "@/hooks/use-service";
 
 interface Props {
   serviceActive: boolean;
 }
-
-const VALID_CORE = [
-  { name: "Mihomo", core: "verge-mihomo" },
-  { name: "Mihomo Alpha", core: "verge-mihomo-alpha" },
-];
 
 const OS = getSystem();
 
@@ -46,20 +52,57 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
   const { serviceActive } = props;
   const { t } = useTranslation();
   const { notice } = useNotice();
-
+  const [mihomoCores, setMihomoCores] = useState([
+    { name: "Mihomo", core: "verge-mihomo", permissions_granted: false },
+    {
+      name: "Mihomo Alpha",
+      core: "verge-mihomo-alpha",
+      permissions_granted: false,
+    },
+  ]);
   const { verge, mutateVerge } = useVerge();
-
   const [open, setOpen] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [changingCore, setChangingCore] = useState(false);
+  const { clash_core = "verge-mihomo" } = verge ?? {};
+  const [currentCore, setCurrentCore] = useState(clash_core);
+  const { serviceStatus } = useService();
+
+  const showGrantPermissions =
+    isPortable &&
+    OS === "linux" &&
+    (serviceStatus === "uninstall" || serviceStatus === "unknown");
+
+  useEffect(() => {
+    checkMihomoPermissionsGranted();
+  }, []);
+
+  const checkMihomoPermissionsGranted = useCallback(async () => {
+    if (showGrantPermissions) {
+      for (let core of mihomoCores) {
+        const granted = await checkPermissionsGranted(core.core);
+        setMihomoCores((prev) =>
+          prev.map((c) =>
+            c.core === core.core ? { ...c, permissions_granted: granted } : c,
+          ),
+        );
+      }
+    }
+  }, [mihomoCores, showGrantPermissions]);
+
+  const refreshMihomoPermissions = useCallback(async () => {
+    if (showGrantPermissions) {
+      await refreshPermissionsGranted();
+      for (let core of mihomoCores) {
+        await checkMihomoPermissionsGranted();
+      }
+    }
+  }, [mihomoCores, showGrantPermissions]);
 
   useImperativeHandle(ref, () => ({
     open: () => setOpen(true),
     close: () => setOpen(false),
   }));
-
-  const { clash_core = "verge-mihomo" } = verge ?? {};
-  const [currentCore, setCurrentCore] = useState(clash_core);
 
   const onCoreChange = useLockFn(async (core: string) => {
     if (core === currentCore) return;
@@ -89,7 +132,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
 
   const onGrant = useLockFn(async (core: string) => {
     try {
-      await grantPermission(core);
+      await grantPermissions(core);
       // 自动重启
       if (core === currentCore) await restartSidecar();
       notice(
@@ -101,6 +144,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       );
     } catch (err: any) {
       notice("error", err.message || err.toString());
+    } finally {
+      await refreshMihomoPermissions();
     }
   });
 
@@ -129,6 +174,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       } else {
         notice("error", err.message || err.toString());
       }
+    } finally {
+      await refreshMihomoPermissions();
     }
   });
 
@@ -163,7 +210,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       hideCancelBtn
       onClose={() => setOpen(false)}>
       <List component="nav">
-        {VALID_CORE.map((each) => (
+        {mihomoCores.map((each) => (
           <ListItemButton
             key={each.core}
             selected={each.core === currentCore}
@@ -173,7 +220,26 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
             <ListItemIcon>
               <MetaIcon className="h-8 w-8" />
             </ListItemIcon>
-            <ListItemText primary={each.name} secondary={`/${each.core}`} />
+            <ListItemText
+              primary={
+                <div className="inline-flex items-center">
+                  <span>{each.name}</span>
+                  {showGrantPermissions && (
+                    <span
+                      className={cn(
+                        "ml-2 inline-block rounded-full bg-red-400 px-2 py-[2px] text-[10px] text-white",
+                        {
+                          "bg-primary-alpha text-primary-main":
+                            each.permissions_granted,
+                        },
+                      )}>
+                      {each.permissions_granted ? "已授权" : "未授权"}
+                    </span>
+                  )}
+                </div>
+              }
+              secondary={`/${each.core}`}
+            />
             {changingCore && each.core !== currentCore && (
               <PulseLoader
                 className="mr-4"
@@ -182,7 +248,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
               />
             )}
 
-            {(OS === "macos" || OS === "linux") && !serviceActive && (
+            {showGrantPermissions && (
               <Tooltip title={t("Update core requires")}>
                 <Button
                   variant="outlined"

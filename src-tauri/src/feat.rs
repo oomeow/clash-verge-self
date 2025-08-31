@@ -7,7 +7,7 @@
 use crate::any_err;
 use crate::cmds;
 use crate::config::*;
-use crate::core::manager::GRANT_PERMISSIONS;
+use crate::core::manager::check_permissions_granted;
 use crate::core::*;
 use crate::error::AppError;
 use crate::error::AppResult;
@@ -18,7 +18,6 @@ use crate::utils::resolve;
 use rust_i18n::t;
 use serde_yaml::{Mapping, Value};
 use service::JsonResponse;
-use std::sync::atomic::Ordering;
 use tauri::AppHandle;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::MessageDialogButtons;
@@ -337,7 +336,12 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
 
         if update_tun_failed {
             if cfg!(target_os = "linux") && dirs::is_portable_version() {
-                if GRANT_PERMISSIONS.load(Ordering::Acquire) {
+                let mihomo_core = Config::verge()
+                    .latest()
+                    .clash_core
+                    .clone()
+                    .unwrap_or("verge-mihomo".to_string());
+                if check_permissions_granted(mihomo_core)? {
                     Err(any_err!("{}", t!("tun.busy")))
                 } else {
                     Err(any_err!("{}", t!("tun.need.permissions")))

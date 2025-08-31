@@ -118,6 +118,9 @@ const SettingClash = ({ onError }: Props) => {
     }
   };
 
+  const disableTunSetting =
+    !(isPortable && OS === "linux") && serviceStatus !== "active";
+
   return (
     <SettingList title={t("Clash Setting")}>
       <TunViewer ref={tunRef} />
@@ -132,11 +135,11 @@ const SettingClash = ({ onError }: Props) => {
       <NetInfoViewer ref={netInfoRef} />
 
       <SettingItem
-        disabled={!isPortable && OS !== "linux" && serviceStatus !== "active"}
+        disabled={disableTunSetting}
         label={t("Tun Mode")}
         extra={
           <>
-            {!isPortable && OS !== "linux" && serviceStatus !== "active" ? (
+            {disableTunSetting ? (
               <Tooltip title={t("Tun Mode Info")} placement="top">
                 <IconButton color="error" size="small">
                   <InfoRounded fontSize="inherit" />
@@ -159,12 +162,7 @@ const SettingClash = ({ onError }: Props) => {
           onFormat={onSwitchFormat}
           // onChange={(e) => onChangeData({ tun: { enable: e } })}
           onGuard={(e) => patchClash({ tun: { enable: e } })}>
-          <SwitchLovely
-            disabled={
-              !isPortable && OS !== "linux" && serviceStatus !== "active"
-            }
-            edge="end"
-          />
+          <SwitchLovely disabled={disableTunSetting} edge="end" />
         </GuardState>
       </SettingItem>
 
