@@ -96,7 +96,7 @@ const Layout = () => {
     );
 
     setTimeout(async () => {
-      isPortable = await isPortableVersion();
+      portableFlag = await isPortableVersion();
       await appWindow.unminimize();
       await appWindow.show();
       await appWindow.setFocus();
