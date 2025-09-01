@@ -4,7 +4,7 @@ import { TunViewer } from "@/components/setting/mods/tun-viewer";
 import { useClash } from "@/hooks/use-clash";
 import { useService } from "@/hooks/use-service";
 import { useVerge } from "@/hooks/use-verge";
-import { invoke_uwp_tool } from "@/services/cmds";
+import { checkPermissionsGranted, invoke_uwp_tool } from "@/services/cmds";
 import { useClashLog } from "@/services/states";
 import getSystem from "@/utils/get-system";
 import {
@@ -24,7 +24,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 import { useNotice } from "../base/notifice";
@@ -36,6 +36,7 @@ import { NetInfoViewer } from "./mods/net-info-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { WebUIViewer } from "./mods/web-ui-viewer";
 import { isPortable } from "@/pages/_layout";
+import { usePermissionsGranted } from "@/hooks/use-permissions-granted";
 
 const OS = getSystem();
 
@@ -46,7 +47,6 @@ interface Props {
 const SettingClash = ({ onError }: Props) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-
   const { clash, version, patchClash } = useClash();
   const {
     ipv6,
@@ -59,14 +59,27 @@ const SettingClash = ({ onError }: Props) => {
 
   const { verge, mutateVerge, patchVerge } = useVerge();
   const {
+    clash_core = "verge-mihomo",
     enable_random_port = false,
     enable_service_mode = false,
     enable_external_controller = false,
   } = verge;
-
+  const { mihomoCores, checkMihomoPermissionsGranted } =
+    usePermissionsGranted();
   const { serviceStatus, mutateCheckService } = useService();
+
+  const showGrantPermissions =
+    isPortable &&
+    OS === "linux" &&
+    (serviceStatus === "uninstall" || serviceStatus === "unknown");
+
+  const permissionsGranted =
+    mihomoCores.find((core) => core.core === clash_core)?.permissions_granted ??
+    false;
+
   const disableTunSetting =
-    !(isPortable && OS === "linux") && serviceStatus !== "active";
+    !(isPortable && OS === "linux" && permissionsGranted) &&
+    serviceStatus !== "active";
   const [_clashLog, setClashLog] = useClashLog();
 
   const webRef = useRef<DialogRef>(null);
@@ -80,6 +93,7 @@ const SettingClash = ({ onError }: Props) => {
   useEffect(() => {
     if (!verge) return;
     mutateCheckService();
+    checkMihomoPermissionsGranted(clash_core);
   }, [verge]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;

@@ -120,7 +120,7 @@
   "System Setting": "System Setting",
   "Tun Mode": "Tun Mode",
   "Reset to Default": "Reset to Default",
-  "Tun Mode Info": "The Tun mode requires granting core-related permissions. Please enable service mode before using it",
+  "Tun Mode Info": "The Tun mode requires granting core-related permissions. Please enable service mode before using it or manual grant core permissions",
   "Stack": "Tun Stack",
   "System and Mixed Can Only be Used in Service Mode": "System and Mixed Can Only be Used in Service Mode",
   "Device": "Device Name",

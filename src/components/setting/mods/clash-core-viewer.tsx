@@ -41,6 +41,7 @@ import {
 } from "tauri-plugin-mihomo-api";
 import { isPortable } from "@/pages/_layout";
 import { useService } from "@/hooks/use-service";
+import { usePermissionsGranted } from "@/hooks/use-permissions-granted";
 
 interface Props {
   serviceActive: boolean;
@@ -52,20 +53,17 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
   const { serviceActive } = props;
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const [mihomoCores, setMihomoCores] = useState([
-    { name: "Mihomo", core: "verge-mihomo", permissions_granted: false },
-    {
-      name: "Mihomo Alpha",
-      core: "verge-mihomo-alpha",
-      permissions_granted: false,
-    },
-  ]);
   const { verge, mutateVerge } = useVerge();
   const [open, setOpen] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [changingCore, setChangingCore] = useState(false);
   const { clash_core = "verge-mihomo" } = verge ?? {};
   const [currentCore, setCurrentCore] = useState(clash_core);
+  const {
+    mihomoCores,
+    checkMihomoPermissionsGranted,
+    refreshMihomoPermissions,
+  } = usePermissionsGranted();
   const { serviceStatus } = useService();
 
   const showGrantPermissions =
@@ -74,30 +72,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
     (serviceStatus === "uninstall" || serviceStatus === "unknown");
 
   useEffect(() => {
-    checkMihomoPermissionsGranted();
-  }, []);
-
-  const checkMihomoPermissionsGranted = useCallback(async () => {
-    if (showGrantPermissions) {
-      for (let core of mihomoCores) {
-        const granted = await checkPermissionsGranted(core.core);
-        setMihomoCores((prev) =>
-          prev.map((c) =>
-            c.core === core.core ? { ...c, permissions_granted: granted } : c,
-          ),
-        );
-      }
-    }
-  }, [mihomoCores, showGrantPermissions]);
-
-  const refreshMihomoPermissions = useCallback(async () => {
-    if (showGrantPermissions) {
-      await refreshPermissionsGranted();
-      for (let core of mihomoCores) {
-        await checkMihomoPermissionsGranted();
-      }
-    }
-  }, [mihomoCores, showGrantPermissions]);
+    checkMihomoPermissionsGranted(clash_core);
+  }, [clash_core]);
 
   useImperativeHandle(ref, () => ({
     open: () => setOpen(true),

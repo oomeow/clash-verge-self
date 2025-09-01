@@ -120,7 +120,7 @@
   "System Setting": "系统设置",
   "Tun Mode": "Tun 模式",
   "Reset to Default": "重置为默认值",
-  "Tun Mode Info": "Tun 模式需要授予内核相关权限，使用前请先开启服务模式",
+  "Tun Mode Info": "Tun 模式需要授予内核相关权限，使用前请先开启服务模式或手动授权内核",
   "Stack": "Tun 模式堆栈",
   "System and Mixed Can Only be Used in Service Mode": "System 和 Mixed 只能在服务模式下使用",
   "Device": "Tun 网卡名称",
