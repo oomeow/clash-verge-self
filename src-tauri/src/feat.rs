@@ -7,7 +7,6 @@
 use crate::any_err;
 use crate::cmds;
 use crate::config::*;
-use crate::core::manager::check_permissions_granted;
 use crate::core::*;
 use crate::error::AppError;
 use crate::error::AppResult;
@@ -337,6 +336,8 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
         if update_tun_failed {
             #[cfg(target_os = "linux")]
             {
+                use crate::core::manager::check_permissions_granted;
+
                 if dirs::is_portable_version() {
                     let mihomo_core = Config::verge()
                         .latest()
