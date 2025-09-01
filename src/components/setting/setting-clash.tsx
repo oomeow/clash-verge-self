@@ -66,7 +66,7 @@ const SettingClash = ({ onError }: Props) => {
 
   const { serviceStatus, mutateCheckService } = useService();
   const disableTunSetting =
-    !(false && OS === "linux") && serviceStatus !== "active";
+    !(isPortable && OS === "linux") && serviceStatus !== "active";
   const [_clashLog, setClashLog] = useClashLog();
 
   const webRef = useRef<DialogRef>(null);
