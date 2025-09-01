@@ -8,7 +8,7 @@ export const useService = () => {
     revalidateIfStale: false,
     shouldRetryOnError: false,
     focusThrottleInterval: 36e5, // 1 hour
-    fallbackData: "unknown",
+    fallbackData: "uninstall",
   });
 
   return { serviceStatus, mutateCheckService };

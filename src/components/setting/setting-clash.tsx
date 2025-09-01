@@ -48,15 +48,6 @@ const SettingClash = ({ onError }: Props) => {
   const { notice } = useNotice();
 
   const { clash, version, patchClash } = useClash();
-  const { verge, mutateVerge, patchVerge } = useVerge();
-  const { serviceStatus, mutateCheckService } = useService();
-
-  useEffect(() => {
-    if (!verge) return;
-
-    mutateCheckService();
-  }, [verge]);
-
   const {
     ipv6,
     "allow-lan": allowLan,
@@ -66,11 +57,17 @@ const SettingClash = ({ onError }: Props) => {
     tun,
   } = clash ?? {};
 
+  const { verge, mutateVerge, patchVerge } = useVerge();
   const {
     enable_random_port = false,
     enable_service_mode = false,
     enable_external_controller = false,
-  } = verge ?? {};
+  } = verge;
+
+  const { serviceStatus, mutateCheckService } = useService();
+  const disableTunSetting =
+    !(false && OS === "linux") && serviceStatus !== "active";
+  const [_clashLog, setClashLog] = useClashLog();
 
   const webRef = useRef<DialogRef>(null);
   const portRef = useRef<DialogRef>(null);
@@ -80,7 +77,10 @@ const SettingClash = ({ onError }: Props) => {
   const serviceRef = useRef<DialogRef>(null);
   const netInfoRef = useRef<DialogRef>(null);
 
-  const [_clashLog, setClashLog] = useClashLog();
+  useEffect(() => {
+    if (!verge) return;
+    mutateCheckService();
+  }, [verge]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onChangeVerge = (patch: Partial<IVergeConfig>) => {
@@ -117,9 +117,6 @@ const SettingClash = ({ onError }: Props) => {
       notice("error", err.message || err.toString());
     }
   };
-
-  const disableTunSetting =
-    !(isPortable && OS === "linux") && serviceStatus !== "active";
 
   return (
     <SettingList title={t("Clash Setting")}>
