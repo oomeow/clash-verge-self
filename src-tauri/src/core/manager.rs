@@ -16,7 +16,6 @@ static GRANTED_PERMISSIONS: LazyLock<RwLock<HashMap<String, Option<bool>>>> = La
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 pub fn grant_permissions(core: String) -> AppResult<()> {
     use crate::utils::dirs;
-    use crate::utils::unix_helper;
     use std::process::Command;
     use tauri::utils::platform::current_exe;
 
@@ -35,6 +34,8 @@ pub fn grant_permissions(core: String) -> AppResult<()> {
 
     #[cfg(target_os = "linux")]
     let output = {
+        use crate::utils::unix_helper;
+
         let path = path.replace(' ', "\\ "); // 避免路径中有空格
         let shell = format!("setcap cap_net_bind_service,cap_net_admin,cap_dac_override=+ep {path}");
         let sudo = unix_helper::linux_elevator();
