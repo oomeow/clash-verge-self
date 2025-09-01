@@ -1,10 +1,10 @@
+#![cfg(any(target_os = "macos", target_os = "linux"))]
+
+use crate::error::AppResult;
+use parking_lot::RwLock;
 use std::{collections::HashMap, sync::LazyLock};
 
-use parking_lot::RwLock;
-
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-use crate::error::AppResult;
-
 static GRANTED_PERMISSIONS: LazyLock<RwLock<HashMap<String, Option<bool>>>> = LazyLock::new(|| {
     RwLock::new(HashMap::from_iter([
         (String::from("verge-mihomo"), None),
