@@ -335,20 +335,25 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
         }
 
         if update_tun_failed {
-            if cfg!(target_os = "linux") && dirs::is_portable_version() {
-                let mihomo_core = Config::verge()
-                    .latest()
-                    .clash_core
-                    .clone()
-                    .unwrap_or("verge-mihomo".to_string());
-                if check_permissions_granted(mihomo_core)? {
-                    Err(any_err!("{}", t!("tun.busy")))
+            #[cfg(target_os = "linux")]
+            {
+                if dirs::is_portable_version() {
+                    let mihomo_core = Config::verge()
+                        .latest()
+                        .clash_core
+                        .clone()
+                        .unwrap_or("verge-mihomo".to_string());
+                    if check_permissions_granted(mihomo_core)? {
+                        Err(any_err!("{}", t!("tun.busy")))
+                    } else {
+                        Err(any_err!("{}", t!("tun.need.permissions")))
+                    }
                 } else {
-                    Err(any_err!("{}", t!("tun.need.permissions")))
+                    Err(any_err!("{}", t!("tun.busy")))
                 }
-            } else {
-                Err(any_err!("{}", t!("tun.busy")))
             }
+            #[cfg(not(target_os = "linux"))]
+            Err(any_err!("{}", t!("tun.busy")))
         } else {
             // 重新载入订阅
             if patch.get("unified-delay").is_some() {

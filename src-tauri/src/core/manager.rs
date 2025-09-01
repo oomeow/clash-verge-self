@@ -94,6 +94,7 @@ pub fn check_permissions_granted(core: String) -> AppResult<bool> {
     }
 }
 
+#[cfg(target_os = "linux")]
 pub fn refresh_permissions_granted() -> AppResult<()> {
     GRANTED_PERMISSIONS.write().iter_mut().for_each(|(_, v)| *v = None);
     let mihomo_cores = ["verge-mihomo", "verge-mihomo-alpha"];
