@@ -338,7 +338,7 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
             {
                 use crate::core::manager::check_permissions_granted;
 
-                if dirs::is_portable_version() {
+                if dirs::is_portable_version() && !Config::verge().latest().enable_service_mode.unwrap_or_default() {
                     let mihomo_core = Config::verge()
                         .latest()
                         .clash_core
