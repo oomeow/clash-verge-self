@@ -167,9 +167,10 @@ impl CoreManager {
             }
         } else {
             VergeLog::global().reset_service_log_file();
-            if !dirs::is_portable_version() {
-                // note: ** linux portable can enable tun mode without enable service mode. **
-                // service mode is disable and the app is not portable version, patch the config: disable tun mode
+            let is_linux_portable = cfg!(target_os = "linux") && dirs::is_portable_version();
+            // note: ** linux portable can enable tun mode without enable service mode, so don't patch config file to disable tun **
+            if !is_linux_portable {
+                // tun is disable by default on sidecar mode, if service mode is disable, patch the config to disable tun mode
                 Config::clash().latest_mut().patch_and_merge_config(disable_tun.clone());
                 Config::clash().latest().save_config()?;
                 Config::runtime().latest_mut().patch_config(disable_tun);
