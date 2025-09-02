@@ -210,9 +210,9 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
                   {showGrantPermissions && (
                     <div
                       className={cn(
-                        "ml-2 inline-block rounded-full bg-red-400 px-2 py-[2px] text-[10px] text-white",
+                        "ml-2 inline-block rounded-full bg-red-600/60 px-2 py-[2px] text-[10px] text-white",
                         {
-                          "bg-green-500": each.permissionsGranted,
+                          "bg-green-600/60": each.permissionsGranted,
                         },
                       )}>
                       {each.permissionsGranted
