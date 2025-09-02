@@ -4,7 +4,7 @@ import { TunViewer } from "@/components/setting/mods/tun-viewer";
 import { useClash } from "@/hooks/use-clash";
 import { useService } from "@/hooks/use-service";
 import { useVerge } from "@/hooks/use-verge";
-import { checkPermissionsGranted, invoke_uwp_tool } from "@/services/cmds";
+import { invoke_uwp_tool } from "@/services/cmds";
 import { useClashLog } from "@/services/states";
 import getSystem from "@/utils/get-system";
 import {
@@ -24,7 +24,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 import { useNotice } from "../base/notifice";
@@ -35,8 +35,8 @@ import { GuardState } from "./mods/guard-state";
 import { NetInfoViewer } from "./mods/net-info-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { WebUIViewer } from "./mods/web-ui-viewer";
-import { isPortable } from "@/pages/_layout";
-import { usePermissionsGranted } from "@/hooks/use-permissions-granted";
+import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
+import { usePortable } from "@/hooks/use-portable";
 
 const OS = getSystem();
 
@@ -47,7 +47,7 @@ interface Props {
 const SettingClash = ({ onError }: Props) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const { clash, version, patchClash } = useClash();
+  const { clash, patchClash } = useClash();
   const {
     ipv6,
     "allow-lan": allowLan,
@@ -64,22 +64,21 @@ const SettingClash = ({ onError }: Props) => {
     enable_service_mode = false,
     enable_external_controller = false,
   } = verge;
-  const { mihomoCores, checkMihomoPermissionsGranted } =
-    usePermissionsGranted();
   const { serviceStatus, mutateCheckService } = useService();
 
-  const showGrantPermissions =
-    isPortable &&
-    OS === "linux" &&
-    (serviceStatus === "uninstall" || serviceStatus === "unknown");
+  const { mihomoCoresInfo } = useMihomoCoresInfo();
+  const mihomoVersion =
+    mihomoCoresInfo.find((core) => core.core === clash_core)?.version ??
+    "Unknown";
 
   const permissionsGranted =
-    mihomoCores.find((core) => core.core === clash_core)?.permissions_granted ??
-    false;
+    mihomoCoresInfo.find((core) => core.core === clash_core)
+      ?.permissionsGranted ?? false;
 
+  const { portable } = usePortable();
+  const isLinuxPortable = portable && OS === "linux";
   const disableTunSetting =
-    !(isPortable && OS === "linux" && permissionsGranted) &&
-    serviceStatus !== "active";
+    !(isLinuxPortable && permissionsGranted) && serviceStatus !== "active";
   const [_clashLog, setClashLog] = useClashLog();
 
   const webRef = useRef<DialogRef>(null);
@@ -93,7 +92,6 @@ const SettingClash = ({ onError }: Props) => {
   useEffect(() => {
     if (!verge) return;
     mutateCheckService();
-    checkMihomoPermissionsGranted(clash_core);
   }, [verge]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
@@ -395,7 +393,7 @@ const SettingClash = ({ onError }: Props) => {
             />
           </IconButton>
         }>
-        <Typography sx={{ py: "7px", pr: 1 }}>{version}</Typography>
+        <Typography sx={{ py: "7px", pr: 1 }}>{mihomoVersion}</Typography>
       </SettingItem>
 
       {OS === "windows" && (

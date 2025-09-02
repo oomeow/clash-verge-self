@@ -98,7 +98,6 @@ impl CoreManager {
     }
 
     /// 启动核心
-    /// TODO: 通过 service 启动的内核，Logger会丢失, 无法通过 Logger::global().set_log() 方法更新日志
     pub async fn run_core(&self) -> AppResult<()> {
         tracing::info!("run core");
         // clear logs
@@ -112,21 +111,21 @@ impl CoreManager {
         )]);
 
         if self.sidecar.lock().is_some() {
-            self.need_restart_core.store(false, Ordering::Release);
+            self.need_restart_core.store(false, Ordering::SeqCst);
             self.sidecar.lock().take();
             // 关闭 tun 模式
             tracing::debug!("disable tun mode");
-            let _ = handle::Handle::mihomo().await.patch_base_config(&disable_tun).await;
+            handle::Handle::mihomo().await.patch_base_config(&disable_tun).await?;
         }
 
-        if self.use_service_mode.load(Ordering::Acquire) {
+        if self.use_service_mode.load(Ordering::SeqCst) {
             tracing::debug!("stop the core by service");
             log_err!(service::stop_core_by_service().await);
         }
 
         // 服务模式
         let enable = Config::verge().latest().enable_service_mode.unwrap_or_default();
-        self.use_service_mode.store(enable, Ordering::Release);
+        self.use_service_mode.store(enable, Ordering::SeqCst);
 
         handle::Handle::mihomo().await.clear_all_ws_connections().await?;
         let mut system = System::new();
@@ -162,20 +161,23 @@ impl CoreManager {
                 }
                 Err(err) => {
                     // 修改这个值，免得stop出错
-                    self.use_service_mode.store(false, Ordering::Release);
+                    self.use_service_mode.store(false, Ordering::SeqCst);
                     tracing::error!("failed to run core by service, {err}");
                 }
             }
         } else {
             VergeLog::global().reset_service_log_file();
-            // service mode is disable, patch the config: disable tun mode
-            Config::clash().latest_mut().patch_and_merge_config(disable_tun.clone());
-            Config::clash().latest().save_config()?;
-            Config::runtime().latest_mut().patch_config(disable_tun);
-            Config::generate_file(ConfigType::Run)?;
-            // emit refresh clash event and update tray menu
-            handle::Handle::refresh_clash();
-            handle::Handle::update_systray_part()?;
+            if !dirs::is_portable_version() {
+                // note: ** linux portable can enable tun mode without enable service mode. **
+                // service mode is disable and the app is not portable version, patch the config: disable tun mode
+                Config::clash().latest_mut().patch_and_merge_config(disable_tun.clone());
+                Config::clash().latest().save_config()?;
+                Config::runtime().latest_mut().patch_config(disable_tun);
+                Config::generate_file(ConfigType::Run)?;
+                // emit refresh clash event and update tray menu
+                handle::Handle::refresh_clash();
+                handle::Handle::update_systray_part()?;
+            }
         }
 
         let app_dir = dirs::app_home_dir()?;
@@ -236,8 +238,8 @@ impl CoreManager {
 
     /// 重启内核
     pub fn recover_core(&self) -> AppResult<()> {
-        let is_service_mode = self.use_service_mode.load(Ordering::Acquire);
-        let need_restart_core = self.need_restart_core.load(Ordering::Acquire);
+        let is_service_mode = self.use_service_mode.load(Ordering::SeqCst);
+        let need_restart_core = self.need_restart_core.load(Ordering::SeqCst);
         tracing::info!("core terminated, need to restart it? [{need_restart_core}]");
         // 服务模式 / 切换内核 不进行恢复
         if is_service_mode || !need_restart_core {
@@ -263,7 +265,7 @@ impl CoreManager {
     /// 停止核心运行
     pub async fn stop_core(&self) -> AppResult<()> {
         tracing::info!("stop core");
-        self.need_restart_core.store(false, Ordering::Release);
+        self.need_restart_core.store(false, Ordering::SeqCst);
         // 关闭tun模式
         let disable_tun = Mapping::from_iter([(
             "tun".into(),
@@ -273,7 +275,7 @@ impl CoreManager {
         tracing::info!("disable tun mode");
         let _ = handle::Handle::mihomo().await.patch_base_config(&disable_tun).await;
 
-        if self.use_service_mode.load(Ordering::Acquire) {
+        if self.use_service_mode.load(Ordering::SeqCst) {
             tracing::info!("stop the core by service");
             log_err!(service::stop_core_by_service().await);
             return Ok(());
@@ -303,7 +305,7 @@ impl CoreManager {
 
     /// 切换核心
     pub async fn change_core(&self, clash_core: Option<String>) -> AppResult<()> {
-        self.need_restart_core.store(false, Ordering::Release);
+        self.need_restart_core.store(false, Ordering::SeqCst);
 
         let clash_core = clash_core.ok_or(AppError::InvalidValue("clash core is null".to_string()))?;
         const CLASH_CORES: [&str; 2] = ["verge-mihomo", "verge-mihomo-alpha"];
@@ -321,13 +323,13 @@ impl CoreManager {
                 Config::verge().apply();
                 Config::runtime().apply();
                 log_err!(Config::verge().latest().save_file());
-                self.need_restart_core.store(true, Ordering::Release);
+                self.need_restart_core.store(true, Ordering::SeqCst);
                 Ok(())
             }
             Err(err) => {
                 Config::verge().discard();
                 Config::runtime().discard();
-                self.need_restart_core.store(true, Ordering::Release);
+                self.need_restart_core.store(true, Ordering::SeqCst);
                 Err(err)
             }
         }

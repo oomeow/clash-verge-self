@@ -4,9 +4,7 @@ import { useNotice } from "@/components/base/notifice";
 import { useVerge } from "@/hooks/use-verge";
 import {
   changeClashCore,
-  checkPermissionsGranted,
   grantPermissions,
-  refreshPermissionsGranted,
   restartSidecar,
 } from "@/services/cmds";
 import { cn } from "@/utils";
@@ -19,18 +17,11 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Tooltip,
 } from "@mui/material";
 import { emit } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
 import { debounce } from "lodash-es";
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useState,
-} from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PulseLoader } from "react-spinners";
 import { mutate } from "swr";
@@ -39,9 +30,10 @@ import {
   MihomoWebSocket,
   upgradeCore,
 } from "tauri-plugin-mihomo-api";
-import { isPortable } from "@/pages/_layout";
 import { useService } from "@/hooks/use-service";
-import { usePermissionsGranted } from "@/hooks/use-permissions-granted";
+import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
+import { usePortable } from "@/hooks/use-portable";
+import { useClash } from "@/hooks/use-clash";
 
 interface Props {
   serviceActive: boolean;
@@ -54,26 +46,21 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const { verge, mutateVerge } = useVerge();
+  const { clash_core = "verge-mihomo" } = verge;
+  const { clash } = useClash();
+  const { tun } = clash ?? {};
   const [open, setOpen] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
-  const [changingCore, setChangingCore] = useState(false);
-  const { clash_core = "verge-mihomo" } = verge ?? {};
-  const [currentCore, setCurrentCore] = useState(clash_core);
-  const {
-    mihomoCores,
-    checkMihomoPermissionsGranted,
-    refreshMihomoPermissions,
-  } = usePermissionsGranted();
+  const [changingCore, setChangingCore] = useState("");
+  const { mihomoCoresInfo, refreshMihomoVersion, refreshMihomoPermissions } =
+    useMihomoCoresInfo();
   const { serviceStatus } = useService();
 
+  const { portable } = usePortable();
+  const isLinuxPortable = portable && OS === "linux";
   const showGrantPermissions =
-    isPortable &&
-    OS === "linux" &&
+    isLinuxPortable &&
     (serviceStatus === "uninstall" || serviceStatus === "unknown");
-
-  useEffect(() => {
-    checkMihomoPermissionsGranted(clash_core);
-  }, [clash_core]);
 
   useImperativeHandle(ref, () => ({
     open: () => setOpen(true),
@@ -81,13 +68,25 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
   }));
 
   const onCoreChange = useLockFn(async (core: string) => {
-    if (core === currentCore) return;
+    if (core === clash_core) return;
+    if (isLinuxPortable) {
+      const enableTun = tun?.enable ?? false;
+      const permissionsGranted =
+        mihomoCoresInfo.find((info) => info.core === core)
+          ?.permissionsGranted ?? false;
+      if (enableTun && !permissionsGranted) {
+        notice(
+          "warning",
+          t("Please grant permissions for _clash Core", { core: `${core}` }),
+        );
+        return;
+      }
+    }
 
     try {
-      setChangingCore(true);
+      setChangingCore(core);
       closeAllConnections();
       await changeClashCore(core);
-      setCurrentCore(core);
       mutateVerge();
       await MihomoWebSocket.cleanupAll();
       setTimeout(() => {
@@ -102,7 +101,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
     } catch (err: any) {
       notice("error", err.message || err.toString());
     } finally {
-      setChangingCore(false);
+      setChangingCore("");
     }
   });
 
@@ -110,7 +109,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
     try {
       await grantPermissions(core);
       // 自动重启
-      if (core === currentCore) await restartSidecar();
+      if (core === clash_core) await restartSidecar();
       notice(
         "success",
         t("Permissions Granted Successfully for _clash Core", {
@@ -152,6 +151,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       }
     } finally {
       await refreshMihomoPermissions();
+      await refreshMihomoVersion();
     }
   });
 
@@ -184,39 +184,47 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       }
       hideOkBtn
       hideCancelBtn
+      contentStyle={{ minWidth: 480 }}
       onClose={() => setOpen(false)}>
       <List component="nav">
-        {mihomoCores.map((each) => (
+        {mihomoCoresInfo.map((each) => (
           <ListItemButton
+            sx={{ pl: "2px" }}
             key={each.core}
-            selected={each.core === currentCore}
+            selected={each.core === clash_core}
             onClick={async () => {
               await onCoreChange(each.core);
             }}>
             <ListItemIcon>
-              <MetaIcon className="h-8 w-8" />
+              <div className="mx-1 flex w-[80px] flex-col items-center">
+                <MetaIcon className="h-8 w-8" />
+                <div className="bg-primary-alpha text-primary-main inline-block w-fit rounded-full px-2 py-[2px] text-[10px]">
+                  {each.version}
+                </div>
+              </div>
             </ListItemIcon>
             <ListItemText
               primary={
                 <div className="inline-flex items-center">
                   <span>{each.name}</span>
                   {showGrantPermissions && (
-                    <span
+                    <div
                       className={cn(
                         "ml-2 inline-block rounded-full bg-red-400 px-2 py-[2px] text-[10px] text-white",
                         {
-                          "bg-primary-alpha text-primary-main":
-                            each.permissions_granted,
+                          "bg-green-500": each.permissionsGranted,
                         },
                       )}>
-                      {each.permissions_granted ? "已授权" : "未授权"}
-                    </span>
+                      {each.permissionsGranted
+                        ? t("Granted")
+                        : t("Not Granted")}
+                    </div>
                   )}
                 </div>
               }
               secondary={`/${each.core}`}
             />
-            {changingCore && each.core !== currentCore && (
+            {changingCore === each.core && (
               <PulseLoader
                 className="mr-4"
                 size={6}
@@ -225,18 +233,16 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
             )}
 
             {showGrantPermissions && (
-              <Tooltip title={t("Update core requires")}>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onGrant(each.core);
-                  }}>
-                  {t("Grant")}
-                </Button>
-              </Tooltip>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onGrant(each.core);
+                }}>
+                {each.permissionsGranted ? t("Re-Grant") : t("Grant")}
+              </Button>
             )}
           </ListItemButton>
         ))}
