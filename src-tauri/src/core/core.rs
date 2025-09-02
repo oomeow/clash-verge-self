@@ -112,10 +112,12 @@ impl CoreManager {
 
         if self.sidecar.lock().is_some() {
             self.need_restart_core.store(false, Ordering::SeqCst);
-            self.sidecar.lock().take();
             // 关闭 tun 模式
             tracing::debug!("disable tun mode");
             handle::Handle::mihomo().await.patch_base_config(&disable_tun).await?;
+            if let Some(sidecar) = self.sidecar.lock().take() {
+                sidecar.kill()?;
+            }
         }
 
         if self.use_service_mode.load(Ordering::SeqCst) {
@@ -204,6 +206,9 @@ impl CoreManager {
         let (mut rx, cmd_child) = cmd.args(args).spawn()?;
         {
             let mut sidecar = self.sidecar.lock();
+            if let Some(sidecar) = sidecar.take() {
+                sidecar.kill()?;
+            }
             *sidecar = Some(cmd_child);
         }
         tauri::async_runtime::spawn(async move {
@@ -247,7 +252,9 @@ impl CoreManager {
             return Ok(());
         }
         // 清空原来的 sidecar 值
-        let _ = self.sidecar.lock().take();
+        if let Some(sidecar) = self.sidecar.lock().take() {
+            sidecar.kill()?;
+        }
         let need_restart_core_ = need_restart_core;
         tauri::async_runtime::spawn(async move {
             if need_restart_core_ {
