@@ -23,39 +23,39 @@
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*clipboard-manager/"],
-      "groupName": ["tauri plugin clipboard manager deps"]
+      "groupName": "tauri plugin clipboard manager deps"
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*dialog/"],
-      "groupName": ["tauri plugin dialog deps"]
+      "groupName": "tauri plugin dialog deps"
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*fs/"],
-      "groupName": ["tauri plugin fs deps"]
+      "groupName": "tauri plugin fs deps"
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*global-shortcut/"],
-      "groupName": ["tauri plugin global shortcut deps"]
+      "groupName": "tauri plugin global shortcut deps"
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*notification/"],
-      "groupName": ["tauri plugin notification deps"]
+      "groupName": "tauri plugin notification deps"
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*opener/"],
-      "groupName": ["tauri plugin openner deps"]
+      "groupName": "tauri plugin openner deps"
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*process/"],
-      "groupName": ["tauri plugin process deps"]
+      "groupName": "tauri plugin process deps"
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*shell/"],
-      "groupName": ["tauri plugin shell deps"]
+      "groupName": "tauri plugin shell deps"
     },
     {
       "matchPackageNames": ["/tauri.*plugin.*updater/"],
-      "groupName": ["tauri plugin updater deps"]
+      "groupName": "tauri plugin updater deps"
     }
   ]
 }
