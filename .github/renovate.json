@@ -22,40 +22,40 @@
       "versioning": "22.04"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*clipboard-manager/i",
-      "groupName": ["tauri plugin clipboard manager deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*clipboard-manager/i",
+      "groupName": "tauri plugin clipboard manager deps"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*dialog/i",
-      "groupName": ["tauri plugin dialog deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*dialog/i",
+      "groupName": "tauri plugin dialog deps"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*fs/i",
-      "groupName": ["tauri plugin fs deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*fs/i",
+      "groupName": "tauri plugin fs deps"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*global-shortcut/i",
-      "groupName": ["tauri plugin global shortcut deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*global-shortcut/i",
+      "groupName": "tauri plugin global shortcut deps"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*notification/i",
-      "groupName": ["tauri plugin notification deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*notification/i",
+      "groupName": "tauri plugin notification deps"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*opener/i",
-      "groupName": ["tauri plugin openner deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*opener/i",
+      "groupName": "tauri plugin openner deps"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*process/i",
-      "groupName": ["tauri plugin process deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*process/i",
+      "groupName": "tauri plugin process deps"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*shell/i",
-      "groupName": ["tauri plugin shell deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*shell/i",
+      "groupName": "tauri plugin shell deps"
     },
     {
-      "matchPackageNames": "/tauri.*plugin.*updater/i",
-      "groupName": ["tauri plugin updater deps"]
+      "matchPackageNames": "/^.*tauri.*plugin.*updater/i",
+      "groupName": "tauri plugin updater deps"
     }
   ]
 }
