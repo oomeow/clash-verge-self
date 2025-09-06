@@ -102,11 +102,13 @@ trait Parser {
 
 pub fn parse<P: AsRef<Path>>(file_path: P, behavior: RuleBehavior, format: RuleFormat) -> Result<RulePayload> {
     let buf = std::fs::read(file_path)?;
-    match behavior {
-        RuleBehavior::Domain => DomainParseStrategy::parse(&buf, format),
-        RuleBehavior::IpCidr => IpCidrParseStrategy::parse(&buf, format),
-        RuleBehavior::Classical => ClassicalParseStrategy::parse(&buf, format),
-    }
+    let rule = match behavior {
+        RuleBehavior::Domain => DomainParseStrategy::parse(&buf, format)?,
+        RuleBehavior::IpCidr => IpCidrParseStrategy::parse(&buf, format)?,
+        RuleBehavior::Classical => ClassicalParseStrategy::parse(&buf, format)?,
+    };
+    drop(buf);
+    Ok(rule)
 }
 
 #[cfg(test)]
