@@ -4,12 +4,11 @@ use mihomo_rule_parser::{RuleBehavior, RuleFormat, RulePayload};
 use rust_i18n::t;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
-use tokio::task::JoinHandle;
 
 use crate::{
     any_err,
     config::{ClashInfo, Config},
-    core::{CoreManager, handle, logger, service},
+    core::{CoreManager, logger, service},
     enhance::{self, LogMessage, MergeResult},
     error::{AppError, AppResult},
     feat,
@@ -87,44 +86,17 @@ pub async fn get_clash_logs() -> AppResult<VecDeque<String>> {
 }
 
 #[tauri::command]
-pub async fn get_rule_providers_payload() -> AppResult<HashMap<String, RulePayload>> {
-    let mihomo = handle::Handle::mihomo().await;
-    let rule_providers = mihomo.get_rule_providers().await?;
-
-    let mut handles = vec![];
-    if let Some(rule_provider_paths) = Config::profiles()
+pub async fn get_rule_provider_payload(
+    provider_name: String,
+    behavior: RuleBehavior,
+    format: RuleFormat,
+) -> AppResult<RulePayload> {
+    let file_path = Config::profiles()
         .latest()
-        .get_current_profile_rule_providers()
-        .cloned()
-    {
-        for (name, rule_provider) in rule_providers.providers.into_iter() {
-            if let Some(file_path) = rule_provider_paths.get(&name).cloned() {
-                let handle: JoinHandle<AppResult<HashMap<String, RulePayload>>> = tokio::spawn(async move {
-                    let behavior = match rule_provider.behavior.as_str() {
-                        "Domain" => RuleBehavior::Domain,
-                        "IPCIDR" => RuleBehavior::IpCidr,
-                        "Classical" => RuleBehavior::Classical,
-                        _ => return Err(AppError::InvalidValue("Unknown rule behavior".into())),
-                    };
-                    let format = match rule_provider.format.as_str() {
-                        "MrsRule" => RuleFormat::Mrs,
-                        "YamlRule" => RuleFormat::Yaml,
-                        "TextRule" => RuleFormat::Text,
-                        _ => return Err(AppError::InvalidValue("Unknown rule format".into())),
-                    };
-                    let mut res = HashMap::new();
-                    let payload = mihomo_rule_parser::parse(file_path, behavior, format)?;
-                    res.insert(name, payload);
-                    Ok(res)
-                });
-                handles.push(handle);
-            }
-        }
-    }
-    let mut res = HashMap::new();
-    for handle in handles {
-        handle.await?.map(|data| res.extend(data))?;
-    }
-
-    Ok(res)
+        .get_current_rule_providers_path()
+        .and_then(|m| m.get(&provider_name))
+        .ok_or(any_err!("Provider not found"))?
+        .clone();
+    let payload = mihomo_rule_parser::parse(file_path, behavior, format)?;
+    Ok(payload)
 }

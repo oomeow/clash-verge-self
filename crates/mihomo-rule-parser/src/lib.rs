@@ -14,9 +14,10 @@ mod error;
 mod ipcidr;
 mod utils;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RuleBehavior {
     Domain,
+    #[serde(rename = "IPCIDR")]
     IpCidr,
     Classical,
 }
@@ -25,7 +26,7 @@ impl Display for RuleBehavior {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             RuleBehavior::Domain => write!(f, "Domain"),
-            RuleBehavior::IpCidr => write!(f, "Ipcidr"),
+            RuleBehavior::IpCidr => write!(f, "IPCIDR"),
             RuleBehavior::Classical => write!(f, "Classical"),
         }
     }
@@ -36,27 +37,30 @@ impl TryFrom<String> for RuleBehavior {
 
     fn try_from(behavior: String) -> Result<Self> {
         match behavior.as_str() {
-            "domain" => Ok(RuleBehavior::Domain),
-            "ipcidr" => Ok(RuleBehavior::IpCidr),
-            "classical" => Ok(RuleBehavior::Classical),
+            "domain" | "Domain" => Ok(RuleBehavior::Domain),
+            "ipcidr" | "IPCIDR" => Ok(RuleBehavior::IpCidr),
+            "classical" | "Classical" => Ok(RuleBehavior::Classical),
             _ => Err(RuleParseError::InvalidBehavior(behavior)),
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum RuleFormat {
-    Mrs,
+    #[serde(rename = "YamlRule")]
     Yaml,
+    #[serde(rename = "TextRule")]
     Text,
+    #[serde(rename = "MrsRule")]
+    Mrs,
 }
 
 impl Display for RuleFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            RuleFormat::Mrs => write!(f, "MrsRule"),
             RuleFormat::Yaml => write!(f, "YamlRule"),
             RuleFormat::Text => write!(f, "TextRule"),
+            RuleFormat::Mrs => write!(f, "MrsRule"),
         }
     }
 }
@@ -66,11 +70,9 @@ impl TryFrom<String> for RuleFormat {
 
     fn try_from(format: String) -> Result<Self> {
         match format.as_str() {
+            "yaml" | "yml" => Ok(RuleFormat::Yaml),
+            "text" | "txt" => Ok(RuleFormat::Text),
             "mrs" => Ok(RuleFormat::Mrs),
-            "yaml" => Ok(RuleFormat::Yaml),
-            "yml" => Ok(RuleFormat::Yaml),
-            "text" => Ok(RuleFormat::Text),
-            "txt" => Ok(RuleFormat::Text),
             _ => Err(RuleParseError::InvalidFormat(format)),
         }
     }
