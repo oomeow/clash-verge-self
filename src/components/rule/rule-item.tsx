@@ -108,8 +108,8 @@ export const RuleItem = (props: Props) => {
               {value.payload || "-"}
             </Typography>
             {isRuleSet && (
-              <div className="text-primary-main bg-primary-alpha ml-2 flex items-center rounded-full px-2 py-1 text-xs">
-                <Update className="mr-1 !text-xs" />
+              <div className="text-primary-main bg-primary-alpha-20 ml-2 flex items-center rounded-full px-2 py-[2px] text-xs">
+                <Update className="mr-1" fontSize="inherit" />
                 <span>{dayjs(value.updateAt).fromNow()}</span>
               </div>
             )}
@@ -122,7 +122,7 @@ export const RuleItem = (props: Props) => {
             sx={{ mr: 3, minWidth: 120, display: "inline-block" }}>
             {value.type}
             {isRuleSet && (
-              <span className="text-secondary-main inline-block px-2 text-xs">
+              <span className="text-primary-main bg-primary-alpha-20 ml-2 inline-block rounded-full px-2 text-xs">
                 {value.behavior}
               </span>
             )}
