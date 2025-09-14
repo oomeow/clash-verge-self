@@ -4,6 +4,10 @@ on:
   issue_comment:
     types: [created]
 
+concurrency:
+  group: pr-bot-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   handle-command:
     if: github.event.issue.pull_request != null
@@ -11,7 +15,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-      issues: write # 需要删除评论
+      issues: write
 
     steps:
       - name: Check user permission
@@ -25,22 +29,10 @@ jobs:
               repo: context.repo.repo,
               username: context.payload.comment.user.login
             });
-
             const allowed = ["admin", "write", "maintain"];
             if (!allowed.includes(membership.permission)) {
               core.setFailed(`User ${context.payload.comment.user.login} is not allowed to run commands`);
             }
-
-      - name: Delete trigger comment
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            await github.rest.issues.deleteComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: context.payload.comment.id
-            });
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -64,24 +56,43 @@ jobs:
               ;;
           esac
 
+      - name: Create "in progress" comment
+        if: steps.cmd.outputs.command != 'unknown'
+        id: progress_comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr_number = context.payload.issue.number;
+            const cmd = "${{ steps.cmd.outputs.command }}";
+            const { data: comment } = await github.rest.issues.createComment({
+            ...context.repo,
+            issue_number: pr_number,
+            body: `⏳ Running \`${cmd}\`... please wait`
+            });
+            core.setOutput("comment_id", comment.id);
+
       - name: Run build
         if: steps.cmd.outputs.command == 'build'
         run: |
           echo "Building project..."
           mkdir dist
           echo "Build artifact at $(date)" > dist/output.txt
+          sleep 5  # 模拟耗时
 
       - name: Run test
         if: steps.cmd.outputs.command == 'test'
         run: |
           echo "Running tests..."
           echo "✅ All tests passed!" > test-result.txt
+          sleep 3  # 模拟耗时
 
       - name: Run deploy
         if: steps.cmd.outputs.command == 'deploy'
         run: |
           echo "Deploying app..."
           echo "🚀 Deployed at $(date)" > deploy-log.txt
+          sleep 4  # 模拟耗时
 
       - name: Upload artifact
         if: steps.cmd.outputs.command != 'unknown'
@@ -100,19 +111,35 @@ jobs:
         run: |
           echo "url=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
 
-      - name: Comment PR with result
-        if: steps.cmd.outputs.command != 'unknown'
+      - name: Update comment with success
+        if: steps.cmd.outputs.command != 'unknown' && success()
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const pr_number = context.payload.issue.number;
             const cmd = "${{ steps.cmd.outputs.command }}";
             const url = "${{ steps.artifact.outputs.url }}";
-            await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: pr_number,
+            const comment_id = "${{ steps.progress_comment.outputs.comment_id }}";
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: comment_id,
               body: `✅ Command \`${cmd}\` finished!\n[Download Artifact](${url})`
+            });
+
+      - name: Update comment with failure
+        if: steps.cmd.outputs.command != 'unknown' && failure()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const cmd = "${{ steps.cmd.outputs.command }}";
+            const comment_id = "${{ steps.progress_comment.outputs.comment_id }}";
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: comment_id,
+              body: `❌ Command \`${cmd}\` failed.\nPlease check [Action Logs](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`
             });
 
       - name: Unknown command
@@ -128,3 +155,21 @@ jobs:
               issue_number: pr_number,
               body: `⚠️ Unknown command: \`${body}\`. Try /build, /test or /deploy.`
             });
+
+      - name: Delete original comment
+        if: steps.cmd.outputs.command != 'unknown'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const user = context.payload.comment.user.login;
+            if (user !== "github-actions[bot]") {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: context.payload.comment.id
+              });
+              console.log(`Deleted user comment from ${user}`);
+            } else {
+              console.log("Skip deleting bot comment");
+            }
