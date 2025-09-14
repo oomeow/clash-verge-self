@@ -74,11 +74,12 @@ jobs:
 
       - name: Run build
         if: steps.cmd.outputs.command == 'build'
-        run: |
-          echo "Building project..."
-          mkdir dist
-          echo "Build artifact at $(date)" > dist/output.txt
-          sleep 5  # 模拟耗时
+        uses: ./.github/workflows/pr-build
+        # run: |
+        #   echo "Building project..."
+        #   mkdir dist
+        #   echo "Build artifact at $(date)" > dist/output.txt
+        #   sleep 5  # 模拟耗时
 
       - name: Run test
         if: steps.cmd.outputs.command == 'test'
