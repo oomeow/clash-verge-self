@@ -11,11 +11,12 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      issues: write # 需要删除评论
 
     steps:
       - name: Check user permission
         id: check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -29,6 +30,17 @@ jobs:
             if (!allowed.includes(membership.permission)) {
               core.setFailed(`User ${context.payload.comment.user.login} is not allowed to run commands`);
             }
+
+      - name: Delete trigger comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.deleteComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id
+            });
 
       - name: Checkout repo
         uses: actions/checkout@v4
