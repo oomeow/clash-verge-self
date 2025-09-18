@@ -272,15 +272,8 @@ impl Tray {
             {
                 current_name = profile_name.to_string();
             };
-            let switch_map = |status| {
-                if status { t!("on") } else { t!("off") }
-            };
             tray.set_tooltip(Some(&format!(
-                "Clash Verge v{version}\n{}: {}\n{}: {}\n{}: {}",
-                t!("proxy.system"),
-                switch_map(sysproxy_enabled),
-                t!("proxy.tun"),
-                switch_map(tun_enabled),
+                "Clash Verge v{version}\n{}: {}",
                 t!("current.profile"),
                 current_name
             )))?;
