@@ -22,8 +22,7 @@ pub fn generate_websocket_key() -> String {
     general_purpose::STANDARD.encode(key)
 }
 
-pub fn build_socket_request(req: reqwest::RequestBuilder) -> Result<String> {
-    let req = req.build()?;
+pub fn build_socket_request(req: reqwest::Request) -> Result<String> {
     let method = req.method().as_str();
     let mut path = req.url().path().to_string();
     if let Some(query) = req.url().query() {

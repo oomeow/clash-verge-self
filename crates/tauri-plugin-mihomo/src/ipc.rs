@@ -1,6 +1,7 @@
 use std::{
     pin::Pin,
     task::{Context, Poll},
+    time::Duration,
 };
 
 use pin_project::pin_project;
@@ -135,40 +136,57 @@ pub trait LocalSocket {
 
 impl LocalSocket for RequestBuilder {
     async fn send_by_local_socket(self, socket_path: &str) -> crate::Result<reqwest::Response> {
-        let mut stream = connect_to_socket(socket_path).await?;
-        log::debug!("building socket request");
-        let req_str = utils::build_socket_request(self)?;
-        log::debug!("request string: {req_str:?}");
-        stream.writable().await?;
-        log::debug!("send request");
-        stream.write_all(req_str.as_bytes()).await?;
-        log::debug!("wait for response");
-        stream.readable().await?;
-        let mut buf: Vec<u8> = Vec::new();
-        let mut b = [0; 4096];
-        let mut header_judged = false;
-        let mut is_chunked = false;
-        loop {
-            let n = stream.read(&mut b).await?;
-            if n == 0 {
-                break;
-            }
-            buf.extend_from_slice(&b[..n]);
-            if !header_judged {
-                let content = String::from_utf8_lossy(&buf);
-                if content.contains("Transfer-Encoding: chunked") {
-                    is_chunked = true;
+        let request = self.build()?;
+        let timeout = request.timeout().cloned();
+
+        let process = async move {
+            let mut stream = connect_to_socket(socket_path).await?;
+            log::debug!("building socket request");
+            let req_str = utils::build_socket_request(request)?;
+            log::debug!("request string: {req_str:?}");
+            stream.writable().await?;
+            log::debug!("send request");
+            stream.write_all(req_str.as_bytes()).await?;
+            log::debug!("wait for response");
+            tokio::time::sleep(Duration::from_secs(1)).await;
+            stream.readable().await?;
+            let mut buf: Vec<u8> = Vec::new();
+            let mut b = [0; 4096];
+            let mut header_judged = false;
+            let mut is_chunked = false;
+            loop {
+                let n = stream.read(&mut b).await?;
+                if n == 0 {
+                    break;
                 }
-                header_judged = true;
+                buf.extend_from_slice(&b[..n]);
+                if !header_judged {
+                    let content = String::from_utf8_lossy(&buf);
+                    if content.contains("Transfer-Encoding: chunked") {
+                        is_chunked = true;
+                    }
+                    header_judged = true;
+                }
+                // if response is chunked, wait to \r\n\r\n
+                if (!is_chunked && n < 4096 && buf.ends_with(b"\n")) || (is_chunked && buf.ends_with(b"\r\n\r\n")) {
+                    break;
+                }
             }
-            // if response is chunked, wait to \r\n\r\n
-            if (!is_chunked && n < 4096 && buf.ends_with(b"\n")) || (is_chunked && buf.ends_with(b"\r\n\r\n")) {
-                break;
+            log::debug!("receive response success, shut down stream");
+            stream.shutdown().await?;
+            let response = String::from_utf8_lossy(&buf);
+            utils::parse_socket_response(&response, is_chunked)
+        };
+
+        match timeout {
+            Some(duration) => {
+                log::debug!("Timeout duration: {:?}", duration);
+                tokio::time::timeout(duration, process).await?
+            }
+            None => {
+                log::debug!("No timeout specified");
+                process.await
             }
         }
-        log::debug!("receive response success, shut down stream");
-        stream.shutdown().await?;
-        let response = String::from_utf8_lossy(&buf);
-        utils::parse_socket_response(&response, is_chunked)
     }
 }

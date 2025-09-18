@@ -11,6 +11,7 @@ pub fn mihomo() -> Mihomo {
     dotenvy::dotenv().unwrap();
     let mihomo_socket = std::env::var("MIHOMO_SOCKET").unwrap_or(String::from("0"));
     if mihomo_socket == "1" {
+        println!("connect to mihomo by local socket");
         // use local socket
         let socket_path = if cfg!(unix) {
             "/tmp/verge-mihomo.sock".to_string()
@@ -26,6 +27,7 @@ pub fn mihomo() -> Mihomo {
             connection_manager: Arc::new(Default::default()),
         }
     } else {
+        println!("connect to mihomo by http");
         // use http
         Mihomo {
             protocol: Protocol::Http,

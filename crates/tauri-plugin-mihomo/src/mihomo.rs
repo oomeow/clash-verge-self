@@ -20,6 +20,8 @@ use crate::{
     WebSocketMessage, WebSocketWriter, failed_resp, ipc::LocalSocket, ret_failed_resp, utils,
 };
 
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
+
 pub struct Mihomo {
     pub protocol: Protocol,
     pub external_host: Option<String>,
@@ -86,7 +88,7 @@ impl Mihomo {
         let url = self.get_req_url(suffix_url)?;
         let headers = self.get_req_headers()?;
         let client = reqwest::ClientBuilder::new().build()?;
-        match method {
+        let req = match method {
             Method::POST => Ok(client.post(url).headers(headers)),
             Method::GET => Ok(client.get(url).headers(headers)),
             Method::PUT => Ok(client.put(url).headers(headers)),
@@ -97,7 +99,9 @@ impl Mihomo {
                 log::error!("method not supported: {method_str}");
                 Err(Error::MethodNotSupported(method_str))
             }
-        }
+        };
+        // 在此设置 timeout，以供构建 local socket 连接时，获取到 timeout 属性
+        Ok(req?.timeout(DEFAULT_TIMEOUT))
     }
 
     async fn send_by_protocol(&self, client: RequestBuilder) -> Result<reqwest::Response> {

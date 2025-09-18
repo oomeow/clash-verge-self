@@ -12,14 +12,16 @@ pub enum Error {
     Reqwest(#[from] reqwest::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
-    #[error("websocket error: {0}")]
+    #[error("Websocket error: {0}")]
     Websocket(String),
-    #[error("connection not found for the given id: {0}")]
+    #[error("Connection not found for the given id: {0}")]
     ConnectionNotFound(ConnectionId),
     #[error(transparent)]
     InvalidHeaderValue(#[from] tokio_tungstenite::tungstenite::http::header::InvalidHeaderValue),
     #[error(transparent)]
     InvalidHeaderName(#[from] tokio_tungstenite::tungstenite::http::header::InvalidHeaderName),
+    #[error("IPC send timeout")]
+    Timeout(#[from] tokio::time::error::Elapsed),
     #[error("The {0} method not supported")]
     MethodNotSupported(String),
     #[error("Failed Response, {0}")]
