@@ -5,8 +5,8 @@ dashboard: 打开面板
 mode.rule: 规则模式
 mode.global: 全局模式
 mode.direct: 直连模式
-# proxy.system: 系统代理
-# proxy.tun: Tun 代理
+proxy.system: 系统代理
+proxy.tun: Tun 代理
 service: 服务模式
 copy.env: 复制环境变量
 open.dir: 打开目录

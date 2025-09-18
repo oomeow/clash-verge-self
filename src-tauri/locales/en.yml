@@ -5,8 +5,8 @@ dashboard: Dashboard
 mode.rule: Rule Mode
 mode.global: Global Mode
 mode.direct: Direct Mode
-# proxy.system: System Proxy
-# proxy.tun: Tun Mode
+proxy.system: System Proxy
+proxy.tun: Tun Mode
 service: Service Mode
 copy.env: Copy Env
 open.dir: Open Dir
