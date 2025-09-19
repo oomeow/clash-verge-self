@@ -159,7 +159,7 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     });
     keys.sort();
 
-    for key in keys.iter() {
+    for key in &keys {
         let search_str = format!("+.{key}");
         if keys.binary_search(&search_str).is_ok() {
             continue;

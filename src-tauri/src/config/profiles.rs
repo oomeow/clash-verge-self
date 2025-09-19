@@ -151,7 +151,7 @@ impl IProfiles {
                 }
             }
             // enable new global chain
-            for new_uid in new_chain.iter() {
+            for new_uid in &new_chain {
                 let item = self
                     .get_item_mut(new_uid)
                     .ok_or(any_err!("failed to find the profile item \"uid:{new_uid}\""))?;

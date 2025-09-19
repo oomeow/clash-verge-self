@@ -29,7 +29,7 @@ impl Hotkey {
         let verge = verge.latest();
 
         if let Some(hotkeys) = verge.hotkeys.as_ref() {
-            for hotkey in hotkeys.iter() {
+            for hotkey in hotkeys {
                 let mut iter = hotkey.split(',');
                 let func = iter.next();
                 let key = iter.next();
@@ -98,7 +98,7 @@ impl Hotkey {
             log_err!(self.unregister(key));
         });
 
-        for (key, func) in add.iter() {
+        for (key, func) in add {
             self.register(key, func)?;
         }
 

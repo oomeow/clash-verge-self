@@ -102,7 +102,7 @@ pub fn init_resources() -> AppResult<()> {
             }
         };
     };
-    for file in file_list.iter() {
+    for file in file_list {
         let src_path = res_dir.join(file);
         let dest_path = app_dir.join(file);
 
