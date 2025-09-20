@@ -54,11 +54,12 @@ pub fn build_socket_request(req: reqwest::Request) -> Result<String> {
     Ok(raw)
 }
 
-pub fn parse_socket_response(response_str: &str, is_chunked: bool) -> Result<reqwest::Response> {
+pub fn parse_socket_response(header: &str, body: &str) -> Result<reqwest::Response> {
     log::debug!("parsing socket response");
-    log::trace!("chunked: {is_chunked}, response: {response_str}");
     let mut headers = [EMPTY_HEADER; 16];
     let mut res = httparse::Response::new(&mut headers);
+    let response_str = format!("{header}{body}");
+    println!("response str: {response_str:?}");
     let raw_response = response_str.as_bytes();
     match res.parse(raw_response) {
         Ok(httparse::Status::Complete(_)) => {
@@ -70,16 +71,12 @@ pub fn parse_socket_response(response_str: &str, is_chunked: bool) -> Result<req
                 let header_value = str::from_utf8(header.value).unwrap_or_default();
                 res_builder = res_builder.header(header_name, header_value);
             }
-            let mut body = response_str.split("\r\n\r\n").nth(1).unwrap_or_default().to_string();
-            if is_chunked {
-                body = decode_chunked(&body)?;
-            }
             // {
             //     use std::io::Write;
             //     let mut file = std::fs::File::create("body.json")?;
             //     file.write_all(body.as_bytes())?;
             // }
-            let response = res_builder.body(body)?;
+            let response = res_builder.body(body.to_string())?;
             Ok(reqwest::Response::from(response))
         }
         Ok(httparse::Status::Partial) => {

@@ -45,26 +45,26 @@ impl Serialize for Error {
 
 impl From<tokio_tungstenite::tungstenite::Error> for Error {
     fn from(e: tokio_tungstenite::tungstenite::Error) -> Self {
-        Error::Websocket(e.to_string())
+        crate::Error::Websocket(e.to_string())
     }
 }
 
 impl From<std::string::FromUtf8Error> for Error {
     fn from(e: std::string::FromUtf8Error) -> Self {
-        Error::ParseError(e.to_string())
+        crate::Error::ParseError(e.to_string())
     }
 }
 
 impl From<std::num::ParseIntError> for Error {
     fn from(e: std::num::ParseIntError) -> Self {
-        Error::ParseError(e.to_string())
+        crate::Error::ParseError(e.to_string())
     }
 }
 
 #[macro_export]
 macro_rules! failed_resp {
     ($($arg: tt)*) => {
-        Error::FailedResponse(format!($($arg)*))
+        $crate::Error::FailedResponse(format!($($arg)*))
     };
 }
 

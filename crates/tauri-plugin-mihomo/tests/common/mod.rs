@@ -15,6 +15,7 @@ pub fn mihomo() -> Mihomo {
         // use local socket
         let socket_path = if cfg!(unix) {
             "/tmp/verge-mihomo.sock".to_string()
+            // "/tmp/clash-rs.sock".to_string()
         } else {
             r"\\.\pipe\verge-mihomo".to_string()
         };

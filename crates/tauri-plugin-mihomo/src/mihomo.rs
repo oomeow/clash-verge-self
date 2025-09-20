@@ -24,7 +24,7 @@ use crate::{
     ret_failed_resp, utils,
 };
 
-const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(1);
 
 pub struct Mihomo {
     pub protocol: Protocol,

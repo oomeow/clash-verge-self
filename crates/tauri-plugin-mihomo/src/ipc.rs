@@ -1,12 +1,11 @@
 use std::{
     pin::Pin,
     task::{Context, Poll},
-    time::Duration,
 };
 
 use pin_project::pin_project;
 use reqwest::RequestBuilder;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader};
 #[cfg(unix)]
 use tokio::net::UnixStream;
 #[cfg(windows)]
@@ -113,7 +112,7 @@ pub async fn connect_to_socket(socket_path: &str) -> crate::Result<WrapStream> {
                     )));
                 }
             }
-            tokio::time::sleep(Duration::from_millis(50)).await;
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         };
         Ok(WrapStream::NamedPipe(client))
     }
@@ -137,34 +136,80 @@ impl LocalSocket for RequestBuilder {
             log::debug!("send request");
             stream.write_all(req_str.as_bytes()).await?;
             log::debug!("wait for response");
-            tokio::time::sleep(Duration::from_secs(1)).await;
             stream.readable().await?;
-            let mut buf: Vec<u8> = Vec::new();
-            let mut b = [0; 4096];
-            let mut header_judged = false;
-            let mut is_chunked = false;
+
+            let mut reader = BufReader::new(stream);
+
+            // 解析 header
+            let mut header = String::new();
             loop {
-                let n = stream.read(&mut b).await?;
-                if n == 0 {
-                    break;
+                let mut line = String::new();
+                if let Ok(size) = reader.read_line(&mut line).await
+                    && size == 0
+                {
+                    return Err(crate::Error::HttpParseError("no response".to_string()));
                 }
-                buf.extend_from_slice(&b[..n]);
-                if !header_judged {
-                    let content = String::from_utf8_lossy(&buf);
-                    if content.contains("Transfer-Encoding: chunked") {
-                        is_chunked = true;
-                    }
-                    header_judged = true;
-                }
-                // if response is chunked, wait to \r\n\r\n
-                if (!is_chunked && n < 4096 && buf.ends_with(b"\n")) || (is_chunked && buf.ends_with(b"\r\n\r\n")) {
+                header.push_str(&line);
+                if line == "\r\n" {
                     break;
                 }
             }
+            // println!("---> header:\n {header:?}");
+
+            // 解析 Content-Length, chunked
+            let mut content_length: Option<usize> = None;
+            let mut is_chunked = false;
+            for line in header.lines() {
+                if let Some(v) = line.to_lowercase().strip_prefix("content-length: ") {
+                    content_length = Some(v.trim().parse()?);
+                }
+                if line.to_lowercase().contains("transfer-encoding: chunked") {
+                    is_chunked = true;
+                }
+            }
+
+            // 读取 body
+            let body = if is_chunked {
+                let mut body = Vec::new();
+                loop {
+                    // 读 chunk size
+                    let mut size_line = String::new();
+                    reader.read_line(&mut size_line).await?;
+                    let size_line = size_line.trim();
+                    if size_line.is_empty() {
+                        continue;
+                    }
+                    let chunk_size = usize::from_str_radix(size_line, 16)
+                        .map_err(|e| crate::Error::HttpParseError(format!("Failed to parse chunk size: {e}")))?;
+
+                    if chunk_size == 0 {
+                        // 读掉最后的 CRLF
+                        let mut end = String::new();
+                        reader.read_line(&mut end).await?;
+                        break;
+                    }
+
+                    // 读 chunk data
+                    let mut chunk_data = vec![0u8; chunk_size];
+                    reader.read_exact(&mut chunk_data).await?;
+                    body.extend_from_slice(&chunk_data);
+
+                    // 读掉结尾 CRLF
+                    let mut crlf = String::new();
+                    reader.read_line(&mut crlf).await?;
+                }
+                String::from_utf8(body)?
+            } else if let Some(content_length) = content_length {
+                println!("content length: {content_length}");
+                let mut body_buf = vec![0u8; content_length];
+                reader.read_exact(&mut body_buf).await?;
+                String::from_utf8_lossy(&body_buf).to_string()
+            } else {
+                unimplemented!()
+            };
             log::debug!("receive response success, shut down stream");
-            stream.shutdown().await?;
-            let response = String::from_utf8_lossy(&buf);
-            utils::parse_socket_response(&response, is_chunked)
+            reader.shutdown().await?;
+            utils::parse_socket_response(&header, &body)
         };
 
         match timeout {

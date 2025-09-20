@@ -1,4 +1,4 @@
-use tauri_plugin_mihomo::{Error, Result, ret_failed_resp};
+use tauri_plugin_mihomo::{Result, ret_failed_resp};
 
 mod common;
 

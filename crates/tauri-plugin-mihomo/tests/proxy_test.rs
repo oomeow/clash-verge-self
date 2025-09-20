@@ -1,4 +1,4 @@
-use tauri_plugin_mihomo::{Error, Result, failed_resp};
+use tauri_plugin_mihomo::{Result, failed_resp};
 
 use crate::common::{TEST_URL, TIMEOUT};
 
