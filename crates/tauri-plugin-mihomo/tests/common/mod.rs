@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tauri_plugin_mihomo::{Mihomo, Protocol};
+use tauri_plugin_mihomo::{Mihomo, models::Protocol};
 
 #[allow(dead_code)]
 pub const TEST_URL: &str = "http://www.gstatic.com/generate_204";

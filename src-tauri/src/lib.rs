@@ -17,7 +17,7 @@ use once_cell::sync::OnceCell;
 #[cfg(target_os = "linux")]
 use parking_lot::RwLock;
 use tauri::AppHandle;
-use tauri_plugin_mihomo::Protocol;
+use tauri_plugin_mihomo::models::Protocol;
 
 use crate::{
     config::Config,

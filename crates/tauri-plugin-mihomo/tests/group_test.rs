@@ -1,4 +1,7 @@
-use tauri_plugin_mihomo::{Error, ProxyType, Result, VehicleType, failed_resp};
+use tauri_plugin_mihomo::{
+    Error, Result, failed_resp,
+    models::{ProxyType, VehicleType},
+};
 
 use crate::common::{TEST_URL, TIMEOUT};
 

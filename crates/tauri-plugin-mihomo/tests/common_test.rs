@@ -1,5 +1,5 @@
 use serde_json::json;
-use tauri_plugin_mihomo::{ClashMode, Error, Result};
+use tauri_plugin_mihomo::{Error, Result, models::ClashMode};
 
 mod common;
 

@@ -220,7 +220,13 @@ pub(crate) async fn ws_traffic(
     state: State<'_, RwLock<Mihomo>>,
     on_message: Channel<serde_json::Value>,
 ) -> Result<ConnectionId> {
-    state.read().await.ws_traffic(on_message).await
+    state
+        .read()
+        .await
+        .ws_traffic(move |data| {
+            let _ = on_message.send(data);
+        })
+        .await
 }
 
 #[command]
@@ -228,7 +234,13 @@ pub(crate) async fn ws_memory(
     state: State<'_, RwLock<Mihomo>>,
     on_message: Channel<serde_json::Value>,
 ) -> Result<ConnectionId> {
-    state.read().await.ws_memory(on_message).await
+    state
+        .read()
+        .await
+        .ws_memory(move |data| {
+            let _ = on_message.send(data);
+        })
+        .await
 }
 
 #[command]
@@ -236,7 +248,13 @@ pub(crate) async fn ws_connections(
     state: State<'_, RwLock<Mihomo>>,
     on_message: Channel<serde_json::Value>,
 ) -> Result<ConnectionId> {
-    state.read().await.ws_connections(on_message).await
+    state
+        .read()
+        .await
+        .ws_connections(move |data| {
+            let _ = on_message.send(data);
+        })
+        .await
 }
 
 #[command]
@@ -245,7 +263,13 @@ pub(crate) async fn ws_logs(
     level: LogLevel,
     on_message: Channel<serde_json::Value>,
 ) -> Result<ConnectionId> {
-    state.read().await.ws_logs(level, on_message).await
+    state
+        .read()
+        .await
+        .ws_logs(level, move |data| {
+            let _ = on_message.send(data);
+        })
+        .await
 }
 
 // mihomo 的 websocket 应该只读取数据，没必要发送数据

@@ -1,4 +1,4 @@
-use tauri_plugin_mihomo::{CoreUpdaterChannel, Error, Result};
+use tauri_plugin_mihomo::{Error, Result, models::CoreUpdaterChannel};
 
 mod common;
 

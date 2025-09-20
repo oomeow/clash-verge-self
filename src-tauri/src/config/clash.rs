@@ -392,52 +392,52 @@ fn test_clash_info() {
     assert_eq!(get_case(8888, "192.168.1.1:80800"), get_result(8888, "127.0.0.1:9090"));
 }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
-pub struct IClash {
-    pub mixed_port: Option<u16>,
-    pub allow_lan: Option<bool>,
-    pub log_level: Option<String>,
-    pub ipv6: Option<bool>,
-    pub mode: Option<String>,
-    pub external_controller: Option<String>,
-    pub secret: Option<String>,
-    pub dns: Option<IClashDNS>,
-    pub tun: Option<IClashTUN>,
-    pub interface_name: Option<String>,
-}
+// #[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+// #[serde(rename_all = "kebab-case")]
+// pub struct IClash {
+//     pub mixed_port: Option<u16>,
+//     pub allow_lan: Option<bool>,
+//     pub log_level: Option<String>,
+//     pub ipv6: Option<bool>,
+//     pub mode: Option<String>,
+//     pub external_controller: Option<String>,
+//     pub secret: Option<String>,
+//     pub dns: Option<IClashDNS>,
+//     pub tun: Option<IClashTUN>,
+//     pub interface_name: Option<String>,
+// }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
-pub struct IClashTUN {
-    pub enable: Option<bool>,
-    pub stack: Option<String>,
-    pub auto_route: Option<bool>,
-    pub auto_detect_interface: Option<bool>,
-    pub dns_hijack: Option<Vec<String>>,
-}
+// #[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+// #[serde(rename_all = "kebab-case")]
+// pub struct IClashTUN {
+//     pub enable: Option<bool>,
+//     pub stack: Option<String>,
+//     pub auto_route: Option<bool>,
+//     pub auto_detect_interface: Option<bool>,
+//     pub dns_hijack: Option<Vec<String>>,
+// }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
-pub struct IClashDNS {
-    pub enable: Option<bool>,
-    pub listen: Option<String>,
-    pub default_nameserver: Option<Vec<String>>,
-    pub enhanced_mode: Option<String>,
-    pub fake_ip_range: Option<String>,
-    pub use_hosts: Option<bool>,
-    pub fake_ip_filter: Option<Vec<String>>,
-    pub nameserver: Option<Vec<String>>,
-    pub fallback: Option<Vec<String>>,
-    pub fallback_filter: Option<IClashFallbackFilter>,
-    pub nameserver_policy: Option<Vec<String>>,
-}
+// #[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+// #[serde(rename_all = "kebab-case")]
+// pub struct IClashDNS {
+//     pub enable: Option<bool>,
+//     pub listen: Option<String>,
+//     pub default_nameserver: Option<Vec<String>>,
+//     pub enhanced_mode: Option<String>,
+//     pub fake_ip_range: Option<String>,
+//     pub use_hosts: Option<bool>,
+//     pub fake_ip_filter: Option<Vec<String>>,
+//     pub nameserver: Option<Vec<String>>,
+//     pub fallback: Option<Vec<String>>,
+//     pub fallback_filter: Option<IClashFallbackFilter>,
+//     pub nameserver_policy: Option<Vec<String>>,
+// }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
-pub struct IClashFallbackFilter {
-    pub geoip: Option<bool>,
-    pub geoip_code: Option<String>,
-    pub ipcidr: Option<Vec<String>>,
-    pub domain: Option<Vec<String>>,
-}
+// #[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+// #[serde(rename_all = "kebab-case")]
+// pub struct IClashFallbackFilter {
+//     pub geoip: Option<bool>,
+//     pub geoip_code: Option<String>,
+//     pub ipcidr: Option<Vec<String>>,
+//     pub domain: Option<Vec<String>>,
+// }

@@ -8,16 +8,20 @@ use http::{
 };
 use reqwest::{Method, RequestBuilder};
 use serde_json::json;
-use tauri::ipc::Channel;
 use tokio_tungstenite::{
     client_async, connect_async,
     tungstenite::{Message, client::IntoClientRequest, protocol::CloseFrame as ProtocolCloseFrame},
 };
 
 use crate::{
-    BaseConfig, CloseFrame, ConnectionId, ConnectionManager, Connections, CoreUpdaterChannel, Error, Groups, LogLevel,
-    MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders, Result, RuleProviders, Rules,
-    WebSocketMessage, WebSocketWriter, failed_resp, ipc::LocalSocket, ret_failed_resp, utils,
+    Error, Result, failed_resp,
+    ipc::LocalSocket,
+    models::{
+        BaseConfig, CloseFrame, ConnectionId, ConnectionManager, Connections, CoreUpdaterChannel, Groups, LogLevel,
+        MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules,
+        WebSocketMessage, WebSocketWriter,
+    },
+    ret_failed_resp, utils,
 };
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
@@ -143,7 +147,10 @@ impl Mihomo {
     }
 
     /// 连接 WebSocket
-    async fn connect(&self, url: String, on_message: Channel<serde_json::Value>) -> Result<ConnectionId> {
+    async fn connect<F>(&self, url: String, on_message: F) -> Result<ConnectionId>
+    where
+        F: Fn(serde_json::Value) + Send + 'static,
+    {
         let id = rand::random();
         log::info!("connecting to websocket: {url}, id: {id}");
         let manager = self.connection_manager.clone();
@@ -181,7 +188,6 @@ impl Mihomo {
                     .insert(id, WebSocketWriter::TcpStreamWriter(writer));
 
                 tauri::async_runtime::spawn(async move {
-                    let on_message_ = on_message.clone();
                     let manager_ = manager.clone();
                     loop {
                         let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
@@ -196,7 +202,7 @@ impl Mihomo {
                                 manager_.0.write().await.remove(&id);
                             }
                             let response = handle_message(message);
-                            let _ = on_message_.send(response);
+                            on_message(response);
                         }
                     }
                 });
@@ -226,7 +232,6 @@ impl Mihomo {
                         .insert(id, WebSocketWriter::SocketStreamWriter(writer));
 
                     tauri::async_runtime::spawn(async move {
-                        let on_message_ = on_message.clone();
                         let manager_ = manager.clone();
                         loop {
                             let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
@@ -241,7 +246,7 @@ impl Mihomo {
                                     manager_.0.write().await.remove(&id);
                                 }
                                 let response = handle_message(message);
-                                let _ = on_message_.send(response);
+                                on_message(response);
                             }
                         }
                     });
@@ -318,28 +323,40 @@ impl Mihomo {
     // |                     Mihomo API                     |
     // ------------------------------------------------------
     /// WebSocket: Mihomo 流量数据
-    pub async fn ws_traffic(&self, on_message: Channel<serde_json::Value>) -> Result<ConnectionId> {
+    pub async fn ws_traffic<F>(&self, on_message: F) -> Result<ConnectionId>
+    where
+        F: Fn(serde_json::Value) + Send + 'static,
+    {
         let ws_url = self.get_websocket_url("/traffic")?;
         let websocket_id = self.connect(ws_url, on_message).await?;
         Ok(websocket_id)
     }
 
     /// WebSocket: Mihomo 内存使用数据
-    pub async fn ws_memory(&self, on_message: Channel<serde_json::Value>) -> Result<ConnectionId> {
+    pub async fn ws_memory<F>(&self, on_message: F) -> Result<ConnectionId>
+    where
+        F: Fn(serde_json::Value) + Send + 'static,
+    {
         let ws_url = self.get_websocket_url("/memory")?;
         let websocket_id = self.connect(ws_url, on_message).await?;
         Ok(websocket_id)
     }
 
     /// WebSocket: Mihomo 连接信息数据
-    pub async fn ws_connections(&self, on_message: Channel<serde_json::Value>) -> Result<ConnectionId> {
+    pub async fn ws_connections<F>(&self, on_message: F) -> Result<ConnectionId>
+    where
+        F: Fn(serde_json::Value) + Send + 'static,
+    {
         let ws_url = self.get_websocket_url("/connections")?;
         let websocket_id = self.connect(ws_url, on_message).await?;
         Ok(websocket_id)
     }
 
     /// WebSocket: Mihomo 日志数据
-    pub async fn ws_logs(&self, level: LogLevel, on_message: Channel<serde_json::Value>) -> Result<ConnectionId> {
+    pub async fn ws_logs<F>(&self, level: LogLevel, on_message: F) -> Result<ConnectionId>
+    where
+        F: Fn(serde_json::Value) + Send + 'static,
+    {
         let ws_url = self.get_websocket_url("/logs")?;
         let ws_url = match self.protocol {
             // url 后面添加 format=structured 参数的日志格式如下：

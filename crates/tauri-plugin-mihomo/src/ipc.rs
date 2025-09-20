@@ -10,7 +10,9 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 #[cfg(unix)]
 use tokio::net::UnixStream;
 #[cfg(windows)]
-use tokio::net::windows::named_pipe::NamedPipeClient;
+use tokio::net::windows::named_pipe::{ClientOptions, NamedPipeClient};
+#[cfg(windows)]
+use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
 
 use crate::utils;
 
@@ -88,15 +90,9 @@ impl AsyncWrite for WrapStream {
 pub async fn connect_to_socket(socket_path: &str) -> crate::Result<WrapStream> {
     #[cfg(unix)]
     {
-        use std::path::Path;
-
-        use tokio::net::UnixStream;
-
-        use crate::Error;
-
-        if !Path::new(socket_path).exists() {
+        if !std::path::Path::new(socket_path).exists() {
             log::error!("socket path is not exists: {socket_path}");
-            return Err(Error::Io(std::io::Error::new(
+            return Err(crate::Error::Io(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
                 format!("socket path: {socket_path} not found"),
             )));
@@ -106,20 +102,13 @@ pub async fn connect_to_socket(socket_path: &str) -> crate::Result<WrapStream> {
 
     #[cfg(windows)]
     {
-        use std::time::Duration;
-
-        use tokio::net::windows::named_pipe::ClientOptions;
-        use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
-
-        use crate::Error;
-
         let client = loop {
             match ClientOptions::new().open(socket_path) {
                 Ok(client) => break client,
                 Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => (),
                 Err(e) => {
                     log::error!("failed to connect to named pipe: {socket_path}, {e}");
-                    return Err(Error::FailedResponse(format!(
+                    return Err(crate::Error::FailedResponse(format!(
                         "Failed to connect to named pipe: {socket_path}, {e}"
                     )));
                 }

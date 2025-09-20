@@ -2,7 +2,10 @@ use std::{fmt::Debug, time::Duration};
 
 use serde::de::DeserializeOwned;
 use tauri::ipc::{Channel, InvokeResponseBody};
-use tauri_plugin_mihomo::{Connections, Log, LogLevel, Memory, Result, Traffic, WebSocketMessage};
+use tauri_plugin_mihomo::{
+    Result,
+    models::{Connections, Log, LogLevel, Memory, Traffic, WebSocketMessage},
+};
 
 mod common;
 
@@ -30,7 +33,12 @@ fn handle_message<T: Debug + DeserializeOwned>() -> Channel<serde_json::Value> {
 #[tokio::test]
 async fn mihomo_websocket_memory() -> Result<()> {
     let mihomo = common::mihomo();
-    let websocket_id = mihomo.ws_memory(handle_message::<Memory>()).await?;
+    let on_message = handle_message::<Memory>();
+    let websocket_id = mihomo
+        .ws_memory(move |data| {
+            let _ = on_message.send(data);
+        })
+        .await?;
     println!("WebSocket ID: {websocket_id}");
     tokio::time::sleep(Duration::from_millis(5000)).await;
     mihomo.disconnect(websocket_id, Some(0)).await?;
@@ -51,7 +59,12 @@ async fn mihomo_websocket_memory() -> Result<()> {
 #[tokio::test]
 async fn mihomo_websocket_traffic() -> Result<()> {
     let mihomo = common::mihomo();
-    let websocket_id = mihomo.ws_traffic(handle_message::<Traffic>()).await?;
+    let on_message = handle_message::<Traffic>();
+    let websocket_id = mihomo
+        .ws_traffic(move |data| {
+            let _ = on_message.send(data);
+        })
+        .await?;
     println!("WebSocket ID: {websocket_id}");
     tokio::time::sleep(Duration::from_millis(5000)).await;
     mihomo.disconnect(websocket_id, Some(0)).await?;
@@ -72,7 +85,12 @@ async fn mihomo_websocket_traffic() -> Result<()> {
 #[tokio::test]
 async fn mihomo_websocket_log() -> Result<()> {
     let mihomo = common::mihomo();
-    let websocket_id = mihomo.ws_logs(LogLevel::INFO, handle_message::<Log>()).await?;
+    let on_message = handle_message::<Log>();
+    let websocket_id = mihomo
+        .ws_logs(LogLevel::DEBUG, move |data| {
+            let _ = on_message.send(data);
+        })
+        .await?;
     println!("WebSocket ID: {websocket_id}");
     tokio::time::sleep(Duration::from_millis(5000)).await;
     mihomo.disconnect(websocket_id, Some(0)).await?;
@@ -93,7 +111,12 @@ async fn mihomo_websocket_log() -> Result<()> {
 #[tokio::test]
 async fn mihomo_websocket_connections() -> Result<()> {
     let mihomo = common::mihomo();
-    let websocket_id = mihomo.ws_connections(handle_message::<Connections>()).await?;
+    let on_message = handle_message::<Connections>();
+    let websocket_id = mihomo
+        .ws_connections(move |data| {
+            let _ = on_message.send(data);
+        })
+        .await?;
     println!("WebSocket ID: {websocket_id}");
     tokio::time::sleep(Duration::from_millis(5000)).await;
     mihomo.disconnect(websocket_id, Some(0)).await?;

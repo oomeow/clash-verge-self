@@ -1,5 +1,4 @@
 pub use mihomo::Mihomo;
-pub use models::*;
 use tauri::{
     Manager, Runtime,
     async_runtime::RwLock,
@@ -14,6 +13,8 @@ pub mod models;
 mod utils;
 
 pub use error::{Error, Result};
+
+use crate::models::Protocol;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the mihomo APIs.
 pub trait MihomoExt<R: Runtime> {
