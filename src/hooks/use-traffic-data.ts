@@ -27,7 +27,7 @@ export const useTrafficData = () => {
 
             listenerRef.current = ws_.addListener(async (msg) => {
               if (msg.type === "Text") {
-                if (msg.data.startsWith("websocket error")) {
+                if (msg.data.startsWith("Websocket error")) {
                   next(msg.data, { up: 0, down: 0 });
                   await ws.current?.close();
                   ws.current = null;
