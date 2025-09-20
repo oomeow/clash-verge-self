@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 use core::str;
-use std::io::{BufRead, BufReader, Cursor, Read};
 
 use base64::{Engine, engine::general_purpose};
 use http::{
@@ -54,12 +53,11 @@ pub fn build_socket_request(req: reqwest::Request) -> Result<String> {
     Ok(raw)
 }
 
-pub fn parse_socket_response(header: &str, body: &str) -> Result<reqwest::Response> {
+pub fn parse_socket_response(header: String, body: String) -> Result<reqwest::Response> {
     log::debug!("parsing socket response");
     let mut headers = [EMPTY_HEADER; 16];
     let mut res = httparse::Response::new(&mut headers);
     let response_str = format!("{header}{body}");
-    println!("response str: {response_str:?}");
     let raw_response = response_str.as_bytes();
     match res.parse(raw_response) {
         Ok(httparse::Status::Complete(_)) => {
@@ -90,30 +88,30 @@ pub fn parse_socket_response(header: &str, body: &str) -> Result<reqwest::Respon
     }
 }
 
-/// 解析 chunked 数据, https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Transfer-Encoding#examples
-fn decode_chunked(data: &str) -> Result<String> {
-    let mut reader = BufReader::new(Cursor::new(data.as_bytes()));
-    let mut result = Vec::new();
+// 解析 chunked 数据, https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Transfer-Encoding#examples
+// fn decode_chunked(data: &str) -> Result<String> {
+//     let mut reader = BufReader::new(Cursor::new(data.as_bytes()));
+//     let mut result = Vec::new();
 
-    loop {
-        let mut line = String::new();
-        reader.read_line(&mut line)?;
-        // 解析块大小（十六进制）
-        if let Ok(chunk_size) = usize::from_str_radix(line.trim(), 16) {
-            if chunk_size == 0 {
-                break;
-            }
-            // 读取块数据
-            let mut chunk = vec![0; chunk_size];
-            reader.read_exact(&mut chunk)?;
-            result.extend_from_slice(&chunk);
-            // 跳过 \r\n 分隔符
-            reader.read_line(&mut String::new())?;
-        } else {
-            log::error!("Failed to parse chunk size: {line}");
-            return Err(Error::HttpParseError(format!("Failed to parse chunk size: {line}")));
-        }
-    }
-    let body = String::from_utf8(result)?;
-    Ok(body)
-}
+//     loop {
+//         let mut line = String::new();
+//         reader.read_line(&mut line)?;
+//         // 解析块大小（十六进制）
+//         if let Ok(chunk_size) = usize::from_str_radix(line.trim(), 16) {
+//             if chunk_size == 0 {
+//                 break;
+//             }
+//             // 读取块数据
+//             let mut chunk = vec![0; chunk_size];
+//             reader.read_exact(&mut chunk)?;
+//             result.extend_from_slice(&chunk);
+//             // 跳过 \r\n 分隔符
+//             reader.read_line(&mut String::new())?;
+//         } else {
+//             log::error!("Failed to parse chunk size: {line}");
+//             return Err(Error::HttpParseError(format!("Failed to parse chunk size: {line}")));
+//         }
+//     }
+//     let body = String::from_utf8(result)?;
+//     Ok(body)
+// }

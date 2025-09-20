@@ -140,23 +140,9 @@ impl LocalSocket for RequestBuilder {
 
             let mut reader = BufReader::new(stream);
 
-            // 解析 header
-            let mut header = String::new();
-            loop {
-                let mut line = String::new();
-                if let Ok(size) = reader.read_line(&mut line).await
-                    && size == 0
-                {
-                    return Err(crate::Error::HttpParseError("no response".to_string()));
-                }
-                header.push_str(&line);
-                if line == "\r\n" {
-                    break;
-                }
-            }
-            // println!("---> header:\n {header:?}");
-
-            // 解析 Content-Length, chunked
+            // 读取解析 header
+            let header = parse_header(&mut reader).await?;
+            // 解析 Content-Length, 判断是否是 chunked 响应
             let mut content_length: Option<usize> = None;
             let mut is_chunked = false;
             for line in header.lines() {
@@ -170,46 +156,19 @@ impl LocalSocket for RequestBuilder {
 
             // 读取 body
             let body = if is_chunked {
-                let mut body = Vec::new();
-                loop {
-                    // 读 chunk size
-                    let mut size_line = String::new();
-                    reader.read_line(&mut size_line).await?;
-                    let size_line = size_line.trim();
-                    if size_line.is_empty() {
-                        continue;
-                    }
-                    let chunk_size = usize::from_str_radix(size_line, 16)
-                        .map_err(|e| crate::Error::HttpParseError(format!("Failed to parse chunk size: {e}")))?;
-
-                    if chunk_size == 0 {
-                        // 读掉最后的 CRLF
-                        let mut end = String::new();
-                        reader.read_line(&mut end).await?;
-                        break;
-                    }
-
-                    // 读 chunk data
-                    let mut chunk_data = vec![0u8; chunk_size];
-                    reader.read_exact(&mut chunk_data).await?;
-                    body.extend_from_slice(&chunk_data);
-
-                    // 读掉结尾 CRLF
-                    let mut crlf = String::new();
-                    reader.read_line(&mut crlf).await?;
-                }
-                String::from_utf8(body)?
+                read_chunked_data(&mut reader).await?
             } else if let Some(content_length) = content_length {
-                println!("content length: {content_length}");
+                log::debug!("content length: {content_length}");
                 let mut body_buf = vec![0u8; content_length];
                 reader.read_exact(&mut body_buf).await?;
                 String::from_utf8_lossy(&body_buf).to_string()
             } else {
-                unimplemented!()
+                // 返回空的 body
+                String::new()
             };
             log::debug!("receive response success, shut down stream");
             reader.shutdown().await?;
-            utils::parse_socket_response(&header, &body)
+            utils::parse_socket_response(header, body)
         };
 
         match timeout {
@@ -223,4 +182,54 @@ impl LocalSocket for RequestBuilder {
             }
         }
     }
+}
+
+async fn parse_header(reader: &mut BufReader<WrapStream>) -> crate::Result<String> {
+    let mut header = String::new();
+    loop {
+        let mut line = String::new();
+        if let Ok(size) = reader.read_line(&mut line).await
+            && size == 0
+        {
+            return Err(crate::Error::HttpParseError("no response".to_string()));
+        }
+        header.push_str(&line);
+        if line == "\r\n" {
+            break;
+        }
+    }
+
+    Ok(header)
+}
+
+async fn read_chunked_data(reader: &mut BufReader<WrapStream>) -> crate::Result<String> {
+    let mut body = Vec::new();
+    loop {
+        // 读 chunk size
+        let mut size_line = String::new();
+        reader.read_line(&mut size_line).await?;
+        let size_line = size_line.trim();
+        if size_line.is_empty() {
+            continue;
+        }
+        let chunk_size = usize::from_str_radix(size_line, 16)
+            .map_err(|e| crate::Error::HttpParseError(format!("Failed to parse chunk size: {e}")))?;
+
+        if chunk_size == 0 {
+            // 读掉最后的 CRLF
+            let mut end = String::new();
+            reader.read_line(&mut end).await?;
+            break;
+        }
+
+        // 读 chunk data
+        let mut chunk_data = vec![0u8; chunk_size];
+        reader.read_exact(&mut chunk_data).await?;
+        body.extend_from_slice(&chunk_data);
+
+        // 读掉结尾 CRLF
+        let mut crlf = String::new();
+        reader.read_line(&mut crlf).await?;
+    }
+    Ok(String::from_utf8(body)?)
 }
