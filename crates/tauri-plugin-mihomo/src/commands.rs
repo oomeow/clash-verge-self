@@ -70,8 +70,22 @@ pub(crate) async fn delay_group(
     group_name: String,
     test_url: String,
     timeout: u32,
+    keep_fixed: bool,
 ) -> Result<HashMap<String, u32>> {
-    state.read().await.delay_group(&group_name, &test_url, timeout).await
+    let fixed = if keep_fixed {
+        state.read().await.get_group_by_name(&group_name).await?.fixed
+    } else {
+        None
+    };
+    log::debug!("delay group, fixed: {fixed:?}");
+    let res = state.read().await.delay_group(&group_name, &test_url, timeout).await?;
+    if keep_fixed
+        && let Some(fixed) = fixed
+        && !fixed.is_empty()
+    {
+        state.read().await.select_node_for_group(&group_name, &fixed).await?;
+    }
+    Ok(res)
 }
 
 // providers

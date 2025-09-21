@@ -116,11 +116,13 @@ export async function delayGroup(
   groupName: string,
   testUrl: string,
   timeout: number,
+  keepFixed = false,
 ): Promise<MihomoGroupDelay> {
   return await invoke<MihomoGroupDelay>("plugin:mihomo|delay_group", {
     groupName,
     testUrl,
     timeout,
+    keepFixed,
   });
 }
 

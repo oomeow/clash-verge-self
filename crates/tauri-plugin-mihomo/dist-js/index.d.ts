@@ -57,7 +57,7 @@ export declare function getGroupByName(groupName: string): Promise<Proxy>;
  * @param timeout 超时时间（毫秒）
  * @returns 代理组里代理节点的延迟
  */
-export declare function delayGroup(groupName: string, testUrl: string, timeout: number): Promise<MihomoGroupDelay>;
+export declare function delayGroup(groupName: string, testUrl: string, timeout: number, keepFixed?: boolean): Promise<MihomoGroupDelay>;
 /**
  * 获取所有代理提供者信息
  * @returns 所有代理提供者信息

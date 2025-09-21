@@ -85,11 +85,12 @@ async function getGroupByName(groupName) {
  * @param timeout 超时时间（毫秒）
  * @returns 代理组里代理节点的延迟
  */
-async function delayGroup(groupName, testUrl, timeout) {
+async function delayGroup(groupName, testUrl, timeout, keepFixed = false) {
     return await core.invoke("plugin:mihomo|delay_group", {
         groupName,
         testUrl,
         timeout,
+        keepFixed,
     });
 }
 // providers

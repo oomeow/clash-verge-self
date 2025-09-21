@@ -205,6 +205,7 @@ async fn read_header(reader: &mut BufReader<WrapStream>) -> Result<String> {
             break;
         }
     }
+    log::debug!("read header done: {header:?}");
 
     Ok(header)
 }
@@ -238,6 +239,7 @@ async fn read_chunked_data(reader: &mut BufReader<WrapStream>) -> Result<String>
         let mut crlf = String::new();
         reader.read_line(&mut crlf).await?;
     }
+    log::debug!("read chunked data done");
     Ok(String::from_utf8(body)?)
 }
 
@@ -286,7 +288,7 @@ impl LocalSocket for RequestBuilder {
                 reader.read_exact(&mut body_buf).await?;
                 String::from_utf8_lossy(&body_buf).to_string()
             } else {
-                // 返回空的 body
+                // 使用空的 body
                 String::new()
             };
             log::debug!("receive response success, shut down stream");

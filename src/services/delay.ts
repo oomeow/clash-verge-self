@@ -99,7 +99,7 @@ class DelayManager {
       return new Promise(async (resolve) => {
         const url = this.getUrl(group);
         try {
-          const result = await delayGroup(group, url, timeout);
+          const result = await delayGroup(group, url, timeout, true);
           const resultNames = Object.keys(result);
           const timeoutNames = names.filter(
             (name) => !resultNames.includes(name),
