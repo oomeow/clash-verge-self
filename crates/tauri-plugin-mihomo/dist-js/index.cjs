@@ -83,7 +83,7 @@ async function getGroupByName(groupName) {
  * @param groupName 代理组名称
  * @param testUrl 测试 url
  * @param timeout 超时时间（毫秒）
- * @param keepFixed 是否保留已固定的节点
+ * @param keepFixed 是否保留已固定的节点, 默认 false
  * @returns 代理组里代理节点的延迟
  */
 async function delayGroup(groupName, testUrl, timeout, keepFixed = false) {
