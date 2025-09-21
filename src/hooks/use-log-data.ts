@@ -80,7 +80,7 @@ export const useLogData = () => {
             };
             listenerRef.current = ws_.addListener(async (msg) => {
               if (msg.type === "Text") {
-                if (msg.data.startsWith("websocket error")) {
+                if (msg.data.startsWith("Websocket error")) {
                   next(msg.data);
                   await ws.current?.close();
                   ws.current = null;

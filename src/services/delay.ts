@@ -74,11 +74,7 @@ class DelayManager {
     try {
       const url = this.getUrl(group);
       const result = await delayProxyByName(name, url, timeout);
-      if (result.delay) {
-        delay = result.delay;
-      } else if (result.message) {
-        delay = 0; // timeout
-      }
+      delay = result.delay;
     } catch {
       delay = 1e6; // error
     }

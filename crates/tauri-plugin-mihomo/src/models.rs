@@ -554,13 +554,7 @@ pub struct Proxies {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ProxyDelay {
-    #[ts(optional)]
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub delay: Option<u32>,
-
-    #[ts(optional)]
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub message: Option<String>,
+    pub delay: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -859,6 +853,11 @@ pub struct Log {
 }
 
 // ------------- use in rust, no need export to typescript -----------------
+#[derive(Deserialize, Serialize)]
+pub struct ErrorResponse {
+    pub message: String,
+}
+
 #[derive(Deserialize, Serialize)]
 pub struct CloseFrame {
     pub code: u16,

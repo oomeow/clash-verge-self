@@ -3,7 +3,7 @@ import { useVerge } from "@/hooks/use-verge";
 import delayManager from "@/services/delay";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { alpha, Box, ListItemButton, styled, Typography } from "@mui/material";
-import { useLockFn } from "ahooks";
+import { useLockFn, useThrottleFn } from "ahooks";
 import { useEffect, useState } from "react";
 
 interface Props {
@@ -65,10 +65,10 @@ export const ProxyItemMini = (props: Props) => {
     setDelay(delayManager.getDelayFix(proxy, groupName));
   }, [proxy]);
 
-  const onDelay = useLockFn(async () => {
+  const onDelay = async () => {
     setDelay(-2);
     setDelay(await delayManager.checkDelay(proxy.name, groupName, timeout));
-  });
+  };
 
   return (
     <ListItemButton
