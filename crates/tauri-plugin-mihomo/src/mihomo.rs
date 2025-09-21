@@ -187,7 +187,7 @@ impl Mihomo {
                     .await
                     .insert(id, WebSocketWriter::TcpStreamWriter(writer));
 
-                tauri::async_runtime::spawn(async move {
+                tokio::spawn(async move {
                     let manager_ = manager.clone();
                     loop {
                         let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
@@ -231,7 +231,7 @@ impl Mihomo {
                         .await
                         .insert(id, WebSocketWriter::SocketStreamWriter(writer));
 
-                    tauri::async_runtime::spawn(async move {
+                    tokio::spawn(async move {
                         let manager_ = manager.clone();
                         loop {
                             let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
@@ -297,7 +297,7 @@ impl Mihomo {
             writer.send(close_message).await?;
             if let Some(timeout) = force_timeout {
                 let manager_ = self.connection_manager.clone();
-                tauri::async_runtime::spawn(async move {
+                tokio::spawn(async move {
                     tokio::time::sleep(Duration::from_millis(timeout)).await;
                     log::debug!("force close websocket connection");
                     manager_.0.write().await.remove(&id);

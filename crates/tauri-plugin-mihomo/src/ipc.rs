@@ -3,6 +3,11 @@ use std::{
     task::{Context, Poll},
 };
 
+use http::{
+    Version,
+    header::{CONTENT_LENGTH, CONTENT_TYPE},
+};
+use httparse::EMPTY_HEADER;
 use pin_project::pin_project;
 use reqwest::RequestBuilder;
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader};
@@ -13,7 +18,7 @@ use tokio::net::windows::named_pipe::{ClientOptions, NamedPipeClient};
 #[cfg(windows)]
 use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
 
-use crate::utils;
+use crate::{Error, Result};
 
 #[pin_project(project = WrapStreamProj)]
 pub enum WrapStream {
@@ -86,12 +91,12 @@ impl AsyncWrite for WrapStream {
     }
 }
 
-pub async fn connect_to_socket(socket_path: &str) -> crate::Result<WrapStream> {
+pub async fn connect_to_socket(socket_path: &str) -> Result<WrapStream> {
     #[cfg(unix)]
     {
         if !std::path::Path::new(socket_path).exists() {
             log::error!("socket path is not exists: {socket_path}");
-            return Err(crate::Error::Io(std::io::Error::new(
+            return Err(Error::Io(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
                 format!("socket path: {socket_path} not found"),
             )));
@@ -107,7 +112,7 @@ pub async fn connect_to_socket(socket_path: &str) -> crate::Result<WrapStream> {
                 Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => (),
                 Err(e) => {
                     log::error!("failed to connect to named pipe: {socket_path}, {e}");
-                    return Err(crate::Error::FailedResponse(format!(
+                    return Err(Error::FailedResponse(format!(
                         "Failed to connect to named pipe: {socket_path}, {e}"
                     )));
                 }
@@ -118,19 +123,137 @@ pub async fn connect_to_socket(socket_path: &str) -> crate::Result<WrapStream> {
     }
 }
 
+fn build_socket_request(req: reqwest::Request) -> Result<String> {
+    let method = req.method().as_str();
+    let mut path = req.url().path().to_string();
+    if let Some(query) = req.url().query() {
+        path.push_str(&format!("?{query}"));
+    }
+    let request_line = format!("{method} {path} HTTP/1.1\r\n");
+
+    // 添加头部信息
+    let mut headers = String::new();
+    let missing_content_length =
+        req.headers().contains_key(CONTENT_TYPE) && !req.headers().contains_key(CONTENT_LENGTH);
+    let body = req
+        .body()
+        .and_then(|b| b.as_bytes())
+        .map(|b| String::from_utf8_lossy(b).to_string())
+        .unwrap_or_default();
+    for (name, value) in req.headers() {
+        if let Ok(value) = value.to_str() {
+            headers.push_str(&format!("{name}: {value}\r\n"));
+            if name == CONTENT_TYPE && missing_content_length {
+                headers.push_str(&format!("{}: {}\r\n", CONTENT_LENGTH, body.len()));
+            }
+        }
+    }
+
+    // 拼接完整请求, 格式: 请求行 + 头部 + 空行 + Body
+    let raw = format!("{request_line}{headers}\r\n{body}");
+
+    Ok(raw)
+}
+
+fn generate_socket_response(header: String, body: String) -> Result<reqwest::Response> {
+    log::debug!("parsing socket response");
+    let mut headers = [EMPTY_HEADER; 16];
+    let mut res = httparse::Response::new(&mut headers);
+    let response_str = format!("{header}{body}");
+    // println!("response str: {response_str:?}");
+    let raw_response = response_str.as_bytes();
+    match res.parse(raw_response) {
+        Ok(httparse::Status::Complete(_)) => {
+            let mut res_builder = http::Response::builder()
+                .version(Version::HTTP_11)
+                .status(res.code.unwrap_or(400));
+            for header in res.headers.iter() {
+                let header_name = header.name;
+                let header_value = str::from_utf8(header.value).unwrap_or_default();
+                res_builder = res_builder.header(header_name, header_value);
+            }
+            // {
+            //     use std::io::Write;
+            //     let mut file = std::fs::File::create("body.json")?;
+            //     file.write_all(body.as_bytes())?;
+            // }
+            let response = res_builder.body(body.to_string())?;
+            Ok(reqwest::Response::from(response))
+        }
+        Ok(httparse::Status::Partial) => {
+            log::error!("Partial response, need more data");
+            Err(Error::HttpParseError("Partial response, need more data".to_string()))
+        }
+        Err(e) => {
+            log::error!("Failed to parse response: {e}");
+            Err(Error::HttpParseError(format!("Failed to parse response: {e}")))
+        }
+    }
+}
+
+async fn read_header(reader: &mut BufReader<WrapStream>) -> Result<String> {
+    let mut header = String::new();
+    loop {
+        let mut line = String::new();
+        if let Ok(size) = reader.read_line(&mut line).await
+            && size == 0
+        {
+            return Err(Error::HttpParseError("no response".to_string()));
+        }
+        header.push_str(&line);
+        if line == "\r\n" {
+            break;
+        }
+    }
+
+    Ok(header)
+}
+
+async fn read_chunked_data(reader: &mut BufReader<WrapStream>) -> Result<String> {
+    let mut body = Vec::new();
+    loop {
+        // 读 chunk size
+        let mut size_line = String::new();
+        reader.read_line(&mut size_line).await?;
+        let size_line = size_line.trim();
+        if size_line.is_empty() {
+            continue;
+        }
+        let chunk_size = usize::from_str_radix(size_line, 16)
+            .map_err(|e| Error::HttpParseError(format!("Failed to parse chunk size: {e}")))?;
+
+        if chunk_size == 0 {
+            // 读掉最后的 CRLF
+            let mut end = String::new();
+            reader.read_line(&mut end).await?;
+            break;
+        }
+
+        // 读 chunk data
+        let mut chunk_data = vec![0u8; chunk_size];
+        reader.read_exact(&mut chunk_data).await?;
+        body.extend_from_slice(&chunk_data);
+
+        // 读掉结尾 CRLF
+        let mut crlf = String::new();
+        reader.read_line(&mut crlf).await?;
+    }
+    Ok(String::from_utf8(body)?)
+}
+
 pub trait LocalSocket {
-    async fn send_by_local_socket(self, socket_path: &str) -> crate::Result<reqwest::Response>;
+    async fn send_by_local_socket(self, socket_path: &str) -> Result<reqwest::Response>;
 }
 
 impl LocalSocket for RequestBuilder {
-    async fn send_by_local_socket(self, socket_path: &str) -> crate::Result<reqwest::Response> {
+    async fn send_by_local_socket(self, socket_path: &str) -> Result<reqwest::Response> {
         let request = self.build()?;
         let timeout = request.timeout().cloned();
 
         let process = async move {
             let mut stream = connect_to_socket(socket_path).await?;
             log::debug!("building socket request");
-            let req_str = utils::build_socket_request(request)?;
+            let req_str = build_socket_request(request)?;
             log::debug!("request string: {req_str:?}");
             stream.writable().await?;
             log::debug!("send request");
@@ -141,7 +264,7 @@ impl LocalSocket for RequestBuilder {
             let mut reader = BufReader::new(stream);
 
             // 读取解析 header
-            let header = parse_header(&mut reader).await?;
+            let header = read_header(&mut reader).await?;
             // 解析 Content-Length, 判断是否是 chunked 响应
             let mut content_length: Option<usize> = None;
             let mut is_chunked = false;
@@ -168,7 +291,7 @@ impl LocalSocket for RequestBuilder {
             };
             log::debug!("receive response success, shut down stream");
             reader.shutdown().await?;
-            utils::parse_socket_response(header, body)
+            generate_socket_response(header, body)
         };
 
         match timeout {
@@ -182,54 +305,4 @@ impl LocalSocket for RequestBuilder {
             }
         }
     }
-}
-
-async fn parse_header(reader: &mut BufReader<WrapStream>) -> crate::Result<String> {
-    let mut header = String::new();
-    loop {
-        let mut line = String::new();
-        if let Ok(size) = reader.read_line(&mut line).await
-            && size == 0
-        {
-            return Err(crate::Error::HttpParseError("no response".to_string()));
-        }
-        header.push_str(&line);
-        if line == "\r\n" {
-            break;
-        }
-    }
-
-    Ok(header)
-}
-
-async fn read_chunked_data(reader: &mut BufReader<WrapStream>) -> crate::Result<String> {
-    let mut body = Vec::new();
-    loop {
-        // 读 chunk size
-        let mut size_line = String::new();
-        reader.read_line(&mut size_line).await?;
-        let size_line = size_line.trim();
-        if size_line.is_empty() {
-            continue;
-        }
-        let chunk_size = usize::from_str_radix(size_line, 16)
-            .map_err(|e| crate::Error::HttpParseError(format!("Failed to parse chunk size: {e}")))?;
-
-        if chunk_size == 0 {
-            // 读掉最后的 CRLF
-            let mut end = String::new();
-            reader.read_line(&mut end).await?;
-            break;
-        }
-
-        // 读 chunk data
-        let mut chunk_data = vec![0u8; chunk_size];
-        reader.read_exact(&mut chunk_data).await?;
-        body.extend_from_slice(&chunk_data);
-
-        // 读掉结尾 CRLF
-        let mut crlf = String::new();
-        reader.read_line(&mut crlf).await?;
-    }
-    Ok(String::from_utf8(body)?)
 }

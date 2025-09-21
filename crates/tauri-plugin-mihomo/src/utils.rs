@@ -1,15 +1,7 @@
 #![allow(dead_code)]
-use core::str;
 
 use base64::{Engine, engine::general_purpose};
-use http::{
-    Version,
-    header::{CONTENT_LENGTH, CONTENT_TYPE},
-};
-use httparse::EMPTY_HEADER;
 use rand::Rng;
-
-use crate::{Error, Result};
 
 /// 生成 WebSocket 握手密钥
 pub fn generate_websocket_key() -> String {
@@ -19,73 +11,6 @@ pub fn generate_websocket_key() -> String {
     rng.fill(&mut key);
     // Base64 编码
     general_purpose::STANDARD.encode(key)
-}
-
-pub fn build_socket_request(req: reqwest::Request) -> Result<String> {
-    let method = req.method().as_str();
-    let mut path = req.url().path().to_string();
-    if let Some(query) = req.url().query() {
-        path.push_str(&format!("?{query}"));
-    }
-    let request_line = format!("{method} {path} HTTP/1.1\r\n");
-
-    // 添加头部信息
-    let mut headers = String::new();
-    let missing_content_length =
-        req.headers().contains_key(CONTENT_TYPE) && !req.headers().contains_key(CONTENT_LENGTH);
-    let body = req
-        .body()
-        .and_then(|b| b.as_bytes())
-        .map(|b| String::from_utf8_lossy(b).to_string())
-        .unwrap_or_default();
-    for (name, value) in req.headers() {
-        if let Ok(value) = value.to_str() {
-            headers.push_str(&format!("{name}: {value}\r\n"));
-            if name == CONTENT_TYPE && missing_content_length {
-                headers.push_str(&format!("{}: {}\r\n", CONTENT_LENGTH, body.len()));
-            }
-        }
-    }
-
-    // 拼接完整请求, 格式: 请求行 + 头部 + 空行 + Body
-    let raw = format!("{request_line}{headers}\r\n{body}");
-
-    Ok(raw)
-}
-
-pub fn parse_socket_response(header: String, body: String) -> Result<reqwest::Response> {
-    log::debug!("parsing socket response");
-    let mut headers = [EMPTY_HEADER; 16];
-    let mut res = httparse::Response::new(&mut headers);
-    let response_str = format!("{header}{body}");
-    let raw_response = response_str.as_bytes();
-    match res.parse(raw_response) {
-        Ok(httparse::Status::Complete(_)) => {
-            let mut res_builder = http::Response::builder()
-                .version(Version::HTTP_11)
-                .status(res.code.unwrap_or(400));
-            for header in res.headers.iter() {
-                let header_name = header.name;
-                let header_value = str::from_utf8(header.value).unwrap_or_default();
-                res_builder = res_builder.header(header_name, header_value);
-            }
-            // {
-            //     use std::io::Write;
-            //     let mut file = std::fs::File::create("body.json")?;
-            //     file.write_all(body.as_bytes())?;
-            // }
-            let response = res_builder.body(body.to_string())?;
-            Ok(reqwest::Response::from(response))
-        }
-        Ok(httparse::Status::Partial) => {
-            log::error!("Partial response, need more data");
-            Err(Error::HttpParseError("Partial response, need more data".to_string()))
-        }
-        Err(e) => {
-            log::error!("Failed to parse response: {e}");
-            Err(Error::HttpParseError(format!("Failed to parse response: {e}")))
-        }
-    }
 }
 
 // 解析 chunked 数据, https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Transfer-Encoding#examples

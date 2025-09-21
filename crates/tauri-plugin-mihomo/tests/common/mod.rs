@@ -18,6 +18,7 @@ pub fn mihomo() -> Mihomo {
             // "/tmp/clash-rs.sock".to_string()
         } else {
             r"\\.\pipe\verge-mihomo".to_string()
+            // r"\\.\pipe\clash-rs".to_string()
         };
         Mihomo {
             protocol: Protocol::LocalSocket,
