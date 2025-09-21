@@ -123,7 +123,7 @@ pub async fn connect_to_socket(socket_path: &str) -> Result<WrapStream> {
     }
 }
 
-fn build_socket_request(req: reqwest::Request) -> Result<String> {
+fn generate_socket_request(req: reqwest::Request) -> Result<String> {
     let method = req.method().as_str();
     let mut path = req.url().path().to_string();
     if let Some(query) = req.url().query() {
@@ -253,7 +253,7 @@ impl LocalSocket for RequestBuilder {
         let process = async move {
             let mut stream = connect_to_socket(socket_path).await?;
             log::debug!("building socket request");
-            let req_str = build_socket_request(request)?;
+            let req_str = generate_socket_request(request)?;
             log::debug!("request string: {req_str:?}");
             stream.writable().await?;
             log::debug!("send request");
