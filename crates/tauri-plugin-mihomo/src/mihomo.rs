@@ -17,9 +17,9 @@ use crate::{
     Error, Result, failed_resp,
     ipc::LocalSocket,
     models::{
-        BaseConfig, CloseFrame, ConnectionId, ConnectionManager, Connections, CoreUpdaterChannel, Groups, LogLevel,
-        MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules,
-        WebSocketMessage, WebSocketWriter,
+        BaseConfig, CloseFrame, ConnectionId, ConnectionManager, Connections, CoreUpdaterChannel, ErrorResponse,
+        Groups, LogLevel, MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders,
+        RuleProviders, Rules, WebSocketMessage, WebSocketWriter,
     },
     ret_failed_resp, utils,
 };
@@ -524,9 +524,10 @@ impl Mihomo {
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             // maybe proxy delay is timeout response, try parse it.
-            match response.json::<ProxyDelay>().await {
-                Ok(delay) => {
-                    return Ok(delay);
+            match response.json::<ErrorResponse>().await {
+                Ok(err_response) => {
+                    log::debug!("delay error: {}", err_response.message);
+                    return Ok(ProxyDelay { delay: 0 });
                 }
                 Err(e) => {
                     ret_failed_resp!("healthcheck providers failed, {}", e);
@@ -597,10 +598,10 @@ impl Mihomo {
             .query(&[("timeout", &timeout.to_string()), ("url", &test_url.to_string())]);
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
-            // maybe proxy delay is timeout response, try parse it.
-            match response.json::<ProxyDelay>().await {
-                Ok(delay) => {
-                    return Ok(delay);
+            match response.json::<ErrorResponse>().await {
+                Ok(err_response) => {
+                    log::debug!("delay error: {}", err_response.message);
+                    return Ok(ProxyDelay { delay: 0 });
                 }
                 Err(e) => {
                     ret_failed_resp!("get proxy by name failed, {}", e);

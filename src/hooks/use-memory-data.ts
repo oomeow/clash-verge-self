@@ -34,7 +34,6 @@ export const useMemoryData = () => {
                     500,
                   );
                 } else {
-                  console.log(msg.data);
                   const data = JSON.parse(msg.data) as IMemoryUsageItem;
                   next(null, data);
                 }
