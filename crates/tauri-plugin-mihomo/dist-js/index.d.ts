@@ -49,15 +49,16 @@ export declare function getGroups(): Promise<Groups>;
  */
 export declare function getGroupByName(groupName: string): Promise<Proxy>;
 /**
- * 获取指定代理组延迟
+ * 对指定代理组进行延迟测试
  *
  * 注：返回值中不包含超时的节点
  * @param groupName 代理组名称
  * @param testUrl 测试 url
  * @param timeout 超时时间（毫秒）
+ * @param keepFixed 是否保留已固定的节点, 默认 false
  * @returns 代理组里代理节点的延迟
  */
-export declare function delayGroup(groupName: string, testUrl: string, timeout: number): Promise<MihomoGroupDelay>;
+export declare function delayGroup(groupName: string, testUrl: string, timeout: number, keepFixed?: boolean): Promise<MihomoGroupDelay>;
 /**
  * 获取所有代理提供者信息
  * @returns 所有代理提供者信息

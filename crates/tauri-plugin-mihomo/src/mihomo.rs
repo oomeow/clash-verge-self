@@ -450,7 +450,7 @@ impl Mihomo {
         Ok(response.json::<Proxy>().await?)
     }
 
-    /// 对指定代理组进行延迟测试
+    /// 对指定代理组进行延迟测试, 同时清理代理组已固定的节点
     pub async fn delay_group(&self, group_name: &str, test_url: &str, timeout: u32) -> Result<HashMap<String, u32>> {
         let group_name = urlencoding::encode(group_name);
         let test_url = urlencoding::encode(test_url);
