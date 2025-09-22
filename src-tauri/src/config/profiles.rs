@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, io::Write, path::PathBuf};
+use std::{collections::HashMap, fs, io::Write, path::PathBuf, time::Duration};
 
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
@@ -6,7 +6,8 @@ use serde_yaml::Mapping;
 use super::{EnableFilter, PrfItem};
 use crate::{
     any_err,
-    config::ProfileType,
+    config::{Config, ProfileType},
+    core::handle,
     enhance::chain::{ChainItem, ScopeType},
     error::{AppError, AppResult},
     log_err,
@@ -478,4 +479,72 @@ impl IProfiles {
             None
         }
     }
+}
+
+pub async fn activate_selected_nodes() -> AppResult<()> {
+    tracing::info!("starting activating selected nodes");
+    let profiles = Config::profiles();
+    let profiles = profiles.latest().clone();
+    let current = profiles.get_current();
+    if let Some(current) = current {
+        let mihomo = handle::Handle::mihomo().await;
+
+        // check mihomo is running
+        let mut max_check_retry = 10;
+        loop {
+            if max_check_retry < 0 {
+                tracing::error!(
+                    "check that the mihomo api reaches the maximum number of retries, maybe mihomo core is not running"
+                );
+                return Err(AppError::Any(
+                    "check mihomo api error, maybe mihomo core is not running".to_string(),
+                ));
+            }
+            if mihomo.get_version().await.is_ok() {
+                tracing::debug!("check mihomo api success");
+                break;
+            }
+            max_check_retry -= 1;
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+
+        let profile = profiles
+            .get_item(current)
+            .ok_or(any_err!("failed to get current profile"))?;
+
+        if let Some(selected) = profile.selected.as_ref() {
+            tracing::debug!("selected nodes: {selected:?}");
+            for selected_item in selected {
+                let mut retry = 10;
+                if let Some(group_name) = selected_item.name.as_ref()
+                    && let Some(node) = selected_item.now.as_ref()
+                {
+                    while retry >= 0 {
+                        tracing::debug!("check node[{node}] exists");
+                        if mihomo.get_proxy_by_name(node).await.is_ok() {
+                            tracing::debug!("node[{node}] exists");
+                            break;
+                        }
+                        retry -= 1;
+                        tokio::time::sleep(Duration::from_secs(1)).await;
+                    }
+                    if retry < 0 {
+                        tracing::error!(
+                            "Failed to select node for proxy: {group_name}, node: {node}, because the node [{node}] does not exist"
+                        );
+                        continue;
+                    }
+                    if mihomo.select_node_for_group(group_name, node).await.is_err() {
+                        tracing::error!("Failed to select node for proxy: {group_name}, node: {node}");
+                    } else {
+                        tracing::info!("Selected node for proxy: {group_name}, node: {node}");
+                    }
+                }
+            }
+            // refresh clash
+            handle::Handle::refresh_clash();
+        }
+        tracing::info!("activating selected nodes done!");
+    }
+    Ok(())
 }
