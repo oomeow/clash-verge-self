@@ -336,14 +336,13 @@ impl Tray {
                         {
                             Ok(_) => {
                                 handle::Handle::notify(t!("profiles.switch"), t!("profiles.switch.success"));
-                                handle::Handle::refresh_profiles();
                                 tracing::info!("switch profile successfully");
                             }
                             Err(e) => {
                                 handle::Handle::notify(t!("profiles.switch"), t!("profiles.switch.failed"));
                                 tracing::error!("failed to switch profile, error: {:?}", e);
                             }
-                        }
+                        };
                     });
                 } else {
                     log_err!(Self::update_systray(app_handle));

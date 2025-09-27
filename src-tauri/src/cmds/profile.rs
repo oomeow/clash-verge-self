@@ -4,7 +4,7 @@ use crate::{
     core::{CoreManager, handle, timer},
     enhance::chain::{ChainItem, ScopeType},
     error::{AppError, AppResult},
-    feat,
+    feat, log_err,
     utils::{dirs, help, tmpl},
 };
 
@@ -95,14 +95,22 @@ pub async fn delete_profile(uid: String) -> AppResult<()> {
 /// 修改整个 profiles
 #[tauri::command]
 pub async fn patch_profiles_config(profiles: IProfiles) -> AppResult<()> {
+    let switch_current = profiles.current.is_some();
     Config::profiles().draft().patch_config(profiles)?;
 
     match CoreManager::global().update_config().await {
         Ok(_) => {
             handle::Handle::refresh_clash();
-            let _ = handle::Handle::update_systray_part();
+            handle::Handle::refresh_profiles();
+            handle::Handle::update_systray_part()?;
             Config::profiles().apply();
             Config::profiles().data().save_file()?;
+            if switch_current {
+                tauri::async_runtime::spawn(async {
+                    tracing::debug!("change current profile, run activate selected node");
+                    log_err!(crate::config::activate_selected_nodes().await);
+                });
+            }
             Ok(())
         }
         Err(err) => {
