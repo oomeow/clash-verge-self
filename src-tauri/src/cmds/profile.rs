@@ -4,7 +4,7 @@ use crate::{
     core::{CoreManager, handle, timer},
     enhance::chain::{ChainItem, ScopeType},
     error::{AppError, AppResult},
-    feat,
+    feat, log_err,
     utils::{dirs, help, tmpl},
 };
 
@@ -108,7 +108,7 @@ pub async fn patch_profiles_config(profiles: IProfiles) -> AppResult<()> {
             if switch_current {
                 tauri::async_runtime::spawn(async {
                     tracing::debug!("change current profile, run activate selected node");
-                    let _ = crate::config::activate_selected_nodes().await;
+                    log_err!(crate::config::activate_selected_nodes().await);
                 });
             }
             Ok(())
