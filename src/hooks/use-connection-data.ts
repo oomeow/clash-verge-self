@@ -1,4 +1,3 @@
-import { listen } from "@tauri-apps/api/event";
 import { useLocalStorage } from "foxact/use-local-storage";
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
@@ -23,7 +22,6 @@ export const useConnectionData = () => {
     subscriptKey,
     (_key, { next }) => {
       const reconnect = async () => {
-        console.log("reconnecting, close prev ws id: ", ws.current?.id);
         await ws.current?.close();
         ws.current = null;
         timeoutRef.current = setTimeout(async () => await connect(), 500);
@@ -100,7 +98,7 @@ export const useConnectionData = () => {
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
-  }, [date]);
+  }, [date, subscriptKey]);
 
   const refreshGetClashConnection = () => {
     setDate(Date.now());

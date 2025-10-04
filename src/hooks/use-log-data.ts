@@ -130,7 +130,7 @@ export const useLogData = () => {
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
-  }, [date]);
+  }, [date, subscriptKey]);
 
   useEffect(() => {
     if (!logLevel) return;

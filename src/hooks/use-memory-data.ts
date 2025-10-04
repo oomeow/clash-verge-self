@@ -69,7 +69,7 @@ export const useMemoryData = () => {
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
-  }, [date]);
+  }, [date, subscriptKey]);
 
   const refreshGetClashMemory = () => {
     setDate(Date.now());

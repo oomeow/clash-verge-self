@@ -73,7 +73,7 @@ export const useTrafficData = () => {
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
-  }, [date]);
+  }, [date, subscriptKey]);
 
   const refreshGetClashTraffic = () => {
     setDate(Date.now());
