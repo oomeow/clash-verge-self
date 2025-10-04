@@ -132,7 +132,6 @@ pub fn setup_panic_hook() {
 /// reset system proxy
 pub async fn resolve_reset() {
     log_err!(sysopt::Sysopt::global().reset_sysproxy());
-    log_err!(handle::Handle::mihomo().await.clear_all_ws_connections().await);
     log_err!(CoreManager::global().stop_core().await);
 }
 

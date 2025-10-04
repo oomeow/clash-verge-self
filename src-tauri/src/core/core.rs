@@ -140,7 +140,6 @@ impl CoreManager {
         let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or_default();
         self.use_service_mode.store(enable_service_mode, Ordering::SeqCst);
 
-        handle::Handle::mihomo().await.clear_all_ws_connections().await?;
         let mut system = System::new();
         system.refresh_all();
         let procs = system.processes_by_name("verge-mihomo".as_ref());
@@ -169,7 +168,7 @@ impl CoreManager {
             let res = service::run_core_by_service(&config_path, &PathBuf::from(log_path)).await;
             match res {
                 Ok(_) => {
-                    handle::Handle::refresh_websocket();
+                    tracing::info!("run core by service successfully");
                     return Ok(());
                 }
                 Err(err) => {
@@ -217,6 +216,7 @@ impl CoreManager {
 
         let app_handle = handle::Handle::app_handle();
         let cmd = app_handle.shell().sidecar(clash_core)?;
+        self.need_restart_core.store(true, Ordering::SeqCst);
         let (mut rx, cmd_child) = cmd.args(args).spawn()?;
         {
             let mut sidecar = self.sidecar.lock();
@@ -253,7 +253,6 @@ impl CoreManager {
             }
         });
 
-        handle::Handle::refresh_websocket();
         Ok(())
     }
 

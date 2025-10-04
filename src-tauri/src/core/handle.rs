@@ -51,12 +51,6 @@ impl Handle {
             .ok()
     }
 
-    pub fn refresh_websocket() {
-        if let Some(window) = Self::get_window() {
-            log_err!(window.emit("verge://refresh-websocket", "yes"));
-        }
-    }
-
     pub fn refresh_clash() {
         if let Some(window) = Self::get_window() {
             log_err!(window.emit("verge://refresh-clash-config", "yes"));

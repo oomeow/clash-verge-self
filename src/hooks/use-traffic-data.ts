@@ -1,5 +1,4 @@
 import { TrafficRef } from "@/components/layout/traffic-graph";
-import { listen } from "@tauri-apps/api/event";
 import { useLocalStorage } from "foxact/use-local-storage";
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
@@ -13,28 +12,28 @@ export const useTrafficData = () => {
   const trafficRef = useRef<TrafficRef>(null);
   const ws = useRef<MihomoWebSocket | null>(null);
   const wsFirstConnection = useRef<boolean>(true);
-  const listenerRef = useRef<() => void | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const response = useSWRSubscription<ITrafficItem, any, string | null>(
     subscriptKey,
     (_key, { next }) => {
+      const reconnect = async () => {
+        await ws.current?.close();
+        ws.current = null;
+        timeoutRef.current = setTimeout(async () => await connect(), 500);
+      };
+
       const connect = async () => {
         MihomoWebSocket.connect_traffic()
           .then(async (ws_) => {
             ws.current = ws_;
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
-            listenerRef.current = ws_.addListener(async (msg) => {
+            ws_.addListener(async (msg) => {
               if (msg.type === "Text") {
                 if (msg.data.startsWith("Websocket error")) {
                   next(msg.data, { up: 0, down: 0 });
-                  await ws.current?.close();
-                  ws.current = null;
-                  timeoutRef.current = setTimeout(
-                    async () => await connect(),
-                    500,
-                  );
+                  await reconnect();
                 } else {
                   const data = JSON.parse(msg.data) as ITrafficItem;
                   trafficRef.current?.appendData(data);
@@ -64,8 +63,6 @@ export const useTrafficData = () => {
 
       return () => {
         ws.current?.close();
-        listenerRef.current?.();
-        listenerRef.current = null;
       };
     },
     {
@@ -73,20 +70,6 @@ export const useTrafficData = () => {
       keepPreviousData: true,
     },
   );
-
-  useEffect(() => {
-    const unlistenRefreshWebsocket = listen(
-      "verge://refresh-websocket",
-      async () => {
-        await ws.current?.close();
-        setDate(Date.now());
-      },
-    );
-
-    return () => {
-      unlistenRefreshWebsocket.then((fn) => fn());
-    };
-  }, []);
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);

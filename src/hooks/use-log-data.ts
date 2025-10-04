@@ -1,5 +1,4 @@
 import { getClashLogs } from "@/services/cmds";
-import { listen } from "@tauri-apps/api/event";
 import dayjs from "dayjs";
 import { useLocalStorage } from "foxact/use-local-storage";
 import { useEffect, useRef } from "react";
@@ -20,12 +19,17 @@ export const useLogData = () => {
 
   const ws = useRef<MihomoWebSocket | null>(null);
   const wsFirstConnection = useRef<boolean>(true);
-  const listenerRef = useRef<() => void | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const response = useSWRSubscription<ILogItem[], any, string | null>(
     subscriptKey,
     (_key, { next }) => {
+      const reconnect = async () => {
+        await ws.current?.close();
+        ws.current = null;
+        timeoutRef.current = setTimeout(async () => await connect(), 500);
+      };
+
       const connect = () =>
         MihomoWebSocket.connect_logs(logLevel)
           .then(async (ws_) => {
@@ -63,7 +67,7 @@ export const useLogData = () => {
             next(null, filterLogs);
 
             const buffer: ILogItem[] = [];
-            let flushTimer: NodeJS.Timeout | null = null;
+            let flushTimer: ReturnType<typeof setTimeout> | null = null;
             const flush = () => {
               if (buffer.length > 0) {
                 next(null, (l) => {
@@ -78,16 +82,11 @@ export const useLogData = () => {
               }
               flushTimer = null;
             };
-            listenerRef.current = ws_.addListener(async (msg) => {
+            ws_.addListener(async (msg) => {
               if (msg.type === "Text") {
                 if (msg.data.startsWith("Websocket error")) {
                   next(msg.data);
-                  await ws.current?.close();
-                  ws.current = null;
-                  timeoutRef.current = setTimeout(
-                    async () => await connect(),
-                    500,
-                  );
+                  await reconnect();
                 } else {
                   const data = JSON.parse(msg.data) as ILogItem;
                   data.time = dayjs().format("MM-DD HH:mm:ss");
@@ -121,8 +120,6 @@ export const useLogData = () => {
 
       return () => {
         ws.current?.close();
-        listenerRef.current?.();
-        listenerRef.current = null;
       };
     },
     {
@@ -130,20 +127,6 @@ export const useLogData = () => {
       keepPreviousData: true,
     },
   );
-
-  useEffect(() => {
-    const unlistenRefreshWebsocket = listen(
-      "verge://refresh-websocket",
-      async () => {
-        await ws.current?.close();
-        setDate(Date.now());
-      },
-    );
-
-    return () => {
-      unlistenRefreshWebsocket.then((fn) => fn());
-    };
-  }, []);
 
   useEffect(() => {
     mutate(`$sub$${subscriptKey}`);
