@@ -101,10 +101,10 @@ export const ProviderButton = () => {
             const time = dayjs(item?.updatedAt);
             const sub = item?.subscriptionInfo;
             const hasSubInfo = !!sub;
-            const upload = parseInt(sub?.Upload.toString() || "0");
-            const download = parseInt(sub?.Download.toString() || "0");
-            const total = parseInt(sub?.Total.toString() || "0");
-            const expire = parseInt(sub?.Expire.toString() || "0");
+            const upload = sub?.Upload || 0;
+            const download = sub?.Download || 0;
+            const total = sub?.Total || 0;
+            const expire = sub?.Expire || 0;
             const progress = Math.round(
               ((download + upload) * 100) / (total + 0.1),
             );
