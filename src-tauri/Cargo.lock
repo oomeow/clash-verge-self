@@ -1442,7 +1442,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users 0.5.2",
- "windows-sys 0.61.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5338,7 +5338,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.4.15",
- "windows-sys 0.59.0",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -6933,9 +6933,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tipsy"
-version = "0.6.4"
+version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2554d6147da0d26f5de9caa571524cda0f01600dba8455b76389456dd4f0fb8"
+checksum = "91456c51834a52defbaf5f9797f8791df0e2814aec790956669485dc8eab621c"
 dependencies = [
  "dirs 6.0.0",
  "futures-util",
