@@ -83,7 +83,7 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "@types/react-transition-group": "4.4.12",
-    "@types/sortablejs": "1.15.8",
+    "@types/sortablejs": "1.15.9",
     "@vitejs/plugin-legacy": "7.2.1",
     "@vitejs/plugin-react": "5.0.4",
     "adm-zip": "0.5.16",
