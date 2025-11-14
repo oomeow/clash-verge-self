@@ -34,10 +34,10 @@ importers:
         version: 7.29.9(@emotion/react@11.13.0(@types/react@19.2.4)(react@19.2.0))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.4)(react@19.2.0))(@types/react@19.2.4)(react@19.2.0))(@mui/material@7.3.5(@emotion/react@11.13.0(@types/react@19.2.4)(react@19.2.0))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.4)(react@19.2.0))(@types/react@19.2.4)(react@19.2.0))(@types/react@19.2.4)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@mui/system@7.3.5(@emotion/react@11.13.0(@types/react@19.2.4)(react@19.2.0))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.4)(react@19.2.0))(@types/react@19.2.4)(react@19.2.0))(@types/react@19.2.4)(react@19.2.0))(@types/react@19.2.4)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@tanstack/react-router':
         specifier: ^1.120.16
-        version: 1.134.15(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+        version: 1.136.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@tanstack/react-router-devtools':
         specifier: ^1.120.16
-        version: 1.134.15(@tanstack/react-router@1.134.15(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@tanstack/router-core@1.134.15)(@types/node@22.15.30)(csstype@3.1.3)(jiti@2.6.1)(lightningcss@1.30.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.80.3)(solid-js@1.9.9)(terser@5.44.1)(tiny-invariant@1.3.3)(tsx@4.19.4)(yaml@2.8.0)
+        version: 1.136.1(@tanstack/react-router@1.136.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@tanstack/router-core@1.136.1)(@types/node@22.15.30)(csstype@3.1.3)(jiti@2.6.1)(lightningcss@1.30.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.80.3)(solid-js@1.9.9)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0)
       '@tauri-apps/api':
         specifier: ^2.5.0
         version: 2.9.0
@@ -139,11 +139,11 @@ importers:
         specifier: 4.1.17
         version: 4.1.17(vite@7.2.2(@types/node@22.15.30)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0))
       '@tanstack/router-cli':
-        specifier: 1.134.15
-        version: 1.134.15
+        specifier: 1.136.1
+        version: 1.136.1
       '@tanstack/router-plugin':
-        specifier: 1.134.15
-        version: 1.134.15(@tanstack/react-router@1.134.15(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(vite@7.2.2(@types/node@22.15.30)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0))
+        specifier: 1.136.1
+        version: 1.136.1(@tanstack/react-router@1.136.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(vite@7.2.2(@types/node@22.15.30)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0))
       '@tauri-apps/cli':
         specifier: 2.9.4
         version: 2.9.4
@@ -1770,16 +1770,20 @@ packages:
     resolution: {integrity: sha512-B7+x7eP2FFvi3fgd3rNH9o/Eixt+pp0zCIdGhnQbAJjFrlwIKGjGnwyJjhWJ5fMQlGks/E2LdDTqEV4W9Plx7g==}
     engines: {node: '>=12'}
 
-  '@tanstack/react-router-devtools@1.134.15':
-    resolution: {integrity: sha512-vwbTgr/j5uhgAB/SnzmFjNYMoAEXOap5yUfc+G6i4D1nfkW1/KUvY6qUJW9KCSgP8ZrzESN0hYVfy6nLoA8UTA==}
+  '@tanstack/react-router-devtools@1.136.1':
+    resolution: {integrity: sha512-4+rsWV5DMliwt9cEpzWDxXVshZxOYJdAhDsLEA3Br/Grx2AsACInIg90PbFpTNaHqw7lYVslTC+ZWNI5Q9vRXw==}
     engines: {node: '>=12'}
     peerDependencies:
-      '@tanstack/react-router': ^1.134.15
+      '@tanstack/react-router': ^1.136.1
+      '@tanstack/router-core': ^1.136.1
       react: '>=18.0.0 || >=19.0.0'
       react-dom: '>=18.0.0 || >=19.0.0'
+    peerDependenciesMeta:
+      '@tanstack/router-core':
+        optional: true
 
-  '@tanstack/react-router@1.134.15':
-    resolution: {integrity: sha512-Xztjz9Q/5R8c2vIayavGX8jVFBMiClPcCI4+5ZaQ/CNYAE8hapuq4IxyT110GyPRPIr4Eduj6grjduo1xnHMdQ==}
+  '@tanstack/react-router@1.136.1':
+    resolution: {integrity: sha512-GkS/qTcCpJZ34fLc7SMaJGoAGxQN0+hW7bMg/VnvEViO034snFvZ6y9s6oMkchVZr83Qk7QGtAxECVBvzfG8wA==}
     engines: {node: '>=12'}
     peerDependencies:
       react: '>=18.0.0 || >=19.0.0'
@@ -1791,37 +1795,36 @@ packages:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  '@tanstack/router-cli@1.134.15':
-    resolution: {integrity: sha512-i1weGPsQ3JyEzdOgqRg1zRswcXhbTBVHq3szVNVv57IGaCJ3+73wgmlrB7Y8b42AB2DdoTsBqR+/ovLfjTdTTA==}
+  '@tanstack/router-cli@1.136.1':
+    resolution: {integrity: sha512-YMw1la5aL+uyxZtwsNiYG4dCTuOaTEdb/THYdZD7xwX6ush8bcYERdLmhdTTKEqhNaky3tvKayK7QIqlno21rQ==}
     engines: {node: '>=12'}
     hasBin: true
 
-  '@tanstack/router-core@1.134.15':
-    resolution: {integrity: sha512-XVjcFM75GiFE6wPdPDpVDY1fIlHv/PfC4xUIQMQEURNJHKAmjHJZUIoF4OhLNRcGoG6XuzNWcTi6S0geRsbtMQ==}
+  '@tanstack/router-core@1.136.1':
+    resolution: {integrity: sha512-+X3Z99w4g2MpZuB2ZgK5q5bSi7Egp3N88Ee+ZyLw8kMvOk+NRlXBVkEyq92Qn/hEl5LX8jYsv6RhChm2yRs/6A==}
     engines: {node: '>=12'}
 
-  '@tanstack/router-devtools-core@1.134.15':
-    resolution: {integrity: sha512-uvY1n+ywTBURkAPN2HkDJ7fe0CKvPy4xP1PoL9UjQtbB1DvMgFS8RV3imBJET3PaIHAnw10BgKh2wJfSpAdetA==}
+  '@tanstack/router-devtools-core@1.136.1':
+    resolution: {integrity: sha512-Fi1St1En6fV7xhODZ4Nra1HcJBK0CXpNZYiWOzUEBoCu+jdT2ZOPVUi7nv8FW7D5TAFBwqBBvyLXuXZyi0te/w==}
     engines: {node: '>=12'}
     peerDependencies:
-      '@tanstack/router-core': ^1.134.15
+      '@tanstack/router-core': ^1.136.1
       csstype: ^3.0.10
       solid-js: '>=1.9.5'
-      tiny-invariant: ^1.3.3
     peerDependenciesMeta:
       csstype:
         optional: true
 
-  '@tanstack/router-generator@1.134.15':
-    resolution: {integrity: sha512-TT4+g5Lp+9WiGQNZDcAKK0dxFgrFRSg8y0QQ6NSjJ9B1g+VdpvITa+jk+iel5v5t0zHtpDO6fXARchDR4Bof9A==}
+  '@tanstack/router-generator@1.136.1':
+    resolution: {integrity: sha512-ctxSQVmy5+TGQybdfDwv7aQ8IycR8BhMFJTvKZoNoCiKpUr+Vabf6UThldHPoxnyWI+ebEMjL50nduhlQud06Q==}
     engines: {node: '>=12'}
 
-  '@tanstack/router-plugin@1.134.15':
-    resolution: {integrity: sha512-zQR+wRcFq5OR2FPWESy1SP/0DNnRCN7t6wQln7eRLTyQVt9JDTFvecr88/6S6OgvUwPtc8WsqLSII64cy+e1mA==}
+  '@tanstack/router-plugin@1.136.1':
+    resolution: {integrity: sha512-W+kJ1FAQGpog3uzCvW4LHnJEXMOJ/facnDFfMsWVKU5M0tIGiMXFAiJfRqofDi59f/87B8WMEWAYKPR8TW/3mA==}
     engines: {node: '>=12'}
     peerDependencies:
       '@rsbuild/core': '>=1.0.2'
-      '@tanstack/react-router': ^1.134.15
+      '@tanstack/react-router': ^1.136.1
       vite: '>=5.0.0 || >=6.0.0 || >=7.0.0'
       vite-plugin-solid: ^2.11.10
       webpack: '>=5.92.0'
@@ -3867,8 +3870,8 @@ snapshots:
       '@babel/helpers': 7.28.4
       '@babel/parser': 7.28.4
       '@babel/template': 7.27.2
-      '@babel/traverse': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/traverse': 7.28.5
+      '@babel/types': 7.28.5
       '@jridgewell/remapping': 2.3.5
       convert-source-map: 2.0.0
       debug: 4.4.1
@@ -3908,8 +3911,8 @@ snapshots:
 
   '@babel/generator@7.28.3':
     dependencies:
-      '@babel/parser': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/parser': 7.28.5
+      '@babel/types': 7.28.5
       '@jridgewell/gen-mapping': 0.3.12
       '@jridgewell/trace-mapping': 0.3.29
       jsesc: 3.1.0
@@ -3924,7 +3927,7 @@ snapshots:
 
   '@babel/helper-annotate-as-pure@7.27.3':
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@babel/helper-compilation-targets@7.27.2':
     dependencies:
@@ -3942,20 +3945,20 @@ snapshots:
       '@babel/helper-optimise-call-expression': 7.27.1
       '@babel/helper-replace-supers': 7.27.1(@babel/core@7.28.0)
       '@babel/helper-skip-transparent-expression-wrappers': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
       semver: 6.3.1
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/helper-create-class-features-plugin@7.27.1(@babel/core@7.28.4)':
+  '@babel/helper-create-class-features-plugin@7.27.1(@babel/core@7.28.5)':
     dependencies:
-      '@babel/core': 7.28.4
+      '@babel/core': 7.28.5
       '@babel/helper-annotate-as-pure': 7.27.3
       '@babel/helper-member-expression-to-functions': 7.27.1
       '@babel/helper-optimise-call-expression': 7.27.1
-      '@babel/helper-replace-supers': 7.27.1(@babel/core@7.28.4)
+      '@babel/helper-replace-supers': 7.27.1(@babel/core@7.28.5)
       '@babel/helper-skip-transparent-expression-wrappers': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
       semver: 6.3.1
     transitivePeerDependencies:
       - supports-color
@@ -3982,15 +3985,15 @@ snapshots:
 
   '@babel/helper-member-expression-to-functions@7.27.1':
     dependencies:
-      '@babel/traverse': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/traverse': 7.28.5
+      '@babel/types': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
   '@babel/helper-module-imports@7.27.1':
     dependencies:
-      '@babel/traverse': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/traverse': 7.28.5
+      '@babel/types': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4008,7 +4011,7 @@ snapshots:
       '@babel/core': 7.28.0
       '@babel/helper-module-imports': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4017,7 +4020,7 @@ snapshots:
       '@babel/core': 7.28.4
       '@babel/helper-module-imports': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4026,13 +4029,13 @@ snapshots:
       '@babel/core': 7.28.5
       '@babel/helper-module-imports': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
   '@babel/helper-optimise-call-expression@7.27.1':
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@babel/helper-plugin-utils@7.27.1': {}
 
@@ -4041,7 +4044,7 @@ snapshots:
       '@babel/core': 7.28.0
       '@babel/helper-annotate-as-pure': 7.27.3
       '@babel/helper-wrap-function': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4050,23 +4053,23 @@ snapshots:
       '@babel/core': 7.28.0
       '@babel/helper-member-expression-to-functions': 7.27.1
       '@babel/helper-optimise-call-expression': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/helper-replace-supers@7.27.1(@babel/core@7.28.4)':
+  '@babel/helper-replace-supers@7.27.1(@babel/core@7.28.5)':
     dependencies:
-      '@babel/core': 7.28.4
+      '@babel/core': 7.28.5
       '@babel/helper-member-expression-to-functions': 7.27.1
       '@babel/helper-optimise-call-expression': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
   '@babel/helper-skip-transparent-expression-wrappers@7.27.1':
     dependencies:
-      '@babel/traverse': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/traverse': 7.28.5
+      '@babel/types': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4081,8 +4084,8 @@ snapshots:
   '@babel/helper-wrap-function@7.27.1':
     dependencies:
       '@babel/template': 7.27.2
-      '@babel/traverse': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/traverse': 7.28.5
+      '@babel/types': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4094,7 +4097,7 @@ snapshots:
   '@babel/helpers@7.28.4':
     dependencies:
       '@babel/template': 7.27.2
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@babel/parser@7.28.0':
     dependencies:
@@ -4102,7 +4105,7 @@ snapshots:
 
   '@babel/parser@7.28.4':
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@babel/parser@7.28.5':
     dependencies:
@@ -4112,7 +4115,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.28.0
       '@babel/helper-plugin-utils': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4139,7 +4142,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.28.0
       '@babel/helper-plugin-utils': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4157,14 +4160,14 @@ snapshots:
       '@babel/core': 7.28.0
       '@babel/helper-plugin-utils': 7.27.1
 
-  '@babel/plugin-syntax-jsx@7.27.1(@babel/core@7.28.4)':
+  '@babel/plugin-syntax-jsx@7.27.1(@babel/core@7.28.5)':
     dependencies:
-      '@babel/core': 7.28.4
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.27.1
 
-  '@babel/plugin-syntax-typescript@7.27.1(@babel/core@7.28.4)':
+  '@babel/plugin-syntax-typescript@7.27.1(@babel/core@7.28.5)':
     dependencies:
-      '@babel/core': 7.28.4
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.27.1
 
   '@babel/plugin-syntax-unicode-sets-regex@7.18.6(@babel/core@7.28.0)':
@@ -4183,7 +4186,7 @@ snapshots:
       '@babel/core': 7.28.0
       '@babel/helper-plugin-utils': 7.27.1
       '@babel/helper-remap-async-to-generator': 7.27.1(@babel/core@7.28.0)
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4230,7 +4233,7 @@ snapshots:
       '@babel/helper-globals': 7.28.0
       '@babel/helper-plugin-utils': 7.27.1
       '@babel/helper-replace-supers': 7.27.1(@babel/core@7.28.0)
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4244,7 +4247,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.28.0
       '@babel/helper-plugin-utils': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4301,7 +4304,7 @@ snapshots:
       '@babel/core': 7.28.0
       '@babel/helper-compilation-targets': 7.27.2
       '@babel/helper-plugin-utils': 7.27.1
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4341,10 +4344,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-transform-modules-commonjs@7.27.1(@babel/core@7.28.4)':
+  '@babel/plugin-transform-modules-commonjs@7.27.1(@babel/core@7.28.5)':
     dependencies:
-      '@babel/core': 7.28.4
-      '@babel/helper-module-transforms': 7.28.3(@babel/core@7.28.4)
+      '@babel/core': 7.28.5
+      '@babel/helper-module-transforms': 7.28.3(@babel/core@7.28.5)
       '@babel/helper-plugin-utils': 7.27.1
     transitivePeerDependencies:
       - supports-color
@@ -4395,7 +4398,7 @@ snapshots:
       '@babel/helper-plugin-utils': 7.27.1
       '@babel/plugin-transform-destructuring': 7.28.0(@babel/core@7.28.0)
       '@babel/plugin-transform-parameters': 7.27.7(@babel/core@7.28.0)
-      '@babel/traverse': 7.28.4
+      '@babel/traverse': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -4501,14 +4504,14 @@ snapshots:
       '@babel/core': 7.28.0
       '@babel/helper-plugin-utils': 7.27.1
 
-  '@babel/plugin-transform-typescript@7.27.1(@babel/core@7.28.4)':
+  '@babel/plugin-transform-typescript@7.27.1(@babel/core@7.28.5)':
     dependencies:
-      '@babel/core': 7.28.4
+      '@babel/core': 7.28.5
       '@babel/helper-annotate-as-pure': 7.27.3
-      '@babel/helper-create-class-features-plugin': 7.27.1(@babel/core@7.28.4)
+      '@babel/helper-create-class-features-plugin': 7.27.1(@babel/core@7.28.5)
       '@babel/helper-plugin-utils': 7.27.1
       '@babel/helper-skip-transparent-expression-wrappers': 7.27.1
-      '@babel/plugin-syntax-typescript': 7.27.1(@babel/core@7.28.4)
+      '@babel/plugin-syntax-typescript': 7.27.1(@babel/core@7.28.5)
     transitivePeerDependencies:
       - supports-color
 
@@ -4615,17 +4618,17 @@ snapshots:
     dependencies:
       '@babel/core': 7.28.0
       '@babel/helper-plugin-utils': 7.27.1
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
       esutils: 2.0.3
 
-  '@babel/preset-typescript@7.27.1(@babel/core@7.28.4)':
+  '@babel/preset-typescript@7.27.1(@babel/core@7.28.5)':
     dependencies:
-      '@babel/core': 7.28.4
+      '@babel/core': 7.28.5
       '@babel/helper-plugin-utils': 7.27.1
       '@babel/helper-validator-option': 7.27.1
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.4)
-      '@babel/plugin-transform-modules-commonjs': 7.27.1(@babel/core@7.28.4)
-      '@babel/plugin-transform-typescript': 7.27.1(@babel/core@7.28.4)
+      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
+      '@babel/plugin-transform-modules-commonjs': 7.27.1(@babel/core@7.28.5)
+      '@babel/plugin-transform-typescript': 7.27.1(@babel/core@7.28.5)
     transitivePeerDependencies:
       - supports-color
 
@@ -4638,8 +4641,8 @@ snapshots:
   '@babel/template@7.27.2':
     dependencies:
       '@babel/code-frame': 7.27.1
-      '@babel/parser': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/parser': 7.28.5
+      '@babel/types': 7.28.5
 
   '@babel/traverse@7.28.4':
     dependencies:
@@ -5419,7 +5422,7 @@ snapshots:
 
   '@svgr/hast-util-to-babel-ast@8.0.0':
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
       entities: 4.5.0
 
   '@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(typescript@5.9.3))':
@@ -5502,15 +5505,16 @@ snapshots:
 
   '@tanstack/history@1.133.28': {}
 
-  '@tanstack/react-router-devtools@1.134.15(@tanstack/react-router@1.134.15(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@tanstack/router-core@1.134.15)(@types/node@22.15.30)(csstype@3.1.3)(jiti@2.6.1)(lightningcss@1.30.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.80.3)(solid-js@1.9.9)(terser@5.44.1)(tiny-invariant@1.3.3)(tsx@4.19.4)(yaml@2.8.0)':
+  '@tanstack/react-router-devtools@1.136.1(@tanstack/react-router@1.136.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@tanstack/router-core@1.136.1)(@types/node@22.15.30)(csstype@3.1.3)(jiti@2.6.1)(lightningcss@1.30.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.80.3)(solid-js@1.9.9)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0)':
     dependencies:
-      '@tanstack/react-router': 1.134.15(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@tanstack/router-devtools-core': 1.134.15(@tanstack/router-core@1.134.15)(@types/node@22.15.30)(csstype@3.1.3)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(solid-js@1.9.9)(terser@5.44.1)(tiny-invariant@1.3.3)(tsx@4.19.4)(yaml@2.8.0)
+      '@tanstack/react-router': 1.136.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@tanstack/router-devtools-core': 1.136.1(@tanstack/router-core@1.136.1)(@types/node@22.15.30)(csstype@3.1.3)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(solid-js@1.9.9)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0)
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
       vite: 7.2.2(@types/node@22.15.30)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0)
+    optionalDependencies:
+      '@tanstack/router-core': 1.136.1
     transitivePeerDependencies:
-      - '@tanstack/router-core'
       - '@types/node'
       - csstype
       - jiti
@@ -5522,15 +5526,14 @@ snapshots:
       - stylus
       - sugarss
       - terser
-      - tiny-invariant
       - tsx
       - yaml
 
-  '@tanstack/react-router@1.134.15(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+  '@tanstack/react-router@1.136.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
     dependencies:
       '@tanstack/history': 1.133.28
       '@tanstack/react-store': 0.8.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@tanstack/router-core': 1.134.15
+      '@tanstack/router-core': 1.136.1
       isbot: 5.1.32
       react: 19.2.0
       react-dom: 19.2.0(react@19.2.0)
@@ -5544,15 +5547,15 @@ snapshots:
       react-dom: 19.2.0(react@19.2.0)
       use-sync-external-store: 1.6.0(react@19.2.0)
 
-  '@tanstack/router-cli@1.134.15':
+  '@tanstack/router-cli@1.136.1':
     dependencies:
-      '@tanstack/router-generator': 1.134.15
+      '@tanstack/router-generator': 1.136.1
       chokidar: 3.6.0
       yargs: 17.7.2
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/router-core@1.134.15':
+  '@tanstack/router-core@1.136.1':
     dependencies:
       '@tanstack/history': 1.133.28
       '@tanstack/store': 0.8.0
@@ -5562,9 +5565,9 @@ snapshots:
       tiny-invariant: 1.3.3
       tiny-warning: 1.0.3
 
-  '@tanstack/router-devtools-core@1.134.15(@tanstack/router-core@1.134.15)(@types/node@22.15.30)(csstype@3.1.3)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(solid-js@1.9.9)(terser@5.44.1)(tiny-invariant@1.3.3)(tsx@4.19.4)(yaml@2.8.0)':
+  '@tanstack/router-devtools-core@1.136.1(@tanstack/router-core@1.136.1)(@types/node@22.15.30)(csstype@3.1.3)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(solid-js@1.9.9)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0)':
     dependencies:
-      '@tanstack/router-core': 1.134.15
+      '@tanstack/router-core': 1.136.1
       clsx: 2.1.1
       goober: 2.1.18(csstype@3.1.3)
       solid-js: 1.9.9
@@ -5585,9 +5588,9 @@ snapshots:
       - tsx
       - yaml
 
-  '@tanstack/router-generator@1.134.15':
+  '@tanstack/router-generator@1.136.1':
     dependencies:
-      '@tanstack/router-core': 1.134.15
+      '@tanstack/router-core': 1.136.1
       '@tanstack/router-utils': 1.133.19
       '@tanstack/virtual-file-routes': 1.133.19
       prettier: 3.6.2
@@ -5598,16 +5601,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/router-plugin@1.134.15(@tanstack/react-router@1.134.15(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(vite@7.2.2(@types/node@22.15.30)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0))':
+  '@tanstack/router-plugin@1.136.1(@tanstack/react-router@1.136.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(vite@7.2.2(@types/node@22.15.30)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0))':
     dependencies:
-      '@babel/core': 7.28.4
-      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.4)
-      '@babel/plugin-syntax-typescript': 7.27.1(@babel/core@7.28.4)
+      '@babel/core': 7.28.5
+      '@babel/plugin-syntax-jsx': 7.27.1(@babel/core@7.28.5)
+      '@babel/plugin-syntax-typescript': 7.27.1(@babel/core@7.28.5)
       '@babel/template': 7.27.2
-      '@babel/traverse': 7.28.4
-      '@babel/types': 7.28.4
-      '@tanstack/router-core': 1.134.15
-      '@tanstack/router-generator': 1.134.15
+      '@babel/traverse': 7.28.5
+      '@babel/types': 7.28.5
+      '@tanstack/router-core': 1.136.1
+      '@tanstack/router-generator': 1.136.1
       '@tanstack/router-utils': 1.133.19
       '@tanstack/virtual-file-routes': 1.133.19
       babel-dead-code-elimination: 1.0.10
@@ -5615,17 +5618,17 @@ snapshots:
       unplugin: 2.3.5
       zod: 3.25.56
     optionalDependencies:
-      '@tanstack/react-router': 1.134.15(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@tanstack/react-router': 1.136.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       vite: 7.2.2(@types/node@22.15.30)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.44.1)(tsx@4.19.4)(yaml@2.8.0)
     transitivePeerDependencies:
       - supports-color
 
   '@tanstack/router-utils@1.133.19':
     dependencies:
-      '@babel/core': 7.28.4
-      '@babel/generator': 7.28.3
-      '@babel/parser': 7.28.4
-      '@babel/preset-typescript': 7.27.1(@babel/core@7.28.4)
+      '@babel/core': 7.28.5
+      '@babel/generator': 7.28.5
+      '@babel/parser': 7.28.5
+      '@babel/preset-typescript': 7.27.1(@babel/core@7.28.5)
       ansis: 4.1.0
       diff: 8.0.2
       pathe: 2.0.3
@@ -5732,16 +5735,16 @@ snapshots:
 
   '@types/babel__generator@7.27.0':
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@types/babel__template@7.4.4':
     dependencies:
       '@babel/parser': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@types/babel__traverse@7.20.7':
     dependencies:
-      '@babel/types': 7.28.4
+      '@babel/types': 7.28.5
 
   '@types/cli-color@2.0.6': {}
 
@@ -5914,10 +5917,10 @@ snapshots:
 
   babel-dead-code-elimination@1.0.10:
     dependencies:
-      '@babel/core': 7.28.4
-      '@babel/parser': 7.28.4
-      '@babel/traverse': 7.28.4
-      '@babel/types': 7.28.4
+      '@babel/core': 7.28.5
+      '@babel/parser': 7.28.5
+      '@babel/traverse': 7.28.5
+      '@babel/types': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
