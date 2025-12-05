@@ -76,8 +76,8 @@ export const ConnectionTable = (props: Props) => {
     { field: "process", headerName: t("Process"), flex: 240, minWidth: 120 },
     { field: "source", headerName: t("Source"), flex: 200, minWidth: 150 },
     {
-      field: "destinationIP",
-      headerName: t("Destination IP"),
+      field: "remoteDestination",
+      headerName: t("Destination"),
       flex: 200,
       minWidth: 150,
     },
@@ -130,7 +130,9 @@ export const ConnectionTable = (props: Props) => {
         process: truncateStr(metadata.process || metadata.processPath),
         time: each.start,
         source: `${metadata.sourceIP}:${metadata.sourcePort}`,
-        destinationIP: metadata.destinationIP,
+        remoteDestination: metadata.destinationIP 
+          ? `${metadata.destinationIP}`
+          : `${metadata.remoteDestination}`,
         type: `${metadata.type} (${metadata.network})`,
 
         connectionData: each,
