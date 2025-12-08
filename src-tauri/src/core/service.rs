@@ -199,11 +199,10 @@ pub async fn install_service() -> AppResult<()> {
 
     let log_dir = dirs::app_logs_dir()?.join("service");
     let shell = installer_path.to_string_lossy().replace(" ", "\\\\ ");
+    let log_dir = log_dir.to_string_lossy().replace(" ", "\\\\ ");
     let command = format!(
         r#"do shell script "{} install --log-dir {} --server-id {}" with administrator privileges"#,
-        shell,
-        log_dir.display(),
-        SERVER_ID
+        shell, log_dir, SERVER_ID
     );
 
     let status = StdCommand::new("osascript").args(vec!["-e", &command]).status()?;
@@ -313,10 +312,10 @@ pub async fn uninstall_service() -> AppResult<()> {
 
     let log_dir = dirs::app_logs_dir()?.join("service");
     let shell = uninstaller_path.to_string_lossy().replace(" ", "\\\\ ");
+    let log_dir = log_dir.to_string_lossy().replace(" ", "\\\\ ");
     let command = format!(
         r#"do shell script "{} uninstall --log-dir {}" with administrator privileges"#,
-        shell,
-        log_dir.display()
+        shell, log_dir
     );
 
     let status = StdCommand::new("osascript").args(vec!["-e", &command]).status()?;
