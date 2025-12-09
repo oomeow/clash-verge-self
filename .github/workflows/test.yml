@@ -80,7 +80,7 @@ jobs:
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         run: |
           echo "version: ${{ steps.get_version.outputs.VERSION }}"
-          cp src-tauri/target/${{ matrix.target }}/release/bundle/deb/clash-verge_${{ steps.get_version.outputs.VERSION }}_amd64.deb archbuild/test/amd64.deb
+          cp src-tauri/target/${{ matrix.target }}/release/bundle/deb/clash-verge-self_${{ steps.get_version.outputs.VERSION }}_amd64.deb archbuild/test/amd64.deb
           sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum archbuild/test/amd64.deb | awk '{print $1}')\")/" archbuild/test/PKGBUILD
 
       - name: Makepkg Build and Check (Arch Linux PKG)
