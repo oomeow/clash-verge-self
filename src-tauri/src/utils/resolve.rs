@@ -243,13 +243,13 @@ pub fn save_window_size_position(app_handle: &AppHandle) -> AppResult<()> {
                 use crate::X11_RENDER;
 
                 let enable_system_title_bar = verge.enable_system_title_bar.unwrap_or_default();
-                let (width, height) = if utils::unix_helper::is_rendered_by_nvidia_only() {
+                let (width, height) = if crate::utils::unix_helper::is_rendered_by_nvidia_only() {
                     if enable_system_title_bar {
                         (size.width - 90., size.height - 90.)
                     } else {
                         (size.width + 90., size.height + 90.)
                     }
-                } else if !*X11_RENDER.read() && utils::unix_helper::is_wayland() && enable_system_title_bar {
+                } else if !*X11_RENDER.read() && crate::utils::unix_helper::is_wayland() && enable_system_title_bar {
                     // wayland 渲染模式下，获取到的 inner size 是不正确的
                     // 因为 wayland 下的系统标题栏是 Tauri 自己绘制的，其 inner size 没有排除系统标题栏相关的大小, 所以需要自己计算
                     (size.width - 90., size.height - 138.)
