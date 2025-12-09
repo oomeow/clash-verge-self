@@ -1047,6 +1047,7 @@ dependencies = [
 [[package]]
 name = "clash-verge-self-service"
 version = "1.1.2"
+source = "git+https://github.com/oomeow/clash-verge-service?branch=main#429d25ff9c568fd6bf8fbb56864db3203628a223"
 dependencies = [
  "anyhow",
  "bytes",

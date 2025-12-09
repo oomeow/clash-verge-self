@@ -80,8 +80,8 @@ time = { version = "0.3", features = ["macros", "parsing"] }
 # rand = "0.8"
 # rsa = "0.9.8"
 # aes-gcm = "0.10"
-# clash-verge-self-service = { git = "https://github.com/oomeow/clash-verge-service", branch = "main" }
-clash-verge-self-service = { path = "../../clash-verge-service" }
+clash-verge-self-service = { git = "https://github.com/oomeow/clash-verge-service", branch = "main" }
+# clash-verge-self-service = { path = "../../clash-verge-service" }
 
 network-interface = "2.0.1"
 thiserror = "2.0.16"
