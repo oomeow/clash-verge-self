@@ -168,10 +168,10 @@ fn check_all_mihomo_mrs() -> Result<(), Box<dyn Error>> {
             let mihomo_convert_error_file_ = mihomo_convert_error_file.clone();
             let check_diff_error_file_ = check_diff_error_file.clone();
             s.spawn(move || {
-                #[cfg(target_os = "windows")]
-                let verge_mihomo_path = r"D:\Clash Verge\verge-mihomo.exe";
-                #[cfg(target_os = "linux")]
-                let verge_mihomo_path = "verge-mihomo";
+                #[cfg(windows)]
+                let verge_mihomo_path = r"D:\Clash Verge\self-mihomo.exe";
+                #[cfg(unix)]
+                let verge_mihomo_path = "self-mihomo";
                 let output = std::process::Command::new(verge_mihomo_path)
                     .args([
                         "convert-ruleset",

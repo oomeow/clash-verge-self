@@ -15,10 +15,10 @@ pub fn mihomo() -> Mihomo {
         println!("connect to mihomo by local socket");
         // use local socket
         let socket_path = if cfg!(unix) {
-            "/tmp/verge-mihomo.sock".to_string()
+            "/tmp/self-mihomo.sock".to_string()
             // "/tmp/clash-rs.sock".to_string()
         } else {
-            r"\\.\pipe\verge-mihomo".to_string()
+            r"\\.\pipe\self-mihomo".to_string()
             // r"\\.\pipe\clash-rs".to_string()
         };
         Mihomo {

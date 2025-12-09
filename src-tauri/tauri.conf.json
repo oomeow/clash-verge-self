@@ -1,7 +1,7 @@
 {
-  "productName": "Clash Verge",
-  "mainBinaryName": "Clash Verge",
-  "version": "2.2.0",
+  "productName": "Clash Verge Self",
+  "mainBinaryName": "Clash Verge Self",
+  "version": "2.3.0",
   "identifier": "io.github.oomeow.clash-verge-self",
   "app": {
     "security": {
@@ -51,7 +51,7 @@
     ],
     "resources": ["resources"],
     "publisher": "Clash Verge Self",
-    "externalBin": ["sidecar/verge-mihomo", "sidecar/verge-mihomo-alpha"],
+    "externalBin": ["sidecar/self-mihomo", "sidecar/self-mihomo-alpha"],
     "copyright": "GNU General Public License v3.0",
     "category": "Utility",
     "shortDescription": "A Mihomo GUI based on tauri.",

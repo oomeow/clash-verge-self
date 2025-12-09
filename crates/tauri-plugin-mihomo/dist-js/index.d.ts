@@ -36,7 +36,7 @@ export declare function closeAllConnections(): Promise<void>;
  * 关闭指定连接
  * @param connectionId 连接 ID
  */
-export declare function closeConnections(connectionId: string): Promise<void>;
+export declare function closeConnection(connectionId: string): Promise<void>;
 /**
  * 获取所有代理组信息
  * @returns 所有代理组信息

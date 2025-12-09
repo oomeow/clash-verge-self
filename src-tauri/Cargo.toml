@@ -1,16 +1,16 @@
 [package]
-name = "clash-verge"
-version = "2.2.0"
-description = "clash verge"
+name = "clash-verge-self"
+version = "2.3.0"
+description = "clash verge self"
 authors = ["zzzgydi", "wonfen", "MystiPanda", "oomeow"]
 license = "GPL-3.0-only"
 repository = "https://github.com/oomeow/clash-verge-self.git"
-default-run = "clash-verge"
+default-run = "clash-verge-self"
 edition = "2024"
 build = "build.rs"
 
 [lib]
-name = "clash_verge_lib"
+name = "clash_verge_self_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -74,12 +74,14 @@ tracing-appender = "0.2"
 time = { version = "0.3", features = ["macros", "parsing"] }
 
 # connect clash verge service by ipc
-tipsy = "0.6"
-futures-util = "0.3"
-base64 = "0.22"
-rand = "0.8"
-rsa = "0.9.8"
-aes-gcm = "0.10"
+# tipsy = "0.6"
+# futures-util = "0.3"
+# base64 = "0.22"
+# rand = "0.8"
+# rsa = "0.9.8"
+# aes-gcm = "0.10"
+# clash-verge-self-service = { git = "https://github.com/oomeow/clash-verge-service", branch = "main" }
+clash-verge-self-service = { path = "../../clash-verge-service" }
 
 network-interface = "2.0.1"
 thiserror = "2.0.16"

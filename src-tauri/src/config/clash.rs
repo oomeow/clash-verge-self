@@ -40,7 +40,7 @@ impl IClashConfig {
             #[cfg(not(target_os = "macos"))]
             ("device".into(), "Mihomo".into()),
             #[cfg(target_os = "macos")]
-            ("device".into(), "utun_Mihomo".into()),
+            ("device".into(), "utun4".into()),
             ("auto-route".into(), true.into()),
             ("strict-route".into(), false.into()),
             ("auto-detect-interface".into(), true.into()),
@@ -96,12 +96,25 @@ impl IClashConfig {
         let socks_port = Self::guard_socks_port(&config);
         let port = Self::guard_port(&config);
         let ctrl = Self::guard_server_ctrl(&config);
-        let cors = Self::guard_ctrl_cors(&config);
 
+        let cors = Self::guard_ctrl_cors(&config);
         let cors_map = Mapping::from_iter([
             ("allow-private-network".into(), cors.allow_private_network.into()),
             ("allow-origins".into(), cors.allow_origins.into()),
         ]);
+
+        #[cfg(target_os = "macos")]
+        {
+            let mut tun = Self::guard_tun(&config);
+            let valid_tun_device = tun.get("device").is_some_and(|v| {
+                v.as_str()
+                    .is_some_and(|s| s.starts_with("utun") && s.trim_start_matches("utun").parse::<u32>().is_ok())
+            });
+            if !valid_tun_device {
+                tun.insert("device".into(), "utun4".into());
+                config.insert("tun".into(), tun.into());
+            }
+        }
 
         #[cfg(not(target_os = "windows"))]
         config.insert("redir-port".into(), redir_port.into());
@@ -299,6 +312,16 @@ impl IClashConfig {
                         allow_origins,
                     })
                 }
+                _ => None,
+            })
+            .unwrap_or_default()
+    }
+
+    pub fn guard_tun(config: &Mapping) -> Mapping {
+        config
+            .get("tun")
+            .and_then(|value| match value {
+                Value::Mapping(val_map) => Some(val_map.clone()),
                 _ => None,
             })
             .unwrap_or_default()

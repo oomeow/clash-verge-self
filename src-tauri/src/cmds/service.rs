@@ -1,14 +1,15 @@
-use crate::{core::service, error::AppResult, utils};
+use clash_verge_self_service::model::{ClashStatus, JsonResponse};
+
+use crate::{core::service, error::AppResult};
 
 #[tauri::command]
-pub async fn check_service() -> AppResult<service::JsonResponse<service::ClashStatus>> {
+pub async fn check_service() -> AppResult<JsonResponse<ClashStatus>> {
     service::check_service().await
 }
 
 #[tauri::command]
 pub async fn install_service() -> AppResult<()> {
-    service::install_service().await?;
-    utils::crypto::reload_keys()
+    service::install_service().await
 }
 
 #[tauri::command]

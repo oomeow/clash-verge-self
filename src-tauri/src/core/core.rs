@@ -81,7 +81,7 @@ impl CoreManager {
             .latest()
             .clash_core
             .clone()
-            .unwrap_or("verge-mihomo".to_string());
+            .unwrap_or("self-mihomo".to_string());
 
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
@@ -142,7 +142,7 @@ impl CoreManager {
 
         let mut system = System::new();
         system.refresh_all();
-        let procs = system.processes_by_name("verge-mihomo".as_ref());
+        let procs = system.processes_by_name("self-mihomo".as_ref());
         for proc in procs {
             tracing::debug!("kill all clash process");
             proc.kill();
@@ -202,7 +202,7 @@ impl CoreManager {
             .latest()
             .clash_core
             .clone()
-            .unwrap_or("verge-mihomo".to_string());
+            .unwrap_or("self-mihomo".to_string());
 
         let config_path = dirs::path_to_str(&config_path)?;
         let args = vec![
@@ -314,7 +314,7 @@ impl CoreManager {
         tracing::info!("kill all mihomo process");
         let mut system = System::new();
         system.refresh_all();
-        let procs = system.processes_by_name("verge-mihomo".as_ref());
+        let procs = system.processes_by_name("self-mihomo".as_ref());
         for proc in procs {
             tracing::debug!("kill {}", proc.name().display());
             proc.kill();
@@ -334,7 +334,7 @@ impl CoreManager {
         self.need_restart_core.store(false, Ordering::SeqCst);
 
         let clash_core = clash_core.ok_or(AppError::InvalidValue("clash core is null".to_string()))?;
-        const CLASH_CORES: [&str; 2] = ["verge-mihomo", "verge-mihomo-alpha"];
+        const CLASH_CORES: [&str; 2] = ["self-mihomo", "self-mihomo-alpha"];
         if !CLASH_CORES.contains(&clash_core.as_str()) {
             return Err(AppError::InvalidValue(format!(
                 "invalid clash core name \"{clash_core}\""

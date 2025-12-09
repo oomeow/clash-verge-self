@@ -30,7 +30,7 @@ import { useLockFn } from "ahooks";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
-import { closeAllConnections, closeConnections } from "tauri-plugin-mihomo-api";
+import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
 
 type OrderFunc = (list: IConnectionsItem[]) => IConnectionsItem[];
 const MAX_CLOSED_CONNS = 500;
@@ -91,7 +91,7 @@ const ConnectionsPage = () => {
     if (!isActiveTab || filterConn.length === connData.connections.length) {
       await closeAllConnections();
     } else {
-      filterConn.forEach(async (conn) => await closeConnections(conn.id));
+      filterConn.forEach(async (conn) => await closeConnection(conn.id));
     }
   });
 

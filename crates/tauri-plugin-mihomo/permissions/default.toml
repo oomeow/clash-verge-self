@@ -8,7 +8,7 @@ permissions = [
   "allow-flush-dns",
   "allow-get-connections",
   "allow-close-all-connections",
-  "allow-close-connections",
+  "allow-close-connection",
   "allow-get-groups",
   "allow-get-group-by-name",
   "allow-delay-group",

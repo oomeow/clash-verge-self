@@ -8,7 +8,7 @@ use tauri::Manager;
 use tauri_plugin_opener::OpenerExt;
 
 use crate::{
-    any_err,
+    AppState, any_err,
     core::{CoreManager, handle, sysopt, tray::Tray},
     error::{AppError, AppResult},
     feat,
@@ -244,12 +244,15 @@ pub fn get_net_info() -> AppResult<Vec<NetInfo>> {
 pub async fn restart_app(app_handle: tauri::AppHandle) {
     utils::server::shutdown_embedded_server();
     let _ = resolve::save_window_size_position(&app_handle);
+    let app_state = app_handle.state::<AppState>();
+    app_state.is_exiting.store(true, std::sync::atomic::Ordering::SeqCst);
     resolve::resolve_reset().await;
     // 开机静默启动时，通过 app_handle 的重启方法还是会携带静默启动的参数
     let mut env = app_handle.env().clone();
-    tracing::debug!("app run args: {:?}", env.args_os.clone());
+    tracing::debug!("app run args: {:?}", env.args_os);
     if env.args_os.iter().any(|i| i == "--hidden") {
         tracing::debug!("restart the app for the first time after it boots up");
+        // remove `--hidden` args
         env.args_os.retain(|i| i != "--hidden");
         app_handle.cleanup_before_exit();
         tauri::process::restart(&env);
@@ -264,6 +267,8 @@ pub fn exit_app(app_handle: tauri::AppHandle) {
     utils::server::shutdown_embedded_server();
     let _ = resolve::save_window_size_position(&app_handle);
     tauri::async_runtime::block_on(async {
+        let app_state = app_handle.state::<AppState>();
+        app_state.is_exiting.store(true, std::sync::atomic::Ordering::SeqCst);
         resolve::resolve_reset().await;
     });
     app_handle.exit(0);

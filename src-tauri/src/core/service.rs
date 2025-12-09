@@ -1,99 +1,14 @@
 use std::{collections::VecDeque, env::current_exe, path::PathBuf, process::Command as StdCommand};
 
-use chrono::{DateTime, Local};
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use tipsy::ServerId;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use clash_verge_self_service::model::{ClashStatus, JsonResponse, SocketCommand, StartBody};
+use serde::de::DeserializeOwned;
 
 use crate::{
-    MIHOMO_SOCKET_PATH,
+    MIHOMO_SOCKET_PATH, any_err,
     config::Config,
     error::{AppError, AppResult},
-    utils::{self, crypto, dirs},
+    utils::dirs,
 };
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum SocketCommand {
-    GetVersion,
-    GetClash,
-    GetLogs,
-    StartClash(StartBody),
-    StopClash,
-    StopService,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct StartBody {
-    pub core_type: Option<String>,
-    pub socket_path: Option<String>,
-    pub bin_path: String,
-    pub config_dir: String,
-    pub config_file: String,
-    pub log_file: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ClashStatus {
-    pub auto_restart: bool,
-    pub restart_retry_count: u8,
-    pub last_running_time: DateTime<Local>,
-    pub info: Option<ClashInfo>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct ClashInfo {
-    pub core_type: Option<String>,
-    pub bin_path: String,
-    pub config_dir: String,
-    pub config_file: String,
-    pub log_file: String,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct JsonResponse<T> {
-    pub code: u64,
-    pub msg: String,
-    pub data: Option<T>,
-}
-
-impl<T> JsonResponse<T>
-where
-    T: serde::de::DeserializeOwned,
-{
-    pub fn from_str(json_str: &str) -> AppResult<Self> {
-        let res = serde_json::from_str(json_str)?;
-        Ok(res)
-    }
-}
-
-#[cfg(not(feature = "verge-dev"))]
-const SERVER_ID: &str = "verge-service-server";
-#[cfg(feature = "verge-dev")]
-const SERVER_ID: &str = "verge-service-server-dev";
-
-async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> AppResult<JsonResponse<T>> {
-    let path = ServerId::new(SERVER_ID).parent_folder(std::env::temp_dir());
-    let client = tipsy::Endpoint::connect(path).await?;
-    let mut reader = BufReader::new(client);
-    // send request
-    let cmd_json = serde_json::to_string(&cmd)?;
-    if let Some(public_key) = utils::crypto::get_public_key() {
-        let combined = crypto::encrypt_socket_data(&public_key, &cmd_json)?;
-        reader.write_all(combined.as_bytes()).await?;
-    } else {
-        return Err(AppError::LoadKeys("failed to get rsa public key".to_string()));
-    }
-    // receive response
-    let mut response = String::new();
-    reader.read_line(&mut response).await?;
-    if let Some(private_key) = utils::crypto::get_private_key() {
-        response = crypto::decrypt_socket_data(&private_key, &response)?;
-        let res = JsonResponse::from_str(&response)?;
-        Ok(res)
-    } else {
-        Err(AppError::LoadKeys("failed to get rsa private key".to_string()))
-    }
-}
 
 /// Install the Clash Verge Service
 /// 该函数应该在协程或者线程中执行，避免UAC弹窗阻塞主线程
@@ -106,9 +21,9 @@ pub async fn install_service() -> AppResult<()> {
     use runas::Command as RunasCommand;
 
     let install_path = dirs::service_path()?;
-    tracing::debug!("clash-verge-service file path: {}", install_path.display());
+    tracing::debug!("clash-verge-self-service file path: {}", install_path.display());
     if !install_path.exists() {
-        return Err(AppError::Service("clash-verge-service file not found".to_string()));
+        return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -147,9 +62,9 @@ pub async fn install_service() -> AppResult<()> {
     use users::get_effective_uid;
 
     let installer_path = dirs::service_path()?;
-    tracing::debug!("clash-verge-service file path: {}", installer_path.display());
+    tracing::debug!("clash-verge-self-service file path: {}", installer_path.display());
     if !installer_path.exists() {
-        return Err(AppError::Service("clash-verge-service file not found".to_string()));
+        return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -192,9 +107,9 @@ pub async fn install_service() -> AppResult<()> {
 #[cfg(target_os = "macos")]
 pub async fn install_service() -> AppResult<()> {
     let installer_path = dirs::service_path()?;
-    tracing::debug!("clash-verge-service file path: {}", installer_path.display());
+    tracing::debug!("clash-verge-self-service file path: {}", installer_path.display());
     if !installer_path.exists() {
-        return Err(AppError::Service("clash-verge-service file not found".to_string()));
+        return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -226,9 +141,9 @@ pub async fn uninstall_service() -> AppResult<()> {
     use runas::Command as RunasCommand;
 
     let uninstall_path = dirs::service_path()?;
-    tracing::debug!("clash-verge-service file path: {}", uninstall_path.display());
+    tracing::debug!("clash-verge-self-service file path: {}", uninstall_path.display());
     if !uninstall_path.exists() {
-        return Err(AppError::Service("clash-verge-service file not found".to_string()));
+        return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -265,9 +180,9 @@ pub async fn uninstall_service() -> AppResult<()> {
     use users::get_effective_uid;
 
     let uninstaller_path = dirs::service_path()?;
-    tracing::debug!("clash-verge-service file path: {}", uninstaller_path.display());
+    tracing::debug!("clash-verge-self-service file path: {}", uninstaller_path.display());
     if !uninstaller_path.exists() {
-        return Err(AppError::Service("clash-verge-service file not found".to_string()));
+        return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -305,9 +220,9 @@ pub async fn uninstall_service() -> AppResult<()> {
 #[cfg(target_os = "macos")]
 pub async fn uninstall_service() -> AppResult<()> {
     let uninstaller_path = dirs::service_path()?;
-    tracing::debug!("clash-verge-service file path: {}", uninstaller_path.display());
+    tracing::debug!("clash-verge-self-service file path: {}", uninstaller_path.display());
     if !uninstaller_path.exists() {
-        return Err(AppError::Service("clash-verge-service file not found".to_string()));
+        return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
     let log_dir = dirs::app_logs_dir()?.join("service");
@@ -328,6 +243,22 @@ pub async fn uninstall_service() -> AppResult<()> {
     }
 
     Ok(())
+}
+
+// #[cfg(not(feature = "verge-dev"))]
+const SERVER_ID: &str = "verge-service-server";
+// #[cfg(feature = "verge-dev")]
+// const SERVER_ID: &str = "verge-service-server-dev";
+
+async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> AppResult<JsonResponse<T>> {
+    let mut client = clash_verge_self_service::Client::connect(SERVER_ID, Some(clash_verge_self_service::PSK))
+        .await
+        .map_err(|e| any_err!("failed to connect to service serve: {e}"))?;
+    let response = client
+        .send::<T>(cmd)
+        .await
+        .map_err(|e| any_err!("failed to send request to service serve: {e}"))?;
+    Ok(response)
 }
 
 /// check the windows service status
@@ -353,7 +284,7 @@ pub(super) async fn run_core_by_service(config_file: &PathBuf, log_path: &PathBu
         .latest()
         .clash_core
         .clone()
-        .unwrap_or("verge-mihomo".to_string());
+        .unwrap_or("self-mihomo".to_string());
 
     let exe_ext = std::env::consts::EXE_SUFFIX;
     let clash_bin = format!("{clash_core}{exe_ext}");

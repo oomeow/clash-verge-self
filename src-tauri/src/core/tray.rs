@@ -1,6 +1,6 @@
 use rust_i18n::t;
 use tauri::{
-    AppHandle, Runtime,
+    AppHandle, Manager, Runtime,
     image::Image,
     menu::{CheckMenuItem, Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
@@ -8,14 +8,14 @@ use tauri::{
 
 use super::handle;
 use crate::{
-    APP_VERSION, any_err, cmds,
+    AppState, any_err, cmds,
     config::{Config, IProfiles},
     error::{AppError, AppResult},
     feat, log_err,
     utils::{dirs, resolve},
 };
 
-pub const TRAY_ID: &str = "verge_tray";
+pub const TRAY_ID: &str = "verge_self_tray";
 
 pub struct Tray;
 
@@ -97,7 +97,8 @@ impl Tray {
     }
 
     pub fn tray_menu<R: Runtime>(app_handle: &AppHandle<R>) -> AppResult<Menu<R>> {
-        let version = APP_VERSION.get().unwrap();
+        let app_state = app_handle.state::<AppState>();
+        let version = app_state.app_version.clone();
         let profiles = Config::profiles();
         let profiles = profiles.latest();
         let current = profiles.get_current();
@@ -247,18 +248,18 @@ impl Tray {
 
         tray.set_menu(Some(menu))?;
 
+        // set tray icon
+        tray.set_icon(Some(Self::get_tray_icon()?))?;
+
         #[cfg(target_os = "macos")]
         {
-            let tray_icon = verge.tray_icon.as_deref().unwrap_or("monochrome");
-            match tray_icon {
+            let tray_icon_style = verge.tray_icon.as_deref().unwrap_or("monochrome");
+            match tray_icon_style {
                 "monochrome" => log_err!(tray.set_icon_as_template(true)),
                 "colorful" => log_err!(tray.set_icon_as_template(false)),
                 _ => {}
             }
         }
-
-        // set tray icon
-        tray.set_icon(Some(Self::get_tray_icon()?))?;
 
         #[cfg(not(target_os = "linux"))]
         {

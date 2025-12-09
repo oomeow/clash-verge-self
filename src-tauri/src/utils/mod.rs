@@ -1,4 +1,4 @@
-pub mod crypto;
+// pub mod crypto;
 pub mod dirs;
 pub mod help;
 pub mod init;

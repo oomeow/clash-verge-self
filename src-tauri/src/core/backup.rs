@@ -198,14 +198,15 @@ impl WebDav {
     }
 }
 
-#[tokio::test]
 /// cargo test -- --show-output test_webdav
-async fn test_webdav() {
-    let _ = WebDav::global()
+#[tokio::test]
+async fn test_webdav() -> AppResult<()> {
+    WebDav::global()
         .update_webdav_info("https://dav.jianguoyun.com/dav/", "test", "test")
-        .await;
-    let files = WebDav::list_file().await.unwrap();
+        .await?;
+    let files = WebDav::list_file().await?;
     for file in files {
         println!("file: {file:?}");
     }
+    Ok(())
 }

@@ -43,8 +43,8 @@ async function resolvePortable() {
   const packageJson = require("../package.json");
   const { version } = packageJson;
   const zipFile = isLinux
-    ? `clash-verge_${version}_${arch}_portable.tar.gz`
-    : `Clash.Verge_${version}_${arch}_portable.zip`;
+    ? `clash-verge-self_${version}_${arch}_portable.tar.gz`
+    : `Clash.Verge.Self_${version}_${arch}_portable.zip`;
 
   if (isWindows) {
     await bundlePortableForWindows(releaseDir, zipFile);
@@ -104,9 +104,9 @@ async function bundlePortableForWindows(releaseDir, zipFile) {
   await fs.createFile(path.join(configDir, "PORTABLE"));
 
   const zip = new AdmZip();
-  zip.addLocalFile(path.join(releaseDir, "Clash Verge.exe"));
-  zip.addLocalFile(path.join(releaseDir, "verge-mihomo.exe"));
-  zip.addLocalFile(path.join(releaseDir, "verge-mihomo-alpha.exe"));
+  zip.addLocalFile(path.join(releaseDir, "Clash Verge Self.exe"));
+  zip.addLocalFile(path.join(releaseDir, "self-mihomo.exe"));
+  zip.addLocalFile(path.join(releaseDir, "self-mihomo-alpha.exe"));
   zip.addLocalFolder(path.join(releaseDir, "resources"), "resources");
   zip.addLocalFolder(configDir, ".config");
   zip.writeZip(zipFile);
@@ -123,9 +123,9 @@ async function bundlePortableForLinux(releaseDir, zipFile) {
   await fs.createFile(path.join(configDir, "PORTABLE"));
 
   tar.c({ gzip: true, sync: true, cwd: releaseDir, file: zipFile }, [
-    "clash-verge",
-    "verge-mihomo",
-    "verge-mihomo-alpha",
+    "clash-verge-self",
+    "self-mihomo",
+    "self-mihomo-alpha",
     "resources",
     ".config",
   ]);

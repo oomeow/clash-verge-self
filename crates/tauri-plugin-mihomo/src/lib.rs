@@ -105,7 +105,7 @@ impl Builder {
                 // connections
                 commands::get_connections,
                 commands::close_all_connections,
-                commands::close_connections,
+                commands::close_connection,
                 // groups
                 commands::get_groups,
                 commands::get_group_by_name,

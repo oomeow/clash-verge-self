@@ -9,12 +9,12 @@ use crate::error::AppResult;
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 static GRANTED_PERMISSIONS: LazyLock<RwLock<HashMap<String, Option<bool>>>> = LazyLock::new(|| {
     RwLock::new(HashMap::from_iter([
-        (String::from("verge-mihomo"), None),
-        (String::from("verge-mihomo-alpha"), None),
+        (String::from("self-mihomo"), None),
+        (String::from("self-mihomo-alpha"), None),
     ]))
 });
 
-/// 给clash内核的tun模式授权
+/// 给 mihomo 内核的 tun 模式授权
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 pub fn grant_permissions(core: String) -> AppResult<()> {
     use std::process::Command;
@@ -105,7 +105,7 @@ pub fn check_permissions_granted(core: String) -> AppResult<bool> {
 pub fn refresh_permissions_granted() -> AppResult<()> {
     tracing::debug!("refresh permissions granted");
     GRANTED_PERMISSIONS.write().iter_mut().for_each(|(_, v)| *v = None);
-    let mihomo_cores = ["verge-mihomo", "verge-mihomo-alpha"];
+    let mihomo_cores = ["self-mihomo", "self-mihomo-alpha"];
     for core in mihomo_cores {
         check_permissions_granted(core.to_string())?;
     }

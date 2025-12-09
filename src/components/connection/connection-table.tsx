@@ -12,7 +12,7 @@ import { GridApiCommunity } from "@mui/x-data-grid/internals";
 import dayjs from "dayjs";
 import { RefObject, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { closeConnections } from "tauri-plugin-mihomo-api";
+import { closeConnection } from "tauri-plugin-mihomo-api";
 
 interface Props {
   gridApiRef: RefObject<GridApiCommunity>;
@@ -47,7 +47,7 @@ export const ConnectionTable = (props: Props) => {
             icon={<CancelIcon />}
             label="Cancel"
             className="textPrimary"
-            onClick={() => closeConnections(id.toString())}
+            onClick={() => closeConnection(id.toString())}
             color="inherit"
           />,
         ];

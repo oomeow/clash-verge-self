@@ -4,16 +4,18 @@ use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use sysproxy::Sysproxy;
+use tauri::Manager;
 
 use super::Config;
 use crate::{
-    APP_VERSION, any_err,
+    AppState, any_err,
+    core::handle,
     enhance::chain::ScopeType,
     error::{AppError, AppResult},
     utils::{dirs, help, tmpl},
 };
 
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
 pub struct PrfItem {
     pub uid: Option<String>,
 
@@ -85,19 +87,14 @@ pub struct PrfItem {
     // =========== remote profile ===========
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ProfileType {
+    #[default]
     Local,
     Remote,
     Merge,
     Script,
-}
-
-impl Default for ProfileType {
-    fn default() -> Self {
-        Self::Local
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -107,13 +104,13 @@ pub enum EnableFilter {
     Disable,
 }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize)]
 pub struct PrfSelected {
     pub name: Option<String>,
     pub now: Option<String>,
 }
 
-#[derive(Default, Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Copy, Deserialize, Serialize)]
 pub struct PrfExtra {
     pub upload: u64,
     pub download: u64,
@@ -121,7 +118,7 @@ pub struct PrfExtra {
     pub expire: u64,
 }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct PrfOption {
     /// for `remote` profile's http request
     /// see issue #13
@@ -276,13 +273,12 @@ impl PrfItem {
             }
         }
 
-        let version = match APP_VERSION.get() {
-            Some(v) => &format!("clash-verge/v{v}"),
-            None => "clash-verge/unknown",
-        };
-
         builder = builder.danger_accept_invalid_certs(accept_invalid_certs);
-        builder = builder.user_agent(user_agent.unwrap_or(version));
+
+        // NOTE: use `clash-verge` user-agent to request subscription
+        let app_version = handle::Handle::app_handle().state::<AppState>().app_version.clone();
+        let ua = &format!("clash-verge/v{app_version}");
+        builder = builder.user_agent(user_agent.unwrap_or(ua));
 
         let resp = builder.build()?.get(url).send().await?;
 

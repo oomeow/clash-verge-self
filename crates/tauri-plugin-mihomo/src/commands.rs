@@ -49,7 +49,7 @@ pub(crate) async fn close_all_connections(state: State<'_, RwLock<Mihomo>>) -> R
 }
 
 #[command]
-pub(crate) async fn close_connections(state: State<'_, RwLock<Mihomo>>, connection_id: String) -> Result<()> {
+pub(crate) async fn close_connection(state: State<'_, RwLock<Mihomo>>, connection_id: String) -> Result<()> {
     state.read().await.close_connection(&connection_id).await
 }
 

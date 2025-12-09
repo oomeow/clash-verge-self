@@ -13,8 +13,8 @@ use crate::{
     utils::{dirs, help},
 };
 
-pub const RUNTIME_CONFIG: &str = "clash-verge.yaml";
-pub const CHECK_CONFIG: &str = "clash-verge-check.yaml";
+pub const RUNTIME_CONFIG: &str = "clash-verge-self.yaml";
+pub const CHECK_CONFIG: &str = "clash-verge-self-check.yaml";
 
 pub struct Config {
     clash_config: Arc<Draft<IClashConfig>>,

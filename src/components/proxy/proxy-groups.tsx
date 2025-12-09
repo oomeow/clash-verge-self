@@ -10,7 +10,7 @@ import { useLockFn, useMemoizedFn, useThrottleFn } from "ahooks";
 import { useCallback, useRef } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import {
-  closeConnections,
+  closeConnection,
   getConnections,
   healthcheckProxyProvider,
   selectNodeForGroup,
@@ -61,7 +61,7 @@ export const ProxyGroups = (props: Props) => {
         getConnections().then(({ connections }) => {
           connections?.forEach((conn) => {
             if (conn.chains.includes(now!)) {
-              closeConnections(conn.id);
+              closeConnection(conn.id);
             }
           });
         });

@@ -209,8 +209,8 @@ function mihomo() {
   const exeFile = `${name}${EXE_SUFFIX}`;
   const zipFile = `${name}-${MIHOMO_VERSION}.${urlExt}`;
   return {
-    name: "verge-mihomo",
-    targetFile: `verge-mihomo-${SIDECAR_HOST}${EXE_SUFFIX}`,
+    name: "self-mihomo",
+    targetFile: `self-mihomo-${SIDECAR_HOST}${EXE_SUFFIX}`,
     exeFile,
     zipFile,
     downloadURL,
@@ -228,8 +228,8 @@ function mihomoAlpha() {
   const exeFile = `${name}${EXE_SUFFIX}`;
   const zipFile = `${name}-${MIHOMO_ALPHA_VERSION}.${urlExt}`;
   return {
-    name: "verge-mihomo-alpha",
-    targetFile: `verge-mihomo-alpha-${SIDECAR_HOST}${EXE_SUFFIX}`,
+    name: "self-mihomo-alpha",
+    targetFile: `self-mihomo-alpha-${SIDECAR_HOST}${EXE_SUFFIX}`,
     exeFile,
     zipFile,
     downloadURL,
@@ -388,6 +388,10 @@ async function downloadFile(url, path, spinner) {
     headers: { "Content-Type": "application/octet-stream" },
     timeout: 1000 * 60 * 2, // 下载文件默认超时 2 分钟
   });
+  if (response.status === 404) {
+    spinner.text = `download failed, file not found: "${url}"`;
+    throw new Error(`file not found: ${url}`);
+  }
   const buffer = await response.arrayBuffer();
   await fs.writeFile(path, new Uint8Array(buffer));
   spinner.text = `download finished: "${url}"`;
@@ -440,10 +444,10 @@ const resolvePlugin = async () => {
 };
 
 /**
- * chmod 755 for Clash Verge Service
+ * chmod 755 for Clash Verge Self Service
  */
 const resolveServicePermission = async () => {
-  const serviceExecutable = `clash-verge-service${EXE_SUFFIX}`;
+  const serviceExecutable = `clash-verge-self-service${EXE_SUFFIX}`;
   const resDir = path.join(cwd, "src-tauri", "resources");
   const targetPath = path.join(resDir, serviceExecutable);
   if (await fs.pathExists(targetPath)) {
@@ -453,25 +457,25 @@ const resolveServicePermission = async () => {
 };
 
 /**
- * Clash Verge Service Latest Version
+ * Clash Verge Self Service Latest Version
  *
- * TODO: get Clash Verge Service latest version by use request
+ * TODO: get Clash Verge Self Service latest version by use request
  */
-async function getLatestClashVergeServices() {
+async function getLatestClashVergeSelfServices() {
   // TODO: Github rest api are rate-limited
   // const GET_LATEST_RELEASE_API =
   //   "https://api.github.com/repos/oomeow/clash-verge-service/releases/latest";
   // const response = await fetch(GET_LATEST_RELEASE_API);
   // const json = await response.json();
   // const version = json.tag_name;
-  // log_info(`Latest Clash Verge Service version: ${version}`);
+  // log_info(`Latest Clash Verge Self Service version: ${version}`);
   // const assets = json.assets;
   // const downloadItem = assets.find((item) => item.name.includes(SIDECAR_HOST));
   // return {
   //   file: downloadItem.name,
   //   downloadURL: downloadItem.browser_download_url,
   // };
-  const fileName = `clash-verge-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
+  const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
   const downloadURL = `https://github.com/oomeow/clash-verge-service/releases/download/${VERGE_SERVICE_VERSION}/${fileName}`;
   return {
     file: fileName,
@@ -480,10 +484,10 @@ async function getLatestClashVergeServices() {
 }
 
 /**
- * Clash Verge Service Latest Alpha Version
+ * Clash Verge Self Service Latest Alpha Version
  */
-function getAlphaClashVergeServices() {
-  const fileName = `clash-verge-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
+function getAlphaClashVergeSelfServices() {
+  const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
   const downloadURL = `https://github.com/oomeow/clash-verge-service/releases/download/alpha/${fileName}`;
   return {
     file: fileName,
@@ -491,17 +495,17 @@ function getAlphaClashVergeServices() {
   };
 }
 
-const resolveClashVergeService = async () => {
+const resolveClashVergeSelfService = async () => {
   const versionTag = useAlphaService ? "Alpha" : "Stable";
-  consola.info(`Download Clash Verge Service (${versionTag})`);
+  consola.info(`Download Clash Verge Self Service (${versionTag})`);
   let downloadItem;
   if (useAlphaService) {
-    downloadItem = getAlphaClashVergeServices();
+    downloadItem = getAlphaClashVergeSelfServices();
   } else {
-    downloadItem = await getLatestClashVergeServices();
+    downloadItem = await getLatestClashVergeSelfServices();
   }
   await resolveResource({
-    file: `clash-verge-service${EXE_SUFFIX}`,
+    file: `clash-verge-self-service${EXE_SUFFIX}`,
     downloadURL: downloadItem.downloadURL,
   });
 };
@@ -564,7 +568,7 @@ const resolveEnableLoopback = async () => {
 
 const tasks = [
   {
-    name: "verge-mihomo",
+    name: "self-mihomo",
     func: async () => {
       consola.info("Download and unzip Latest Mihomo Stable Version");
       await getLatestReleaseVersion();
@@ -573,7 +577,7 @@ const tasks = [
     retry: 5,
   },
   {
-    name: "verge-mihomo-alpha",
+    name: "self-mihomo-alpha",
     func: async () => {
       consola.info("Download and unzip Latest Mihomo Alpha Version");
       await getLatestAlphaVersion();
@@ -582,7 +586,11 @@ const tasks = [
     retry: 5,
   },
   { name: "plugin", func: resolvePlugin, retry: 5, winOnly: true },
-  { name: "clash-verge-service", func: resolveClashVergeService, retry: 5 },
+  {
+    name: "clash-verge-self-service",
+    func: resolveClashVergeSelfService,
+    retry: 5,
+  },
   {
     name: "set_dns_script",
     func: resolveSetDnsScript,
@@ -606,7 +614,7 @@ const tasks = [
     winOnly: true,
   },
   {
-    name: "service_chmod",
+    name: "chmod_service",
     func: resolveServicePermission,
     retry: 1,
     unixOnly: true,

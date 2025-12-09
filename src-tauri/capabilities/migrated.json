@@ -53,12 +53,12 @@
       "allow": [
         {
           "args": ["-v"],
-          "name": "sidecar/verge-mihomo",
+          "name": "sidecar/self-mihomo",
           "sidecar": true
         },
         {
           "args": ["-v"],
-          "name": "sidecar/verge-mihomo-alpha",
+          "name": "sidecar/self-mihomo-alpha",
           "sidecar": true
         }
       ]

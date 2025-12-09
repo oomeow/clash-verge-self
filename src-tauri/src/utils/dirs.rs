@@ -101,7 +101,7 @@ pub fn profiles_path() -> AppResult<PathBuf> {
 
 pub fn service_path() -> AppResult<PathBuf> {
     let exe_ext = std::env::consts::EXE_SUFFIX;
-    let service_bin = format!("clash-verge-service{}", exe_ext);
+    let service_bin = format!("clash-verge-self-service{}", exe_ext);
     Ok(app_resources_dir()?.join(service_bin))
 }
 

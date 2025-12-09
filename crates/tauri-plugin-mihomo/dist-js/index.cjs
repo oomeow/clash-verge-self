@@ -55,8 +55,8 @@ async function closeAllConnections() {
  * 关闭指定连接
  * @param connectionId 连接 ID
  */
-async function closeConnections(connectionId) {
-    await core.invoke("plugin:mihomo|close_connections", { connectionId });
+async function closeConnection(connectionId) {
+    await core.invoke("plugin:mihomo|close_connection", { connectionId });
 }
 // groups
 /**
@@ -442,7 +442,7 @@ MihomoWebSocket.instances = new Set();
 exports.MihomoWebSocket = MihomoWebSocket;
 exports.clearAllWsConnections = clearAllWsConnections;
 exports.closeAllConnections = closeAllConnections;
-exports.closeConnections = closeConnections;
+exports.closeConnection = closeConnection;
 exports.delayGroup = delayGroup;
 exports.delayProxyByName = delayProxyByName;
 exports.flushDNS = flushDNS;

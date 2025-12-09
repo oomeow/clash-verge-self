@@ -247,6 +247,20 @@ impl IVerge {
                     }
                 }
 
+                if let Some(clash_core) = config.clash_core.as_ref()
+                    && clash_core.contains("verge-mihomo")
+                {
+                    let new_clash_core = clash_core.replace("verge-mihomo", "self-mihomo");
+                    config.clash_core = Some(new_clash_core)
+                }
+
+                #[cfg(target_os = "macos")]
+                if let Some(enable_system_title_bar) = config.enable_system_title_bar
+                    && !enable_system_title_bar
+                {
+                    config.enable_system_title_bar = Some(true)
+                }
+
                 config
             }
             Err(err) => {
@@ -258,7 +272,7 @@ impl IVerge {
 
     pub fn template() -> Self {
         Self {
-            clash_core: Some("verge-mihomo".into()),
+            clash_core: Some("self-mihomo".into()),
             language: Some("zh".into()),
             theme_mode: Some("system".into()),
             #[cfg(not(target_os = "windows"))]
@@ -374,9 +388,9 @@ impl IVerge {
     /// 在初始化前尝试拿到单例端口的值
     pub fn get_singleton_port() -> u16 {
         #[cfg(not(feature = "verge-dev"))]
-        const SERVER_PORT: u16 = 33331;
+        const SERVER_PORT: u16 = 33355;
         #[cfg(feature = "verge-dev")]
-        const SERVER_PORT: u16 = 11233;
+        const SERVER_PORT: u16 = 11235;
 
         match dirs::verge_path().and_then(|path| help::read_yaml::<IVerge>(&path)) {
             Ok(config) => config.app_singleton_port.unwrap_or(SERVER_PORT),

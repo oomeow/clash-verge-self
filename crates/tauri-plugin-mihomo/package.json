@@ -17,7 +17,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "rollup -c",
+    "build": "cargo test export_bindings && rollup -c",
     "prepublishOnly": "pnpm build",
     "pretest": "pnpm build"
   },

@@ -24,7 +24,7 @@ use crate::{
     ret_failed_resp, utils,
 };
 
-const DEFAULT_TIMEOUT: Duration = Duration::from_secs(60);
+const DEFAULT_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub struct Mihomo {
     pub protocol: Protocol,
@@ -219,7 +219,7 @@ impl Mihomo {
 
                     let request = Request::builder()
                         .uri(url)
-                        .header(HOST, "clash-verge")
+                        .header(HOST, "clash-verge-self")
                         .header(SEC_WEBSOCKET_KEY, utils::generate_websocket_key())
                         .header(CONNECTION, "Upgrade")
                         .header(UPGRADE, "websocket")
@@ -459,7 +459,8 @@ impl Mihomo {
         let group_name = urlencoding::encode(group_name);
         let test_url = urlencoding::encode(test_url);
         let suffix_url = format!("/group/{group_name}/delay?url={test_url}&timeout={timeout}");
-        let client = self.build_request(Method::GET, &suffix_url)?;
+        let request_timeout = DEFAULT_TIMEOUT + Duration::from_millis(timeout as u64);
+        let client = self.build_request(Method::GET, &suffix_url)?.timeout(request_timeout);
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             ret_failed_resp!("get group error, {}", response.text().await?);
@@ -522,9 +523,11 @@ impl Mihomo {
         let provider_name = urlencoding::encode(provider_name);
         let proxy_name = urlencoding::encode(proxy_name);
         let suffix_url = format!("/providers/proxies/{provider_name}/{proxy_name}/healthcheck",);
+        let request_timeout = DEFAULT_TIMEOUT + Duration::from_millis(timeout as u64);
         let client = self
             .build_request(Method::GET, &suffix_url)?
-            .query(&[("url", test_url), ("timeout", &timeout.to_string())]);
+            .query(&[("url", test_url), ("timeout", &timeout.to_string())])
+            .timeout(request_timeout);
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             // maybe proxy delay is timeout response, try parse it.
@@ -597,9 +600,11 @@ impl Mihomo {
     pub async fn delay_proxy_by_name(&self, proxy_name: &str, test_url: &str, timeout: u32) -> Result<ProxyDelay> {
         let proxy_name = urlencoding::encode(proxy_name);
         let suffix_url = format!("/proxies/{proxy_name}/delay");
+        let request_timeout = DEFAULT_TIMEOUT + Duration::from_millis(timeout as u64);
         let client = self
             .build_request(Method::GET, &suffix_url)?
-            .query(&[("timeout", &timeout.to_string()), ("url", &test_url.to_string())]);
+            .query(&[("timeout", &timeout.to_string()), ("url", &test_url.to_string())])
+            .timeout(request_timeout);
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             match response.json::<ErrorResponse>().await {
@@ -657,12 +662,15 @@ impl Mihomo {
     }
 
     /// 重新加载配置
+    ///
+    /// 如果配置文件中包含了很多 provider，则会花费很多时间在下载 provider 上，建议只对当前配置进行重载时使用，避免使用此方来进行包含多个 provider 的配置文件的切换
     pub async fn reload_config(&self, force: bool, config_path: &str) -> Result<()> {
         let body = json!({ "path": config_path });
         let client = self
             .build_request(Method::PUT, "/configs")?
             .query(&[("force", force)])
-            .json(&body);
+            .json(&body)
+            .timeout(Duration::from_secs(60));
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             ret_failed_resp!("reload base config error, {}", response.text().await?);
@@ -682,7 +690,9 @@ impl Mihomo {
 
     /// 更新 Geo, 同 [`upgrade_geo`](crate::mihomo::Mihomo::upgrade_geo)
     pub async fn update_geo(&self) -> Result<()> {
-        let client = self.build_request(Method::POST, "/configs/geo")?;
+        let client = self
+            .build_request(Method::POST, "/configs/geo")?
+            .timeout(Duration::from_secs(60));
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             failed_resp!("update geo database error, {}", response.text().await?);
@@ -704,7 +714,8 @@ impl Mihomo {
     pub async fn upgrade_core(&self, channel: CoreUpdaterChannel, force: bool) -> Result<()> {
         let client = self
             .build_request(Method::POST, "/upgrade")?
-            .query(&[("channel", &channel.to_string()), ("force", &force.to_string())]);
+            .query(&[("channel", &channel.to_string()), ("force", &force.to_string())])
+            .timeout(Duration::from_secs(60));
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             match response.json::<HashMap<String, String>>().await {
@@ -730,7 +741,9 @@ impl Mihomo {
 
     /// 更新 UI
     pub async fn upgrade_ui(&self) -> Result<()> {
-        let client = self.build_request(Method::POST, "/upgrade/ui")?;
+        let client = self
+            .build_request(Method::POST, "/upgrade/ui")?
+            .timeout(Duration::from_secs(60));
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             ret_failed_resp!("upgrade ui failed, {}", response.text().await?);
@@ -740,7 +753,9 @@ impl Mihomo {
 
     /// 更新 Geo
     pub async fn upgrade_geo(&self) -> Result<()> {
-        let client = self.build_request(Method::POST, "/upgrade/geo")?;
+        let client = self
+            .build_request(Method::POST, "/upgrade/geo")?
+            .timeout(Duration::from_secs(60));
         let response = self.send_by_protocol(client).await?;
         if !response.status().is_success() {
             ret_failed_resp!("upgrade geo failed, {}", response.text().await?);

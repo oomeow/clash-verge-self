@@ -31,17 +31,12 @@ pub enum ChainType {
     Script,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ScopeType {
+    #[default]
     Global,
     Specific,
-}
-
-impl Default for ScopeType {
-    fn default() -> Self {
-        Self::Global
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

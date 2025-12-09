@@ -62,7 +62,7 @@ impl VergeLog {
     pub fn init(&self) -> AppResult<WorkerGuard> {
         let log_level = Config::verge().latest().get_log_level();
         let timer = tracing_subscriber::fmt::time::LocalTime::new(format_description!(
-            "[year]-[month]-[day] [hour]:[minute]:[second]"
+            "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:3]"
         ));
         let exclude_filter = filter::filter_fn(|metadata| {
             !(metadata.target().contains("tungstenite") && *metadata.level() == Level::TRACE)
@@ -156,7 +156,7 @@ impl VergeLog {
             let file_name = file.file_name();
             let file_name = file_name.to_str().unwrap_or_default();
 
-            if file_name.ends_with(".log") && !file_name.contains("clash-verge-service") {
+            if file_name.ends_with(".log") && !file_name.contains("clash-verge-self-service") {
                 let now = Local::now();
                 let created_time = parse_time_str(&file_name[0..file_name.len() - 4])?;
                 let file_time = Local

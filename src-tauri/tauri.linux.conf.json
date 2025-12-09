@@ -1,6 +1,6 @@
 {
-  "productName": "clash-verge",
-  "mainBinaryName": "clash-verge",
+  "productName": "clash-verge-self",
+  "mainBinaryName": "clash-verge-self",
   "identifier": "io.github.oomeow.clash-verge-self",
   "bundle": {
     "targets": ["deb", "rpm"],
@@ -12,14 +12,14 @@
       "deb": {
         "files": {},
         "depends": ["openssl"],
-        "desktopTemplate": "./template/clash-verge.desktop"
+        "desktopTemplate": "./template/clash-verge-self.desktop"
       },
       "rpm": {
         "epoch": 0,
         "files": {},
         "release": "1",
         "depends": ["openssl"],
-        "desktopTemplate": "./template/clash-verge.desktop"
+        "desktopTemplate": "./template/clash-verge-self.desktop"
       }
     }
   }

@@ -20,25 +20,25 @@ type MihomoCoreInfo = {
 const defaultValue: MihomoCoreInfo[] = [
   {
     name: "Mihomo",
-    core: "verge-mihomo",
+    core: "self-mihomo",
     version: "",
     permissionsGranted: false,
   },
   {
     name: "Mihomo Alpha",
-    core: "verge-mihomo-alpha",
+    core: "self-mihomo-alpha",
     version: "",
     permissionsGranted: false,
   },
 ];
 
-const MIHOMO_CORES = ["verge-mihomo", "verge-mihomo-alpha"];
+const MIHOMO_CORES = ["self-mihomo", "self-mihomo-alpha"];
 const OS = getSystem();
 
 export const useMihomoCoresInfo = () => {
   const { serviceStatus } = useService();
   const {
-    verge: { clash_core = "verge-mihomo" },
+    verge: { clash_core = "self-mihomo" },
   } = useVerge();
   const serviceUnavailable =
     serviceStatus === "uninstall" || serviceStatus === "unknown";

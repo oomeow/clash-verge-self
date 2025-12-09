@@ -57,7 +57,7 @@ const SettingClash = ({ onError }: Props) => {
 
   const { verge, mutateVerge, patchVerge } = useVerge();
   const {
-    clash_core = "verge-mihomo",
+    clash_core = "self-mihomo",
     enable_random_port,
     enable_service_mode,
     enable_external_controller,

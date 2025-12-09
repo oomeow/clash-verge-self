@@ -4,13 +4,12 @@ use rust_i18n::t;
 use tauri::{AppHandle, CloseRequestApi, Manager};
 
 use crate::{
-    APP_HANDLE,
+    APP_HANDLE, AppState,
     config::{Config, PrfItem, PrfOption, SilentStartMode},
     core::{verge_log::VergeLog, *},
     error::AppResult,
     log_err, shutdown, trace_err,
     utils::{
-        self,
         dirs::{self, APP_ID},
         init, server,
     },
@@ -26,8 +25,6 @@ pub async fn resolve_setup() {
     log_err!(init::init_scheme());
     tracing::trace!("init startup script");
     log_err!(init::startup_script().await);
-    tracing::trace!("load rsa keys");
-    log_err!(utils::crypto::load_keys());
     tracing::trace!("init config");
     log_err!(Config::init_config());
     tracing::trace!("launch core");
@@ -122,6 +119,8 @@ pub fn setup_panic_hook() {
         });
         let _ = task.join();
         if let Some(app_handle) = APP_HANDLE.get() {
+            let app_state = app_handle.state::<AppState>();
+            app_state.is_exiting.store(true, std::sync::atomic::Ordering::SeqCst);
             app_handle.exit(1);
         } else {
             std::process::exit(1);
@@ -150,7 +149,7 @@ pub fn create_window() {
     let start_page = verge.start_page.as_deref().unwrap_or("/");
 
     let mut builder = tauri::WebviewWindowBuilder::new(app_handle, "main", tauri::WebviewUrl::App(start_page.into()))
-        .title("Clash Verge")
+        .title("Clash Verge Self")
         .fullscreen(false)
         .maximized(verge.window_is_maximized.unwrap_or(false))
         .min_inner_size(600.0, 550.0);

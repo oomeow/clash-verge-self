@@ -4,9 +4,9 @@
 //! - timer 定时器
 //! - cmds 页面调用
 //!
+use clash_verge_self_service::model::JsonResponse;
 use rust_i18n::t;
 use serde_yaml::{Mapping, Value};
-use service::JsonResponse;
 use tauri::AppHandle;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{MessageDialogButtons, MessageDialogKind};
@@ -355,7 +355,7 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
                         .latest()
                         .clash_core
                         .clone()
-                        .unwrap_or("verge-mihomo".to_string());
+                        .unwrap_or("self-mihomo".to_string());
                     if check_permissions_granted(mihomo_core)? {
                         Err(any_err!("{}", t!("tun.busy")))
                     } else {

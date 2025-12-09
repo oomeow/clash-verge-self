@@ -1,5 +1,5 @@
 # app name
-readonly APP_NAME="clash-verge"
+readonly APP_NAME="clash-verge-self"
 # dirs
 CURRENT_SCRIPT_DIR=$(
   cd "$(dirname "$0")" || exit 1

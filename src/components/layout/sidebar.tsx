@@ -29,7 +29,7 @@ export const Sidebar = (props: Props) => {
       <LogoTitle open={open} />
 
       <div
-        className={cn("absolute top-0 right-0 left-0 h-[80px] bg-transparent", {
+        className={cn("absolute top-0 right-0 left-0 h-20 bg-transparent", {
           "h-[90px]": !open,
           "h-[70px]": enableSystemTitleBar && open,
           "h-[85px]": enableSystemTitleBar && !open,

@@ -12,11 +12,12 @@ mod utils;
 use core::verge_log::VergeLog;
 #[cfg(target_os = "linux")]
 use std::sync::LazyLock;
+use std::sync::atomic::AtomicBool;
 
 use once_cell::sync::OnceCell;
 #[cfg(target_os = "linux")]
 use parking_lot::RwLock;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tauri_plugin_mihomo::models::Protocol;
 
 use crate::{
@@ -28,7 +29,11 @@ use crate::{
 
 rust_i18n::i18n!("locales", fallback = "en");
 
-pub static APP_VERSION: OnceCell<String> = OnceCell::new();
+#[derive(Debug, Default)]
+pub struct AppState {
+    pub app_version: String,
+    pub is_exiting: AtomicBool,
+}
 
 #[cfg(target_os = "linux")]
 pub static X11_RENDER: LazyLock<RwLock<bool>> = LazyLock::new(|| RwLock::new(false));
@@ -36,14 +41,14 @@ pub static X11_RENDER: LazyLock<RwLock<bool>> = LazyLock::new(|| RwLock::new(fal
 pub static APP_HANDLE: OnceCell<AppHandle> = OnceCell::new();
 
 #[cfg(all(unix, not(feature = "verge-dev")))]
-pub const MIHOMO_SOCKET_PATH: &str = "/tmp/verge-mihomo.sock";
+pub const MIHOMO_SOCKET_PATH: &str = "/tmp/self-mihomo.sock";
 #[cfg(all(unix, feature = "verge-dev"))]
-pub const MIHOMO_SOCKET_PATH: &str = "/tmp/verge-mihomo-dev.sock";
+pub const MIHOMO_SOCKET_PATH: &str = "/tmp/self-mihomo-dev.sock";
 
 #[cfg(all(windows, not(feature = "verge-dev")))]
-pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\verge-mihomo";
+pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\self-mihomo";
 #[cfg(all(windows, feature = "verge-dev"))]
-pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\verge-mihomo-dev";
+pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\self-mihomo-dev";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> AppResult<()> {
@@ -101,15 +106,18 @@ pub fn run() -> AppResult<()> {
             APP_HANDLE
                 .set(app_handle.clone())
                 .expect("failed to set global app handle");
-            let version = app_handle.package_info().version.to_string();
-            APP_VERSION.set(version).expect("failed to set global app version");
-
             #[cfg(target_os = "macos")]
             {
                 let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
                 let show_in_dock = Config::verge().latest().show_in_dock.unwrap_or(true);
                 let _ = app_handle.set_dock_visibility(show_in_dock);
             }
+
+            let version = app_handle.package_info().version.to_string();
+            app_handle.manage(AppState {
+                app_version: version,
+                is_exiting: AtomicBool::new(false),
+            });
 
             tauri::async_runtime::block_on(async {
                 resolve::resolve_setup().await;
@@ -193,15 +201,6 @@ pub fn run() -> AppResult<()> {
         .expect("error while running tauri application");
 
     app.run(|app_handle, e| match e {
-        tauri::RunEvent::ExitRequested { code, api, .. } => {
-            tauri::async_runtime::block_on(async move {
-                tracing::info!("exit requested, clear all ws connections");
-                let _ = handle::Handle::mihomo().await.clear_all_ws_connections().await;
-            });
-            if code.is_none() {
-                api.prevent_exit();
-            }
-        }
         tauri::RunEvent::WindowEvent { label, event, .. } => {
             if label == "main" {
                 match event {
@@ -220,6 +219,30 @@ pub fn run() -> AppResult<()> {
                     }
                     _ => {}
                 }
+            }
+        }
+        #[cfg(target_os = "macos")]
+        tauri::RunEvent::Reopen { .. } => resolve::create_window(),
+        tauri::RunEvent::ExitRequested { code, api, .. } => {
+            tauri::async_runtime::block_on(async move {
+                tracing::info!("exit requested, clear all ws connections");
+                let _ = handle::Handle::mihomo().await.clear_all_ws_connections().await;
+            });
+            if code.is_none() {
+                api.prevent_exit();
+            }
+        }
+        // macOS and Windows can listen system shutdown/restart event
+        tauri::RunEvent::Exit => {
+            let app_state = app_handle.state::<AppState>();
+            if !app_state.is_exiting.load(std::sync::atomic::Ordering::SeqCst) {
+                tauri::async_runtime::block_on(async move {
+                    tracing::info!("app is exiting, resolve reset");
+                    let app_state = app_handle.state::<AppState>();
+                    app_state.is_exiting.store(true, std::sync::atomic::Ordering::SeqCst);
+                    resolve::resolve_reset().await;
+                    tracing::info!("resolve reset finished");
+                });
             }
         }
         _ => {}

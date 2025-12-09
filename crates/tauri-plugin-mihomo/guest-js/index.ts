@@ -79,8 +79,8 @@ export async function closeAllConnections(): Promise<void> {
  * 关闭指定连接
  * @param connectionId 连接 ID
  */
-export async function closeConnections(connectionId: string): Promise<void> {
-  await invoke<void>("plugin:mihomo|close_connections", { connectionId });
+export async function closeConnection(connectionId: string): Promise<void> {
+  await invoke<void>("plugin:mihomo|close_connection", { connectionId });
 }
 
 // groups

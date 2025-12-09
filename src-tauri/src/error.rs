@@ -17,6 +17,8 @@ pub enum AppError {
     SerdeJson(#[from] serde_json::Error),
     #[error(transparent)]
     ParseInt(#[from] std::num::ParseIntError),
+    #[error(transparent)]
+    FromUtf8Error(#[from] std::string::FromUtf8Error),
     #[error("parse mihomo rule error: {0}")]
     RuleParse(#[from] mihomo_rule_parser::RuleParseError),
     #[error("system proxy error: {0}")]
@@ -31,8 +33,6 @@ pub enum AppError {
     DelayTimer(String),
     #[error(transparent)]
     TracingSubscriber(#[from] tracing_subscriber::reload::Error),
-    #[error("base64 decode error: {0}")]
-    Base64Decode(#[from] base64::DecodeError),
     #[error("task join error: {0}")]
     TaskJoin(#[from] tokio::task::JoinError),
 
@@ -67,18 +67,6 @@ impl Serialize for AppError {
         S: serde::Serializer,
     {
         serializer.serialize_str(self.to_string().as_ref())
-    }
-}
-
-impl From<rsa::Error> for AppError {
-    fn from(value: rsa::Error) -> Self {
-        AppError::LoadKeys(value.to_string())
-    }
-}
-
-impl From<rsa::pkcs1::Error> for AppError {
-    fn from(value: rsa::pkcs1::Error) -> Self {
-        AppError::LoadKeys(value.to_string())
     }
 }
 

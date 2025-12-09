@@ -64,6 +64,13 @@ document.addEventListener("keydown", (event) => {
 
 // 页面关闭/刷新事件
 window.addEventListener("beforeunload", async () => {
+  console.log("beforeunload");
+  // 强制清理所有 WebSocket 实例
+  await MihomoWebSocket.cleanupAll();
+});
+
+window.addEventListener("DOMContentLoaded", async () => {
+  console.log("DOMContentLoaded");
   // 强制清理所有 WebSocket 实例
   await MihomoWebSocket.cleanupAll();
 });

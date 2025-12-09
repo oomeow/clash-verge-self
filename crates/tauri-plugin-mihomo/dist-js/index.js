@@ -53,8 +53,8 @@ async function closeAllConnections() {
  * 关闭指定连接
  * @param connectionId 连接 ID
  */
-async function closeConnections(connectionId) {
-    await invoke("plugin:mihomo|close_connections", { connectionId });
+async function closeConnection(connectionId) {
+    await invoke("plugin:mihomo|close_connection", { connectionId });
 }
 // groups
 /**
@@ -437,4 +437,4 @@ class MihomoWebSocket {
 }
 MihomoWebSocket.instances = new Set();
 
-export { MihomoWebSocket, clearAllWsConnections, closeAllConnections, closeConnections, delayGroup, delayProxyByName, flushDNS, flushFakeIp, getBaseConfig, getConnections, getGroupByName, getGroups, getProxies, getProxyByName, getProxyProviderByName, getProxyProviders, getRuleProviders, getRules, getVersion, healthcheckNodeInProvider, healthcheckProxyProvider, patchBaseConfig, reloadConfig, restart, selectNodeForGroup, unfixedProxy, updateController, updateGeo, updateProxyProvider, updateRuleProvider, updateSecret, upgradeCore, upgradeGeo, upgradeUi };
+export { MihomoWebSocket, clearAllWsConnections, closeAllConnections, closeConnection, delayGroup, delayProxyByName, flushDNS, flushFakeIp, getBaseConfig, getConnections, getGroupByName, getGroups, getProxies, getProxyByName, getProxyProviderByName, getProxyProviders, getRuleProviders, getRules, getVersion, healthcheckNodeInProvider, healthcheckProxyProvider, patchBaseConfig, reloadConfig, restart, selectNodeForGroup, unfixedProxy, updateController, updateGeo, updateProxyProvider, updateRuleProvider, updateSecret, upgradeCore, upgradeGeo, upgradeUi };

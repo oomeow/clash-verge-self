@@ -46,7 +46,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const { verge, mutateVerge } = useVerge();
-  const { clash_core = "verge-mihomo" } = verge;
+  const { clash_core = "self-mihomo" } = verge;
   const { clash } = useClash();
   const { tun } = clash ?? {};
   const [open, setOpen] = useState(false);
@@ -206,7 +206,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
                   {enableGrantPermissions && (
                     <div
                       className={cn(
-                        "ml-2 inline-block rounded-full bg-red-600/60 px-2 py-[2px] text-[10px] text-white",
+                        "ml-2 inline-block rounded-full bg-red-600/60 px-2 py-0.5 text-[10px] text-white",
                         {
                           "bg-green-600/60": each.permissionsGranted,
                         },

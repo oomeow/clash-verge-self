@@ -1,12 +1,7 @@
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(unix)]
 mod unix;
-#[cfg(target_os = "windows")]
-mod windows;
 
 pub fn register() {
-    #[cfg(target_os = "windows")]
-    windows::register();
-
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    #[cfg(unix)]
     unix::register();
 }
