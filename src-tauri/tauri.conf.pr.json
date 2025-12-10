@@ -1,0 +1,70 @@
+{
+  "productName": "Clash Verge Self",
+  "mainBinaryName": "Clash Verge Self",
+  "version": "2.3.0",
+  "identifier": "io.github.oomeow.clash-verge-self",
+  "app": {
+    "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**"],
+          "requireLiteralLeadingDot": false
+        }
+      },
+      "csp": {
+        "default-src": "'self' customprotocol: asset: tauri:",
+        "connect-src": "ipc: http://ipc.localhost http: https: ws: wss:",
+        "font-src": [
+          "https://fonts.gstatic.com",
+          "tauri:",
+          "http://tauri.localhost"
+        ],
+        "img-src": "'self' asset: http://asset.localhost blob: data: http: https:",
+        "style-src": "'unsafe-inline' 'self' https://fonts.googleapis.com",
+        "script-src": "'unsafe-eval'"
+      }
+    },
+    "windows": []
+  },
+  "bundle": {
+    "licenseFile": "../LICENSE",
+    "active": true,
+    "longDescription": "A Mihomo GUI based on tauri.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico",
+      "icons/icon.png",
+      "icons/Square30x30Logo.png",
+      "icons/Square44x44Logo.png",
+      "icons/Square71x71Logo.png",
+      "icons/Square89x89Logo.png",
+      "icons/Square107x107Logo.png",
+      "icons/Square142x142Logo.png",
+      "icons/Square150x150Logo.png",
+      "icons/Square284x284Logo.png",
+      "icons/Square310x310Logo.png",
+      "icons/StoreLogo.png"
+    ],
+    "resources": ["resources"],
+    "publisher": "Clash Verge Self",
+    "externalBin": ["sidecar/self-mihomo", "sidecar/self-mihomo-alpha"],
+    "copyright": "GNU General Public License v3.0",
+    "category": "Utility",
+    "shortDescription": "A Mihomo GUI based on tauri.",
+    "createUpdaterArtifacts": true
+  },
+  "build": {
+    "beforeBuildCommand": "pnpm run web:build",
+    "frontendDist": "./frontend/dist",
+    "beforeDevCommand": "pnpm run web:dev",
+    "devUrl": "http://localhost:3000/",
+    "additionalWatchFolders": [
+      "../crates/mihomo-rule-parser/src",
+      "../crates/tauri-plugin-mihomo/src"
+    ]
+  }
+}
