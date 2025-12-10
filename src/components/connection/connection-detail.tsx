@@ -87,7 +87,12 @@ const InnerConnectionDetail = ({ data, active, onClose }: InnerProps) => {
       label: t("Source"),
       value: `${metadata.sourceIP}:${metadata.sourcePort}`,
     },
-    { label: t("Destination IP"), value: metadata.destinationIP },
+    {
+      label: t("Destination"),
+      value: metadata.destinationIP
+        ? `${metadata.destinationIP}`
+        : `${metadata.remoteDestination}`,
+    }, 
     { label: t("Time"), value: dayjs(data.start).fromNow() },
   ];
 

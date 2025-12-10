@@ -135,6 +135,7 @@ interface IConnectionsItem {
     sourcePort: string;
     destinationPort: string;
     destinationIP?: string;
+    remoteDestination?: string;
     process?: string;
     processPath?: string;
   };
