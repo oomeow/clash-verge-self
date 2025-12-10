@@ -106,11 +106,14 @@ pub fn run() -> AppResult<()> {
             APP_HANDLE
                 .set(app_handle.clone())
                 .expect("failed to set global app handle");
+
             #[cfg(target_os = "macos")]
             {
-                let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
+                let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
                 let show_in_dock = Config::verge().latest().show_in_dock.unwrap_or(true);
-                let _ = app_handle.set_dock_visibility(show_in_dock);
+                if !show_in_dock {
+                    let _ = app_handle.set_dock_visibility(false);
+                }
             }
 
             let version = app_handle.package_info().version.to_string();
