@@ -151,6 +151,7 @@ impl Timer {
                             && archive_file.exists()
                         {
                             log_err!(std::fs::remove_file(archive_file), "failed to remove archive file");
+                            handle::Handle::refresh_clash();
                         }
                     }
                     None => {
