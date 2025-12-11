@@ -317,6 +317,7 @@ impl IClashConfig {
             .unwrap_or_default()
     }
 
+    #[allow(unused)]
     pub fn guard_tun(config: &Mapping) -> Mapping {
         config
             .get("tun")
