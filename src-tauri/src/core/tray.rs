@@ -274,7 +274,7 @@ impl Tray {
                 current_name = profile_name.to_string();
             };
             tray.set_tooltip(Some(&format!(
-                "Clash Verge v{version}\n{}: {}",
+                "Clash Verge Self v{version}\n{}: {}",
                 t!("current.profile"),
                 current_name
             )))?;
