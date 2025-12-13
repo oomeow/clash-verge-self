@@ -29,7 +29,7 @@ impl Tray {
         let sysproxy_enabled = verge.enable_system_proxy.unwrap_or(false);
         let tun_enabled = clash.get_enable_tun();
         #[cfg(target_os = "macos")]
-        let tray_icon = verge.tray_icon.as_deref().unwrap_or("monochrome");
+        let is_monochrome = verge.tray_icon.as_deref().is_none_or(|v| v == "monochrome");
         // get icon
         let common_tray_icon = verge.common_tray_icon.unwrap_or(false);
         let sysproxy_tray_icon = verge.sysproxy_tray_icon.unwrap_or(false);
@@ -45,10 +45,10 @@ impl Tray {
                     Ok(Image::from_path(icon_path)?)
                 } else {
                     #[cfg(target_os = "macos")]
-                    let icon = match tray_icon {
-                        "monochrome" => include_bytes!("../../icons/tray-icon-tun-mono.ico").to_vec(),
-                        "colorful" => include_bytes!("../../icons/tray-icon-tun.ico").to_vec(),
-                        _ => include_bytes!("../../icons/tray-icon-tun-mono.ico").to_vec(),
+                    let icon = if is_monochrome {
+                        include_bytes!("../../icons/tray-icon-tun-mono.ico").to_vec()
+                    } else {
+                        include_bytes!("../../icons/tray-icon-tun.ico").to_vec()
                     };
                     #[cfg(not(target_os = "macos"))]
                     let icon = include_bytes!("../../icons/tray-icon-tun.png").to_vec();
@@ -64,10 +64,10 @@ impl Tray {
                     Ok(Image::from_path(icon_path)?)
                 } else {
                     #[cfg(target_os = "macos")]
-                    let icon = match tray_icon {
-                        "monochrome" => include_bytes!("../../icons/tray-icon-sys-mono.ico").to_vec(),
-                        "colorful" => include_bytes!("../../icons/tray-icon-sys.ico").to_vec(),
-                        _ => include_bytes!("../../icons/tray-icon-sys-mono.ico").to_vec(),
+                    let icon = if is_monochrome {
+                        include_bytes!("../../icons/tray-icon-sys-mono.ico").to_vec()
+                    } else {
+                        include_bytes!("../../icons/tray-icon-sys.ico").to_vec()
                     };
                     #[cfg(not(target_os = "macos"))]
                     let icon = include_bytes!("../../icons/tray-icon-sys.png").to_vec();
@@ -83,10 +83,10 @@ impl Tray {
                     Ok(Image::from_path(icon_path)?)
                 } else {
                     #[cfg(target_os = "macos")]
-                    let icon = match tray_icon {
-                        "monochrome" => include_bytes!("../../icons/tray-icon-mono.ico").to_vec(),
-                        "colorful" => include_bytes!("../../icons/tray-icon.ico").to_vec(),
-                        _ => include_bytes!("../../icons/tray-icon-mono.ico").to_vec(),
+                    let icon = if is_monochrome {
+                        include_bytes!("../../icons/tray-icon-mono.ico").to_vec()
+                    } else {
+                        include_bytes!("../../icons/tray-icon.ico").to_vec()
                     };
                     #[cfg(not(target_os = "macos"))]
                     let icon = include_bytes!("../../icons/tray-icon.png").to_vec();
@@ -352,15 +352,9 @@ impl Tray {
             "service_mode" => feat::toggle_service_mode(),
             "copy_env" => feat::copy_clash_env(app_handle),
             "open_app_dir" => log_err!(cmds::common::open_app_dir(app_handle_)),
-            "open_core_dir" => {
-                log_err!(cmds::common::open_core_dir(app_handle_))
-            }
-            "open_logs_dir" => {
-                log_err!(cmds::common::open_logs_dir(app_handle_))
-            }
-            "open_devtools" => {
-                log_err!(cmds::common::open_devtools(app_handle_))
-            }
+            "open_core_dir" => log_err!(cmds::common::open_core_dir(app_handle_)),
+            "open_logs_dir" => log_err!(cmds::common::open_logs_dir(app_handle_)),
+            "open_devtools" => log_err!(cmds::common::open_devtools(app_handle_)),
             "restart_clash" => feat::restart_clash_core(),
             "restart_app" => {
                 tauri::async_runtime::block_on(async move { cmds::common::restart_app(app_handle_).await })
