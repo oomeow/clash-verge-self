@@ -464,7 +464,7 @@ const resolveServicePermission = async () => {
 async function getLatestClashVergeSelfServices() {
   // TODO: Github rest api are rate-limited
   // const GET_LATEST_RELEASE_API =
-  //   "https://api.github.com/repos/oomeow/clash-verge-service/releases/latest";
+  //   "https://api.github.com/repos/oomeow/clash-verge-self-service/releases/latest";
   // const response = await fetch(GET_LATEST_RELEASE_API);
   // const json = await response.json();
   // const version = json.tag_name;
@@ -476,7 +476,7 @@ async function getLatestClashVergeSelfServices() {
   //   downloadURL: downloadItem.browser_download_url,
   // };
   const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
-  const downloadURL = `https://github.com/oomeow/clash-verge-service/releases/download/${VERGE_SERVICE_VERSION}/${fileName}`;
+  const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/${VERGE_SERVICE_VERSION}/${fileName}`;
   return {
     file: fileName,
     downloadURL: downloadURL,
@@ -488,7 +488,7 @@ async function getLatestClashVergeSelfServices() {
  */
 function getAlphaClashVergeSelfServices() {
   const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
-  const downloadURL = `https://github.com/oomeow/clash-verge-service/releases/download/alpha/${fileName}`;
+  const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/alpha/${fileName}`;
   return {
     file: fileName,
     downloadURL: downloadURL,
