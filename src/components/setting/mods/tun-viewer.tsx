@@ -92,9 +92,20 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
   };
 
   const onSave = useLockFn(async () => {
-    if (isMacos && !values.device.startsWith("utun")) {
-      notice("error", t("Macos Device Name Error"), 3000);
-      return;
+    if (isMacos) {
+      let device = values.device;
+      if (!device.startsWith("utun")) {
+        notice("error", t("Macos Tun Device Name Error"), 3000);
+        return;
+      } else {
+        let suffix = device.slice(3);
+        const isNotNumber = isNaN(Number(suffix));
+        console.log(suffix, isNotNumber);
+        if (isNotNumber) {
+          notice("error", "device name must end with number, such as utun1234");
+          return;
+        }
+      }
     }
     doSave();
   });

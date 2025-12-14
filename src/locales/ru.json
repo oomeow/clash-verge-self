@@ -286,7 +286,7 @@
   "Update Rule Provider Error": "[ {{name}} ] Не удалось обновить：{{errorMsg}}",
   "Read Rule Providers Error": "Не удалось прочитать поставщиков правил. Проверьте, обновлены ли и синхронизированы ли поставщики правил",
   "Regenerate Template Content": "Восстановить содержимое шаблона",
-  "Macos Device Name Error": "Имена устройств Tun на Macos должны начинаться с utun",
+  "Macos Tun Device Name Error": "Имена устройств Tun на MacOS должны следовать комбинации `utun` + номер, например, `utun1234`",
   "Tun Device Or Resource Busy": "Устройство настройки или ресурс заняты, режим настройки будет отключен. Попробуйте включить режим настройки позже",
   "Update Tun Config Failed": "Не удалось обновить конфигурацию Tun. Повторите попытку позже",
   "Unified Delay": "единая задержка",

@@ -99,7 +99,7 @@
   "Process": "进程",
   "Time": "连接时间",
   "Source": "源地址",
-  "Destination": "目标地址", 
+  "Destination": "目标地址",
   "Close Connection": "关闭连接",
 
   "Rules": "规则",
@@ -311,7 +311,7 @@
   "Update Rule Provider Error": "[ {{name}} ] 更新失败：{{errorMsg}}",
   "Read Rule Providers Error": "读取规则集失败, 请确认规则集文件是否已经更新同步",
   "Regenerate Template Content": "重新生成模板内容",
-  "Macos Device Name Error": "Macos 系统的 Tun 网卡名称必须以 utun 开头",
+  "Macos Tun Device Name Error": "macos 系统的 Tun 网卡名称必须符合 `utun + 数字` 的组合, 比如 `utun1234`",
   "Tun Device Or Resource Busy": "Tun 网卡或资源繁忙，将关闭 Tun 模式，请稍后再重新启用 Tun 模式",
   "Update Tun Config Failed": "更新 Tun 设置失败，请稍后再试",
   "Unified Delay": "统一延迟",
