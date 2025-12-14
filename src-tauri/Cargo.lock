@@ -6330,7 +6330,7 @@ dependencies = [
 [[package]]
 name = "sysproxy"
 version = "0.3.0"
-source = "git+https://github.com/zzzgydi/sysproxy-rs?branch=main#355d9c98e20f894e75f13049d0031d3794e9a74a"
+source = "git+https://github.com/oomeow/sysproxy-rs?branch=main#688a6c5142c2744fe984fe882b6279517bcb5564"
 dependencies = [
  "interfaces",
  "iptools",
