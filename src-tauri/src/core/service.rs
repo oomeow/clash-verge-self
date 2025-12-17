@@ -251,7 +251,8 @@ const SERVER_ID: &str = "verge-service-server";
 // const SERVER_ID: &str = "verge-service-server-dev";
 
 async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> AppResult<JsonResponse<T>> {
-    let mut client = clash_verge_self_service::Client::connect(SERVER_ID, Some(clash_verge_self_service::PSK))
+    let psk = option_env!("CLASH_VERGE_SELF_SERVICE_PSK").map_or(clash_verge_self_service::PSK, |v| v.as_bytes());
+    let mut client = clash_verge_self_service::Client::connect(SERVER_ID, Some(psk))
         .await
         .map_err(|e| any_err!("failed to connect to service serve: {e}"))?;
     let response = client
