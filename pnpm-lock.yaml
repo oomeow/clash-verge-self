@@ -196,8 +196,8 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       meta-json-schema:
-        specifier: 1.19.18
-        version: 1.19.18
+        specifier: 1.19.19
+        version: 1.19.19
       node-fetch:
         specifier: 3.3.2
         version: 3.3.2
@@ -2822,8 +2822,8 @@ packages:
     resolution: {integrity: sha512-pxQJQzB6djGPXh08dacEloMFopsOqGVRKFPYvPOt9XDZ1HasbgDZA74CJGreSU4G3Ak7EFJGoiH2auq+yXISgA==}
     engines: {node: '>=18'}
 
-  meta-json-schema@1.19.18:
-    resolution: {integrity: sha512-dXbrVPhLKzCHdmxcdqGbGtWMjDOCE83PpPZMKDrhc730xu/aJ3rw2zCykR9A63X1BYfm/oPmMoWsQ+McUFQVIg==}
+  meta-json-schema@1.19.19:
+    resolution: {integrity: sha512-4lG3uN/h82lFH3pvpyl1FcVGP9UEiyra2y21yDKGzO6ExFggNLZeugCmv5Qo+UP01+Lc7RJ1EAJfXiMeFVS05Q==}
     engines: {node: '>=18', pnpm: '>=9'}
 
   micromark-core-commonmark@2.0.3:
@@ -6532,7 +6532,7 @@ snapshots:
 
   meow@13.2.0: {}
 
-  meta-json-schema@1.19.18: {}
+  meta-json-schema@1.19.19: {}
 
   micromark-core-commonmark@2.0.3:
     dependencies:
