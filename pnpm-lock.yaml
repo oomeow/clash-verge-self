@@ -91,7 +91,7 @@ importers:
         version: 25.8.0(typescript@5.9.3)
       lodash-es:
         specifier: ^4.17.21
-        version: 4.17.22
+        version: 4.17.23
       monaco-editor:
         specifier: ^0.54.0
         version: 0.54.0
@@ -2736,8 +2736,8 @@ packages:
       react: '>= 0.14.0'
       react-dom: '>= 0.14.0'
 
-  lodash-es@4.17.22:
-    resolution: {integrity: sha512-XEawp1t0gxSi9x01glktRZ5HDy0HXqrM0x5pXQM98EaI0NxO6jVM7omDOxsuEo5UIASAnm2bRp1Jt/e0a2XU8Q==}
+  lodash-es@4.17.23:
+    resolution: {integrity: sha512-kVI48u3PZr38HdYz98UmfPnXl2DXrpdctLrFLCd3kOx1xUkOmpFPx7gCWWM5MPkL/fD8zb+Ph0QzjGFs4+hHWg==}
 
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
@@ -6343,7 +6343,7 @@ snapshots:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
 
-  lodash-es@4.17.22: {}
+  lodash-es@4.17.23: {}
 
   lodash.debounce@4.0.8: {}
 
