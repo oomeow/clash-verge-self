@@ -178,7 +178,7 @@ impl WebDav {
         let client = Self::global().get_client()?;
         let path = format!("{BACKUP_DIR}/{webdav_file_name}");
         let response = client.get(&path).await?;
-        let content = response.bytes().await?;
+        let content = response.bytes().await.map_err(|e| AppError::WebDav(e.into()))?;
         fs::write(storage_path, &content)?;
         Ok(())
     }
