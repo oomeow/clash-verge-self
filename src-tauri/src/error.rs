@@ -11,6 +11,8 @@ pub enum AppError {
     Zip(#[from] zip::result::ZipError),
     #[error("web dav error: {0}")]
     WebDav(#[from] reqwest_dav::Error),
+    // #[error("web dav error: {0}")]
+    // WebDav(#[from] reqwest_dav::re_exports::reqwest::Error),
     #[error(transparent)]
     SerdeYaml(#[from] serde_yaml::Error),
     #[error(transparent)]
