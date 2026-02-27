@@ -61,8 +61,7 @@ zip = "6.0"
 sysproxy = { git = "https://github.com/oomeow/sysproxy-rs", branch = "main" }
 
 rust-i18n = "3"
-rfd = { version = "0.15", default-features = false, features = [
-  "tokio",
+rfd = { version = "0.17", default-features = false, features = [
   "gtk3",
   "common-controls-v6",
 ] }
