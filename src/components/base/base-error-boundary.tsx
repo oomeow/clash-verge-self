@@ -1,17 +1,22 @@
 import { ReactNode } from "react";
-import { ErrorBoundary, FallbackProps } from "react-error-boundary";
+import {
+  ErrorBoundary,
+  FallbackProps,
+  getErrorMessage,
+} from "react-error-boundary";
 
 function ErrorFallback({ error }: FallbackProps) {
+  const message = getErrorMessage(error) ?? "Unknown error";
   return (
     <div role="alert" style={{ padding: 16 }}>
       <h4>Something went wrong:(</h4>
 
-      <pre>{error.message}</pre>
+      <pre>{message}</pre>
 
-      <details title="Error Stack">
+      {/*<details title="Error Stack">
         <summary>Error Stack</summary>
         <pre>{error.stack}</pre>
-      </details>
+      </details>*/}
     </div>
   );
 }
