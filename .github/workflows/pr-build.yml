@@ -24,7 +24,6 @@ jobs:
         uses: dorny/paths-filter@v3
         id: changes
         with:
-          # base: HEAD
           filters: |
             frontend:
               - 'src/**'
@@ -74,13 +73,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      # frontend build
+      # frontend build (always build)
       - name: frontend build
-        if: steps.changes.outputs.frontend == 'true'
         run: pnpm web:build
 
       # rust clippy
-      - name: rust clippy
+      - name: Rust clippy
         if: steps.changes.outputs.backend == 'true'
         run: |
           cd src-tauri
