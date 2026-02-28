@@ -93,11 +93,11 @@ importers:
         specifier: ^4.17.21
         version: 4.17.23
       monaco-editor:
-        specifier: ^0.54.0
-        version: 0.54.0
+        specifier: ^0.55.0
+        version: 0.55.1
       monaco-yaml:
         specifier: ^5.4.0
-        version: 5.4.1(monaco-editor@0.54.0)
+        version: 5.4.1(monaco-editor@0.55.1)
       nanoid:
         specifier: ^5.1.6
         version: 5.1.6
@@ -239,7 +239,7 @@ importers:
         version: 7.3.1(@types/node@24.10.2)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)
       vite-plugin-monaco-editor:
         specifier: 1.1.0
-        version: 1.1.0(monaco-editor@0.54.0)
+        version: 1.1.0(monaco-editor@0.55.1)
       vite-plugin-svgr:
         specifier: 4.5.0
         version: 4.5.0(rollup@4.53.3)(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.2)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
@@ -2007,6 +2007,9 @@ packages:
   '@types/sortablejs@1.15.9':
     resolution: {integrity: sha512-7HP+rZGE2p886PKV9c9OJzLBI6BBJu1O7lJGYnPyG3fS4/duUCcngkNCjsLwIMV+WMqANe3tt4irrXHSIe68OQ==}
 
+  '@types/trusted-types@2.0.7':
+    resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
+
   '@types/unist@2.0.11':
     resolution: {integrity: sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==}
 
@@ -2335,8 +2338,8 @@ packages:
   dom-helpers@5.2.1:
     resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
 
-  dompurify@3.1.7:
-    resolution: {integrity: sha512-VaTstWtsneJY8xzy7DekmYWEOZcmzIe3Qb3zPd4STve1OBTa+e+WmS1ITQec1fZYXI3HCsOZZiSMpG6oxoWMWQ==}
+  dompurify@3.2.7:
+    resolution: {integrity: sha512-WhL/YuveyGXJaerVlMYGWhvQswa7myDG17P7Vu65EWC05o8vfeNbvNf4d/BOvH99+ZW+LlQsc1GDKMa1vNK6dw==}
 
   dot-case@3.0.4:
     resolution: {integrity: sha512-Kv5nKlh6yRrdrGvxeJ2e5y2eRUpkUosIW4A2AS38zwSz27zu7ufDwQPi5Jhs3XAlGNetl3bmnGhQsMtkKJnj3w==}
@@ -2960,8 +2963,8 @@ packages:
     resolution: {integrity: sha512-KZxYo1BUkWD2TVFLr0MQoM8vUUigWD3LlD83a/75BqC+4qE0Hb1Vo5v1FgcfaNXvfXzr+5EhQ6ing/CaBijTlw==}
     engines: {node: '>= 18'}
 
-  monaco-editor@0.54.0:
-    resolution: {integrity: sha512-hx45SEUoLatgWxHKCmlLJH81xBo0uXP4sRkESUpmDQevfi+e7K1VuiSprK6UpQ8u4zOcKNiH0pMvHvlMWA/4cw==}
+  monaco-editor@0.55.1:
+    resolution: {integrity: sha512-jz4x+TJNFHwHtwuV9vA9rMujcZRb0CEilTEwG2rRSpe/A7Jdkuj8xPKttCgOh+v/lkHy7HsZ64oj+q3xoAFl9A==}
 
   monaco-languageserver-types@0.4.0:
     resolution: {integrity: sha512-QQ3BZiU5LYkJElGncSNb5AKoJ/LCs6YBMCJMAz9EA7v+JaOdn3kx2cXpPTcZfKA5AEsR0vc97sAw+5mdNhVBmw==}
@@ -5636,6 +5639,9 @@ snapshots:
 
   '@types/sortablejs@1.15.9': {}
 
+  '@types/trusted-types@2.0.7':
+    optional: true
+
   '@types/unist@2.0.11': {}
 
   '@types/unist@3.0.3': {}
@@ -6002,7 +6008,9 @@ snapshots:
       '@babel/runtime': 7.28.6
       csstype: 3.2.3
 
-  dompurify@3.1.7: {}
+  dompurify@3.2.7:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
 
   dot-case@3.0.4:
     dependencies:
@@ -6845,9 +6853,9 @@ snapshots:
     dependencies:
       minipass: 7.1.2
 
-  monaco-editor@0.54.0:
+  monaco-editor@0.55.1:
     dependencies:
-      dompurify: 3.1.7
+      dompurify: 3.2.7
       marked: 14.0.0
 
   monaco-languageserver-types@0.4.0:
@@ -6862,18 +6870,18 @@ snapshots:
 
   monaco-types@0.1.2: {}
 
-  monaco-worker-manager@2.0.1(monaco-editor@0.54.0):
+  monaco-worker-manager@2.0.1(monaco-editor@0.55.1):
     dependencies:
-      monaco-editor: 0.54.0
+      monaco-editor: 0.55.1
 
-  monaco-yaml@5.4.1(monaco-editor@0.54.0):
+  monaco-yaml@5.4.1(monaco-editor@0.55.1):
     dependencies:
       jsonc-parser: 3.3.1
-      monaco-editor: 0.54.0
+      monaco-editor: 0.55.1
       monaco-languageserver-types: 0.4.0
       monaco-marker-data-provider: 1.2.5
       monaco-types: 0.1.2
-      monaco-worker-manager: 2.0.1(monaco-editor@0.54.0)
+      monaco-worker-manager: 2.0.1(monaco-editor@0.55.1)
       path-browserify: 1.0.1
       prettier: 3.8.1
       vscode-languageserver-textdocument: 1.0.12
@@ -7552,9 +7560,9 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-monaco-editor@1.1.0(monaco-editor@0.54.0):
+  vite-plugin-monaco-editor@1.1.0(monaco-editor@0.55.1):
     dependencies:
-      monaco-editor: 0.54.0
+      monaco-editor: 0.55.1
 
   vite-plugin-svgr@4.5.0(rollup@4.53.3)(typescript@5.9.3)(vite@7.3.1(@types/node@24.10.2)(jiti@2.6.1)(lightningcss@1.30.2)(sass@1.80.3)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2)):
     dependencies:
