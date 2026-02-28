@@ -1,0 +1,35 @@
+# Configuration file for `prek`, a git hook framework written in Rust.
+# See https://prek.j178.dev for more information.
+#:schema https://www.schemastore.org/prek.json
+
+fail_fast = true
+
+# [[repos]]
+# repo = "https://github.com/pre-commit/pre-commit-hooks"
+# rev = "v5.0.0"
+# hooks = [
+#   { id = "trailing-whitespace" },
+#   { id = "end-of-file-fixer" },
+#   { id = "check-yaml" },
+#   { id = "check-toml" },
+#   { id = "check-added-large-files" }
+# ]
+
+[[repos]]
+repo = "https://github.com/crate-ci/typos"
+rev = "v1.44.0"
+hooks = [
+  { id = "typos" }
+]
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
+    id = "pretty staged",
+    name = "pretty staged",
+    description = "pretty.",
+    entry = "pnpm pretty-quick --staged",
+    language = "node"
+  }
+]
