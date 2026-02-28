@@ -104,10 +104,10 @@ impl Mihomo {
     fn build_request(&self, method: Method, suffix_url: &str) -> Result<RequestBuilder> {
         let url = self.get_req_url(suffix_url)?;
         let headers = self.get_req_headers()?;
-        let client = match self.protocol {
-            Protocol::Http => reqwest::ClientBuilder::new().timeout(self.request_timeout).build()?,
-            Protocol::LocalSocket => {
-                let Some(socket_path) = &self.socket_path else {
+        let client = {
+            let mut builder = reqwest::ClientBuilder::new().timeout(self.request_timeout);
+            if matches!(self.protocol, Protocol::LocalSocket) {
+                let Some(socket_path) = self.socket_path.as_deref() else {
                     log::error!("missing socket path parameter");
                     return Err(Error::Io(std::io::Error::new(
                         std::io::ErrorKind::InvalidInput,
@@ -116,19 +116,14 @@ impl Mihomo {
                 };
                 #[cfg(windows)]
                 {
-                    reqwest::ClientBuilder::new()
-                        .windows_named_pipe(socket_path.clone())
-                        .timeout(self.request_timeout)
-                        .build()?
+                    builder = builder.windows_named_pipe(socket_path);
                 }
                 #[cfg(unix)]
                 {
-                    reqwest::ClientBuilder::new()
-                        .unix_socket(socket_path.clone())
-                        .timeout(self.request_timeout)
-                        .build()?
+                    builder = builder.unix_socket(socket_path);
                 }
             }
+            builder.build()?
         };
 
         match method {
