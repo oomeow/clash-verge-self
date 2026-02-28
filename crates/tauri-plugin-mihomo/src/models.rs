@@ -885,7 +885,7 @@ pub enum WebSocketMessage {
     Close(Option<CloseFrame>),
 }
 
-pub type ConnectionId = u32;
+pub type WebSocketConnectionId = u32;
 pub enum WebSocketWriter {
     TcpStreamWriter(SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>),
     SocketStreamWriter(SplitSink<WebSocketStream<WrapStream>, Message>),
@@ -906,4 +906,4 @@ impl WebSocketWriter {
 }
 
 #[derive(Default)]
-pub struct ConnectionManager(pub RwLock<HashMap<ConnectionId, WebSocketWriter>>);
+pub struct ConnectionManager(pub RwLock<HashMap<WebSocketConnectionId, WebSocketWriter>>);

@@ -1,6 +1,6 @@
 use serde::{Serialize, ser::Serializer};
 
-use crate::models::ConnectionId;
+use crate::models::WebSocketConnectionId;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -13,9 +13,9 @@ pub enum Error {
     #[error(transparent)]
     Json(#[from] serde_json::Error),
     #[error("Websocket error: {0}")]
-    Websocket(String),
+    WebSocket(String),
     #[error("Connection not found for the given id: {0}")]
-    ConnectionNotFound(ConnectionId),
+    WebSocketConnectionNotFound(WebSocketConnectionId),
     #[error(transparent)]
     InvalidHeaderValue(#[from] tokio_tungstenite::tungstenite::http::header::InvalidHeaderValue),
     #[error(transparent)]
@@ -41,7 +41,7 @@ impl Serialize for Error {
 
 impl From<tokio_tungstenite::tungstenite::Error> for Error {
     fn from(e: tokio_tungstenite::tungstenite::Error) -> Self {
-        crate::Error::Websocket(e.to_string())
+        crate::Error::WebSocket(e.to_string())
     }
 }
 

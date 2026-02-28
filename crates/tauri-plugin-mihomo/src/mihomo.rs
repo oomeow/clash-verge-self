@@ -18,9 +18,9 @@ use tokio_tungstenite::{
 use crate::{
     DOWNLOAD_FILE_TIMEOUT, Error, Result, failed_resp,
     models::{
-        BaseConfig, CloseFrame, ConnectionId, ConnectionManager, Connections, CoreUpdaterChannel, ErrorResponse,
-        Groups, LogLevel, MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders,
-        RuleProviders, Rules, WebSocketMessage, WebSocketWriter,
+        BaseConfig, CloseFrame, ConnectionManager, Connections, CoreUpdaterChannel, ErrorResponse, Groups, LogLevel,
+        MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules,
+        WebSocketConnectionId, WebSocketMessage, WebSocketWriter,
     },
     ret_failed_resp,
 };
@@ -166,7 +166,7 @@ impl Mihomo {
     }
 
     /// 连接 WebSocket
-    async fn connect<F>(&self, url: String, on_message: F) -> Result<ConnectionId>
+    async fn connect<F>(&self, url: String, on_message: F) -> Result<WebSocketConnectionId>
     where
         F: Fn(serde_json::Value) + Send + 'static,
     {
@@ -280,7 +280,7 @@ impl Mihomo {
     }
 
     /// 向指定 WebSocket 连接发送消息 (暂无使用该方法的地方)
-    async fn send(&self, id: ConnectionId, message: WebSocketMessage) -> Result<()> {
+    async fn send(&self, id: WebSocketConnectionId, message: WebSocketMessage) -> Result<()> {
         let manager = self.connection_manager.clone();
         let mut manager = manager.0.write().await;
         if let Some(writer) = manager.get_mut(&id) {
@@ -298,12 +298,12 @@ impl Mihomo {
             Ok(())
         } else {
             log::error!("connection not found: {id}");
-            Err(Error::ConnectionNotFound(id))
+            Err(Error::WebSocketConnectionNotFound(id))
         }
     }
 
     /// 取消 WebSocket 连接
-    pub async fn disconnect(&self, id: ConnectionId, force_timeout: Option<u64>) -> Result<()> {
+    pub async fn disconnect(&self, id: WebSocketConnectionId, force_timeout: Option<u64>) -> Result<()> {
         log::debug!("disconnecting connection: {id}");
         let mut manager = self.connection_manager.0.write().await;
         if let Some(writer) = manager.get_mut(&id) {
@@ -324,7 +324,7 @@ impl Mihomo {
             Ok(())
         } else {
             log::error!("connection not found: {id}");
-            Err(Error::ConnectionNotFound(id))
+            Err(Error::WebSocketConnectionNotFound(id))
         }
     }
 
@@ -341,7 +341,7 @@ impl Mihomo {
     // |                     Mihomo API                     |
     // ------------------------------------------------------
     /// WebSocket: Mihomo 流量数据
-    pub async fn ws_traffic<F>(&self, on_message: F) -> Result<ConnectionId>
+    pub async fn ws_traffic<F>(&self, on_message: F) -> Result<WebSocketConnectionId>
     where
         F: Fn(serde_json::Value) + Send + 'static,
     {
@@ -351,7 +351,7 @@ impl Mihomo {
     }
 
     /// WebSocket: Mihomo 内存使用数据
-    pub async fn ws_memory<F>(&self, on_message: F) -> Result<ConnectionId>
+    pub async fn ws_memory<F>(&self, on_message: F) -> Result<WebSocketConnectionId>
     where
         F: Fn(serde_json::Value) + Send + 'static,
     {
@@ -361,7 +361,7 @@ impl Mihomo {
     }
 
     /// WebSocket: Mihomo 连接信息数据
-    pub async fn ws_connections<F>(&self, on_message: F) -> Result<ConnectionId>
+    pub async fn ws_connections<F>(&self, on_message: F) -> Result<WebSocketConnectionId>
     where
         F: Fn(serde_json::Value) + Send + 'static,
     {
@@ -371,7 +371,7 @@ impl Mihomo {
     }
 
     /// WebSocket: Mihomo 日志数据
-    pub async fn ws_logs<F>(&self, level: LogLevel, on_message: F) -> Result<ConnectionId>
+    pub async fn ws_logs<F>(&self, level: LogLevel, on_message: F) -> Result<WebSocketConnectionId>
     where
         F: Fn(serde_json::Value) + Send + 'static,
     {

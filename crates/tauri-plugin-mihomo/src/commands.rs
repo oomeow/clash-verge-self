@@ -233,7 +233,7 @@ pub(crate) async fn upgrade_geo(state: State<'_, RwLock<Mihomo>>) -> Result<()> 
 pub(crate) async fn ws_traffic(
     state: State<'_, RwLock<Mihomo>>,
     on_message: Channel<serde_json::Value>,
-) -> Result<ConnectionId> {
+) -> Result<WebSocketConnectionId> {
     state
         .read()
         .await
@@ -247,7 +247,7 @@ pub(crate) async fn ws_traffic(
 pub(crate) async fn ws_memory(
     state: State<'_, RwLock<Mihomo>>,
     on_message: Channel<serde_json::Value>,
-) -> Result<ConnectionId> {
+) -> Result<WebSocketConnectionId> {
     state
         .read()
         .await
@@ -261,7 +261,7 @@ pub(crate) async fn ws_memory(
 pub(crate) async fn ws_connections(
     state: State<'_, RwLock<Mihomo>>,
     on_message: Channel<serde_json::Value>,
-) -> Result<ConnectionId> {
+) -> Result<WebSocketConnectionId> {
     state
         .read()
         .await
@@ -276,7 +276,7 @@ pub(crate) async fn ws_logs(
     state: State<'_, RwLock<Mihomo>>,
     level: LogLevel,
     on_message: Channel<serde_json::Value>,
-) -> Result<ConnectionId> {
+) -> Result<WebSocketConnectionId> {
     state
         .read()
         .await
@@ -299,7 +299,7 @@ pub(crate) async fn ws_logs(
 #[command]
 pub(crate) async fn ws_disconnect(
     state: State<'_, RwLock<Mihomo>>,
-    id: ConnectionId,
+    id: WebSocketConnectionId,
     force_timeout: Option<u64>,
 ) -> Result<()> {
     state.read().await.disconnect(id, force_timeout).await
