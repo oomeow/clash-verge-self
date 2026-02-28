@@ -6873,7 +6873,6 @@ dependencies = [
 name = "tauri-plugin-mihomo"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
  "futures-util",
  "http",
  "httparse",
@@ -6890,7 +6889,7 @@ dependencies = [
  "tokio-tungstenite",
  "ts-rs",
  "urlencoding",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

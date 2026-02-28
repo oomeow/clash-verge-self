@@ -1,6 +1,6 @@
 use serde::{Serialize, ser::Serializer};
 
-use crate::models::ConnectionId;
+use crate::models::WebSocketConnectionId;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -13,9 +13,9 @@ pub enum Error {
     #[error(transparent)]
     Json(#[from] serde_json::Error),
     #[error("Websocket error: {0}")]
-    Websocket(String),
+    WebSocket(String),
     #[error("Connection not found for the given id: {0}")]
-    ConnectionNotFound(ConnectionId),
+    WebSocketConnectionNotFound(WebSocketConnectionId),
     #[error(transparent)]
     InvalidHeaderValue(#[from] tokio_tungstenite::tungstenite::http::header::InvalidHeaderValue),
     #[error(transparent)]
@@ -28,18 +28,6 @@ pub enum Error {
     FailedResponse(String),
     #[error(transparent)]
     HttpError(#[from] http::Error),
-    #[error("Http Parse failed, {0}")]
-    HttpParseError(String),
-    #[error("Parse error, {0}")]
-    ParseError(String),
-    #[error("Connection pool init failed")]
-    ConnectionPoolInitFailed,
-    #[error("Connection pool is full")]
-    ConnectionPoolFull,
-    #[error("Connection failed")]
-    ConnectionFailed,
-    #[error("Connection lost")]
-    ConnectionLost,
 }
 
 impl Serialize for Error {
@@ -53,19 +41,7 @@ impl Serialize for Error {
 
 impl From<tokio_tungstenite::tungstenite::Error> for Error {
     fn from(e: tokio_tungstenite::tungstenite::Error) -> Self {
-        crate::Error::Websocket(e.to_string())
-    }
-}
-
-impl From<std::string::FromUtf8Error> for Error {
-    fn from(e: std::string::FromUtf8Error) -> Self {
-        crate::Error::ParseError(e.to_string())
-    }
-}
-
-impl From<std::num::ParseIntError> for Error {
-    fn from(e: std::num::ParseIntError) -> Self {
-        crate::Error::ParseError(e.to_string())
+        crate::Error::WebSocket(e.to_string())
     }
 }
 
