@@ -57,7 +57,7 @@ percent-encoding = "2.3"
 serde = { version = "1.0", features = ["derive"] }
 reqwest = { version = "0.13", features = ["query", "json"] }
 reqwest_dav = "0.2"
-zip = "6.0"
+zip = "8.0"
 sysproxy = { git = "https://github.com/oomeow/sysproxy-rs", branch = "main" }
 
 rust-i18n = "3"
