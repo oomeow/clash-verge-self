@@ -42,6 +42,7 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
         with:
+          prefix-key: test-build
           workspaces: src-tauri
 
       - name: Install Node

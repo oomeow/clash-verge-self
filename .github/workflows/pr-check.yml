@@ -36,19 +36,8 @@ jobs:
               - 'cross_dockerfile/**'
               - 'src-tauri/template/**'
 
-      - name: Print file changed status
-        run: |
-          echo "Frontend changed: ${{ steps.changes.outputs.frontend }}"
-          echo "Backend changed: ${{ steps.changes.outputs.backend }}"
-          echo "Bundle changed: ${{ steps.changes.outputs.bundle }}"
-
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@stable
-
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
-        with:
-          workspaces: src-tauri
 
       - name: Install Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
