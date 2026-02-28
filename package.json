@@ -71,7 +71,7 @@
     "tauri-plugin-mihomo-api": "file:crates/tauri-plugin-mihomo"
   },
   "devDependencies": {
-    "@actions/github": "7.0.0",
+    "@actions/github": "9.0.0",
     "@tailwindcss/vite": "4.1.18",
     "@tanstack/router-cli": "1.154.12",
     "@tanstack/router-plugin": "1.154.12",
