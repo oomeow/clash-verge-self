@@ -31,16 +31,14 @@ export const configureYaml = async () => {
       {
         uri: "http://example.com/meta-json-schema.json",
         fileMatch: ["**/*.clash.yaml*"],
-        schema: import(
-          "meta-json-schema/schemas/meta-json-schema.json"
-        ) as unknown as JSONSchema,
+        schema:
+          import("meta-json-schema/schemas/meta-json-schema.json") as unknown as JSONSchema,
       },
       {
         uri: "http://example.com/clash-verge-merge-json-schema.json",
         fileMatch: ["**/*.merge.yaml*"],
-        schema: import(
-          "meta-json-schema/schemas/clash-verge-merge-json-schema.json"
-        ) as unknown as JSONSchema,
+        schema:
+          import("meta-json-schema/schemas/clash-verge-merge-json-schema.json") as unknown as JSONSchema,
       },
     ],
   });
@@ -71,7 +69,7 @@ export const registerPacFunctionLib = async () => {
   if (pacLibRegistered) return;
 
   const monaco = await loadMonaco();
-  let disposable = monaco.languages.typescript.javascriptDefaults.addExtraLib(
+  let disposable = monaco.typescript.javascriptDefaults.addExtraLib(
     pac,
     "pac.d.ts",
   );
