@@ -56,7 +56,7 @@ auto-launch = "0.6"
 percent-encoding = "2.3"
 serde = { version = "1.0", features = ["derive"] }
 reqwest = { version = "0.13", features = ["query", "json"] }
-reqwest_dav = "0.2"
+reqwest_dav = "0.3"
 zip = "8.0"
 sysproxy = { git = "https://github.com/oomeow/sysproxy-rs", branch = "main" }
 
