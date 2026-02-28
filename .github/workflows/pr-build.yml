@@ -1,4 +1,4 @@
-name: PR Test Build
+name: PR Check
 
 on:
   pull_request:
@@ -20,9 +20,28 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Overwrite Tauri config
+      - name: Check file changed
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          base: HEAD
+          filters: |
+            frontend:
+              - 'src/**'
+              - '**/package.json'
+            backend:
+              - 'src-tauri/**'
+              - '**/Cargo.toml'
+              - '**/Cargo.lock'
+            bundle:
+              - 'cross_dockerfile/**'
+              - 'src-tauri/template/**'
+
+      - name: Print file changed status
         run: |
-          cp ./src-tauri/tauri.conf.pr.json ./src-tauri/tauri.conf.json
+          echo "Frontend changed: ${{ steps.changes.outputs.frontend }}"
+          echo "Backend changed: ${{ steps.changes.outputs.backend }}"
+          echo "Bundle changed: ${{ steps.changes.outputs.bundle }}"
 
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@stable
@@ -55,7 +74,26 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
+      # frontend build
+      - name: frontend build
+        if: steps.changes.outputs.frontend == 'true'
+        run: pnpm web:build
+
+      # rust clippy
+      - name: rust clippy
+        if: steps.changes.outputs.backend == 'true'
+        run: |
+          cd src-tauri
+          cargo clippy
+
+      # bundle build
+      - name: Overwrite Tauri config
+        if: steps.changes.outputs.bundle == 'true'
+        run: |
+          cp ./src-tauri/tauri.conf.pr.json ./src-tauri/tauri.conf.json
+
       - name: Build Tauri
+        if: steps.changes.outputs.bundle == 'true'
         run: pnpm build
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
