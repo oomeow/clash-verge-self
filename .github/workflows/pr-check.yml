@@ -28,6 +28,7 @@ jobs:
             frontend:
               - 'src/**'
               - '**/package.json'
+              - '**/pnpm-lock.yaml'
             backend:
               - 'src-tauri/**'
               - '**/Cargo.toml'
