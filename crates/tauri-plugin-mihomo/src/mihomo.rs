@@ -225,7 +225,7 @@ impl Mihomo {
             Protocol::LocalSocket => {
                 if let Some(socket_path) = self.socket_path.as_ref() {
                     log::debug!("starting connect to websocket by using local socket: {socket_path}");
-                    let stream = crate::ipc::connect_to_socket(socket_path).await?;
+                    let stream = crate::wrap_stream::connect_to_socket(socket_path).await?;
 
                     let request = Request::builder()
                         .uri(url)

@@ -9,9 +9,9 @@ use tauri::{
 
 mod commands;
 mod error;
-mod ipc;
 mod mihomo;
 pub mod models;
+mod wrap_stream;
 
 pub use error::{Error, Result};
 
