@@ -95,7 +95,7 @@
     "meta-json-schema": "1.19.20",
     "node-fetch": "3.3.2",
     "ora": "9.3.0",
-    "postcss": "8.5.6",
+    "postcss": "8.5.8",
     "prettier": "3.8.1",
     "prettier-plugin-tailwindcss": "0.7.2",
     "pretty-quick": "4.2.2",
