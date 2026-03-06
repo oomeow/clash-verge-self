@@ -90,7 +90,7 @@
     "clsx": "2.1.1",
     "concurrently": "9.2.1",
     "consola": "3.4.2",
-    "fs-extra": "11.3.3",
+    "fs-extra": "11.3.4",
     "https-proxy-agent": "7.0.6",
     "meta-json-schema": "1.19.20",
     "node-fetch": "3.3.2",
