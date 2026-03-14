@@ -82,7 +82,7 @@ thiserror = "2.0.16"
 runas = "=1.2"
 deelevate = "0.2"
 winreg = "0.52"
-windows-sys = { version = "0.59", features = [
+windows-sys = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",
 ] }
