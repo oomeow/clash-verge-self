@@ -92,7 +92,7 @@ users = "0.11"
 openssl = { version = "0.10", features = ["vendored"] }
 
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
-signal-hook = "0.3"
+signal-hook = "0.4"
 
 [features]
 default = ["custom-protocol"]
