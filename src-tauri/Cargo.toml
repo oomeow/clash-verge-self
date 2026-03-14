@@ -81,7 +81,7 @@ thiserror = "2.0.16"
 [target.'cfg(windows)'.dependencies]
 runas = "=1.2"
 deelevate = "0.2"
-winreg = "0.52"
+winreg = "0.55"
 windows-sys = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",
