@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 interface Props {
   to: string;

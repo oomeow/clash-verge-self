@@ -7,7 +7,7 @@ import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 
 export const LogoTitle = ({ open }: { open: boolean }) => {
   const { toggleTheme } = useCustomTheme();
