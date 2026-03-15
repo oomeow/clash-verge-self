@@ -51,7 +51,7 @@
     "@uiw/react-markdown-preview": "^5.1.5",
     "ahooks": "^3.9.6",
     "console-feed": "^3.8.0",
-    "dayjs": "1.11.19",
+    "dayjs": "1.11.20",
     "foxact": "^0.2.49",
     "framer-motion": "^12.23.25",
     "i18next": "^25.7.2",
