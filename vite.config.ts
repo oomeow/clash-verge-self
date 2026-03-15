@@ -60,12 +60,25 @@ export default defineConfig({
   build: {
     outDir: "../src-tauri/frontend/dist",
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          monacoEditor: ["monaco-editor"],
-          muiIcons: ["@mui/icons-material"],
+        codeSplitting: {
+          minSize: 20000,
+          groups: [
+            {
+              name: "monacoEditor",
+              test: /node_modules[\\/]monaco-editor/,
+            },
+            {
+              name: "muiIcons",
+              test: /node_modules[\\/]@mui[\\/]icons-material/,
+            },
+          ],
         },
+        // manualChunks: {
+        //   monacoEditor: ["monaco-editor"],
+        //   muiIcons: ["@mui/icons-material"],
+        // },
       },
     },
   },
