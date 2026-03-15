@@ -91,7 +91,7 @@
     "concurrently": "9.2.1",
     "consola": "3.4.2",
     "fs-extra": "11.3.4",
-    "https-proxy-agent": "7.0.6",
+    "https-proxy-agent": "8.0.0",
     "meta-json-schema": "1.19.20",
     "node-fetch": "3.3.2",
     "ora": "9.3.0",
