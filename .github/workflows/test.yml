@@ -40,7 +40,7 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Rust Cache
-        uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
+        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           prefix-key: test-build
           workspaces: src-tauri
