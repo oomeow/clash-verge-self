@@ -32,15 +32,10 @@ async function installRustBinary(binaryName, command, args) {
   });
 }
 
-async function cargoInstall(binaryName, locked) {
-  const output = execSync(`cargo install --list`).toString();
-  const exists = output.includes(binaryName);
+async function cargoInstall(binaryName, installArgs, installedBins) {
+  const exists = installedBins.includes(binaryName);
   if (!exists) {
-    await installRustBinary(binaryName, "cargo", [
-      "install",
-      ...(locked ? ["--locked"] : []),
-      binaryName,
-    ]);
+    await installRustBinary(binaryName, "cargo", ["install", ...installArgs]);
   } else {
     consola.success(`${binaryName} has installed`);
   }
@@ -48,6 +43,7 @@ async function cargoInstall(binaryName, locked) {
 
 const isGithubAction = process.env.GITHUB_TOKEN !== undefined;
 if (!isGithubAction) {
-  await cargoInstall("prek", true);
-  await cargoInstall("just", false);
+  const installedBins = execSync(`cargo install --list`).toString();
+  await cargoInstall("prek", ["--locked", "prek"], installedBins);
+  await cargoInstall("just", ["just"], installedBins);
 }
