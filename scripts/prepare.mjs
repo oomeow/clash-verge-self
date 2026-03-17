@@ -33,7 +33,7 @@ async function installRustBinary(binaryName, command, args) {
 }
 
 async function cargoInstall(binaryName, installArgs, installedBins) {
-  const exists = installedBins.includes(binaryName);
+  const exists = new RegExp(`^${binaryName} `, "m").test(installedBins);
   if (!exists) {
     await installRustBinary(binaryName, "cargo", ["install", ...installArgs]);
   } else {
