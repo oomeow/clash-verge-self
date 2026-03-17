@@ -32,29 +32,22 @@ async function installRustBinary(binaryName, command, args) {
   });
 }
 
-const isGithubAction = process.env.GITHUB_TOKEN !== undefined;
-if (!isGithubAction) {
-  const output = execSync("cargo install --list").toString();
-  // typos
-  // consola.info("check typos installed");
-  // const existsTypos = output.includes("typos-cli");
-  // if (!existsTypos) {
-  //   await installRustBinary("typos", "cargo", ["install", "typos-cli"]);
-  // } else {
-  //   consola.success("typos has installed");
-  // }
-
-  // prek
-  consola.info("check prek installed");
-  const existsPrek = output.includes("prek");
-  if (!existsPrek) {
-    await installRustBinary("prek", "cargo", [
+async function cargoInstall(binaryName, locked) {
+  const output = execSync(`cargo install --list`).toString();
+  const exists = output.includes(binaryName);
+  if (!exists) {
+    await installRustBinary(binaryName, "cargo", [
       "install",
-      "--locked",
-      "--git",
-      "https://github.com/j178/prek",
+      ...(locked ? ["--locked"] : []),
+      binaryName,
     ]);
   } else {
-    consola.success("prek has installed");
+    consola.success(`${binaryName} has installed`);
   }
+}
+
+const isGithubAction = process.env.GITHUB_TOKEN !== undefined;
+if (!isGithubAction) {
+  await cargoInstall("prek", true);
+  await cargoInstall("just", false);
 }
