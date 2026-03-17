@@ -32,29 +32,18 @@ async function installRustBinary(binaryName, command, args) {
   });
 }
 
+async function cargoInstall(binaryName, installArgs, installedBins) {
+  const exists = new RegExp(`^${binaryName} `, "m").test(installedBins);
+  if (!exists) {
+    await installRustBinary(binaryName, "cargo", ["install", ...installArgs]);
+  } else {
+    consola.success(`${binaryName} has installed`);
+  }
+}
+
 const isGithubAction = process.env.GITHUB_TOKEN !== undefined;
 if (!isGithubAction) {
-  const output = execSync("cargo install --list").toString();
-  // typos
-  // consola.info("check typos installed");
-  // const existsTypos = output.includes("typos-cli");
-  // if (!existsTypos) {
-  //   await installRustBinary("typos", "cargo", ["install", "typos-cli"]);
-  // } else {
-  //   consola.success("typos has installed");
-  // }
-
-  // prek
-  consola.info("check prek installed");
-  const existsPrek = output.includes("prek");
-  if (!existsPrek) {
-    await installRustBinary("prek", "cargo", [
-      "install",
-      "--locked",
-      "--git",
-      "https://github.com/j178/prek",
-    ]);
-  } else {
-    consola.success("prek has installed");
-  }
+  const installedBins = execSync(`cargo install --list`).toString();
+  await cargoInstall("prek", ["--locked", "prek"], installedBins);
+  await cargoInstall("just", ["just"], installedBins);
 }
