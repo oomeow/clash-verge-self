@@ -1,4 +1,3 @@
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useLocalStorage } from "foxact/use-local-storage";
 import debounce from "lodash-es/debounce";
 import { useEffect } from "react";
@@ -6,7 +5,7 @@ import { useEffect } from "react";
 export const useWindowSize = () => {
   const [size, setSize] = useLocalStorage(
     "window-size",
-    { height: document.body.clientWidth, width: document.body.clientHeight },
+    { height: window.innerHeight, width: window.innerWidth },
     {
       serializer: JSON.stringify,
       deserializer: JSON.parse,
@@ -14,7 +13,7 @@ export const useWindowSize = () => {
   );
 
   useEffect(() => {
-    const handleResize = () => {
+    const handleResize = async () => {
       setSize({
         width: document.body.clientWidth,
         height: document.body.clientHeight,
