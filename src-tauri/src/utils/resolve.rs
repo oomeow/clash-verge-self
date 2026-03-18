@@ -231,7 +231,7 @@ pub fn save_window_size_position(app_handle: &AppHandle) -> AppResult<()> {
     let mut verge = verge.latest_mut();
     if let Some(win) = app_handle.get_webview_window("main") {
         let scale = win.scale_factor()?;
-        let size = win.outer_size()?;
+        let size = win.inner_size()?;
         let size = size.to_logical::<f64>(scale);
         let pos = win.outer_position()?;
         let pos = pos.to_logical::<f64>(scale);
