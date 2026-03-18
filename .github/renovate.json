@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
-    ":prConcurrentLimit10",
+    ":prConcurrentLimitNone",
     ":prHourlyLimitNone",
     ":rebaseStalePrs",
     ":automergeMinor",
@@ -14,7 +14,8 @@
       "matchManagers": ["github-actions"],
       "labels": ["github-actions"],
       "semanticCommitType": "ci",
-      "semanticCommitScope": "action"
+      "semanticCommitScope": "action",
+      "automerge": true
     },
     {
       "matchDatasources": ["github-runners"],
