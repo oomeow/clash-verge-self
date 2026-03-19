@@ -25,10 +25,7 @@ interface Props {
 
 export const ProxyGroups = (props: Props) => {
   const { mode } = props;
-
-  if (mode === "direct") {
-    return <BaseEmpty text="Direct Mode" />;
-  }
+  const isDirectMode = mode === "direct";
 
   const { renderList, onProxies, onHeadState } = useRenderList(mode);
   const { verge } = useVerge();
@@ -179,6 +176,10 @@ export const ProxyGroups = (props: Props) => {
   const groupNameList = renderList
     .filter((item) => item.type === 0)
     .map((item) => item.key);
+
+  if (isDirectMode) {
+    return <BaseEmpty text="Direct Mode" />;
+  }
 
   if (renderList.length === 0) return <LoadingPage />;
 
