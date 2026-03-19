@@ -63,6 +63,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
+      # frontend lint
+      - name: frontend lint
+        run: pnpm lint
+
       # frontend build (always build)
       - name: frontend build
         run: pnpm web:build
