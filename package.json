@@ -54,7 +54,7 @@
     "ahooks": "^3.9.6",
     "console-feed": "^3.8.0",
     "dayjs": "1.11.20",
-    "foxact": "^0.2.55",
+    "foxact": "^0.3.0",
     "i18next": "^25.8.18",
     "lodash-es": "^4.17.23",
     "monaco-editor": "^0.55.1",
