@@ -1,5 +1,5 @@
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { useVerge } from "@/hooks/use-verge";
 import {
   List,

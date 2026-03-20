@@ -1,11 +1,14 @@
 import { getClashLogs } from "@/services/cmds";
 import dayjs from "dayjs";
-import { useLocalStorage } from "foxact/use-local-storage";
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
-import { useClashLog } from "../services/states";
+import {
+  useClashLog,
+  useRefreshLogsDate,
+  useSetRefreshLogsDate,
+} from "@/stores";
 
 const MAX_LOG_NUM = 1000;
 
@@ -14,7 +17,8 @@ export const useLogData = () => {
   const enableLog = clashLog.enable;
   const logLevel = clashLog.logLevel;
 
-  const [date, setDate] = useLocalStorage("mihomo_logs_date", Date.now());
+  const date = useRefreshLogsDate();
+  const setDate = useSetRefreshLogsDate();
   const subscriptKey = enableLog ? `getClashLog-${date}` : null;
 
   const ws = useRef<MihomoWebSocket | null>(null);

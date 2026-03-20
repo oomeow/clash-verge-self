@@ -7,7 +7,7 @@ import {
   registerPacCompletion,
   registerPacFunctionLib,
 } from "@/services/monaco";
-import { useThemeMode } from "@/services/states";
+import { useThemeMode } from "@/stores";
 import {
   Button,
   Dialog,
@@ -20,7 +20,7 @@ import { IDisposable } from "monaco-editor";
 import { nanoid } from "nanoid";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "./notifice";
+import { useNotice } from "./notifies";
 import type { editor } from "monaco-editor";
 
 interface Props {

@@ -1,5 +1,5 @@
 import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { useVerge } from "@/hooks/use-verge";
 import { styled, Typography } from "@mui/material";
 import { useLockFn } from "ahooks";

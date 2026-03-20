@@ -1,8 +1,8 @@
 import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { useVerge } from "@/hooks/use-verge";
-import { useThemeMode, useThemeSettings } from "@/services/states";
+import { useThemeMode, useThemeSettings } from "@/stores";
 import {
   Box,
   Button,

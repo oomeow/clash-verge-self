@@ -3,3 +3,4 @@ allowBuilds:
   core-js: true
   esbuild: true
   meta-json-schema: false
+storeDir: .pnpm-store/v10

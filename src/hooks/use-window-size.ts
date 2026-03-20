@@ -1,16 +1,13 @@
-import { useLocalStorage } from "foxact/use-local-storage";
 import debounce from "lodash-es/debounce";
 import { useEffect } from "react";
+import {
+  useSetWindowSize as useSetWindowSizeStore,
+  useWindowSize as useWindowSizeStore,
+} from "@/stores";
 
 export const useWindowSize = () => {
-  const [size, setSize] = useLocalStorage(
-    "window-size",
-    { height: window.innerHeight, width: window.innerWidth },
-    {
-      serializer: JSON.stringify,
-      deserializer: JSON.parse,
-    },
-  );
+  const size = useWindowSizeStore();
+  const setSize = useSetWindowSizeStore();
 
   useEffect(() => {
     const handleResize = debounce(() => {
@@ -24,7 +21,7 @@ export const useWindowSize = () => {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [setSize]);
 
   return { size };
 };

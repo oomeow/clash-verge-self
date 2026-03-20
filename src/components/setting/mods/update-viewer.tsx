@@ -1,12 +1,8 @@
 import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { usePortable } from "@/hooks/use-portable";
 import { useWindowSize } from "@/hooks/use-window-size";
-import {
-  useSetUpdateState,
-  useThemeMode,
-  useUpdateState,
-} from "@/services/states";
+import { useSetUpdateState, useThemeMode, useUpdateState } from "@/stores";
 import getSystem from "@/utils/get-system";
 import { Box, Button, LinearProgress } from "@mui/material";
 import { relaunch } from "@tauri-apps/plugin-process";

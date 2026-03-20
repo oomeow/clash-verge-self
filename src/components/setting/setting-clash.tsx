@@ -7,7 +7,7 @@ import { usePortable } from "@/hooks/use-portable";
 import { useService } from "@/hooks/use-service";
 import { useVerge } from "@/hooks/use-verge";
 import { invoke_uwp_tool } from "@/services/cmds";
-import { useClashLog } from "@/services/states";
+import { useClashLog } from "@/stores";
 import getSystem from "@/utils/get-system";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Lan from "@mui/icons-material/Lan";
@@ -27,7 +27,7 @@ import {
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { ClashCoreViewer } from "./mods/clash-core-viewer";
 import { ClashPortViewer } from "./mods/clash-port-viewer";
 import { ControllerViewer } from "./mods/controller-viewer";

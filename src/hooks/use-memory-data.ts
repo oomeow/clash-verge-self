@@ -1,11 +1,12 @@
-import { useLocalStorage } from "foxact/use-local-storage";
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { useRefreshMemoryDate, useSetRefreshMemoryDate } from "@/stores";
 
 export const useMemoryData = () => {
-  const [date, setDate] = useLocalStorage("mihomo_memory_date", Date.now());
+  const date = useRefreshMemoryDate();
+  const setDate = useSetRefreshMemoryDate();
   const subscriptKey = `getClashMemory-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);

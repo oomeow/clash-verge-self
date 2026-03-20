@@ -1,5 +1,5 @@
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import { useThemeMode, useThemeSettings } from "@/services/states";
+import { useThemeMode, useThemeSettings } from "@/stores";
 import { useDebounce } from "ahooks";
 import { useEffect, useState } from "react";
 

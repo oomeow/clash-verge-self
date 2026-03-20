@@ -17,7 +17,7 @@ import { listen } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { TestDiv } from "./test-box";
 
 interface Props {

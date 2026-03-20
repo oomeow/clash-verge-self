@@ -5,15 +5,9 @@ import {
 } from "@/components/base";
 import "@/index.css";
 import "@/services/i18n";
-import {
-  LoadingCacheProvider,
-  ThemeModeProvider,
-  UpdateStateProvider,
-} from "@/services/states";
 import { ResizeObserver } from "@juggle/resize-observer";
 import { StyledEngineProvider } from "@mui/material";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { ComposeContextProvider } from "foxact/compose-context-provider";
 import { SnackbarProvider } from "notistack";
 import React from "react";
 import { createRoot } from "react-dom/client";
@@ -75,32 +69,24 @@ window.addEventListener("DOMContentLoaded", async () => {
   await MihomoWebSocket.cleanupAll();
 });
 
-const contexts = [
-  <ThemeModeProvider key={"themeModeProvider"} />,
-  <LoadingCacheProvider key={"loadingCacheProvider"} />,
-  <UpdateStateProvider key={"updateStateProvider"} />,
-];
-
 createRoot(container).render(
   <React.StrictMode>
     <StyledEngineProvider injectFirst>
-      <ComposeContextProvider contexts={contexts}>
-        <BaseErrorBoundary>
-          <SnackbarProvider
-            maxSnack={3}
-            Components={{
-              default: MyNoticeContainer,
-              success: MyNoticeContainer,
-              info: MyNoticeContainer,
-              warning: MyNoticeContainer,
-              error: MyNoticeContainer,
-            }}>
-            <NoticeProvider>
-              <RouterProvider router={router} />
-            </NoticeProvider>
-          </SnackbarProvider>
-        </BaseErrorBoundary>
-      </ComposeContextProvider>
+      <BaseErrorBoundary>
+        <SnackbarProvider
+          maxSnack={3}
+          Components={{
+            default: MyNoticeContainer,
+            success: MyNoticeContainer,
+            info: MyNoticeContainer,
+            warning: MyNoticeContainer,
+            error: MyNoticeContainer,
+          }}>
+          <NoticeProvider>
+            <RouterProvider router={router} />
+          </NoticeProvider>
+        </SnackbarProvider>
+      </BaseErrorBoundary>
     </StyledEngineProvider>
   </React.StrictMode>,
 );

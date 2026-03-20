@@ -1,5 +1,5 @@
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import Add from "@mui/icons-material/Add";
 import Remove from "@mui/icons-material/Remove";

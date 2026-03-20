@@ -11,7 +11,7 @@ import {
 import { ConnectionItem } from "@/components/connection/connection-item";
 import { ConnectionTable } from "@/components/connection/connection-table";
 import { initConnData, useConnectionData } from "@/hooks/use-connection-data";
-import { useConnectionSetting } from "@/services/states";
+import { useConnectionSetting } from "@/stores";
 import parseTraffic from "@/utils/parse-traffic";
 import Download from "@mui/icons-material/Download";
 import TableChartRounded from "@mui/icons-material/TableChartRounded";

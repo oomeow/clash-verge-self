@@ -1,5 +1,5 @@
 import { BasePage } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import SettingClash from "@/components/setting/setting-clash";
 import SettingSystem from "@/components/setting/setting-system";
 import SettingVerge from "@/components/setting/setting-verge";

@@ -5,7 +5,7 @@ import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 
 interface Props {
   onChange: (uid: string, patch?: Partial<IVergeTestItem>) => void;

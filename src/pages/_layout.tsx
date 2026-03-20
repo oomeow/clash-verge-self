@@ -1,5 +1,5 @@
 import { TailwindIndicator } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { LayoutControl } from "@/components/layout/layout-control";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";

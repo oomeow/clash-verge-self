@@ -1,10 +1,6 @@
 import { useVerge } from "@/hooks/use-verge";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import {
-  useSetThemeMode,
-  useThemeMode,
-  useThemeSettings,
-} from "@/services/states";
+import { useSetThemeMode, useThemeMode, useThemeSettings } from "@/stores";
 import {
   alpha,
   createTheme,

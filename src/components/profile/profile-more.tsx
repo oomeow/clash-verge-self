@@ -4,7 +4,7 @@ import { Marquee } from "@/components/base";
 import { LogViewer } from "@/components/profile/log-viewer";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
 import { viewProfile } from "@/services/cmds";
-import { useThemeMode } from "@/services/states";
+import { useThemeMode } from "@/stores";
 import { cn } from "@/utils";
 import Block from "@mui/icons-material/Block";
 import CheckCircle from "@mui/icons-material/CheckCircle";
@@ -31,7 +31,7 @@ import { Message } from "console-feed/lib/definitions/Component";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
 

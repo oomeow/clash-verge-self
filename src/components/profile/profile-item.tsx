@@ -1,11 +1,7 @@
 import { Marquee } from "@/components/base";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
 import { openWebUrl, updateProfile, viewProfile } from "@/services/cmds";
-import {
-  useLoadingCache,
-  useSetLoadingCache,
-  useThemeMode,
-} from "@/services/states";
+import { useLoadingCache, useSetLoadingCache, useThemeMode } from "@/stores";
 import { cn } from "@/utils";
 import parseTraffic from "@/utils/parse-traffic";
 import CheckCircle from "@mui/icons-material/CheckCircle";
@@ -33,7 +29,7 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { mutate } from "swr";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
 import { LogMessage } from "./profile-more";

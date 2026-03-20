@@ -4,7 +4,7 @@ import {
   DialogRef,
   DraggableItem,
 } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { ProfileItem } from "@/components/profile/profile-item";
 import { ProfileMore } from "@/components/profile/profile-more";
 import {
@@ -24,7 +24,7 @@ import {
   reorderProfile,
   updateProfile,
 } from "@/services/cmds";
-import { useSetLoadingCache } from "@/services/states";
+import { useSetLoadingCache } from "@/stores";
 import {
   closestCenter,
   defaultDropAnimationSideEffects,

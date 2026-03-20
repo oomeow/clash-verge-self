@@ -2,7 +2,7 @@ import LinuxIcon from "@/assets/image/linux.svg?react";
 import MacIcon from "@/assets/image/macos.svg?react";
 import WindowsIcon from "@/assets/image/windows.svg?react";
 import { BaseDialog, DialogRef, Marquee } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import {
   deleteBackup,
   downloadBackupAndReload,

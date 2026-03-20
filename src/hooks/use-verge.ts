@@ -1,5 +1,5 @@
 import { getVergeConfig, patchVergeConfig } from "@/services/cmds";
-import { useThemeSettings } from "@/services/states";
+import { useThemeSettings } from "@/stores";
 import useSWR from "swr";
 
 export const useVerge = () => {
