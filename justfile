@@ -1,3 +1,5 @@
+set windows-shell := ["nu", "-c"]
+
 default:
     @just --choose
 
