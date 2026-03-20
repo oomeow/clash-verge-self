@@ -23,6 +23,11 @@
       "versioning": "22.04"
     },
     {
+      "matchPackageNames": ["eslint", "@eslint/js"],
+      "groupName": "eslint deps",
+      "allowedVersions": "<10"
+    },
+    {
       "matchPackageNames": ["/(plugin-clipboard-manager)/"],
       "groupName": "tauri plugin clipboard manager deps"
     },

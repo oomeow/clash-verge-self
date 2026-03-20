@@ -26,6 +26,19 @@ hooks = [
 repo = "local"
 hooks = [
   {
+    id = "lint",
+    name = "lint",
+    description = "lint.",
+    entry = "pnpm lint",
+    language = "node",
+    files = { glob = ["src/**/*.{js,mjs,ts,tsx}", "vite.config.ts"] }
+  }
+]
+
+[[repos]]
+repo = "local"
+hooks = [
+  {
     id = "pretty staged",
     name = "pretty staged",
     description = "pretty.",
