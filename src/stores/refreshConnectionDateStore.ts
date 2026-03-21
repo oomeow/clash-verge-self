@@ -8,23 +8,15 @@ interface RefreshConnectionDateState {
   setDate: (next: Updater<number>) => void;
 }
 
-export const useRefreshConnectionDateStore =
-  create<RefreshConnectionDateState>()(
-    persist(
-      (set) => ({
-        date: Date.now(),
-        setDate: (next) =>
-          set((state) => ({
-            date: applyUpdater(next, state.date),
-          })),
-      }),
-      {
-        name: "mihomo_connection_date",
-        version: 1,
-        partialize: (state) => ({ date: state.date }),
-      },
-    ),
-  );
+export const useRefreshConnectionDateStore = create<RefreshConnectionDateState>(
+  (set) => ({
+    date: Date.now(),
+    setDate: (next) =>
+      set((state) => ({
+        date: applyUpdater(next, state.date),
+      })),
+  }),
+);
 
 export const useRefreshConnectionDate = () =>
   useRefreshConnectionDateStore((s) => s.date);

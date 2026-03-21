@@ -9,20 +9,13 @@ interface RefreshLogsDateState {
 }
 
 export const useRefreshLogsDateStore = create<RefreshLogsDateState>()(
-  persist(
-    (set) => ({
-      date: Date.now(),
-      setDate: (next) =>
-        set((state) => ({
-          date: applyUpdater(next, state.date),
-        })),
-    }),
-    {
-      name: "mihomo_logs_date",
-      version: 1,
-      partialize: (state) => ({ date: state.date }),
-    },
-  ),
+  (set) => ({
+    date: Date.now(),
+    setDate: (next) =>
+      set((state) => ({
+        date: applyUpdater(next, state.date),
+      })),
+  }),
 );
 
 export const useRefreshLogsDate = () => useRefreshLogsDateStore((s) => s.date);

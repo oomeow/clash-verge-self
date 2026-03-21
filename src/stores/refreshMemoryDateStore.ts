@@ -9,20 +9,13 @@ interface RefreshMemoryDateState {
 }
 
 export const useRefreshMemoryDateStore = create<RefreshMemoryDateState>()(
-  persist(
-    (set) => ({
-      date: Date.now(),
-      setDate: (next) =>
-        set((state) => ({
-          date: applyUpdater(next, state.date),
-        })),
-    }),
-    {
-      name: "mihomo_memory_date",
-      version: 1,
-      partialize: (state) => ({ date: state.date }),
-    },
-  ),
+  (set) => ({
+    date: Date.now(),
+    setDate: (next) =>
+      set((state) => ({
+        date: applyUpdater(next, state.date),
+      })),
+  }),
 );
 
 export const useRefreshMemoryDate = () =>
