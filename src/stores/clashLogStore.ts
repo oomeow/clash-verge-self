@@ -2,10 +2,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { applyUpdater, type Updater } from "./utils";
+import { LogLevel } from "tauri-plugin-mihomo-api";
 
 interface IClashLog {
   enable: boolean;
-  logLevel: "debug" | "info" | "warning" | "error" | "silent";
+  logLevel: LogLevel;
   logFilter: "all" | "inf" | "warn" | "err";
 }
 
