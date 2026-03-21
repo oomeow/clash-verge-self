@@ -25,7 +25,7 @@ use crate::{
     utils::{dirs, help::find_unused_port},
 };
 
-const RESTART_CORE_COUNT: usize = 5;
+const MAX_RESTART_CORE_COUNT: usize = 5;
 
 #[derive(Debug)]
 pub struct CoreManager {
@@ -257,7 +257,7 @@ impl CoreManager {
                         tracing::info!("mihomo core terminated");
                         let core_manager = CoreManager::global();
                         let restart_core_count = core_manager.restart_core_count.load(Ordering::SeqCst);
-                        if restart_core_count >= RESTART_CORE_COUNT {
+                        if restart_core_count >= MAX_RESTART_CORE_COUNT {
                             core_manager.need_restart_core.store(false, Ordering::SeqCst);
                             tracing::error!("recover clash core count exceeded, skip");
                             handle::Handle::notice_message(
