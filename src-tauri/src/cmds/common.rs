@@ -35,6 +35,7 @@ pub async fn check_port_available(port: u16) -> AppResult<bool> {
 /// restart the sidecar
 #[tauri::command]
 pub async fn restart_sidecar() -> AppResult<()> {
+    CoreManager::global().reset_state();
     CoreManager::global().run_core().await
 }
 
