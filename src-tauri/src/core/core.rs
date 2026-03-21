@@ -284,10 +284,9 @@ impl CoreManager {
         let need_restart_core = self.need_restart_core.load(Ordering::SeqCst);
         // only use in sidecar
         let restart_core_count = self.restart_core_count.load(Ordering::SeqCst);
-        println!(
-            "------------------------------ need restart: {}, restart_core_count: {}",
-            need_restart_core, restart_core_count
-        );
+        // only use in sidecar
+        let restart_core_count = self.restart_core_count.load(Ordering::SeqCst);
+
 
         tracing::info!("core terminated, need to restart it? [{need_restart_core}]");
         // 服务模式 / 切换内核 不进行恢复
