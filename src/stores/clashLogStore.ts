@@ -38,8 +38,6 @@ export const useClashLogStore = create<ClashLogState>()(
   ),
 );
 
-export const useClashLog = () => {
-  const clashLog = useClashLogStore((s) => s.clashLog);
-  const setClashLog = useClashLogStore((s) => s.setClashLog);
-  return [clashLog, setClashLog] as const;
-};
+export const useClashLog = () => useClashLogStore((s) => s.clashLog);
+
+export const useSetClashLog = () => useClashLogStore((s) => s.setClashLog);

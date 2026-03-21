@@ -2,7 +2,7 @@ import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { useVerge } from "@/hooks/use-verge";
-import { useThemeMode, useThemeSettings } from "@/stores";
+import { useSetThemeSettings, useThemeMode, useThemeSettings } from "@/stores";
 import {
   Box,
   Button,
@@ -29,7 +29,9 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
   const { light_theme_setting, dark_theme_setting } = verge || {};
   const { toggleTheme } = useCustomTheme();
   const themeMode = useThemeMode();
-  const [themeSettings, setThemeSettings] = useThemeSettings();
+  const themeSettings = useThemeSettings();
+  const setThemeSettings = useSetThemeSettings();
+
   const theme =
     (themeMode === "light" ? themeSettings.light : themeSettings.dark) ?? {};
   const [editorOpen, setEditorOpen] = useState(false);

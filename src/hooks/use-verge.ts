@@ -1,5 +1,5 @@
 import { getVergeConfig, patchVergeConfig } from "@/services/cmds";
-import { useThemeSettings } from "@/stores";
+import { useSetThemeSettings, useThemeSettings } from "@/stores";
 import useSWR from "swr";
 
 export const useVerge = () => {
@@ -8,7 +8,8 @@ export const useVerge = () => {
     getVergeConfig,
     { suspense: true },
   );
-  const [themeSettings, setThemeSettings] = useThemeSettings();
+  const themeSettings = useThemeSettings();
+  const setThemeSettings = useSetThemeSettings();
 
   const patchVerge = async (value: Partial<IVergeConfig>) => {
     await patchVergeConfig(value);

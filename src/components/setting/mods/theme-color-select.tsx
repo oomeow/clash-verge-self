@@ -1,5 +1,5 @@
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import { useThemeMode, useThemeSettings } from "@/stores";
+import { useSetThemeSettings, useThemeMode, useThemeSettings } from "@/stores";
 import { useDebounce } from "ahooks";
 import { useEffect, useState } from "react";
 
@@ -20,7 +20,8 @@ interface Props {
 
 const ThemeColorSelect = (props: Props) => {
   const { label, themeKey } = props;
-  const [themeSettings, setThemeSettings] = useThemeSettings();
+  const themeSettings = useThemeSettings();
+  const setThemeSettings = useSetThemeSettings();
   const themeMode = useThemeMode();
   const theme =
     (themeMode === "light" ? themeSettings.light : themeSettings.dark) ?? {};

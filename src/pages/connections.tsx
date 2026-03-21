@@ -11,7 +11,7 @@ import {
 import { ConnectionItem } from "@/components/connection/connection-item";
 import { ConnectionTable } from "@/components/connection/connection-table";
 import { initConnData, useConnectionData } from "@/hooks/use-connection-data";
-import { useConnectionSetting } from "@/stores";
+import { useConnectionSetting, useSetConnectionSetting } from "@/stores";
 import parseTraffic from "@/utils/parse-traffic";
 import Download from "@mui/icons-material/Download";
 import TableChartRounded from "@mui/icons-material/TableChartRounded";
@@ -40,7 +40,8 @@ const ConnectionsPage = () => {
   const [match, setMatch] = useState(() => (_: string) => true);
   const [curOrderOpt, setOrderOpt] = useState("Default");
   const [tabName, setTabName] = useState<"active" | "closed">("active");
-  const [setting, setSetting] = useConnectionSetting();
+  const setting = useConnectionSetting();
+  const setSetting = useSetConnectionSetting();
   const gridApiRef = useGridApiRef();
 
   const isTableLayout = setting.layout === "table";

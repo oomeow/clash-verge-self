@@ -53,8 +53,8 @@ export const useThemeSettingsStore = create<ThemeSettingsState>()(
   ),
 );
 
-export const useThemeSettings = () => {
-  const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
-  const setThemeSettings = useThemeSettingsStore((s) => s.setThemeSettings);
-  return [themeSettings, setThemeSettings] as const;
-};
+export const useThemeSettings = () =>
+  useThemeSettingsStore((s) => s.themeSettings);
+
+export const useSetThemeSettings = () =>
+  useThemeSettingsStore((s) => s.setThemeSettings);

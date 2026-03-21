@@ -7,7 +7,7 @@ import { usePortable } from "@/hooks/use-portable";
 import { useService } from "@/hooks/use-service";
 import { useVerge } from "@/hooks/use-verge";
 import { invoke_uwp_tool } from "@/services/cmds";
-import { useClashLog } from "@/stores";
+import { useClashLog, useSetClashLog } from "@/stores";
 import getSystem from "@/utils/get-system";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Lan from "@mui/icons-material/Lan";
@@ -77,7 +77,7 @@ const SettingClash = ({ onError }: Props) => {
   const isLinuxPortable = portable && OS === "linux";
   const disableTunSetting =
     !(isLinuxPortable && permissionsGranted) && serviceStatus !== "active";
-  const [_clashLog, setClashLog] = useClashLog();
+  const setClashLog = useSetClashLog();
 
   const webRef = useRef<DialogRef>(null);
   const portRef = useRef<DialogRef>(null);

@@ -1,7 +1,15 @@
-export { useThemeMode, useSetThemeMode, useThemeSettings } from "./themeStore";
+export {
+  useThemeMode,
+  useSetThemeMode,
+  useThemeSettings,
+  useSetThemeSettings,
+} from "./themeStore";
 
-export { useClashLog } from "./clashLogStore";
-export { useConnectionSetting } from "./connectionSettingStore";
+export { useClashLog, useSetClashLog } from "./clashLogStore";
+export {
+  useConnectionSetting,
+  useSetConnectionSetting,
+} from "./connectionSettingStore";
 export { useLoadingCache, useSetLoadingCache } from "./loadingCacheStore";
 export { useUpdateState, useSetUpdateState } from "./updateStateStore";
 export { useWindowSize, useSetWindowSize } from "./windowSizeStore";

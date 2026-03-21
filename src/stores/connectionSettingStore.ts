@@ -31,8 +31,8 @@ export const useConnectionSettingStore = create<ConnectionSettingState>()(
   ),
 );
 
-export const useConnectionSetting = () => {
-  const setting = useConnectionSettingStore((s) => s.setting);
-  const setSetting = useConnectionSettingStore((s) => s.setSetting);
-  return [setting, setSetting] as const;
-};
+export const useConnectionSetting = () =>
+  useConnectionSettingStore((s) => s.setting);
+
+export const useSetConnectionSetting = () =>
+  useConnectionSettingStore((s) => s.setSetting);

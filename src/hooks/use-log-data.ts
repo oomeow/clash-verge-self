@@ -13,7 +13,7 @@ import {
 const MAX_LOG_NUM = 1000;
 
 export const useLogData = () => {
-  const [clashLog] = useClashLog();
+  const clashLog = useClashLog();
   const enableLog = clashLog.enable;
   const logLevel = clashLog.logLevel;
 
