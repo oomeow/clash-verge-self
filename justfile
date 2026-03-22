@@ -39,19 +39,19 @@ clippy-all: clippy-src-tauri clippy-crates
 
 [private]
 clippy-src-tauri:
-    cargo +nightly clippy --manifest-path ./src-tauri/Cargo.toml
+    cargo clippy --manifest-path ./src-tauri/Cargo.toml
 
 [private]
 clippy-mihomo-config:
-    cargo +nightly clippy --manifest-path ./crates/mihomo-config/Cargo.toml
+    cargo clippy --manifest-path ./crates/mihomo-config/Cargo.toml
 
 [private]
 clippy-mihomo-rule-parser:
-    cargo +nightly clippy --manifest-path ./crates/mihomo-rule-parser/Cargo.toml
+    cargo clippy --manifest-path ./crates/mihomo-rule-parser/Cargo.toml
 
 [private]
 clippy-tauri-plugin-mihomo:
-    cargo +nightly clippy --manifest-path ./crates/tauri-plugin-mihomo/Cargo.toml
+    cargo clippy --manifest-path ./crates/tauri-plugin-mihomo/Cargo.toml
 
 # fmt
 fmt: fmt-src-tauri
