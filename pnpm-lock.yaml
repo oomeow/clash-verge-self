@@ -142,8 +142,8 @@ importers:
         specifier: 4.2.2
         version: 4.2.2(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.80.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.2))
       '@tanstack/router-cli':
-        specifier: 1.166.13
-        version: 1.166.13
+        specifier: 1.166.14
+        version: 1.166.14
       '@tanstack/router-plugin':
         specifier: 1.166.14
         version: 1.166.14(@tanstack/react-router@1.167.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.0(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.80.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.2))
@@ -1851,8 +1851,8 @@ packages:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  '@tanstack/router-cli@1.166.13':
-    resolution: {integrity: sha512-yfxWNSvCYsuQ8X2aLo1mthBVsFJ7AMlAeABC42tKXHfySfHH2EzRD3xMgjmE3eTkz33YW9tsXjpWcgX3NOzBrQ==}
+  '@tanstack/router-cli@1.166.14':
+    resolution: {integrity: sha512-qLwjixkHI8qL9vVZoHs2kOBZWT6xqd9gZ+ac84jJ/hrPu/XrbxyMh2pBAdK40lnMz3EbHPtCSOq7A9ySnaCa9Q==}
     engines: {node: '>=20.19'}
     hasBin: true
 
@@ -5788,7 +5788,7 @@ snapshots:
       react-dom: 19.2.4(react@19.2.4)
       use-sync-external-store: 1.6.0(react@19.2.4)
 
-  '@tanstack/router-cli@1.166.13':
+  '@tanstack/router-cli@1.166.14':
     dependencies:
       '@tanstack/router-generator': 1.166.13
       chokidar: 3.6.0
