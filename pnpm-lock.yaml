@@ -145,8 +145,8 @@ importers:
         specifier: 1.166.16
         version: 1.166.16
       '@tanstack/router-plugin':
-        specifier: 1.167.1
-        version: 1.167.1(@tanstack/react-router@1.168.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.80.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.2))
+        specifier: 1.167.2
+        version: 1.167.2(@tanstack/react-router@1.168.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.80.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.2))
       '@tauri-apps/cli':
         specifier: 2.10.1
         version: 2.10.1
@@ -1871,8 +1871,8 @@ packages:
     resolution: {integrity: sha512-W8ybCktgN/45fc7ohWJKAyG5Al1pnTg7V8Z6RiG8NkSrN7Igo4BqanUmXULnhnkdCID5XhMbkhP84r2hzkXbPw==}
     engines: {node: '>=20.19'}
 
-  '@tanstack/router-plugin@1.167.1':
-    resolution: {integrity: sha512-bPDdwvpoznjyCUWd+w2ss+y9GemXvF3R6Zzi36rxiWUGwuqDhQbvs1fWkjsx2oBqXSG8vkF74yFdUxFEX90o4g==}
+  '@tanstack/router-plugin@1.167.2':
+    resolution: {integrity: sha512-33KSngqHzFTMFz7rPIIeroVi0x+GzbCOch1goEdH71s1MbdyNhCTPuzKFO3QOkT+aqirCXkCgSgHVoU//Zletw==}
     engines: {node: '>=20.19'}
     hasBin: true
     peerDependencies:
@@ -5825,7 +5825,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/router-plugin@1.167.1(@tanstack/react-router@1.168.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.80.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.2))':
+  '@tanstack/router-plugin@1.167.2(@tanstack/react-router@1.168.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(vite@8.0.1(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.80.3)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@babel/core': 7.29.0
       '@babel/plugin-syntax-jsx': 7.28.6(@babel/core@7.29.0)
@@ -7686,8 +7686,7 @@ snapshots:
 
   picomatch@4.0.3: {}
 
-  picomatch@4.0.4:
-    optional: true
+  picomatch@4.0.4: {}
 
   postcss@8.5.8:
     dependencies:
@@ -8278,7 +8277,7 @@ snapshots:
     dependencies:
       '@jridgewell/remapping': 2.3.5
       acorn: 8.16.0
-      picomatch: 4.0.3
+      picomatch: 4.0.4
       webpack-virtual-modules: 0.6.2
 
   update-browserslist-db@1.2.3(browserslist@4.28.1):
