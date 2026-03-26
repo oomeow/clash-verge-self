@@ -238,8 +238,8 @@ importers:
         specifier: 4.2.2
         version: 4.2.2
       tar:
-        specifier: 7.5.12
-        version: 7.5.12
+        specifier: 7.5.13
+        version: 7.5.13
       terser:
         specifier: 5.46.1
         version: 5.46.1
@@ -3885,8 +3885,8 @@ packages:
     resolution: {integrity: sha512-g9ljZiwki/LfxmQADO3dEY1CbpmXT5Hm2fJ+QaGKwSXUylMybePR7/67YW7jOrrvjEgL1Fmz5kzyAjWVWLlucg==}
     engines: {node: '>=6'}
 
-  tar@7.5.12:
-    resolution: {integrity: sha512-9TsuLcdhOn4XztcQqhNyq1KOwOOED/3k58JAvtULiYqbO8B/0IBAAIE1hj0Svmm58k27TmcigyDI0deMlgG3uw==}
+  tar@7.5.13:
+    resolution: {integrity: sha512-tOG/7GyXpFevhXVh8jOPJrmtRpOTsYqUIkVdVooZYJS/z8WhfQUX8RJILmeuJNinGAMSu1veBr4asSHFt5/hng==}
     engines: {node: '>=18'}
 
   tauri-plugin-mihomo-api@file:crates/tauri-plugin-mihomo:
@@ -8135,7 +8135,7 @@ snapshots:
 
   tapable@2.3.0: {}
 
-  tar@7.5.12:
+  tar@7.5.13:
     dependencies:
       '@isaacs/fs-minipass': 4.0.1
       chownr: 3.0.0
