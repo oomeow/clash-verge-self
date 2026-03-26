@@ -64,7 +64,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rust Stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
 
       - name: Add Rust Target
         run: rustup target add ${{ matrix.target }}
@@ -135,7 +135,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rust Stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
 
       - name: Add Rust Target
         run: rustup target add ${{ matrix.target }}
@@ -152,7 +152,7 @@ jobs:
 
       - name: Install Binstall
         if: matrix.target != 'x86_64-unknown-linux-gnu'
-        uses: cargo-bins/cargo-binstall@main
+        uses: cargo-bins/cargo-binstall@1d20267d25f8b9083866358437f04f5e61382de7 # main
 
       - name: Install Cross
         if: matrix.target != 'x86_64-unknown-linux-gnu'
@@ -251,7 +251,7 @@ jobs:
 
       - name: Makepkg Build and Check
         id: makepkg
-        uses: CachyOS/pkgbuild-action@master
+        uses: CachyOS/pkgbuild-action@99a0608d129dae363a6174971400e018dd0f4577 # master
         with:
           pkgdir: archbuild/alpha
 
