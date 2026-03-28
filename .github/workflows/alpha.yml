@@ -152,7 +152,7 @@ jobs:
 
       - name: Install Binstall
         if: matrix.target != 'x86_64-unknown-linux-gnu'
-        uses: cargo-bins/cargo-binstall@b35ab0367d2a95e16a739b7173fc9acbac31b88c # main
+        uses: cargo-bins/cargo-binstall@bdc0131ba94a9625dbf3c925ddb437890f8c4490 # main
 
       - name: Install Cross
         if: matrix.target != 'x86_64-unknown-linux-gnu'
