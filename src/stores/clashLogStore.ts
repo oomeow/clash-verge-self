@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { devtools, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
-import { applyUpdater, type Updater } from "./utils";
 import { LogLevel } from "tauri-plugin-mihomo-api";
 
 interface IClashLog {
@@ -18,26 +18,29 @@ const defaultClashLog: IClashLog = {
 
 interface ClashLogState {
   clashLog: IClashLog;
-  setClashLog: (next: Updater<IClashLog>) => void;
+  setClashLog: (next: IClashLog) => void;
 }
 
 export const useClashLogStore = create<ClashLogState>()(
-  persist(
-    (set) => ({
-      clashLog: defaultClashLog,
-      setClashLog: (next) =>
-        set((state) => ({
-          clashLog: applyUpdater(next, state.clashLog),
-        })),
-    }),
-    {
-      name: "clash-log",
-      version: 1,
-      partialize: (state) => ({ clashLog: state.clashLog }),
-    },
+  devtools(
+    persist(
+      immer((set) => ({
+        clashLog: defaultClashLog,
+        setClashLog: (next) =>
+          set(
+            (state) => {
+              state.clashLog = next;
+            },
+            false,
+            "clashLog/setClashLog",
+          ),
+      })),
+      {
+        name: "clash-log",
+        version: 1,
+        partialize: (state) => ({ clashLog: state.clashLog }),
+      },
+    ),
+    { name: "clashLogStore" },
   ),
 );
-
-export const useClashLog = () => useClashLogStore((s) => s.clashLog);
-
-export const useSetClashLog = () => useClashLogStore((s) => s.setClashLog);

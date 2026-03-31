@@ -1,7 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
-import { applyUpdater, type Updater } from "./utils";
+import { devtools, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 interface IConnectionSetting {
   layout: "table" | "list";
@@ -11,28 +10,29 @@ const defaultConnectionSetting: IConnectionSetting = { layout: "table" };
 
 interface ConnectionSettingState {
   setting: IConnectionSetting;
-  setSetting: (next: Updater<IConnectionSetting>) => void;
+  setSetting: (next: IConnectionSetting) => void;
 }
 
 export const useConnectionSettingStore = create<ConnectionSettingState>()(
-  persist(
-    (set) => ({
-      setting: defaultConnectionSetting,
-      setSetting: (next) =>
-        set((state) => ({
-          setting: applyUpdater(next, state.setting),
-        })),
-    }),
-    {
-      name: "connections-setting",
-      version: 1,
-      partialize: (state) => ({ setting: state.setting }),
-    },
+  devtools(
+    persist(
+      immer((set) => ({
+        setting: defaultConnectionSetting,
+        setSetting: (next) =>
+          set(
+            (state) => {
+              state.setting = next;
+            },
+            false,
+            "connectionSetting/setSetting",
+          ),
+      })),
+      {
+        name: "connections-setting",
+        version: 1,
+        partialize: (state) => ({ setting: state.setting }),
+      },
+    ),
+    { name: "connectionSettingStore" },
   ),
 );
-
-export const useConnectionSetting = () =>
-  useConnectionSettingStore((s) => s.setting);
-
-export const useSetConnectionSetting = () =>
-  useConnectionSettingStore((s) => s.setSetting);

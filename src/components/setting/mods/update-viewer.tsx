@@ -2,7 +2,7 @@ import { BaseDialog, DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { usePortable } from "@/hooks/use-portable";
 import { useWindowSize } from "@/hooks/use-window-size";
-import { useSetUpdateState, useThemeMode, useUpdateState } from "@/stores";
+import { useThemeModeStore, useUpdateStateStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 import { Box, Button, LinearProgress } from "@mui/material";
 import { relaunch } from "@tauri-apps/plugin-process";
@@ -24,10 +24,10 @@ const OS = getSystem();
 export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const [open, setOpen] = useState(false);
-  const updateState = useUpdateState();
-  const setUpdateState = useSetUpdateState();
+  const updateState = useUpdateStateStore((s) => s.updateState);
+  const setUpdateState = useUpdateStateStore((s) => s.setUpdateState);
   const { size } = useWindowSize();
   const { portable } = usePortable();
 

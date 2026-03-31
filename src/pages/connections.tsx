@@ -11,7 +11,7 @@ import {
 import { ConnectionItem } from "@/components/connection/connection-item";
 import { ConnectionTable } from "@/components/connection/connection-table";
 import { initConnData, useConnectionData } from "@/hooks/use-connection-data";
-import { useConnectionSetting, useSetConnectionSetting } from "@/stores";
+import { useConnectionSettingStore } from "@/stores";
 import parseTraffic from "@/utils/parse-traffic";
 import Download from "@mui/icons-material/Download";
 import TableChartRounded from "@mui/icons-material/TableChartRounded";
@@ -40,8 +40,8 @@ const ConnectionsPage = () => {
   const [match, setMatch] = useState(() => (_: string) => true);
   const [curOrderOpt, setOrderOpt] = useState("Default");
   const [tabName, setTabName] = useState<"active" | "closed">("active");
-  const setting = useConnectionSetting();
-  const setSetting = useSetConnectionSetting();
+  const setting = useConnectionSettingStore((s) => s.setting);
+  const setSetting = useConnectionSettingStore((s) => s.setSetting);
   const gridApiRef = useGridApiRef();
 
   const isTableLayout = setting.layout === "table";
@@ -125,11 +125,10 @@ const ConnectionsPage = () => {
               size="small"
               title={isTableLayout ? t("List View") : t("Table View")}
               onClick={() =>
-                setSetting((o) =>
-                  o?.layout !== "table"
-                    ? { ...o, layout: "table" }
-                    : { ...o, layout: "list" },
-                )
+                setSetting({
+                  ...setting,
+                  layout: setting.layout !== "table" ? "table" : "list",
+                })
               }>
               {isTableLayout ? (
                 <TableRowsRounded fontSize="inherit" />

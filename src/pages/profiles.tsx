@@ -24,7 +24,7 @@ import {
   reorderProfile,
   updateProfile,
 } from "@/services/cmds";
-import { useSetLoadingCache } from "@/stores";
+import { useLoadingCacheStore } from "@/stores";
 import {
   closestCenter,
   defaultDropAnimationSideEffects,
@@ -328,7 +328,7 @@ const ProfilePage = () => {
   });
 
   // 更新所有订阅
-  const setLoadingCache = useSetLoadingCache();
+  const setLoadingCache = useLoadingCacheStore((s) => s.setLoadingCache);
   const onUpdateAll = useMemoizedFn(
     useLockFn(async () => {
       const throttleMutate = throttle(mutateProfiles, 2000, {
@@ -339,21 +339,25 @@ const ProfilePage = () => {
           await updateProfile(uid);
           throttleMutate();
         } finally {
-          setLoadingCache((cache) => ({ ...cache, [uid]: false }));
+          setLoadingCache({
+            ...useLoadingCacheStore.getState().loadingCache,
+            [uid]: false,
+          });
         }
       };
 
       return new Promise((resolve) => {
-        setLoadingCache((cache) => {
-          // 获取没有正在更新的订阅
-          const items = profileItems.filter(
-            (e) => e.type === "remote" && !cache[e.uid],
-          );
-          const change = Object.fromEntries(items.map((e) => [e.uid, true]));
+        const loadingCache = useLoadingCacheStore.getState().loadingCache;
+        const items = profileItems.filter(
+          (e) => e.type === "remote" && !loadingCache[e.uid],
+        );
 
-          Promise.allSettled(items.map((e) => updateOne(e.uid))).then(resolve);
-          return { ...cache, ...change };
+        setLoadingCache({
+          ...loadingCache,
+          ...Object.fromEntries(items.map((e) => [e.uid, true])),
         });
+
+        Promise.allSettled(items.map((e) => updateOne(e.uid))).then(resolve);
       });
     }),
   );

@@ -1,7 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
-import { applyUpdater, type Updater } from "./utils";
+import { devtools, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 type ThemeMode = "light" | "dark";
 
@@ -17,44 +16,51 @@ const defaultThemeSettings: ThemeSettings = {
 
 interface ThemeModeState {
   themeMode: ThemeMode;
-  setThemeMode: (next: Updater<ThemeMode>) => void;
+  setThemeMode: (next: ThemeMode) => void;
 }
 
-export const useThemeModeStore = create<ThemeModeState>((set) => ({
-  themeMode: "light",
-  setThemeMode: (next) =>
-    set((state) => ({
-      themeMode: applyUpdater(next, state.themeMode),
+export const useThemeModeStore = create<ThemeModeState>()(
+  devtools(
+    immer((set) => ({
+      themeMode: "light",
+      setThemeMode: (next) =>
+        set(
+          (state) => {
+            state.themeMode = next;
+          },
+          false,
+          "themeMode/setThemeMode",
+        ),
     })),
-}));
-
-export const useThemeMode = () => useThemeModeStore((s) => s.themeMode);
-export const useSetThemeMode = () => useThemeModeStore((s) => s.setThemeMode);
-
-interface ThemeSettingsState {
-  themeSettings: ThemeSettings;
-  setThemeSettings: (next: Updater<ThemeSettings>) => void;
-}
-
-export const useThemeSettingsStore = create<ThemeSettingsState>()(
-  persist(
-    (set) => ({
-      themeSettings: defaultThemeSettings,
-      setThemeSettings: (next) =>
-        set((state) => ({
-          themeSettings: applyUpdater(next, state.themeSettings),
-        })),
-    }),
-    {
-      name: "theme_settings",
-      version: 1,
-      partialize: (state) => ({ themeSettings: state.themeSettings }),
-    },
+    { name: "themeModeStore" },
   ),
 );
 
-export const useThemeSettings = () =>
-  useThemeSettingsStore((s) => s.themeSettings);
+interface ThemeSettingsState {
+  themeSettings: ThemeSettings;
+  setThemeSettings: (next: ThemeSettings) => void;
+}
 
-export const useSetThemeSettings = () =>
-  useThemeSettingsStore((s) => s.setThemeSettings);
+export const useThemeSettingsStore = create<ThemeSettingsState>()(
+  devtools(
+    persist(
+      immer((set) => ({
+        themeSettings: defaultThemeSettings,
+        setThemeSettings: (next) =>
+          set(
+            (state) => {
+              state.themeSettings = next;
+            },
+            false,
+            "themeSettings/setThemeSettings",
+          ),
+      })),
+      {
+        name: "theme_settings",
+        version: 1,
+        partialize: (state) => ({ themeSettings: state.themeSettings }),
+      },
+    ),
+    { name: "themeSettingsStore" },
+  ),
+);

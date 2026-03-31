@@ -12,7 +12,7 @@ import {
   loadMonaco,
   configureYaml,
 } from "@/services/monaco";
-import { useThemeMode } from "@/stores";
+import { useThemeModeStore } from "@/stores";
 import { sleep } from "@/utils";
 import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutline from "@mui/icons-material/ErrorOutline";
@@ -79,7 +79,7 @@ export const ProfileEditor = (props: Props) => {
   const { t } = useTranslation();
   const { size } = useWindowSize();
   const { notice } = useNotice();
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const language = profileItem.type === "script" ? "javascript" : "yaml";
   const type =
     profileItem.type === "merge"

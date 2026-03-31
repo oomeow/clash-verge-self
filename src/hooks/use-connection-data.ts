@@ -2,10 +2,7 @@ import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
-import {
-  useRefreshConnectionDate,
-  useSetRefreshConnectionDate,
-} from "@/stores";
+import { useRefreshConnectionDateStore } from "@/stores";
 
 export const initConnData: IConnections = {
   uploadTotal: 0,
@@ -14,8 +11,8 @@ export const initConnData: IConnections = {
 };
 
 export const useConnectionData = () => {
-  const date = useRefreshConnectionDate();
-  const setDate = useSetRefreshConnectionDate();
+  const date = useRefreshConnectionDateStore((s) => s.date);
+  const setDate = useRefreshConnectionDateStore((s) => s.setDate);
   const subscriptKey = `getClashConnection-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);

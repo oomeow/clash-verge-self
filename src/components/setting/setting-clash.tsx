@@ -7,7 +7,7 @@ import { usePortable } from "@/hooks/use-portable";
 import { useService } from "@/hooks/use-service";
 import { useVerge } from "@/hooks/use-verge";
 import { invoke_uwp_tool } from "@/services/cmds";
-import { useClashLog, useSetClashLog } from "@/stores";
+import { useClashLogStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Lan from "@mui/icons-material/Lan";
@@ -77,7 +77,7 @@ const SettingClash = ({ onError }: Props) => {
   const isLinuxPortable = portable && OS === "linux";
   const disableTunSetting =
     !(isLinuxPortable && permissionsGranted) && serviceStatus !== "active";
-  const setClashLog = useSetClashLog();
+  const setClashLog = useClashLogStore((s) => s.setClashLog);
 
   const webRef = useRef<DialogRef>(null);
   const portRef = useRef<DialogRef>(null);
@@ -307,7 +307,10 @@ const SettingClash = ({ onError }: Props) => {
           onFormat={(e: any) => e.target.value}
           // onChange={(e) => onChangeData({ "log-level": e })}
           onGuard={(e) => {
-            setClashLog((pre: any) => ({ ...pre, logLevel: e }));
+            setClashLog({
+              ...useClashLogStore.getState().clashLog,
+              logLevel: e,
+            });
             return patchClash({ "log-level": e });
           }}>
           <Select size="small" sx={{ width: 100, "> div": { py: "7.5px" } }}>

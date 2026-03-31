@@ -2,11 +2,11 @@ import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
-import { useRefreshMemoryDate, useSetRefreshMemoryDate } from "@/stores";
+import { useRefreshMemoryDateStore } from "@/stores";
 
 export const useMemoryData = () => {
-  const date = useRefreshMemoryDate();
-  const setDate = useSetRefreshMemoryDate();
+  const date = useRefreshMemoryDateStore((s) => s.date);
+  const setDate = useRefreshMemoryDateStore((s) => s.setDate);
   const subscriptKey = `getClashMemory-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);

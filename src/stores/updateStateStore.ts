@@ -1,21 +1,25 @@
 import { create } from "zustand";
-
-import { applyUpdater, type Updater } from "./utils";
+import { devtools } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 interface UpdateStateState {
   updateState: boolean;
-  setUpdateState: (next: Updater<boolean>) => void;
+  setUpdateState: (next: boolean) => void;
 }
 
-export const useUpdateStateStore = create<UpdateStateState>((set) => ({
-  updateState: false,
-  setUpdateState: (next) =>
-    set((state) => ({
-      updateState: applyUpdater(next, state.updateState),
+export const useUpdateStateStore = create<UpdateStateState>()(
+  devtools(
+    immer((set) => ({
+      updateState: false,
+      setUpdateState: (next) =>
+        set(
+          (state) => {
+            state.updateState = next;
+          },
+          false,
+          "updateState/setUpdateState",
+        ),
     })),
-}));
-
-export const useUpdateState = () => useUpdateStateStore((s) => s.updateState);
-
-export const useSetUpdateState = () =>
-  useUpdateStateStore((s) => s.setUpdateState);
+    { name: "updateStateStore" },
+  ),
+);

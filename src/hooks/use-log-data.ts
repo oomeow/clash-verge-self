@@ -1,24 +1,20 @@
 import { getClashLogs } from "@/services/cmds";
+import { useClashLogStore, useRefreshLogsDateStore } from "@/stores";
 import dayjs from "dayjs";
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
-import {
-  useClashLog,
-  useRefreshLogsDate,
-  useSetRefreshLogsDate,
-} from "@/stores";
 
 const MAX_LOG_NUM = 1000;
 
 export const useLogData = () => {
-  const clashLog = useClashLog();
+  const clashLog = useClashLogStore((s) => s.clashLog);
   const enableLog = clashLog.enable;
   const logLevel = clashLog.logLevel;
 
-  const date = useRefreshLogsDate();
-  const setDate = useSetRefreshLogsDate();
+  const date = useRefreshLogsDateStore((s) => s.date);
+  const setDate = useRefreshLogsDateStore((s) => s.setDate);
   const subscriptKey = enableLog ? `getClashLog-${date}` : null;
 
   const ws = useRef<MihomoWebSocket | null>(null);

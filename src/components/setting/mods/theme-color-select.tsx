@@ -1,5 +1,5 @@
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import { useSetThemeSettings, useThemeMode, useThemeSettings } from "@/stores";
+import { useThemeModeStore, useThemeSettingsStore } from "@/stores";
 import { useDebounce } from "ahooks";
 import { useEffect, useState } from "react";
 
@@ -20,9 +20,9 @@ interface Props {
 
 const ThemeColorSelect = (props: Props) => {
   const { label, themeKey } = props;
-  const themeSettings = useThemeSettings();
-  const setThemeSettings = useSetThemeSettings();
-  const themeMode = useThemeMode();
+  const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
+  const setThemeSettings = useThemeSettingsStore((s) => s.setThemeSettings);
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const theme =
     (themeMode === "light" ? themeSettings.light : themeSettings.dark) ?? {};
   const dt = themeMode === "light" ? defaultTheme : defaultDarkTheme;
@@ -34,14 +34,15 @@ const ThemeColorSelect = (props: Props) => {
   }, [theme, dt]);
 
   useEffect(() => {
-    setThemeSettings((prev: any) => ({
-      ...prev,
+    if (theme[themeKey] === debounceValue) return;
+    setThemeSettings({
+      ...themeSettings,
       [themeMode]: {
-        ...prev[themeMode],
+        ...(themeSettings[themeMode] ?? {}),
         [themeKey]: debounceValue,
       },
-    }));
-  }, [debounceValue]);
+    });
+  }, [debounceValue, setThemeSettings, themeKey, themeMode, themeSettings]);
 
   return (
     <div className="text-primary-text my-1 flex h-12 items-center justify-between px-1">

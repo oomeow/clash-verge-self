@@ -1,13 +1,10 @@
 import debounce from "lodash-es/debounce";
 import { useEffect } from "react";
-import {
-  useSetWindowSize as useSetWindowSizeStore,
-  useWindowSize as useWindowSizeStore,
-} from "@/stores";
+import { useWindowSizeStore } from "@/stores";
 
 export const useWindowSize = () => {
-  const size = useWindowSizeStore();
-  const setSize = useSetWindowSizeStore();
+  const size = useWindowSizeStore((s) => s.windowSize);
+  const setSize = useWindowSizeStore((s) => s.setWindowSize);
 
   useEffect(() => {
     const handleResize = debounce(() => {

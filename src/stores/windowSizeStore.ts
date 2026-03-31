@@ -1,7 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
-import { applyUpdater, type Updater } from "./utils";
+import { devtools, persist } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 export interface WindowSize {
   height: number;
@@ -15,27 +14,29 @@ const getDefaultWindowSize = (): WindowSize => {
 
 interface WindowSizeState {
   windowSize: WindowSize;
-  setWindowSize: (next: Updater<WindowSize>) => void;
+  setWindowSize: (next: WindowSize) => void;
 }
 
 export const useWindowSizeStore = create<WindowSizeState>()(
-  persist(
-    (set) => ({
-      windowSize: getDefaultWindowSize(),
-      setWindowSize: (next) =>
-        set((state) => ({
-          windowSize: applyUpdater(next, state.windowSize),
-        })),
-    }),
-    {
-      name: "window-size",
-      version: 1,
-      partialize: (state) => ({ windowSize: state.windowSize }),
-    },
+  devtools(
+    persist(
+      immer((set) => ({
+        windowSize: getDefaultWindowSize(),
+        setWindowSize: (next) =>
+          set(
+            (state) => {
+              state.windowSize = next;
+            },
+            false,
+            "windowSize/setWindowSize",
+          ),
+      })),
+      {
+        name: "window-size",
+        version: 1,
+        partialize: (state) => ({ windowSize: state.windowSize }),
+      },
+    ),
+    { name: "windowSizeStore" },
   ),
 );
-
-export const useWindowSize = () => useWindowSizeStore((s) => s.windowSize);
-
-export const useSetWindowSize = () =>
-  useWindowSizeStore((s) => s.setWindowSize);

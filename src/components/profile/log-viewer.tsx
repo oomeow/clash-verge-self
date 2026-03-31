@@ -1,6 +1,6 @@
 import { BaseEmpty } from "@/components/base";
 import { LogMessage } from "@/components/profile/profile-more";
-import { useThemeMode } from "@/stores";
+import { useThemeModeStore } from "@/stores";
 import { Drawer } from "@mui/material";
 import { Console } from "console-feed";
 
@@ -12,7 +12,7 @@ interface Props {
 
 export const LogViewer = (props: Props) => {
   const { open, logInfo, onClose } = props;
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
 
   const isDarkMode = themeMode === "dark";
 

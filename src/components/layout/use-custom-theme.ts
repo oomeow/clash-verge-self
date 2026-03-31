@@ -1,11 +1,6 @@
 import { useVerge } from "@/hooks/use-verge";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import {
-  useSetThemeMode,
-  useThemeMode,
-  useThemeSettings,
-  useSetThemeSettings,
-} from "@/stores";
+import { useThemeModeStore, useThemeSettingsStore } from "@/stores";
 import {
   alpha,
   createTheme,
@@ -43,10 +38,10 @@ export const useCustomTheme = () => {
   const { verge, patchVerge } = useVerge();
   const { theme_mode, light_theme_setting, dark_theme_setting, language } =
     verge ?? {};
-  const mode = useThemeMode();
-  const setMode = useSetThemeMode();
-  const themeSettings = useThemeSettings();
-  const setThemeSettings = useSetThemeSettings();
+  const mode = useThemeModeStore((s) => s.themeMode);
+  const setMode = useThemeModeStore((s) => s.setThemeMode);
+  const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
+  const setThemeSettings = useThemeSettingsStore((s) => s.setThemeSettings);
 
   const themeSettingHasChanges = useCallback(
     (

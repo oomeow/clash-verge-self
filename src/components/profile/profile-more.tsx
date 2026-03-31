@@ -4,7 +4,7 @@ import { Marquee } from "@/components/base";
 import { LogViewer } from "@/components/profile/log-viewer";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
 import { viewProfile } from "@/services/cmds";
-import { useThemeMode } from "@/stores";
+import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 import Block from "@mui/icons-material/Block";
 import CheckCircle from "@mui/icons-material/CheckCircle";
@@ -76,7 +76,7 @@ export const ProfileMore = (props: Props) => {
   const { uid, type } = itemData;
   const { t, i18n } = useTranslation();
   const { notice } = useNotice();
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const [anchorEl, setAnchorEl] = useState<any>(null);
   if (anchorEl && isDragging) {
     setAnchorEl(null);

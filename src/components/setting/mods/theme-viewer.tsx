@@ -2,7 +2,7 @@ import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { useVerge } from "@/hooks/use-verge";
-import { useSetThemeSettings, useThemeMode, useThemeSettings } from "@/stores";
+import { useThemeModeStore, useThemeSettingsStore } from "@/stores";
 import {
   Box,
   Button,
@@ -28,9 +28,9 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
   const { verge, patchVerge } = useVerge();
   const { light_theme_setting, dark_theme_setting } = verge || {};
   const { toggleTheme } = useCustomTheme();
-  const themeMode = useThemeMode();
-  const themeSettings = useThemeSettings();
-  const setThemeSettings = useSetThemeSettings();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
+  const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
+  const setThemeSettings = useThemeSettingsStore((s) => s.setThemeSettings);
 
   const theme =
     (themeMode === "light" ? themeSettings.light : themeSettings.dark) ?? {};
@@ -51,18 +51,22 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
 
   const handleChange = (field: keyof typeof theme) => (e: any) => {
     const value = e.target.value as string;
-    setThemeSettings((t: any) => {
-      return themeMode === "light"
-        ? { ...t, light: { ...t.light, [field]: value } }
-        : { ...t, dark: { ...t.dark, [field]: value } };
+    setThemeSettings({
+      ...themeSettings,
+      [themeMode]: {
+        ...(themeSettings[themeMode] ?? {}),
+        [field]: value,
+      },
     });
   };
 
   const handleCSSInjection = (css: string) => {
-    setThemeSettings((t: any) => {
-      return themeMode === "light"
-        ? { ...t, light: { ...t.light, css_injection: css } }
-        : { ...t, dark: { ...t.dark, css_injection: css } };
+    setThemeSettings({
+      ...themeSettings,
+      [themeMode]: {
+        ...(themeSettings[themeMode] ?? {}),
+        css_injection: css,
+      },
     });
   };
 
@@ -91,10 +95,10 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
               variant="outlined"
               className="!text-primary-text !mr-2"
               onClick={() => {
-                setThemeSettings((prev: any) => ({
-                  ...prev,
+                setThemeSettings({
+                  ...themeSettings,
                   [themeMode]: {},
-                }));
+                });
               }}>
               {t("Default Color")}
             </Button>

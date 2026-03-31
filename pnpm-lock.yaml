@@ -85,6 +85,9 @@ importers:
       i18next:
         specifier: ^25.8.20
         version: 25.8.20(typescript@5.9.3)
+      immer:
+        specifier: ^11.1.4
+        version: 11.1.4
       lodash-es:
         specifier: ^4.17.23
         version: 4.17.23
@@ -132,7 +135,7 @@ importers:
         version: file:crates/tauri-plugin-mihomo
       zustand:
         specifier: ^5.0.12
-        version: 5.0.12(@types/react@19.2.14)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
+        version: 5.0.12(@types/react@19.2.14)(immer@11.1.4)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
       "@actions/github":
         specifier: 9.0.0
@@ -4459,6 +4462,12 @@ packages:
         integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==,
       }
     engines: { node: ">= 4" }
+
+  immer@11.1.4:
+    resolution:
+      {
+        integrity: sha512-XREFCPo6ksxVzP4E0ekD5aMdf8WMwmdNaz6vuvxgI40UaEiu6q3p8X52aU6GdyvLY3XXX/8R7JOTXStz/nBbRw==,
+      }
 
   immutable@4.3.8:
     resolution:
@@ -9643,6 +9652,8 @@ snapshots:
 
   ignore@7.0.5: {}
 
+  immer@11.1.4: {}
+
   immutable@4.3.8:
     optional: true
 
@@ -11151,9 +11162,10 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zustand@5.0.12(@types/react@19.2.14)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4)):
+  zustand@5.0.12(@types/react@19.2.14)(immer@11.1.4)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4)):
     optionalDependencies:
       "@types/react": 19.2.14
+      immer: 11.1.4
       react: 19.2.4
       use-sync-external-store: 1.6.0(react@19.2.4)
 

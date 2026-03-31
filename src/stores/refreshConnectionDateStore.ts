@@ -1,25 +1,26 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-
-import { applyUpdater, type Updater } from "./utils";
+import { devtools } from "zustand/middleware";
+import { immer } from "zustand/middleware/immer";
 
 interface RefreshConnectionDateState {
   date: number;
-  setDate: (next: Updater<number>) => void;
+  setDate: (next: number) => void;
 }
 
-export const useRefreshConnectionDateStore = create<RefreshConnectionDateState>(
-  (set) => ({
-    date: Date.now(),
-    setDate: (next) =>
-      set((state) => ({
-        date: applyUpdater(next, state.date),
+export const useRefreshConnectionDateStore =
+  create<RefreshConnectionDateState>()(
+    devtools(
+      immer((set) => ({
+        date: Date.now(),
+        setDate: (next) =>
+          set(
+            (state) => {
+              state.date = next;
+            },
+            false,
+            "refreshConnectionDate/setDate",
+          ),
       })),
-  }),
-);
-
-export const useRefreshConnectionDate = () =>
-  useRefreshConnectionDateStore((s) => s.date);
-
-export const useSetRefreshConnectionDate = () =>
-  useRefreshConnectionDateStore((s) => s.setDate);
+      { name: "refreshConnectionDateStore" },
+    ),
+  );

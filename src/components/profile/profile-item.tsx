@@ -1,7 +1,7 @@
 import { Marquee } from "@/components/base";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
 import { openWebUrl, updateProfile, viewProfile } from "@/services/cmds";
-import { useLoadingCache, useSetLoadingCache, useThemeMode } from "@/stores";
+import { useLoadingCacheStore, useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 import parseTraffic from "@/utils/parse-traffic";
 import CheckCircle from "@mui/icons-material/CheckCircle";
@@ -61,14 +61,14 @@ export const ProfileItem = (props: Props) => {
 
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const [anchorEl, setAnchorEl] = useState<any>(null);
   if (anchorEl && isDragging) {
     setAnchorEl(null);
   }
   const [position, setPosition] = useState({ left: 0, top: 0 });
-  const loadingCache = useLoadingCache();
-  const setLoadingCache = useSetLoadingCache();
+  const loadingCache = useLoadingCacheStore((s) => s.loadingCache);
+  const setLoadingCache = useLoadingCacheStore((s) => s.setLoadingCache);
 
   const { uid, name = "Profile", extra, updated = 0 } = itemData;
   // remote file mode
@@ -141,7 +141,7 @@ export const ProfileItem = (props: Props) => {
   /// 2 至少使用一个代理，根据订阅，如果没订阅，默认使用系统代理
   const onUpdate = useLockFn(async (type: 0 | 1 | 2) => {
     setAnchorEl(null);
-    setLoadingCache((cache) => ({ ...cache, [uid]: true }));
+    setLoadingCache({ ...loadingCache, [uid]: true });
 
     const option: Partial<IProfileOption> = {};
 
@@ -170,7 +170,10 @@ export const ProfileItem = (props: Props) => {
         errmsg.replace(/error sending request for url (\S+?): /, ""),
       );
     } finally {
-      setLoadingCache((cache) => ({ ...cache, [uid]: false }));
+      setLoadingCache({
+        ...useLoadingCacheStore.getState().loadingCache,
+        [uid]: false,
+      });
     }
   });
 
