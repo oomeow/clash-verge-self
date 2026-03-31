@@ -2,7 +2,7 @@ use std::{
     path::PathBuf,
     sync::{
         Arc,
-        atomic::{AtomicBool, Ordering},
+        atomic::{AtomicBool, AtomicUsize, Ordering},
     },
 };
 
@@ -25,6 +25,8 @@ use crate::{
     utils::{dirs, help::find_unused_port},
 };
 
+const MAX_RESTART_CORE_COUNT: usize = 5;
+
 #[derive(Debug)]
 pub struct CoreManager {
     /// clash sidecar process
@@ -35,6 +37,8 @@ pub struct CoreManager {
 
     /// true if clash core needs to be restarted when it is terminated
     need_restart_core: AtomicBool,
+
+    restart_core_count: AtomicUsize,
 }
 
 impl CoreManager {
@@ -45,6 +49,7 @@ impl CoreManager {
             sidecar: Arc::new(Mutex::new(None)),
             use_service_mode: AtomicBool::new(false),
             need_restart_core: AtomicBool::new(true),
+            restart_core_count: AtomicUsize::new(0),
         })
     }
 
@@ -104,6 +109,11 @@ impl CoreManager {
         }
 
         Ok(())
+    }
+
+    pub fn reset_state(&self) {
+        self.need_restart_core.store(true, Ordering::SeqCst);
+        self.restart_core_count.store(0, Ordering::SeqCst);
     }
 
     /// 启动核心
@@ -245,7 +255,19 @@ impl CoreManager {
                     }
                     CommandEvent::Terminated(_) => {
                         tracing::info!("mihomo core terminated");
-                        let _ = CoreManager::global().recover_core();
+                        let core_manager = CoreManager::global();
+                        let restart_core_count = core_manager.restart_core_count.load(Ordering::SeqCst);
+                        if restart_core_count >= MAX_RESTART_CORE_COUNT {
+                            core_manager.need_restart_core.store(false, Ordering::SeqCst);
+                            tracing::error!("recover clash core count exceeded, skip");
+                            handle::Handle::notice_message(
+                                handle::NoticeStatus::Error,
+                                "Failed to run mihomo core, please check mihomo log to find problem",
+                            );
+                        } else {
+                            tracing::info!("mihomo core terminated, restart core count: {restart_core_count}");
+                            let _ = core_manager.recover_core();
+                        }
                         break;
                     }
                     _ => {}
@@ -260,6 +282,7 @@ impl CoreManager {
     pub fn recover_core(&self) -> AppResult<()> {
         let is_service_mode = self.use_service_mode.load(Ordering::SeqCst);
         let need_restart_core = self.need_restart_core.load(Ordering::SeqCst);
+
         tracing::info!("core terminated, need to restart it? [{need_restart_core}]");
         // 服务模式 / 切换内核 不进行恢复
         if is_service_mode || !need_restart_core {
@@ -270,12 +293,13 @@ impl CoreManager {
             tracing::info!("kill mihomo sidecar");
             sidecar.kill()?;
         }
-        let need_restart_core_ = need_restart_core;
         tauri::async_runtime::spawn(async move {
-            if need_restart_core_ {
+            if need_restart_core {
+                // 重新启动 core
+                let core_manager = CoreManager::global();
                 tracing::info!("recover clash core");
-                // 重新启动app
-                if let Err(err) = CoreManager::global().run_core().await {
+                core_manager.restart_core_count.fetch_add(1, Ordering::SeqCst);
+                if let Err(err) = core_manager.run_core().await {
                     tracing::error!("failed to recover clash core, {err}");
                     let _ = CoreManager::global().recover_core();
                 }
@@ -348,14 +372,14 @@ impl CoreManager {
             Ok(_) => {
                 Config::verge().apply();
                 Config::runtime().apply();
+                self.reset_state();
                 log_err!(Config::verge().latest().save_file());
-                self.need_restart_core.store(true, Ordering::SeqCst);
                 Ok(())
             }
             Err(err) => {
                 Config::verge().discard();
                 Config::runtime().discard();
-                self.need_restart_core.store(true, Ordering::SeqCst);
+                self.reset_state();
                 Err(err)
             }
         }
