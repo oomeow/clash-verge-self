@@ -14,46 +14,41 @@ const defaultThemeSettings: ThemeSettings = {
   dark: {},
 };
 
-interface ThemeModeState {
+type ThemeModeState = {
   themeMode: ThemeMode;
-  setThemeMode: (next: ThemeMode) => void;
-}
+};
 
-export const useThemeModeStore = create<ThemeModeState>()(
+type ThemeModeActions = {
+  setThemeMode: (next: ThemeMode) => void;
+};
+
+export const useThemeModeStore = create<ThemeModeState & ThemeModeActions>()(
   devtools(
     immer((set) => ({
       themeMode: "light",
-      setThemeMode: (next) =>
-        set(
-          (state) => {
-            state.themeMode = next;
-          },
-          false,
-          "themeMode/setThemeMode",
-        ),
+      setThemeMode: (next) => set((state) => (state.themeMode = next)),
     })),
     { name: "themeModeStore" },
   ),
 );
 
-interface ThemeSettingsState {
+type ThemeSettingsState = {
   themeSettings: ThemeSettings;
-  setThemeSettings: (next: ThemeSettings) => void;
-}
+};
 
-export const useThemeSettingsStore = create<ThemeSettingsState>()(
+type ThemeSettingsActions = {
+  setThemeSettings: (next: ThemeSettings) => void;
+};
+
+export const useThemeSettingsStore = create<
+  ThemeSettingsState & ThemeSettingsActions
+>()(
   devtools(
     persist(
       immer((set) => ({
         themeSettings: defaultThemeSettings,
         setThemeSettings: (next) =>
-          set(
-            (state) => {
-              state.themeSettings = next;
-            },
-            false,
-            "themeSettings/setThemeSettings",
-          ),
+          set((state) => (state.themeSettings = next)),
       })),
       {
         name: "theme_settings",

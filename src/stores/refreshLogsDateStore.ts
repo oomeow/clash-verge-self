@@ -2,23 +2,19 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-interface RefreshLogsDateState {
+type State = {
   date: number;
-  setDate: (next: number) => void;
-}
+};
 
-export const useRefreshLogsDateStore = create<RefreshLogsDateState>()(
+type Actions = {
+  setDate: (next: number) => void;
+};
+
+export const useRefreshLogsDateStore = create<State & Actions>()(
   devtools(
     immer((set) => ({
       date: Date.now(),
-      setDate: (next) =>
-        set(
-          (state) => {
-            state.date = next;
-          },
-          false,
-          "refreshLogsDate/setDate",
-        ),
+      setDate: (next) => set((state) => (state.date = next)),
     })),
     { name: "refreshLogsDateStore" },
   ),

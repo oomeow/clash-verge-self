@@ -2,25 +2,20 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-interface RefreshConnectionDateState {
+type State = {
   date: number;
-  setDate: (next: number) => void;
-}
+};
 
-export const useRefreshConnectionDateStore =
-  create<RefreshConnectionDateState>()(
-    devtools(
-      immer((set) => ({
-        date: Date.now(),
-        setDate: (next) =>
-          set(
-            (state) => {
-              state.date = next;
-            },
-            false,
-            "refreshConnectionDate/setDate",
-          ),
-      })),
-      { name: "refreshConnectionDateStore" },
-    ),
-  );
+type Actions = {
+  setDate: (next: number) => void;
+};
+
+export const useRefreshConnectionDateStore = create<State & Actions>()(
+  devtools(
+    immer((set) => ({
+      date: Date.now(),
+      setDate: (next) => set((state) => (state.date = next)),
+    })),
+    { name: "refreshConnectionDateStore" },
+  ),
+);

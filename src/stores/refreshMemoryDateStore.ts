@@ -2,23 +2,19 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-interface RefreshMemoryDateState {
+type State = {
   date: number;
-  setDate: (next: number) => void;
-}
+};
 
-export const useRefreshMemoryDateStore = create<RefreshMemoryDateState>()(
+type Actions = {
+  setDate: (next: number) => void;
+};
+
+export const useRefreshMemoryDateStore = create<State & Actions>()(
   devtools(
     immer((set) => ({
       date: Date.now(),
-      setDate: (next) =>
-        set(
-          (state) => {
-            state.date = next;
-          },
-          false,
-          "refreshMemoryDate/setDate",
-        ),
+      setDate: (next) => set((state) => (state.date = next)),
     })),
     { name: "refreshMemoryDateStore" },
   ),

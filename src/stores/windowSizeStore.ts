@@ -12,24 +12,20 @@ const getDefaultWindowSize = (): WindowSize => {
   return { height: window.innerHeight, width: window.innerWidth };
 };
 
-interface WindowSizeState {
+type State = {
   windowSize: WindowSize;
-  setWindowSize: (next: WindowSize) => void;
-}
+};
 
-export const useWindowSizeStore = create<WindowSizeState>()(
+type Actions = {
+  setWindowSize: (next: WindowSize) => void;
+};
+
+export const useWindowSizeStore = create<State & Actions>()(
   devtools(
     persist(
       immer((set) => ({
         windowSize: getDefaultWindowSize(),
-        setWindowSize: (next) =>
-          set(
-            (state) => {
-              state.windowSize = next;
-            },
-            false,
-            "windowSize/setWindowSize",
-          ),
+        setWindowSize: (next) => set((state) => (state.windowSize = next)),
       })),
       {
         name: "window-size",

@@ -2,23 +2,19 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-interface UpdateStateState {
+type State = {
   updateState: boolean;
-  setUpdateState: (next: boolean) => void;
-}
+};
 
-export const useUpdateStateStore = create<UpdateStateState>()(
+type Actions = {
+  setUpdateState: (next: boolean) => void;
+};
+
+export const useUpdateStateStore = create<State & Actions>()(
   devtools(
     immer((set) => ({
       updateState: false,
-      setUpdateState: (next) =>
-        set(
-          (state) => {
-            state.updateState = next;
-          },
-          false,
-          "updateState/setUpdateState",
-        ),
+      setUpdateState: (next) => set((state) => (state.updateState = next)),
     })),
     { name: "updateStateStore" },
   ),

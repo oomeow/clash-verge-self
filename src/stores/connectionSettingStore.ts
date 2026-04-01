@@ -8,24 +8,20 @@ interface IConnectionSetting {
 
 const defaultConnectionSetting: IConnectionSetting = { layout: "table" };
 
-interface ConnectionSettingState {
+type State = {
   setting: IConnectionSetting;
-  setSetting: (next: IConnectionSetting) => void;
-}
+};
 
-export const useConnectionSettingStore = create<ConnectionSettingState>()(
+type Actions = {
+  setSetting: (next: IConnectionSetting) => void;
+};
+
+export const useConnectionSettingStore = create<State & Actions>()(
   devtools(
     persist(
       immer((set) => ({
         setting: defaultConnectionSetting,
-        setSetting: (next) =>
-          set(
-            (state) => {
-              state.setting = next;
-            },
-            false,
-            "connectionSetting/setSetting",
-          ),
+        setSetting: (next) => set((state) => (state.setting = next)),
       })),
       {
         name: "connections-setting",
