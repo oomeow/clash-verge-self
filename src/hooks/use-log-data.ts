@@ -9,9 +9,8 @@ import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 const MAX_LOG_NUM = 1000;
 
 export const useLogData = () => {
-  const clashLog = useClashLogStore((s) => s.clashLog);
-  const enableLog = clashLog.enable;
-  const logLevel = clashLog.logLevel;
+  const enableLog = useClashLogStore((s) => s.enable);
+  const logLevel = useClashLogStore((s) => s.logLevel);
 
   const date = useRefreshLogsDateStore((s) => s.date);
   const setDate = useRefreshLogsDateStore((s) => s.setDate);

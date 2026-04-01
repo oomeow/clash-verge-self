@@ -77,7 +77,7 @@ const SettingClash = ({ onError }: Props) => {
   const isLinuxPortable = portable && OS === "linux";
   const disableTunSetting =
     !(isLinuxPortable && permissionsGranted) && serviceStatus !== "active";
-  const setClashLog = useClashLogStore((s) => s.setClashLog);
+  const setLogLevel = useClashLogStore((s) => s.setLogLevel);
 
   const webRef = useRef<DialogRef>(null);
   const portRef = useRef<DialogRef>(null);
@@ -307,10 +307,7 @@ const SettingClash = ({ onError }: Props) => {
           onFormat={(e: any) => e.target.value}
           // onChange={(e) => onChangeData({ "log-level": e })}
           onGuard={(e) => {
-            setClashLog({
-              ...useClashLogStore.getState().clashLog,
-              logLevel: e,
-            });
+            setLogLevel(e);
             return patchClash({ "log-level": e });
           }}>
           <Select size="small" sx={{ width: 100, "> div": { py: "7.5px" } }}>

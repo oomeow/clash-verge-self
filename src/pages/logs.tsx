@@ -7,6 +7,7 @@ import {
 import LogItem from "@/components/log/log-item";
 import { useLogData } from "@/hooks/use-log-data";
 import { useClashLogStore } from "@/stores";
+import { LogFilter } from "@/stores/clashLogStore";
 import PauseCircleOutlineRounded from "@mui/icons-material/PauseCircleOutlineRounded";
 import PlayCircleOutlineRounded from "@mui/icons-material/PlayCircleOutlineRounded";
 import { Box, Button, IconButton, MenuItem } from "@mui/material";
@@ -20,10 +21,12 @@ const LogPage = () => {
     response: { data: logData = [] },
     refreshGetClashLog,
   } = useLogData();
-  const clashLog = useClashLogStore((s) => s.clashLog);
-  const setClashLog = useClashLogStore((s) => s.setClashLog);
+  const logEnable = useClashLogStore((s) => s.enable);
+  const logState = useClashLogStore((s) => s.logFilter);
+  const toggleLog = useClashLogStore((s) => s.toggle);
+  const setLogFilter = useClashLogStore((s) => s.setLogFilter);
+
   const [match, setMatch] = useState(() => (_: string) => true);
-  const logState = clashLog.logFilter;
   const filterLogs = useMemo(() => {
     return logData.filter(
       (data) =>
@@ -42,10 +45,8 @@ const LogPage = () => {
             title={t("Pause")}
             size="small"
             color="inherit"
-            onClick={() =>
-              setClashLog({ ...clashLog, enable: !clashLog.enable })
-            }>
-            {clashLog.enable ? (
+            onClick={() => toggleLog()}>
+            {logEnable ? (
               <PauseCircleOutlineRounded />
             ) : (
               <PlayCircleOutlineRounded />
@@ -73,12 +74,7 @@ const LogPage = () => {
         }}>
         <BaseStyledSelect
           value={logState}
-          onChange={(e) =>
-            setClashLog({
-              ...clashLog,
-              logFilter: e.target.value as typeof clashLog.logFilter,
-            })
-          }>
+          onChange={(e) => setLogFilter(e.target.value as LogFilter)}>
           <MenuItem value="all">ALL</MenuItem>
           <MenuItem value="inf">INFO</MenuItem>
           <MenuItem value="warn">WARN</MenuItem>

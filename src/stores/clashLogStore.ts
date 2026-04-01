@@ -4,41 +4,40 @@ import { immer } from "zustand/middleware/immer";
 
 import { LogLevel } from "tauri-plugin-mihomo-api";
 
-interface IClashLog {
+export type LogFilter = "all" | "inf" | "warn" | "err";
+
+type State = {
   enable: boolean;
   logLevel: LogLevel;
-  logFilter: "all" | "inf" | "warn" | "err";
-}
-
-const defaultClashLog: IClashLog = {
-  enable: true,
-  logLevel: "info",
-  logFilter: "all",
+  logFilter: LogFilter;
 };
 
-interface ClashLogState {
-  clashLog: IClashLog;
-  setClashLog: (next: IClashLog) => void;
-}
+type Actions = {
+  toggle: () => void;
+  setLogLevel: (level: LogLevel) => void;
+  setLogFilter: (filter: LogFilter) => void;
+};
 
-export const useClashLogStore = create<ClashLogState>()(
+export const useClashLogStore = create<State & Actions>()(
   devtools(
     persist(
       immer((set) => ({
-        clashLog: defaultClashLog,
-        setClashLog: (next) =>
-          set(
-            (state) => {
-              state.clashLog = next;
-            },
-            false,
-            "clashLog/setClashLog",
-          ),
+        enable: true,
+        logLevel: "info",
+        logFilter: "all",
+        toggle: () => set((state) => (state.enable = !state.enable)),
+        setLogLevel: (level) =>
+          set((state) => {
+            state.logLevel = level;
+          }),
+        setLogFilter: (filter) =>
+          set((state) => {
+            state.logFilter = filter;
+          }),
       })),
       {
         name: "clash-log",
         version: 1,
-        partialize: (state) => ({ clashLog: state.clashLog }),
       },
     ),
     { name: "clashLogStore" },
