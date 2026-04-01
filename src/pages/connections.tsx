@@ -40,11 +40,11 @@ const ConnectionsPage = () => {
   const [match, setMatch] = useState(() => (_: string) => true);
   const [curOrderOpt, setOrderOpt] = useState("Default");
   const [tabName, setTabName] = useState<"active" | "closed">("active");
-  const setting = useConnectionSettingStore((s) => s.setting);
-  const setSetting = useConnectionSettingStore((s) => s.setSetting);
+  const connLayout = useConnectionSettingStore((s) => s.layout);
+  const setLayout = useConnectionSettingStore((s) => s.setLayout);
   const gridApiRef = useGridApiRef();
 
-  const isTableLayout = setting.layout === "table";
+  const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
 
   const orderOpts: Record<string, OrderFunc> = {
@@ -124,12 +124,7 @@ const ConnectionsPage = () => {
               color="inherit"
               size="small"
               title={isTableLayout ? t("List View") : t("Table View")}
-              onClick={() =>
-                setSetting({
-                  ...setting,
-                  layout: setting.layout !== "table" ? "table" : "list",
-                })
-              }>
+              onClick={() => setLayout(isTableLayout ? "list" : "table")}>
               {isTableLayout ? (
                 <TableRowsRounded fontSize="inherit" />
               ) : (

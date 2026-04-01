@@ -7,14 +7,14 @@ type State = {
 };
 
 type Actions = {
-  setDate: (next: number) => void;
+  setDate: (date: number) => void;
 };
 
 export const useRefreshConnectionDateStore = create<State & Actions>()(
   devtools(
     immer((set) => ({
       date: Date.now(),
-      setDate: (next) => set((state) => (state.date = next)),
+      setDate: (date) => set((state) => (state.date = date)),
     })),
     { name: "refreshConnectionDateStore" },
   ),

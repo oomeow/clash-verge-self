@@ -2,7 +2,7 @@ export { useThemeModeStore, useThemeSettingsStore } from "./themeStore";
 export { useClashLogStore } from "./clashLogStore";
 export { useConnectionSettingStore } from "./connectionSettingStore";
 export { useLoadingCacheStore } from "./loadingCacheStore";
-export { useUpdateStateStore } from "./updateStateStore";
+export { useAppUpdateStateStore } from "./appUpdateStateStore";
 export { useWindowSizeStore } from "./windowSizeStore";
 export { useRefreshConnectionDateStore } from "./refreshConnectionDateStore";
 export { useRefreshTrafficDateStore } from "./refreshTrafficDateStore";

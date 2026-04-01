@@ -2,31 +2,26 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-interface IConnectionSetting {
-  layout: "table" | "list";
-}
-
-const defaultConnectionSetting: IConnectionSetting = { layout: "table" };
+export type ConnectionsLayout = "table" | "list";
 
 type State = {
-  setting: IConnectionSetting;
+  layout: ConnectionsLayout;
 };
 
 type Actions = {
-  setSetting: (next: IConnectionSetting) => void;
+  setLayout: (layout: ConnectionsLayout) => void;
 };
 
 export const useConnectionSettingStore = create<State & Actions>()(
   devtools(
     persist(
       immer((set) => ({
-        setting: defaultConnectionSetting,
-        setSetting: (next) => set((state) => (state.setting = next)),
+        layout: "table",
+        setLayout: (layout) => set((state) => (state.layout = layout)),
       })),
       {
         name: "connections-setting",
         version: 1,
-        partialize: (state) => ({ setting: state.setting }),
       },
     ),
     { name: "connectionSettingStore" },

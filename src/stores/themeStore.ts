@@ -19,14 +19,14 @@ type ThemeModeState = {
 };
 
 type ThemeModeActions = {
-  setThemeMode: (next: ThemeMode) => void;
+  setThemeMode: (mode: ThemeMode) => void;
 };
 
 export const useThemeModeStore = create<ThemeModeState & ThemeModeActions>()(
   devtools(
     immer((set) => ({
       themeMode: "light",
-      setThemeMode: (next) => set((state) => (state.themeMode = next)),
+      setThemeMode: (mode) => set((state) => (state.themeMode = mode)),
     })),
     { name: "themeModeStore" },
   ),
@@ -37,7 +37,7 @@ type ThemeSettingsState = {
 };
 
 type ThemeSettingsActions = {
-  setThemeSettings: (next: ThemeSettings) => void;
+  setThemeSettings: (settings: ThemeSettings) => void;
 };
 
 export const useThemeSettingsStore = create<
@@ -47,13 +47,12 @@ export const useThemeSettingsStore = create<
     persist(
       immer((set) => ({
         themeSettings: defaultThemeSettings,
-        setThemeSettings: (next) =>
-          set((state) => (state.themeSettings = next)),
+        setThemeSettings: (settings) =>
+          set((state) => (state.themeSettings = settings)),
       })),
       {
         name: "theme_settings",
         version: 1,
-        partialize: (state) => ({ themeSettings: state.themeSettings }),
       },
     ),
     { name: "themeSettingsStore" },
