@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 type State = {
@@ -11,11 +10,8 @@ type Actions = {
 };
 
 export const useLoadingCacheStore = create<State & Actions>()(
-  devtools(
-    immer((set) => ({
-      loadingCache: {},
-      setLoadingCache: (next) => set((state) => (state.loadingCache = next)),
-    })),
-    { name: "loadingCacheStore" },
-  ),
+  immer((set) => ({
+    loadingCache: {},
+    setLoadingCache: (next) => set((state) => (state.loadingCache = next)),
+  })),
 );

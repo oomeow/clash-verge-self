@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 export type ConnectionsLayout = "table" | "list";
@@ -13,17 +13,14 @@ type Actions = {
 };
 
 export const useConnectionSettingStore = create<State & Actions>()(
-  devtools(
-    persist(
-      immer((set) => ({
-        layout: "table",
-        setLayout: (layout) => set((state) => (state.layout = layout)),
-      })),
-      {
-        name: "connections-setting",
-        version: 1,
-      },
-    ),
-    { name: "connectionSettingStore" },
+  persist(
+    immer((set) => ({
+      layout: "table",
+      setLayout: (layout) => set((state) => (state.layout = layout)),
+    })),
+    {
+      name: "connections-setting",
+      version: 1,
+    },
   ),
 );

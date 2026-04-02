@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 type State = {
@@ -11,12 +10,9 @@ type Actions = {
 };
 
 export const useAppUpdateStateStore = create<State & Actions>()(
-  devtools(
-    immer((set) => ({
-      updateState: false,
-      setAppUpdateState: (updating) =>
-        set((state) => (state.appUpdateState = updating)),
-    })),
-    { name: "appUpdateStateStore" },
-  ),
+  immer((set) => ({
+    appUpdateState: false,
+    setAppUpdateState: (updating) =>
+      set((state) => (state.appUpdateState = updating)),
+  })),
 );

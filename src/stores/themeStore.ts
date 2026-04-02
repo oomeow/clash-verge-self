@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 type ThemeMode = "light" | "dark";
@@ -23,13 +23,10 @@ type ThemeModeActions = {
 };
 
 export const useThemeModeStore = create<ThemeModeState & ThemeModeActions>()(
-  devtools(
-    immer((set) => ({
-      themeMode: "light",
-      setThemeMode: (mode) => set((state) => (state.themeMode = mode)),
-    })),
-    { name: "themeModeStore" },
-  ),
+  immer((set) => ({
+    themeMode: "light",
+    setThemeMode: (mode) => set((state) => (state.themeMode = mode)),
+  })),
 );
 
 type ThemeSettingsState = {
@@ -43,18 +40,15 @@ type ThemeSettingsActions = {
 export const useThemeSettingsStore = create<
   ThemeSettingsState & ThemeSettingsActions
 >()(
-  devtools(
-    persist(
-      immer((set) => ({
-        themeSettings: defaultThemeSettings,
-        setThemeSettings: (settings) =>
-          set((state) => (state.themeSettings = settings)),
-      })),
-      {
-        name: "theme_settings",
-        version: 1,
-      },
-    ),
-    { name: "themeSettingsStore" },
+  persist(
+    immer((set) => ({
+      themeSettings: defaultThemeSettings,
+      setThemeSettings: (settings) =>
+        set((state) => (state.themeSettings = settings)),
+    })),
+    {
+      name: "theme_settings",
+      version: 1,
+    },
   ),
 );

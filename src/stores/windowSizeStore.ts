@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 export interface WindowSize {
@@ -21,17 +21,14 @@ type Actions = {
 };
 
 export const useWindowSizeStore = create<State & Actions>()(
-  devtools(
-    persist(
-      immer((set) => ({
-        windowSize: getDefaultWindowSize(),
-        setWindowSize: (size) => set((state) => (state.windowSize = size)),
-      })),
-      {
-        name: "window-size",
-        version: 1,
-      },
-    ),
-    { name: "windowSizeStore" },
+  persist(
+    immer((set) => ({
+      windowSize: getDefaultWindowSize(),
+      setWindowSize: (size) => set((state) => (state.windowSize = size)),
+    })),
+    {
+      name: "window-size",
+      version: 1,
+    },
   ),
 );

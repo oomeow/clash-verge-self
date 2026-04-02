@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { devtools, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 import { LogLevel } from "tauri-plugin-mihomo-api";
@@ -19,27 +19,24 @@ type Actions = {
 };
 
 export const useClashLogStore = create<State & Actions>()(
-  devtools(
-    persist(
-      immer((set) => ({
-        enable: true,
-        logLevel: "info",
-        logFilter: "all",
-        toggle: () => set((state) => (state.enable = !state.enable)),
-        setLogLevel: (level) =>
-          set((state) => {
-            state.logLevel = level;
-          }),
-        setLogFilter: (filter) =>
-          set((state) => {
-            state.logFilter = filter;
-          }),
-      })),
-      {
-        name: "clash-log",
-        version: 1,
-      },
-    ),
-    { name: "clashLogStore" },
+  persist(
+    immer((set) => ({
+      enable: true,
+      logLevel: "info",
+      logFilter: "all",
+      toggle: () => set((state) => (state.enable = !state.enable)),
+      setLogLevel: (level) =>
+        set((state) => {
+          state.logLevel = level;
+        }),
+      setLogFilter: (filter) =>
+        set((state) => {
+          state.logFilter = filter;
+        }),
+    })),
+    {
+      name: "clash-log",
+      version: 1,
+    },
   ),
 );
