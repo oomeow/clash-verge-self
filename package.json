@@ -90,7 +90,7 @@
     "@types/sortablejs": "1.15.9",
     "@vitejs/plugin-legacy": "8.0.1",
     "@vitejs/plugin-react": "6.0.1",
-    "adm-zip": "0.5.16",
+    "adm-zip": "0.5.17",
     "clsx": "2.1.1",
     "concurrently": "9.2.1",
     "consola": "3.4.2",
