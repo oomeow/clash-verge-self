@@ -99,7 +99,7 @@
     "eslint-plugin-react-refresh": "0.5.2",
     "fs-extra": "11.3.4",
     "globals": "17.4.0",
-    "https-proxy-agent": "8.0.0",
+    "https-proxy-agent": "9.0.0",
     "meta-json-schema": "1.19.22",
     "node-fetch": "3.3.2",
     "ora": "9.3.0",
