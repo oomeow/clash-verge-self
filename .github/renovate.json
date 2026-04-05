@@ -9,6 +9,7 @@
     "docker:disable"
   ],
   "labels": ["dependencies"],
+  "minimumReleaseAge": "3 days",
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
