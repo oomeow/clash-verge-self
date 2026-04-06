@@ -328,7 +328,8 @@ const ProfilePage = () => {
   });
 
   // 更新所有订阅
-  const setLoadingCache = useLoadingCacheStore((s) => s.setLoadingCache);
+  const setLoading = useLoadingCacheStore((s) => s.setLoading);
+  const loadingCache = useLoadingCacheStore((s) => s.loadingCache);
   const onUpdateAll = useMemoizedFn(
     useLockFn(async () => {
       const throttleMutate = throttle(mutateProfiles, 2000, {
@@ -339,23 +340,17 @@ const ProfilePage = () => {
           await updateProfile(uid);
           throttleMutate();
         } finally {
-          setLoadingCache({
-            ...useLoadingCacheStore.getState().loadingCache,
-            [uid]: false,
-          });
+          setLoading(uid, false);
         }
       };
 
       return new Promise((resolve) => {
-        const loadingCache = useLoadingCacheStore.getState().loadingCache;
         const items = profileItems.filter(
           (e) => e.type === "remote" && !loadingCache[e.uid],
         );
 
-        setLoadingCache({
-          ...loadingCache,
-          ...Object.fromEntries(items.map((e) => [e.uid, true])),
-        });
+        // Set loading state for each item
+        items.forEach((e) => setLoading(e.uid, true));
 
         Promise.allSettled(items.map((e) => updateOne(e.uid))).then(resolve);
       });

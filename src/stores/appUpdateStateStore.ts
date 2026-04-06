@@ -13,6 +13,8 @@ export const useAppUpdateStateStore = create<State & Actions>()(
   immer((set) => ({
     appUpdateState: false,
     setAppUpdateState: (updating) =>
-      set((state) => (state.appUpdateState = updating)),
+      set((state) => {
+        state.appUpdateState = updating;
+      }),
   })),
 );

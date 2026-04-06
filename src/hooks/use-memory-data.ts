@@ -6,7 +6,7 @@ import { useRefreshMemoryDateStore } from "@/stores";
 
 export const useMemoryData = () => {
   const date = useRefreshMemoryDateStore((s) => s.date);
-  const setDate = useRefreshMemoryDateStore((s) => s.setDate);
+  const refresh = useRefreshMemoryDateStore((s) => s.refresh);
   const subscriptKey = `getClashMemory-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);
@@ -73,7 +73,7 @@ export const useMemoryData = () => {
   }, [date, subscriptKey]);
 
   const refreshGetClashMemory = () => {
-    setDate(Date.now());
+    refresh();
   };
 
   return { response, refreshGetClashMemory };

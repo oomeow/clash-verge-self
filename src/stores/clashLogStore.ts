@@ -13,7 +13,7 @@ type State = {
 };
 
 type Actions = {
-  toggle: () => void;
+  toggleEnable: () => void;
   setLogLevel: (level: LogLevel) => void;
   setLogFilter: (filter: LogFilter) => void;
 };
@@ -24,7 +24,10 @@ export const useClashLogStore = create<State & Actions>()(
       enable: true,
       logLevel: "info",
       logFilter: "all",
-      toggle: () => set((state) => (state.enable = !state.enable)),
+      toggleEnable: () =>
+        set((state) => {
+          state.enable = !state.enable;
+        }),
       setLogLevel: (level) =>
         set((state) => {
           state.logLevel = level;

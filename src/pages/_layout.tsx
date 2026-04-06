@@ -2,7 +2,10 @@ import { TailwindIndicator } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { LayoutControl } from "@/components/layout/layout-control";
 import { Sidebar } from "@/components/layout/sidebar";
-import { useCustomTheme } from "@/components/layout/use-custom-theme";
+import {
+  useCustomTheme,
+  useSyncThemeSettings,
+} from "@/components/layout/use-custom-theme";
 import { usePortable } from "@/hooks/use-portable";
 import { useVerge } from "@/hooks/use-verge";
 import { useVisibility } from "@/hooks/use-visibility";
@@ -37,6 +40,7 @@ const Layout = () => {
   const [isMaximized, setIsMaximized] = useState(false);
   const { t } = useTranslation();
   const { notice } = useNotice();
+  useSyncThemeSettings();
   const { theme } = useCustomTheme();
   const visible = useVisibility();
   const { verge } = useVerge();

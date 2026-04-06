@@ -46,14 +46,32 @@ export const BaseSearchBox = (props: SearchProps) => {
   }, [debounceFilterText, searchOptions]);
 
   const onChange = useMemoizedFn((text: string) => {
+    try {
+      validateSearchText(text);
+      setErrorMessage("");
+    } catch (err) {
+      setErrorMessage(`${err}`);
+    }
+
     onSearch((content) => doSearch([content], text), {
       text: text,
       ...searchOptions,
     });
   });
 
+  const validateSearchText = (searchItem: string) => {
+    if (!searchItem) return;
+
+    let searchItemCopy = searchItem;
+    if (searchOptions.matchWholeWord) {
+      new RegExp(`\\b${searchItemCopy}\\b`);
+    }
+    if (searchOptions.useRegularExpression) {
+      new RegExp(searchItemCopy);
+    }
+  };
+
   const doSearch = (searchList: string[], searchItem: string) => {
-    setErrorMessage("");
     return (
       searchList.filter((item) => {
         try {
@@ -77,7 +95,7 @@ export const BaseSearchBox = (props: SearchProps) => {
             return item.includes(searchItemCopy);
           }
         } catch (err) {
-          setErrorMessage(`${err}`);
+          return false;
         }
       }).length > 0
     );

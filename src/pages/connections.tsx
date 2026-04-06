@@ -11,7 +11,7 @@ import {
 import { ConnectionItem } from "@/components/connection/connection-item";
 import { ConnectionTable } from "@/components/connection/connection-table";
 import { initConnData, useConnectionData } from "@/hooks/use-connection-data";
-import { useConnectionSettingStore } from "@/stores";
+import { useConnectionsStore, type ConnectionsOrderType } from "@/stores";
 import parseTraffic from "@/utils/parse-traffic";
 import Download from "@mui/icons-material/Download";
 import TableChartRounded from "@mui/icons-material/TableChartRounded";
@@ -38,11 +38,17 @@ const MAX_CLOSED_CONNS = 500;
 const ConnectionsPage = () => {
   const { t } = useTranslation();
   const [match, setMatch] = useState(() => (_: string) => true);
-  const [curOrderOpt, setOrderOpt] = useState("Default");
-  const [tabName, setTabName] = useState<"active" | "closed">("active");
-  const connLayout = useConnectionSettingStore((s) => s.layout);
-  const setLayout = useConnectionSettingStore((s) => s.setLayout);
+  const connLayout = useConnectionsStore((s) => s.layout);
+  const setConnectionsLayout = useConnectionsStore(
+    (s) => s.setConnectionsLayout,
+  );
+  const curOrderOpt = useConnectionsStore((s) => s.curOrderOpt);
+  const setOrderType = useConnectionsStore((s) => s.setOrderType);
+  const tabName = useConnectionsStore((s) => s.tabName);
+  const setTabName = useConnectionsStore((s) => s.setTabName);
   const gridApiRef = useGridApiRef();
+  const [activeConns, setActiveConns] = useState<IConnectionsItem[]>([]);
+  const [closedConns, setClosedConns] = useState<IConnectionsItem[]>([]);
 
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
@@ -62,8 +68,6 @@ const ConnectionsPage = () => {
   const {
     response: { data: connData = initConnData },
   } = useConnectionData();
-  const [activeConns, setActiveConns] = useState<IConnectionsItem[]>([]);
-  const [closedConns, setClosedConns] = useState<IConnectionsItem[]>([]);
 
   const detailRef = useRef<ConnectionDetailRef>(null!);
   const totalUpload = parseTraffic(connData.uploadTotal);
@@ -71,13 +75,23 @@ const ConnectionsPage = () => {
 
   useEffect(() => {
     const ids = connData.connections.map((o) => o.id);
-    const closed = activeConns.filter((o) => !ids.includes(o.id));
-    let newList = [...closedConns, ...closed];
-    if (newList.length > MAX_CLOSED_CONNS) {
-      newList = newList.slice(-Math.min(MAX_CLOSED_CONNS, newList.length));
-    }
-    setClosedConns(newList);
-    setActiveConns(connData.connections);
+
+    setActiveConns((prevActiveConns) => {
+      setClosedConns((prevClosedConns) => {
+        const closed = prevActiveConns.filter((o) => !ids.includes(o.id));
+        const nextClosedConns = [...prevClosedConns, ...closed];
+
+        if (nextClosedConns.length > MAX_CLOSED_CONNS) {
+          return nextClosedConns.slice(
+            -Math.min(MAX_CLOSED_CONNS, nextClosedConns.length),
+          );
+        }
+
+        return nextClosedConns;
+      });
+
+      return connData.connections;
+    });
   }, [connData]);
 
   // filter connections
@@ -124,7 +138,9 @@ const ConnectionsPage = () => {
               color="inherit"
               size="small"
               title={isTableLayout ? t("List View") : t("Table View")}
-              onClick={() => setLayout(isTableLayout ? "list" : "table")}>
+              onClick={() =>
+                setConnectionsLayout(isTableLayout ? "list" : "table")
+              }>
               {isTableLayout ? (
                 <TableRowsRounded fontSize="inherit" />
               ) : (
@@ -175,7 +191,9 @@ const ConnectionsPage = () => {
           {!isTableLayout && isActiveTab && (
             <BaseStyledSelect
               value={curOrderOpt}
-              onChange={(e) => setOrderOpt(e.target.value)}>
+              onChange={(e) =>
+                setOrderType(e.target.value as ConnectionsOrderType)
+              }>
               {Object.keys(orderOpts).map((opt) => (
                 <MenuItem key={opt} value={opt}>
                   <span style={{ fontSize: 14 }}>{t(opt)}</span>

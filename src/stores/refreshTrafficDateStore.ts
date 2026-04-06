@@ -6,12 +6,15 @@ type State = {
 };
 
 type Actions = {
-  setDate: (date: number) => void;
+  refresh: () => void;
 };
 
 export const useRefreshTrafficDateStore = create<State & Actions>()(
   immer((set) => ({
     date: Date.now(),
-    setDate: (date) => set((state) => (state.date = date)),
+    refresh: () =>
+      set((state) => {
+        state.date = Date.now();
+      }),
   })),
 );

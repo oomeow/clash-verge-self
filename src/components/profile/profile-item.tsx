@@ -68,7 +68,7 @@ export const ProfileItem = (props: Props) => {
   }
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const loadingCache = useLoadingCacheStore((s) => s.loadingCache);
-  const setLoadingCache = useLoadingCacheStore((s) => s.setLoadingCache);
+  const setLoading = useLoadingCacheStore((s) => s.setLoading);
 
   const { uid, name = "Profile", extra, updated = 0 } = itemData;
   // remote file mode
@@ -141,7 +141,7 @@ export const ProfileItem = (props: Props) => {
   /// 2 至少使用一个代理，根据订阅，如果没订阅，默认使用系统代理
   const onUpdate = useLockFn(async (type: 0 | 1 | 2) => {
     setAnchorEl(null);
-    setLoadingCache({ ...loadingCache, [uid]: true });
+    setLoading(uid, true);
 
     const option: Partial<IProfileOption> = {};
 
@@ -170,10 +170,7 @@ export const ProfileItem = (props: Props) => {
         errmsg.replace(/error sending request for url (\S+?): /, ""),
       );
     } finally {
-      setLoadingCache({
-        ...useLoadingCacheStore.getState().loadingCache,
-        [uid]: false,
-      });
+      useLoadingCacheStore.getState().setLoading(uid, false);
     }
   });
 

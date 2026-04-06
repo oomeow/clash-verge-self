@@ -1,5 +1,8 @@
-import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import { useThemeModeStore, useThemeSettingsStore } from "@/stores";
+import {
+  defaultThemeSettings,
+  useThemeModeStore,
+  useThemeSettingsStore,
+} from "@/stores";
 import { useDebounce } from "ahooks";
 import { useEffect, useState } from "react";
 
@@ -21,28 +24,27 @@ interface Props {
 const ThemeColorSelect = (props: Props) => {
   const { label, themeKey } = props;
   const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
-  const setThemeSettings = useThemeSettingsStore((s) => s.setThemeSettings);
+  const setThemeColor = useThemeSettingsStore((s) => s.setThemeColor);
   const themeMode = useThemeModeStore((s) => s.themeMode);
-  const theme =
-    (themeMode === "light" ? themeSettings.light : themeSettings.dark) ?? {};
-  const dt = themeMode === "light" ? defaultTheme : defaultDarkTheme;
-  const [color, setColor] = useState<string>(theme[themeKey] || dt[themeKey]);
+  const currentThemeSetting =
+    themeMode === "light" ? themeSettings.light : themeSettings.dark;
+  const theme = (currentThemeSetting ??
+    (themeMode === "light"
+      ? defaultThemeSettings.light
+      : defaultThemeSettings.dark)) as NonNullable<
+    IVergeConfig["light_theme_setting"]
+  >;
+  const [color, setColor] = useState<string>(theme[themeKey] ?? "");
   const debounceValue = useDebounce(color, { wait: 300 });
 
   useEffect(() => {
-    setColor(theme[themeKey] || dt[themeKey]);
-  }, [theme, dt]);
+    setColor(theme[themeKey] ?? "");
+  }, [theme, themeKey]);
 
   useEffect(() => {
     if (theme[themeKey] === debounceValue) return;
-    setThemeSettings({
-      ...themeSettings,
-      [themeMode]: {
-        ...(themeSettings[themeMode] ?? {}),
-        [themeKey]: debounceValue,
-      },
-    });
-  }, [debounceValue, setThemeSettings, themeKey, themeMode, themeSettings]);
+    setThemeColor(themeMode, themeKey, debounceValue);
+  }, [debounceValue, setThemeColor, themeKey, themeMode, theme]);
 
   return (
     <div className="text-primary-text my-1 flex h-12 items-center justify-between px-1">

@@ -1,80 +1,69 @@
 import { useProfiles } from "@/hooks/use-profiles";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { ProxySortType } from "./use-filter-sort";
+import {
+  useProxyHeadStateStore,
+  type HeadState,
+  DEFAULT_STATE,
+} from "@/stores/proxyHeadStateStore";
 
-export interface HeadState {
-  open?: boolean;
-  showType: boolean;
-  sortType: ProxySortType;
-  filterText: string;
-  textState: "url" | "filter" | null;
-  testUrl: string;
-}
-
-type HeadStateStorage = Record<string, Record<string, HeadState>>;
-
-const HEAD_STATE_KEY = "proxy-head-state";
-export const DEFAULT_STATE: HeadState = {
-  open: false,
-  showType: true,
-  sortType: 0,
-  filterText: "",
-  textState: null,
-  testUrl: "",
-};
+export { type HeadState, DEFAULT_STATE };
 
 export function useHeadStateNew() {
   const { profiles } = useProfiles();
   const current = profiles?.current || "";
 
-  const [state, setState] = useState<Record<string, HeadState>>({});
+  const setOpen = useProxyHeadStateStore((s) => s.setOpen);
+  const setShowType = useProxyHeadStateStore((s) => s.setShowType);
+  const setSortType = useProxyHeadStateStore((s) => s.setSortType);
+  const setFilterText = useProxyHeadStateStore((s) => s.setFilterText);
+  const setTextState = useProxyHeadStateStore((s) => s.setTextState);
+  const setTestUrl = useProxyHeadStateStore((s) => s.setTestUrl);
+  const headStates = useProxyHeadStateStore((s) => s.headStates);
 
-  useEffect(() => {
-    if (!current) {
-      setState({});
-      return;
+  // Get all states for current profile from store
+  const state = useMemo(() => {
+    if (!current || !headStates[current]) {
+      return {};
     }
-
-    try {
-      const data = JSON.parse(
-        localStorage.getItem(HEAD_STATE_KEY)!,
-      ) as HeadStateStorage;
-
-      const value = data[current] || {};
-
-      if (value && typeof value === "object") {
-        setState(value);
-      } else {
-        setState({});
-      }
-    } catch {}
-  }, [current]);
+    return headStates[current] || {};
+  }, [current, headStates]);
 
   const setHeadState = useCallback(
     (groupName: string, obj: Partial<HeadState>) => {
-      setState((old) => {
-        const state = old[groupName] || DEFAULT_STATE;
-        const ret = { ...old, [groupName]: { ...state, ...obj } };
-
-        // 保存到存储中
-        setTimeout(() => {
-          try {
-            const item = localStorage.getItem(HEAD_STATE_KEY);
-
-            let data = (item ? JSON.parse(item) : {}) as HeadStateStorage;
-
-            if (!data || typeof data !== "object") data = {};
-
-            data[current] = ret;
-
-            localStorage.setItem(HEAD_STATE_KEY, JSON.stringify(data));
-          } catch {}
-        });
-
-        return ret;
+      // Update store using individual setters
+      Object.entries(obj).forEach(([key, value]) => {
+        switch (key as keyof HeadState) {
+          case "open":
+            setOpen(current, groupName, value as boolean | undefined);
+            break;
+          case "showType":
+            setShowType(current, groupName, value as boolean);
+            break;
+          case "sortType":
+            setSortType(current, groupName, value as ProxySortType);
+            break;
+          case "filterText":
+            setFilterText(current, groupName, value as string);
+            break;
+          case "textState":
+            setTextState(current, groupName, value as "url" | "filter" | null);
+            break;
+          case "testUrl":
+            setTestUrl(current, groupName, value as string);
+            break;
+        }
       });
     },
-    [current],
+    [
+      current,
+      setOpen,
+      setShowType,
+      setSortType,
+      setFilterText,
+      setTextState,
+      setTestUrl,
+    ],
   );
 
   return [state, setHeadState] as const;

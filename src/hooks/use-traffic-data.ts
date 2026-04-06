@@ -7,7 +7,7 @@ import { useRefreshTrafficDateStore } from "@/stores";
 
 export const useTrafficData = () => {
   const date = useRefreshTrafficDateStore((s) => s.date);
-  const setDate = useRefreshTrafficDateStore((s) => s.setDate);
+  const refresh = useRefreshTrafficDateStore((s) => s.refresh);
   const subscriptKey = `getClashTraffic-${date}`;
 
   const trafficRef = useRef<TrafficRef>(null);
@@ -77,7 +77,7 @@ export const useTrafficData = () => {
   }, [date, subscriptKey]);
 
   const refreshGetClashTraffic = () => {
-    setDate(Date.now());
+    refresh();
   };
 
   return { response, refreshGetClashTraffic };

@@ -23,7 +23,7 @@ const LogPage = () => {
   } = useLogData();
   const logEnable = useClashLogStore((s) => s.enable);
   const logState = useClashLogStore((s) => s.logFilter);
-  const toggleLog = useClashLogStore((s) => s.toggle);
+  const toggleEnable = useClashLogStore((s) => s.toggleEnable);
   const setLogFilter = useClashLogStore((s) => s.setLogFilter);
 
   const [match, setMatch] = useState(() => (_: string) => true);
@@ -45,7 +45,7 @@ const LogPage = () => {
             title={t("Pause")}
             size="small"
             color="inherit"
-            onClick={() => toggleLog()}>
+            onClick={() => toggleEnable()}>
             {logEnable ? (
               <PauseCircleOutlineRounded />
             ) : (

@@ -1,5 +1,4 @@
 import { useVerge } from "@/hooks/use-verge";
-import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
 import { useThemeModeStore, useThemeSettingsStore } from "@/stores";
 import {
   alpha,
@@ -11,7 +10,7 @@ import {
 } from "@mui/material";
 import { enUS, zhCN } from "@mui/x-data-grid/locales";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { MouseEvent, useCallback, useEffect, useMemo } from "react";
+import { MouseEvent, useEffect, useMemo } from "react";
 const appWindow = getCurrentWebviewWindow();
 
 /**
@@ -41,41 +40,6 @@ export const useCustomTheme = () => {
   const mode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);
   const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
-  const setThemeSettings = useThemeSettingsStore((s) => s.setThemeSettings);
-
-  const themeSettingHasChanges = useCallback(
-    (
-      lightSettings: IVergeConfig["light_theme_setting"],
-      darkSettings: IVergeConfig["dark_theme_setting"],
-    ): boolean => {
-      const originLightSettings = themeSettings.light!;
-      const originDarkSettings = themeSettings.dark!;
-      for (const key in lightSettings) {
-        const lightKey = key as keyof IVergeConfig["light_theme_setting"];
-        if (lightSettings[lightKey] !== originLightSettings[lightKey]) {
-          return true;
-        }
-      }
-      for (const key in darkSettings) {
-        const darkKey = key as keyof IVergeConfig["dark_theme_setting"];
-        if (darkSettings[darkKey] !== originDarkSettings[darkKey]) {
-          return true;
-        }
-      }
-      return false;
-    },
-    [themeSettings],
-  );
-
-  useEffect(() => {
-    if (!light_theme_setting || !dark_theme_setting) return;
-    if (themeSettingHasChanges(light_theme_setting, dark_theme_setting)) {
-      setThemeSettings({
-        light: light_theme_setting,
-        dark: dark_theme_setting,
-      });
-    }
-  }, [light_theme_setting, dark_theme_setting]);
 
   useEffect(() => {
     if (!theme_mode) return;
@@ -96,7 +60,6 @@ export const useCustomTheme = () => {
 
   const theme = useMemo(() => {
     const setting = themeSettings[mode]!;
-    const dt = mode === "light" ? defaultTheme : defaultDarkTheme;
     const isDark = mode === "dark";
 
     const muiDataGridLocale = language === "zh" ? zhCN : enUS;
@@ -109,15 +72,18 @@ export const useCustomTheme = () => {
       },
       palette: {
         mode,
-        primary: { main: dt.primary_color },
-        secondary: { main: dt.secondary_color },
-        info: { main: dt.info_color },
-        error: { main: dt.error_color },
-        warning: { main: dt.warning_color },
-        success: { main: dt.success_color },
-        text: { primary: dt.primary_text, secondary: dt.secondary_text },
+        primary: { main: setting.primary_color! },
+        secondary: { main: setting.secondary_color! },
+        info: { main: setting.info_color! },
+        error: { main: setting.error_color! },
+        warning: { main: setting.warning_color! },
+        success: { main: setting.success_color! },
+        text: {
+          primary: setting.primary_text!,
+          secondary: setting.secondary_text!,
+        },
       },
-      typography: { fontFamily: dt.font_family },
+      typography: { fontFamily: setting.font_family! },
       // All `Portal`-related components need to have the the main app wrapper element as a container
       // so that the are in the subtree under the element used in the `important` option of the Tailwind's config.
       components: {
@@ -154,26 +120,12 @@ export const useCustomTheme = () => {
       ...defaultThemeObj,
       palette: {
         ...defaultThemeObj.palette,
-        primary: { main: setting.primary_color || dt.primary_color },
-        secondary: { main: setting.secondary_color || dt.secondary_color },
-        info: { main: setting.info_color || dt.info_color },
-        error: { main: setting.error_color || dt.error_color },
-        warning: { main: setting.warning_color || dt.warning_color },
-        success: { main: setting.success_color || dt.success_color },
-        text: {
-          primary: setting.primary_text || dt.primary_text,
-          secondary: setting.secondary_text || dt.secondary_text,
-        },
         background: {
-          paper: dt.background_color,
+          paper: isDark ? "#2E303D" : "#F5F5F5",
         },
       },
       shadows: Array(25).fill("none") as Shadows,
-      typography: {
-        fontFamily: setting.font_family
-          ? `${setting.font_family}, ${dt.font_family}`
-          : dt.font_family,
-      },
+      typography: { fontFamily: setting.font_family! },
     };
 
     let theme: Theme;
@@ -317,4 +269,32 @@ export const useCustomTheme = () => {
   };
 
   return { theme, toggleTheme };
+};
+
+const isSameThemeSetting = (
+  left:
+    | IVergeConfig["light_theme_setting"]
+    | IVergeConfig["dark_theme_setting"],
+  right:
+    | IVergeConfig["light_theme_setting"]
+    | IVergeConfig["dark_theme_setting"],
+) => JSON.stringify(left ?? {}) === JSON.stringify(right ?? {});
+
+export const useSyncThemeSettings = () => {
+  const { verge } = useVerge();
+  const { light_theme_setting, dark_theme_setting } = verge ?? {};
+
+  useEffect(() => {
+    if (!light_theme_setting || !dark_theme_setting) return;
+
+    const { themeSettings, setLightThemeSetting, setDarkThemeSetting } =
+      useThemeSettingsStore.getState();
+
+    if (!isSameThemeSetting(light_theme_setting, themeSettings.light)) {
+      setLightThemeSetting(light_theme_setting);
+    }
+    if (!isSameThemeSetting(dark_theme_setting, themeSettings.dark)) {
+      setDarkThemeSetting(dark_theme_setting);
+    }
+  }, [dark_theme_setting, light_theme_setting]);
 };

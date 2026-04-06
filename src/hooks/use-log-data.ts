@@ -13,7 +13,7 @@ export const useLogData = () => {
   const logLevel = useClashLogStore((s) => s.logLevel);
 
   const date = useRefreshLogsDateStore((s) => s.date);
-  const setDate = useRefreshLogsDateStore((s) => s.setDate);
+  const refresh = useRefreshLogsDateStore((s) => s.refresh);
   const subscriptKey = enableLog ? `getClashLog-${date}` : null;
 
   const ws = useRef<MihomoWebSocket | null>(null);
@@ -134,14 +134,14 @@ export const useLogData = () => {
   useEffect(() => {
     if (!logLevel) return;
     ws.current?.close();
-    setDate(Date.now());
-  }, [logLevel]);
+    refresh();
+  }, [logLevel, refresh]);
 
   const refreshGetClashLog = (clear = false) => {
     if (clear) {
       mutate(`$sub$${subscriptKey}`, []);
     } else {
-      setDate(Date.now());
+      refresh();
     }
   };
 

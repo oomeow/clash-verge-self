@@ -12,7 +12,7 @@ export const initConnData: IConnections = {
 
 export const useConnectionData = () => {
   const date = useRefreshConnectionDateStore((s) => s.date);
-  const setDate = useRefreshConnectionDateStore((s) => s.setDate);
+  const refresh = useRefreshConnectionDateStore((s) => s.refresh);
   const subscriptKey = `getClashConnection-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);
@@ -102,7 +102,7 @@ export const useConnectionData = () => {
   }, [date, subscriptKey]);
 
   const refreshGetClashConnection = () => {
-    setDate(Date.now());
+    refresh();
   };
 
   return { response, refreshGetClashConnection };
