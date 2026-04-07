@@ -17,26 +17,21 @@ type State = {
 };
 
 type Actions = {
-  setWindowHeight: (height: number) => void;
-  setWindowWidth: (width: number) => void;
+  setWindowSize: (size: WindowSize) => void;
 };
 
 export const useWindowSizeStore = create<State & Actions>()(
   persist(
     immer((set) => ({
       windowSize: getDefaultWindowSize(),
-      setWindowHeight: (height) =>
+      setWindowSize: (size) =>
         set((state) => {
-          state.windowSize.height = height;
-        }),
-      setWindowWidth: (width) =>
-        set((state) => {
-          state.windowSize.width = width;
+          state.windowSize = size;
         }),
     })),
     {
       name: "window-size",
-      version: 2,
+      version: 1,
     },
   ),
 );

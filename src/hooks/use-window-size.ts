@@ -4,20 +4,21 @@ import { useWindowSizeStore } from "@/stores";
 
 export const useWindowSize = () => {
   const size = useWindowSizeStore((s) => s.windowSize);
-  const setWindowHeight = useWindowSizeStore((s) => s.setWindowHeight);
-  const setWindowWidth = useWindowSizeStore((s) => s.setWindowWidth);
+  const setWindowSize = useWindowSizeStore((s) => s.setWindowSize);
 
   useEffect(() => {
     const handleResize = debounce(() => {
-      setWindowWidth(document.body.clientWidth);
-      setWindowHeight(document.body.clientHeight);
+      setWindowSize({
+        width: document.body.clientWidth,
+        height: document.body.clientHeight,
+      });
     }, 100);
 
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [setWindowHeight, setWindowWidth]);
+  }, [setWindowSize]);
 
   return { size };
 };
