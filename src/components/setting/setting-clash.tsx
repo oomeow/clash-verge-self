@@ -34,6 +34,7 @@ import { ControllerViewer } from "./mods/controller-viewer";
 import { GuardState } from "./mods/guard-state";
 import { NetInfoViewer } from "./mods/net-info-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
+import { useLazyDialogRef } from "./use-lazy-dialog-ref";
 import { WebUIViewer } from "./mods/web-ui-viewer";
 
 const OS = getSystem();
@@ -79,13 +80,13 @@ const SettingClash = ({ onError }: Props) => {
     !(isLinuxPortable && permissionsGranted) && serviceStatus !== "active";
   const setLogLevel = useClashLogStore((s) => s.setLogLevel);
 
-  const webRef = useRef<DialogRef>(null);
-  const portRef = useRef<DialogRef>(null);
-  const ctrlRef = useRef<DialogRef>(null);
-  const coreRef = useRef<DialogRef>(null);
-  const tunRef = useRef<DialogRef>(null);
-  const serviceRef = useRef<DialogRef>(null);
-  const netInfoRef = useRef<DialogRef>(null);
+  const webRef = useLazyDialogRef<DialogRef>();
+  const portRef = useLazyDialogRef<DialogRef>();
+  const ctrlRef = useLazyDialogRef<DialogRef>();
+  const coreRef = useLazyDialogRef<DialogRef>();
+  const tunRef = useLazyDialogRef<DialogRef>();
+  const serviceRef = useLazyDialogRef<DialogRef>();
+  const netInfoRef = useLazyDialogRef<DialogRef>();
 
   useEffect(() => {
     if (!verge) return;
@@ -130,16 +131,23 @@ const SettingClash = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("Clash Setting")}>
-      <TunViewer ref={tunRef} />
-      <WebUIViewer ref={webRef} />
-      <ClashPortViewer ref={portRef} />
-      <ControllerViewer ref={ctrlRef} />
-      <ClashCoreViewer
-        ref={coreRef}
-        serviceActive={serviceStatus === "active"}
-      />
-      <ServiceViewer ref={serviceRef} enable={!!enable_service_mode} />
-      <NetInfoViewer ref={netInfoRef} />
+      {tunRef.mounted && <TunViewer ref={tunRef.dialogRef} />}
+      {webRef.mounted && <WebUIViewer ref={webRef.dialogRef} />}
+      {portRef.mounted && <ClashPortViewer ref={portRef.dialogRef} />}
+      {ctrlRef.mounted && <ControllerViewer ref={ctrlRef.dialogRef} />}
+      {coreRef.mounted && (
+        <ClashCoreViewer
+          ref={coreRef.dialogRef}
+          serviceActive={serviceStatus === "active"}
+        />
+      )}
+      {serviceRef.mounted && (
+        <ServiceViewer
+          ref={serviceRef.dialogRef}
+          enable={!!enable_service_mode}
+        />
+      )}
+      {netInfoRef.mounted && <NetInfoViewer ref={netInfoRef.dialogRef} />}
 
       <SettingItem
         disabled={disableTunSetting}
@@ -156,7 +164,7 @@ const SettingClash = ({ onError }: Props) => {
               <IconButton
                 color="inherit"
                 size="small"
-                onClick={() => tunRef.current?.open()}>
+                onClick={() => tunRef.open()}>
                 <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
               </IconButton>
             )}
@@ -179,7 +187,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => serviceRef.current?.open()}>
+            onClick={() => serviceRef.open()}>
             <PrivacyTipRounded
               color={
                 serviceStatus === "active" || serviceStatus === "installed"
@@ -236,7 +244,7 @@ const SettingClash = ({ onError }: Props) => {
               color="inherit"
               size="small"
               onClick={() => {
-                netInfoRef.current?.open();
+                netInfoRef.open();
               }}>
               <Lan fontSize="inherit" sx={{ opacity: 0.75 }} />
             </IconButton>
@@ -346,7 +354,7 @@ const SettingClash = ({ onError }: Props) => {
           value={clash?.["mixed-port"] ?? 7890}
           sx={{ width: 100, input: { py: "7.5px", cursor: "pointer" } }}
           onClick={(e) => {
-            portRef.current?.open();
+            portRef.open();
             (e.target as any).blur();
           }}
         />
@@ -358,7 +366,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => ctrlRef.current?.open()}>
+            onClick={() => ctrlRef.open()}>
             <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
           </IconButton>
         }>
@@ -374,7 +382,7 @@ const SettingClash = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => webRef.current?.open()}
+        onClick={() => webRef.open()}
         label={t("Web UI")}
       />
 
@@ -384,7 +392,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => coreRef.current?.open()}>
+            onClick={() => coreRef.open()}>
             <Settings
               fontSize="inherit"
               style={{ cursor: "pointer", opacity: 0.75 }}

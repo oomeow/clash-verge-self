@@ -13,7 +13,7 @@ import LoadingPage from "@/pages/loading";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import { Paper, ThemeProvider } from "@mui/material";
-import { Outlet } from "@tanstack/react-router";
+import { Outlet, useRouterState } from "@tanstack/react-router";
 import { Event, listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import dayjs from "dayjs";
@@ -38,6 +38,8 @@ interface NoticePayload {
 const Layout = () => {
   usePortable();
   const [isMaximized, setIsMaximized] = useState(false);
+  const [pendingPath, setPendingPath] = useState<string | null>(null);
+  const [showRouteLoading, setShowRouteLoading] = useState(false);
   const { t } = useTranslation();
   const { notice } = useNotice();
   useSyncThemeSettings();
@@ -45,6 +47,9 @@ const Layout = () => {
   const visible = useVisibility();
   const { verge } = useVerge();
   const { language, enable_system_title_bar, enable_keep_ui_active } = verge;
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
 
   keepUIActive = enable_keep_ui_active || false;
 
@@ -136,6 +141,28 @@ const Layout = () => {
     }
   }, [language, visible]);
 
+  useEffect(() => {
+    if (!pendingPath || pathname !== pendingPath) return;
+
+    const timeoutId = globalThis.setTimeout(() => {
+      setShowRouteLoading(false);
+      setPendingPath(null);
+    }, 180);
+
+    return () => globalThis.clearTimeout(timeoutId);
+  }, [pathname, pendingPath]);
+
+  useEffect(() => {
+    if (!showRouteLoading || !pendingPath) return;
+
+    const timeoutId = globalThis.setTimeout(() => {
+      setShowRouteLoading(false);
+      setPendingPath(null);
+    }, 4000);
+
+    return () => globalThis.clearTimeout(timeoutId);
+  }, [showRouteLoading, pendingPath]);
+
   return (
     <SWRConfig
       value={{
@@ -167,7 +194,14 @@ const Layout = () => {
               e.preventDefault();
             }
           }}>
-          <Sidebar enableSystemTitleBar={!!enable_system_title_bar} />
+          <Sidebar
+            enableSystemTitleBar={!!enable_system_title_bar}
+            onNavigateStart={(to) => {
+              if (to === pathname) return;
+              setPendingPath(to);
+              setShowRouteLoading(true);
+            }}
+          />
 
           <div className="flex h-full w-full flex-col overflow-hidden">
             {!enable_system_title_bar && (
@@ -182,10 +216,15 @@ const Layout = () => {
               </div>
             )}
 
-            <div className="flex-auto overflow-auto py-1 pr-1">
+            <div className="bg-comment relative flex-auto overflow-auto py-1 pr-1 dark:bg-[#1e1f27]">
               <Suspense fallback={<LoadingPage />}>
                 <Outlet />
               </Suspense>
+              {showRouteLoading && (
+                <div className="absolute inset-0 z-20 transition-opacity duration-150">
+                  <LoadingPage />
+                </div>
+              )}
             </div>
             <TailwindIndicator />
           </div>

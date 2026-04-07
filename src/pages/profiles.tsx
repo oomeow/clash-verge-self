@@ -101,6 +101,10 @@ const ProfilePage = () => {
       .map((i) => i.uid);
     return { profileItems, globalChains, enabledChainUids };
   }, [profiles]);
+  const activatingUidSet = useMemo(
+    () => new Set(activatingUids),
+    [activatingUids],
+  );
 
   // sortable
   const sensors = useSensors(
@@ -108,6 +112,14 @@ const ProfilePage = () => {
   );
   const [profileList, setProfileList] = useState<IProfileItem[]>([]);
   const [chainList, setChainList] = useState<IProfileItem[]>([]);
+  const profileSortableIds = useMemo(
+    () => profileList.map((item) => item.uid),
+    [profileList],
+  );
+  const chainSortableIds = useMemo(
+    () => chainList.map((item) => item.uid),
+    [chainList],
+  );
   const dropAnimationConfig: DropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
       styles: { active: { opacity: "0.5" } },
@@ -469,7 +481,7 @@ const ProfilePage = () => {
           onDragEnd={(e) => handleProfileDragEnd(e)}
           onDragCancel={() => setDraggingItem(null)}>
           <Box>
-            <SortableContext items={profileList.map((item) => item.uid)}>
+            <SortableContext items={profileSortableIds}>
               <Box sx={{ display: "flex", flexWrap: "wrap" }}>
                 {profileList.map((item) => (
                   <DraggableItem
@@ -483,14 +495,13 @@ const ProfilePage = () => {
                     }}>
                     <ProfileItem
                       selected={
-                        activatingUids.includes(item.uid) ||
+                        activatingUidSet.has(item.uid) ||
                         (activatingUids.length === 0 &&
                           profiles.current === item.uid)
                       }
                       isDragging={draggingItem?.uid === item.uid}
-                      activating={activatingUids.includes(item.uid)}
+                      activating={activatingUidSet.has(item.uid)}
                       itemData={item}
-                      chainLogs={chainLogs}
                       onSelect={(f) => onSelect(item.uid, f)}
                       onDelete={() => onDelete(item.uid)}
                       // onEdit={() => viewerRef.current?.edit(item)}
@@ -511,13 +522,12 @@ const ProfilePage = () => {
                   boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
                 }}
                 selected={
-                  activatingUids.includes(draggingItem.uid) ||
+                  activatingUidSet.has(draggingItem.uid) ||
                   (activatingUids.length === 0 &&
                     profiles.current === draggingItem.uid)
                 }
-                activating={activatingUids.includes(draggingItem.uid)}
+                activating={activatingUidSet.has(draggingItem.uid)}
                 itemData={draggingItem}
-                chainLogs={chainLogs}
                 onSelect={(f) => onSelect(draggingItem.uid, f)}
                 onDelete={() => onDelete(draggingItem.uid)}
                 // onEdit={() => viewerRef.current?.edit(draggingProfileItem)}
@@ -562,7 +572,7 @@ const ProfilePage = () => {
               onDragCancel={() => setDraggingItem(null)}>
               <Box sx={{ display: "flex", flexWrap: "wrap" }}>
                 <SortableContext
-                  items={chainList.map((item) => item.uid)}
+                  items={chainSortableIds}
                   strategy={rectSortingStrategy}>
                   {chainList.map((item) => (
                     <DraggableItem
@@ -577,10 +587,11 @@ const ProfilePage = () => {
                       }}>
                       <ProfileMore
                         selected={
-                          activatingUids.includes(item.uid) || !!item.enable
+                          activatingUidSet.has(item.uid) || !!item.enable
                         }
                         isDragging={draggingItem?.uid === item.uid}
                         itemData={item}
+                        logs={chainLogs[item.uid]}
                         chainLogs={chainLogs}
                         reactivating={activatingUids.includes(item.uid)}
                         onToggleEnable={async (enable) => {
@@ -599,7 +610,7 @@ const ProfilePage = () => {
                   {draggingItem ? (
                     <ProfileMore
                       selected={
-                        activatingUids.includes(draggingItem.uid) ||
+                        activatingUidSet.has(draggingItem.uid) ||
                         !!draggingItem.enable
                       }
                       itemData={draggingItem}
@@ -608,8 +619,9 @@ const ProfilePage = () => {
                         borderRadius: "8px",
                         boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
                       }}
+                      logs={chainLogs[draggingItem.uid]}
                       chainLogs={chainLogs}
-                      reactivating={activatingUids.includes(draggingItem.uid)}
+                      reactivating={activatingUidSet.has(draggingItem.uid)}
                       onToggleEnable={async (enable) => {
                         handleToggleEnable(draggingItem.uid, enable);
                       }}

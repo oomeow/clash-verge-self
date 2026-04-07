@@ -1,6 +1,12 @@
-import ProfilePage from "@/pages/profiles";
 import { createFileRoute } from "@tanstack/react-router";
+import { lazy } from "react";
+
+const ProfilePage = lazy(() => import("@/pages/profiles"));
+
+function ProfilesRouteComponent() {
+  return <ProfilePage />;
+}
 
 export const Route = createFileRoute("/profiles")({
-  component: () => <ProfilePage />,
+  component: ProfilesRouteComponent,
 });

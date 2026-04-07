@@ -4,7 +4,6 @@ import { downloadIconCache } from "@/services/cmds";
 import {
   createScopedHeadStateActions,
   DEFAULT_STATE,
-  useProxyHeadStateStore,
 } from "@/stores/proxyHeadStateStore";
 import ExpandLessRounded from "@mui/icons-material/ExpandLessRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
@@ -27,6 +26,7 @@ import type { IRenderItem } from "./use-render-list";
 
 interface RenderProps {
   item: IRenderItem;
+  delayVersion: number;
   onLocation: (group: IProxyGroupItem) => void;
   onCheckAll: (groupName: string) => void;
   onChangeProxy: (group: IProxyGroupItem, proxy: IProxyItem) => void;
@@ -34,6 +34,7 @@ interface RenderProps {
 
 interface ProxyColProps {
   item: IRenderItem;
+  delayVersion: number;
   onChangeProxy: (group: IProxyGroupItem, proxy: IProxyItem) => void;
 }
 
@@ -70,7 +71,7 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
 }));
 
 const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
-  const { item, onChangeProxy } = props;
+  const { item, delayVersion, onChangeProxy } = props;
   const { group, headState, proxyCol } = item;
   return (
     <Box
@@ -89,6 +90,7 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
           fixed={group.fixed === proxy.name}
           selected={group.now === proxy.name}
           showType={headState?.showType}
+          delayVersion={delayVersion}
           onClick={() => onChangeProxy(group, proxy!)}
         />
       ))}
@@ -96,16 +98,11 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
   );
 });
 
-export const ProxyRender = (props: RenderProps) => {
-  const { item, onLocation, onCheckAll, onChangeProxy } = props;
-  const { type, group, proxy } = item;
+export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
+  const { item, delayVersion, onLocation, onCheckAll, onChangeProxy } = props;
+  const { type, group, proxy, headState = DEFAULT_STATE } = item;
   const { profiles } = useProfiles();
   const current = profiles?.current || "";
-  const headState = useProxyHeadStateStore((state) =>
-    current
-      ? (state.headStates[current]?.[group.name] ?? DEFAULT_STATE)
-      : DEFAULT_STATE,
-  );
   const { verge } = useVerge();
   const headStateActions = useMemo(
     () => createScopedHeadStateActions({ current, groupName: group.name }),
@@ -113,16 +110,16 @@ export const ProxyRender = (props: RenderProps) => {
   );
   const enable_group_icon = verge?.enable_group_icon ?? true;
   const [iconCachePath, setIconCachePath] = useState("");
-
-  useEffect(() => {
-    initIconCachePath();
-  }, [group]);
+  const groupIcon = group.icon?.trim() ?? "";
+  const isHttpIcon = groupIcon.startsWith("http");
+  const isDataIcon = groupIcon.startsWith("data");
+  const isInlineSvgIcon = groupIcon.startsWith("<svg");
 
   const initIconCachePath = useMemoizedFn(async () => {
-    if (group.icon && group.icon.trim().startsWith("http")) {
+    if (isHttpIcon) {
       const fileName =
-        group.name.replaceAll(" ", "") + "-" + getFileName(group.icon);
-      const iconPath = await downloadIconCache(group.icon, fileName);
+        group.name.replaceAll(" ", "") + "-" + getFileName(groupIcon);
+      const iconPath = await downloadIconCache(groupIcon, fileName);
       setIconCachePath(convertFileSrc(iconPath));
     }
   });
@@ -130,6 +127,14 @@ export const ProxyRender = (props: RenderProps) => {
   const getFileName = useMemoizedFn((url: string) => {
     return url.substring(url.lastIndexOf("/") + 1);
   });
+
+  useEffect(() => {
+    if (!isHttpIcon) {
+      setIconCachePath("");
+      return;
+    }
+    initIconCachePath();
+  }, [initIconCachePath, isHttpIcon]);
 
   if (type === 0) {
     return (
@@ -147,32 +152,26 @@ export const ProxyRender = (props: RenderProps) => {
           transition: "background-color 0s",
         })}
         onClick={() => headStateActions.setOpen(!headState?.open)}>
-        {enable_group_icon &&
-          group.icon &&
-          group.icon.trim().startsWith("http") && (
-            <img
-              src={iconCachePath === "" ? group.icon : iconCachePath}
-              width="32px"
-              style={{ marginRight: "12px", borderRadius: "6px" }}
-            />
-          )}
-        {enable_group_icon &&
-          group.icon &&
-          group.icon.trim().startsWith("data") && (
-            <img
-              src={group.icon}
-              width="32px"
-              style={{ marginRight: "12px", borderRadius: "6px" }}
-            />
-          )}
-        {enable_group_icon &&
-          group.icon &&
-          group.icon.trim().startsWith("<svg") && (
-            <img
-              src={`data:image/svg+xml;base64,${btoa(group.icon)}`}
-              width="32px"
-            />
-          )}
+        {enable_group_icon && isHttpIcon && (
+          <img
+            src={iconCachePath === "" ? groupIcon : iconCachePath}
+            width="32px"
+            style={{ marginRight: "12px", borderRadius: "6px" }}
+          />
+        )}
+        {enable_group_icon && isDataIcon && (
+          <img
+            src={groupIcon}
+            width="32px"
+            style={{ marginRight: "12px", borderRadius: "6px" }}
+          />
+        )}
+        {enable_group_icon && isInlineSvgIcon && (
+          <img
+            src={`data:image/svg+xml;base64,${btoa(groupIcon)}`}
+            width="32px"
+          />
+        )}
         <ListItemText
           primary={<StyledPrimary>{group.name}</StyledPrimary>}
           secondary={
@@ -220,6 +219,7 @@ export const ProxyRender = (props: RenderProps) => {
         proxy={proxy!}
         selected={group.now === proxy?.name}
         showType={headState?.showType}
+        delayVersion={delayVersion}
         sx={{ py: 0, pl: 2 }}
         onClick={() => onChangeProxy(group, proxy!)}
       />
@@ -244,6 +244,12 @@ export const ProxyRender = (props: RenderProps) => {
   }
 
   if (type === 4) {
-    return <ProxyItemMiniCol item={item} onChangeProxy={onChangeProxy} />;
+    return (
+      <ProxyItemMiniCol
+        item={item}
+        delayVersion={delayVersion}
+        onChangeProxy={onChangeProxy}
+      />
+    );
   }
-};
+});

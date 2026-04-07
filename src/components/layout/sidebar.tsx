@@ -4,18 +4,52 @@ import { useWindowSize } from "@/hooks/use-window-size";
 import { routes } from "@/routes/__root";
 import { cn } from "@/utils";
 import { List } from "@mui/material";
+import { useRouter, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LayoutItem } from "./layout-item";
 
 interface Props {
   enableSystemTitleBar: boolean;
+  onNavigateStart?: (to: string) => void;
 }
 
 export const Sidebar = (props: Props) => {
-  const { enableSystemTitleBar } = props;
+  const { enableSystemTitleBar, onNavigateStart } = props;
   const { size } = useWindowSize();
   const { t } = useTranslation();
+  const router = useRouter();
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
   const open = size.width >= 650;
+  const [pendingTo, setPendingTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPendingTo(null);
+  }, [pathname]);
+
+  useEffect(() => {
+    const preloadRoutes = () => {
+      routes.forEach((route) => {
+        void router.preloadRoute({ to: route.path });
+      });
+    };
+    const windowWithIdleCallback = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+
+    if (windowWithIdleCallback.requestIdleCallback) {
+      const idleId = windowWithIdleCallback.requestIdleCallback(() => {
+        preloadRoutes();
+      });
+      return () => windowWithIdleCallback.cancelIdleCallback?.(idleId);
+    }
+
+    const timeoutId = globalThis.setTimeout(preloadRoutes, 300);
+    return () => globalThis.clearTimeout(timeoutId);
+  }, [router]);
 
   return (
     <div
@@ -42,7 +76,15 @@ export const Sidebar = (props: Props) => {
             open={open}
             key={route.label}
             to={route.path}
-            icon={route.icon}>
+            icon={route.icon}
+            pending={pendingTo === route.path}
+            onMouseEnter={() => {
+              void router.preloadRoute({ to: route.path });
+            }}
+            onNavigate={() => {
+              onNavigateStart?.(route.path);
+              setPendingTo(route.path);
+            }}>
             {t(route.label)}
           </LayoutItem>
         ))}

@@ -1,6 +1,6 @@
 import { cn } from "@/utils";
 import { Link, Tooltip, Typography } from "@mui/material";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 interface Props {
   groupNameList: string[];
@@ -13,7 +13,7 @@ type GroupName = {
   shortName: string;
 };
 
-export const ProxyGroupSidebar = (props: Props) => {
+export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
   const { groupNameList, onGroupNameClick, className } = props;
   const [open, setOpen] = useState(false);
   const groupNameListWithShortName: GroupName[] = useMemo(() => {
@@ -58,4 +58,4 @@ export const ProxyGroupSidebar = (props: Props) => {
       </div>
     </div>
   );
-};
+});

@@ -10,7 +10,7 @@ class DelayManager {
   private listenerMap = new Map<string, (time: number) => void>();
 
   // 每个分组的监听
-  private groupListenerMap = new Map<string, () => void>();
+  private groupListenerMap = new Map<string, Set<() => void>>();
 
   setUrl(group: string, url: string) {
     this.urlMap.set(group, url);
@@ -31,18 +31,30 @@ class DelayManager {
   }
 
   setGroupListener(group: string, listener: () => void) {
-    this.groupListenerMap.set(group, listener);
+    const listeners = this.groupListenerMap.get(group) ?? new Set<() => void>();
+    listeners.add(listener);
+    this.groupListenerMap.set(group, listeners);
   }
 
-  removeGroupListener(group: string) {
-    this.groupListenerMap.delete(group);
+  removeGroupListener(group: string, listener?: () => void) {
+    if (!listener) {
+      this.groupListenerMap.delete(group);
+      return;
+    }
+
+    const listeners = this.groupListenerMap.get(group);
+    if (!listeners) return;
+    listeners.delete(listener);
+    if (listeners.size === 0) {
+      this.groupListenerMap.delete(group);
+    }
   }
 
   setDelay(name: string, group: string, delay: number) {
     const key = hashKey(name, group);
     this.cache.set(key, [Date.now(), delay]);
     this.listenerMap.get(key)?.(delay);
-    this.groupListenerMap.get(group)?.();
+    this.groupListenerMap.get(group)?.forEach((listener) => listener());
   }
 
   getDelay(name: string, group: string) {
@@ -70,6 +82,7 @@ class DelayManager {
 
   async checkDelay(name: string, group: string, timeout: number) {
     let delay = -1;
+    this.setDelay(name, group, -2);
 
     try {
       const url = this.getUrl(group);

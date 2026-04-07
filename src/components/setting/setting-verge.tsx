@@ -57,6 +57,7 @@ import { MiscViewer } from "./mods/misc-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { ThemeModeSwitch } from "./mods/theme-mode-switch";
 import { ThemeViewer } from "./mods/theme-viewer";
+import { useLazyDialogRef } from "./use-lazy-dialog-ref";
 import { UpdateViewer } from "./mods/update-viewer";
 
 interface Props {
@@ -82,13 +83,13 @@ const SettingVerge = ({ onError }: Props) => {
     webdav_username,
     webdav_password,
   } = verge;
-  const configRef = useRef<DialogRef>(null);
-  const hotkeyRef = useRef<DialogRef>(null);
-  const miscRef = useRef<DialogRef>(null);
-  const themeRef = useRef<DialogRef>(null);
-  const layoutRef = useRef<DialogRef>(null);
-  const updateRef = useRef<DialogRef>(null);
-  const webDavRef = useRef<WebDavFilesViewerRef>(null);
+  const configRef = useLazyDialogRef<DialogRef>();
+  const hotkeyRef = useLazyDialogRef<DialogRef>();
+  const miscRef = useLazyDialogRef<DialogRef>();
+  const themeRef = useLazyDialogRef<DialogRef>();
+  const layoutRef = useLazyDialogRef<DialogRef>();
+  const updateRef = useLazyDialogRef<DialogRef>();
+  const webDavRef = useLazyDialogRef<WebDavFilesViewerRef>();
 
   const onChangeData = (patch: Partial<IVergeConfig>) => {
     mutateVerge({ ...verge, ...patch }, false);
@@ -100,7 +101,7 @@ const SettingVerge = ({ onError }: Props) => {
       if (!info) {
         notice("success", t("Currently on the Latest Version"));
       } else {
-        updateRef.current?.open();
+        updateRef.open();
       }
     } catch (err: any) {
       notice("error", err.message || err.toString());
@@ -144,8 +145,13 @@ const SettingVerge = ({ onError }: Props) => {
         await updateWebDavInfo(data.url, data.username, data.password);
       } else {
         setLoadingBackupFiles(true);
-        await webDavRef.current?.getAllBackupFiles();
-        webDavRef.current?.open();
+        await new Promise<void>((resolve) => {
+          webDavRef.withDialog(async (ref) => {
+            await ref.getAllBackupFiles();
+            ref.open();
+            resolve();
+          });
+        });
       }
     } catch (e: any) {
       notice("error", t("WebDav Connection Failed", { error: e }), 3000);
@@ -192,13 +198,13 @@ const SettingVerge = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("Verge Setting")}>
-      <ThemeViewer ref={themeRef} />
-      <ConfigViewer ref={configRef} />
-      <HotkeyViewer ref={hotkeyRef} />
-      <MiscViewer ref={miscRef} />
-      <LayoutViewer ref={layoutRef} />
-      <UpdateViewer ref={updateRef} />
-      <WebDavFilesViewer ref={webDavRef} />
+      {themeRef.mounted && <ThemeViewer ref={themeRef.dialogRef} />}
+      {configRef.mounted && <ConfigViewer ref={configRef.dialogRef} />}
+      {hotkeyRef.mounted && <HotkeyViewer ref={hotkeyRef.dialogRef} />}
+      {miscRef.mounted && <MiscViewer ref={miscRef.dialogRef} />}
+      {layoutRef.mounted && <LayoutViewer ref={layoutRef.dialogRef} />}
+      {updateRef.mounted && <UpdateViewer ref={updateRef.dialogRef} />}
+      {webDavRef.mounted && <WebDavFilesViewer ref={webDavRef.dialogRef} />}
 
       <SettingItem label={t("App Log Level")}>
         <GuardState
@@ -356,19 +362,19 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => themeRef.current?.open()}
+        onClick={() => themeRef.open()}
         label={t("Theme Setting")}
       />
 
       <SettingItem
         openMoreSettings
-        onClick={() => layoutRef.current?.open()}
+        onClick={() => layoutRef.open()}
         label={t("Layout Setting")}
       />
 
       <SettingItem
         openMoreSettings
-        onClick={() => miscRef.current?.open()}
+        onClick={() => miscRef.open()}
         label={t("Miscellaneous")}
       />
 
@@ -548,12 +554,12 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => hotkeyRef.current?.open()}
+        onClick={() => hotkeyRef.open()}
         label={t("Hotkey Setting")}
       />
 
       <SettingItem
-        onClick={() => configRef.current?.open()}
+        onClick={() => configRef.open()}
         label={t("Runtime Config")}
       />
 

@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { GuardState } from "./mods/guard-state";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { SysproxyViewer } from "./mods/sysproxy-viewer";
+import { useLazyDialogRef } from "./use-lazy-dialog-ref";
 
 interface Props {
   onError?: (err: Error) => void;
@@ -18,7 +19,7 @@ const SettingSystem = ({ onError }: Props) => {
 
   const { verge, mutateVerge, patchVerge } = useVerge();
 
-  const sysproxyRef = useRef<DialogRef>(null);
+  const sysproxyRef = useLazyDialogRef<DialogRef>();
 
   const {
     enable_auto_launch,
@@ -34,7 +35,7 @@ const SettingSystem = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("System Setting")}>
-      <SysproxyViewer ref={sysproxyRef} />
+      {sysproxyRef.mounted && <SysproxyViewer ref={sysproxyRef.dialogRef} />}
 
       <SettingItem
         label={t("System Proxy")}
@@ -51,7 +52,7 @@ const SettingSystem = ({ onError }: Props) => {
             <IconButton
               color="inherit"
               size="small"
-              onClick={() => sysproxyRef.current?.open()}>
+              onClick={() => sysproxyRef.open()}>
               <Settings
                 fontSize="inherit"
                 style={{ cursor: "pointer", opacity: 0.75 }}
