@@ -94,7 +94,7 @@ export const useProxyHeadStateStore = create<
     })),
     {
       name: "proxy-head-state",
-      version: 2,
+      version: 1,
     },
   ),
 );

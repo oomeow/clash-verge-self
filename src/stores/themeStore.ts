@@ -143,7 +143,7 @@ export const useThemeSettingsStore = create<
     })),
     {
       name: "theme_settings",
-      version: 2,
+      version: 1,
     },
   ),
 );

@@ -46,12 +46,7 @@ export const useConnectionsStore = create<
     })),
     {
       name: "connections-settings",
-      version: 2,
-      partialize: (state) => ({
-        layout: state.layout,
-        curOrderOpt: state.curOrderOpt,
-        tabName: state.tabName,
-      }),
+      version: 1,
     },
   ),
 );
