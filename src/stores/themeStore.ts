@@ -4,18 +4,22 @@ import { immer } from "zustand/middleware/immer";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
 
 export type ThemeMode = "light" | "dark";
+type ThemeSetting = NonNullable<IVergeConfig["light_theme_setting"]>;
 
-type ThemeKey =
-  | "primary_color"
-  | "secondary_color"
-  | "primary_text"
-  | "secondary_text"
-  | "info_color"
-  | "error_color"
-  | "warning_color"
-  | "success_color"
-  | "font_family"
-  | "css_injection";
+const THEME_KEYS = [
+  "primary_color",
+  "secondary_color",
+  "primary_text",
+  "secondary_text",
+  "info_color",
+  "error_color",
+  "warning_color",
+  "success_color",
+  "font_family",
+  "css_injection",
+] as const satisfies readonly (keyof ThemeSetting)[];
+
+type ThemeKey = keyof ThemeSetting;
 
 interface ThemeSettings {
   light: IVergeConfig["light_theme_setting"];
@@ -43,7 +47,12 @@ const isSameThemeSetting = (
   right:
     | IVergeConfig["light_theme_setting"]
     | IVergeConfig["dark_theme_setting"],
-) => JSON.stringify(left ?? {}) === JSON.stringify(right ?? {});
+) =>
+  THEME_KEYS.every((key) => {
+    const leftValue = left?.[key] ?? null;
+    const rightValue = right?.[key] ?? null;
+    return leftValue === rightValue;
+  });
 
 export const defaultThemeSettings: ThemeSettings = {
   light: toThemeSetting(defaultTheme),
@@ -143,7 +152,7 @@ export const useThemeSettingsStore = create<
     })),
     {
       name: "theme_settings",
-      version: 1,
+      version: 2,
     },
   ),
 );

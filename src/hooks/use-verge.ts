@@ -18,9 +18,11 @@ export const useVerge = () => {
 
   const patchVerge = async (value: Partial<IVergeConfig>) => {
     await patchVergeConfig(value);
-    if (value.light_theme_setting || value.dark_theme_setting) {
-      setLightThemeSetting(value.light_theme_setting || themeSettings.light);
-      setDarkThemeSetting(value.dark_theme_setting || themeSettings.dark);
+    if (value.light_theme_setting) {
+      setLightThemeSetting(value.light_theme_setting);
+    }
+    if (value.dark_theme_setting) {
+      setDarkThemeSetting(value.dark_theme_setting);
     }
     mutateVerge();
   };
