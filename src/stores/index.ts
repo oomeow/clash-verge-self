@@ -1,5 +1,6 @@
 export {
   defaultThemeSettings,
+  normalizeThemeSetting,
   useThemeModeStore,
   useThemeSettingsStore,
 } from "./themeStore";

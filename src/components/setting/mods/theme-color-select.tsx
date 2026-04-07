@@ -4,7 +4,7 @@ import {
   useThemeSettingsStore,
 } from "@/stores";
 import { useDebounce } from "ahooks";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ThemeKey =
   | "primary_color"
@@ -36,15 +36,27 @@ const ThemeColorSelect = (props: Props) => {
   >;
   const [color, setColor] = useState<string>(theme[themeKey] ?? "");
   const debounceValue = useDebounce(color, { wait: 300 });
+  const skipNextCommitRef = useRef(false);
+  const lastThemeColorRef = useRef(theme[themeKey] ?? "");
 
   useEffect(() => {
-    setColor(theme[themeKey] ?? "");
+    const nextColor = theme[themeKey] ?? "";
+    if (lastThemeColorRef.current === nextColor) return;
+
+    lastThemeColorRef.current = nextColor;
+    skipNextCommitRef.current = true;
+    setColor(nextColor);
   }, [theme, themeKey]);
 
   useEffect(() => {
+    if (skipNextCommitRef.current) {
+      skipNextCommitRef.current = false;
+      return;
+    }
+    if (debounceValue !== color) return;
     if (theme[themeKey] === debounceValue) return;
     setThemeColor(themeMode, themeKey, debounceValue);
-  }, [debounceValue, setThemeColor, themeKey, themeMode, theme]);
+  }, [color, debounceValue, setThemeColor, themeKey, themeMode, theme]);
 
   return (
     <div className="text-primary-text my-1 flex h-12 items-center justify-between px-1">

@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
 
-type ThemeMode = "light" | "dark";
+export type ThemeMode = "light" | "dark";
 
 type ThemeKey =
   | "primary_color"
@@ -50,6 +50,23 @@ export const defaultThemeSettings: ThemeSettings = {
   dark: toThemeSetting(defaultDarkTheme),
 };
 
+export const normalizeThemeSetting = (
+  mode: ThemeMode,
+  setting:
+    | IVergeConfig["light_theme_setting"]
+    | IVergeConfig["dark_theme_setting"],
+) => {
+  const fallback =
+    mode === "light" ? defaultThemeSettings.light : defaultThemeSettings.dark;
+
+  return {
+    ...fallback,
+    ...Object.fromEntries(
+      Object.entries(setting ?? {}).filter(([, value]) => value != null),
+    ),
+  };
+};
+
 type ThemeModeState = {
   themeMode: ThemeMode;
 };
@@ -91,17 +108,19 @@ export const useThemeSettingsStore = create<
       themeSettings: defaultThemeSettings,
       setLightThemeSetting: (setting) =>
         set((state) => {
-          if (isSameThemeSetting(state.themeSettings.light, setting)) {
+          const nextSetting = normalizeThemeSetting("light", setting);
+          if (isSameThemeSetting(state.themeSettings.light, nextSetting)) {
             return;
           }
-          state.themeSettings.light = setting;
+          state.themeSettings.light = nextSetting;
         }),
       setDarkThemeSetting: (setting) =>
         set((state) => {
-          if (isSameThemeSetting(state.themeSettings.dark, setting)) {
+          const nextSetting = normalizeThemeSetting("dark", setting);
+          if (isSameThemeSetting(state.themeSettings.dark, nextSetting)) {
             return;
           }
-          state.themeSettings.dark = setting;
+          state.themeSettings.dark = nextSetting;
         }),
       setThemeColor: (mode, key, value) =>
         set((state) => {

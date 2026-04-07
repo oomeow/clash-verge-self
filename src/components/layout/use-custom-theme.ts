@@ -1,5 +1,9 @@
 import { useVerge } from "@/hooks/use-verge";
-import { useThemeModeStore, useThemeSettingsStore } from "@/stores";
+import {
+  normalizeThemeSetting,
+  useThemeModeStore,
+  useThemeSettingsStore,
+} from "@/stores";
 import {
   alpha,
   createTheme,
@@ -59,7 +63,7 @@ export const useCustomTheme = () => {
   }, [theme_mode]);
 
   const theme = useMemo(() => {
-    const setting = themeSettings[mode]!;
+    const setting = normalizeThemeSetting(mode, themeSettings[mode]);
     const isDark = mode === "dark";
 
     const muiDataGridLocale = language === "zh" ? zhCN : enUS;
