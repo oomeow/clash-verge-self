@@ -22,7 +22,7 @@ import "dayjs/locale/zh-cn";
 import relativeTime from "dayjs/plugin/relativeTime";
 import i18next from "i18next";
 import { debounce } from "lodash-es";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SWRConfig, mutate } from "swr";
 
@@ -40,6 +40,7 @@ const Layout = () => {
   const [isMaximized, setIsMaximized] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [showRouteLoading, setShowRouteLoading] = useState(false);
+  const visitedPathsRef = useRef(new Set<string>());
   const { t } = useTranslation();
   const { notice } = useNotice();
   useSyncThemeSettings();
@@ -52,6 +53,10 @@ const Layout = () => {
   });
 
   keepUIActive = enable_keep_ui_active || false;
+
+  useEffect(() => {
+    visitedPathsRef.current.add(pathname);
+  }, [pathname]);
 
   const handleClose = (keepUIActive: boolean) => {
     const appWindow = getCurrentWebviewWindow();
@@ -198,6 +203,7 @@ const Layout = () => {
             enableSystemTitleBar={!!enable_system_title_bar}
             onNavigateStart={(to) => {
               if (to === pathname) return;
+              if (visitedPathsRef.current.has(to)) return;
               setPendingPath(to);
               setShowRouteLoading(true);
             }}
