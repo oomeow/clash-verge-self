@@ -1,3 +1,9 @@
+import {
+  createScopedHeadStateActions,
+  DEFAULT_STATE,
+  useProxyHeadStateStore,
+} from "@/stores/proxyHeadStateStore";
+import { useProfiles } from "@/hooks/use-profiles";
 import { useVerge } from "@/hooks/use-verge";
 import delayManager from "@/services/delay";
 import AccessTimeRounded from "@mui/icons-material/AccessTimeRounded";
@@ -13,10 +19,9 @@ import WifiTetheringOffRounded from "@mui/icons-material/WifiTetheringOffRounded
 import WifiTetheringRounded from "@mui/icons-material/WifiTetheringRounded";
 import { Box, IconButton, SxProps, TextField } from "@mui/material";
 import debounce from "lodash-es/debounce";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ProxySortType } from "./use-filter-sort";
-import { useHeadState, useScopedHeadStateActions } from "./use-head-state";
 
 interface Props {
   sx?: SxProps;
@@ -27,8 +32,17 @@ interface Props {
 
 export const ProxyHead = (props: Props) => {
   const { sx = {}, groupName } = props;
-  const headState = useHeadState(groupName);
-  const headStateActions = useScopedHeadStateActions(groupName);
+  const { profiles } = useProfiles();
+  const current = profiles?.current || "";
+  const headState = useProxyHeadStateStore((state) =>
+    current
+      ? (state.headStates[current]?.[groupName] ?? DEFAULT_STATE)
+      : DEFAULT_STATE,
+  );
+  const headStateActions = useMemo(
+    () => createScopedHeadStateActions({ current, groupName }),
+    [current, groupName],
+  );
 
   const { showType, sortType, filterText, textState, testUrl } = headState;
   const [filterTextInp, setFilterTextInp] = useState(filterText);

@@ -1,5 +1,11 @@
+import { useProfiles } from "@/hooks/use-profiles";
 import { useVerge } from "@/hooks/use-verge";
 import { downloadIconCache } from "@/services/cmds";
+import {
+  createScopedHeadStateActions,
+  DEFAULT_STATE,
+  useProxyHeadStateStore,
+} from "@/stores/proxyHeadStateStore";
 import ExpandLessRounded from "@mui/icons-material/ExpandLessRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
 import InboxRounded from "@mui/icons-material/InboxRounded";
@@ -13,11 +19,10 @@ import {
 } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useMemoizedFn } from "ahooks";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
-import { useHeadState, useScopedHeadStateActions } from "./use-head-state";
 import type { IRenderItem } from "./use-render-list";
 
 interface RenderProps {
@@ -94,9 +99,18 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
 export const ProxyRender = (props: RenderProps) => {
   const { item, onLocation, onCheckAll, onChangeProxy } = props;
   const { type, group, proxy } = item;
-  const headState = useHeadState(group.name);
+  const { profiles } = useProfiles();
+  const current = profiles?.current || "";
+  const headState = useProxyHeadStateStore((state) =>
+    current
+      ? (state.headStates[current]?.[group.name] ?? DEFAULT_STATE)
+      : DEFAULT_STATE,
+  );
   const { verge } = useVerge();
-  const headStateActions = useScopedHeadStateActions(group.name);
+  const headStateActions = useMemo(
+    () => createScopedHeadStateActions({ current, groupName: group.name }),
+    [current, group.name],
+  );
   const enable_group_icon = verge?.enable_group_icon ?? true;
   const [iconCachePath, setIconCachePath] = useState("");
 
