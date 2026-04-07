@@ -7,15 +7,19 @@ import { openWebUrl } from "@/services/cmds";
 import GitHub from "@mui/icons-material/GitHub";
 import { Box, Grid, IconButton } from "@mui/material";
 import { useLockFn } from "ahooks";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 const SettingPage = () => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
-  const onError = (err: any) => {
-    notice("error", err.message || err.toString());
-  };
+  const onError = useMemo(
+    () => (err: any) => {
+      notice("error", err.message || err.toString());
+    },
+    [notice],
+  );
 
   const openGithubRepo = useLockFn(() => {
     return openWebUrl("https://github.com/oomeow/clash-verge-self");

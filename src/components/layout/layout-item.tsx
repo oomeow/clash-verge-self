@@ -16,9 +16,20 @@ interface Props {
   children: string;
   icon: React.ReactNode[];
   open: boolean;
+  pending?: boolean;
+  onNavigate?: () => void;
+  onMouseEnter?: () => void;
 }
 export const LayoutItem = (props: Props) => {
-  const { to, children, icon, open } = props;
+  const {
+    to,
+    children,
+    icon,
+    open,
+    pending = false,
+    onNavigate,
+    onMouseEnter,
+  } = props;
   const { verge } = useVerge();
   const matchRoute = useMatchRoute();
   const match = !!matchRoute({ to });
@@ -32,7 +43,7 @@ export const LayoutItem = (props: Props) => {
       placement="right">
       <ListItem sx={{ py: 0.5, padding: "4px 0px", height: "60px" }}>
         <ListItemButton
-          selected={!!match}
+          selected={match || pending}
           sx={(theme) => {
             const color = theme.palette.primary.main;
             return {
@@ -65,13 +76,20 @@ export const LayoutItem = (props: Props) => {
               "&.Mui-selected .MuiListItemIcon-root": { color },
             };
           }}
-          onClick={() => navigate({ to })}>
+          onClick={() => {
+            onNavigate?.();
+            navigate({ to });
+          }}
+          onMouseEnter={onMouseEnter}>
           <div
             className={cn("flex items-center text-center", { "w-full": open })}>
             <div className="flex h-8 w-full items-center justify-center">
               <motion.div layout className={cn({ "relative left-4": open })}>
                 {enableMenuIcon && menu_icon === "monochrome" && (
-                  <Box sx={{ color: match ? "primary.main" : "text.primary" }}>
+                  <Box
+                    sx={{
+                      color: match || pending ? "primary.main" : "text.primary",
+                    }}>
                     {icon[0]}
                   </Box>
                 )}
@@ -81,7 +99,7 @@ export const LayoutItem = (props: Props) => {
                 <div className="w-full">
                   <Typography
                     sx={{
-                      color: match ? "primary.main" : "text.primary",
+                      color: match || pending ? "primary.main" : "text.primary",
                       fontWeight: "bold",
                     }}>
                     {children}

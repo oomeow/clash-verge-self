@@ -19,7 +19,7 @@ import WifiTetheringOffRounded from "@mui/icons-material/WifiTetheringOffRounded
 import WifiTetheringRounded from "@mui/icons-material/WifiTetheringRounded";
 import { Box, IconButton, SxProps, TextField } from "@mui/material";
 import debounce from "lodash-es/debounce";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ProxySortType } from "./use-filter-sort";
 
@@ -30,7 +30,7 @@ interface Props {
   onCheckDelay: () => void;
 }
 
-export const ProxyHead = (props: Props) => {
+export const ProxyHead = memo(function ProxyHead(props: Props) {
   const { sx = {}, groupName } = props;
   const { profiles } = useProfiles();
   const current = profiles?.current || "";
@@ -62,9 +62,19 @@ export const ProxyHead = (props: Props) => {
     delayManager.setUrl(groupName, testUrl || verge?.default_latency_test!);
   }, [groupName, testUrl, verge?.default_latency_test]);
 
-  const filterChange = debounce((text: string) => {
-    headStateActions.setFilterText(text);
-  }, 500);
+  const filterChange = useMemo(
+    () =>
+      debounce((text: string) => {
+        headStateActions.setFilterText(text);
+      }, 500),
+    [headStateActions],
+  );
+
+  useEffect(() => {
+    return () => {
+      filterChange.cancel();
+    };
+  }, [filterChange]);
 
   return (
     <Box
@@ -185,4 +195,4 @@ export const ProxyHead = (props: Props) => {
       )}
     </Box>
   );
-};
+});

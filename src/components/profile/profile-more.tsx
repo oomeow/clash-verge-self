@@ -29,7 +29,7 @@ import {
 import { useLockFn } from "ahooks";
 import { Message } from "console-feed/lib/definitions/Component";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
@@ -43,6 +43,7 @@ interface Props {
   selected: boolean;
   isDragging?: boolean;
   itemData: IProfileItem;
+  logs?: LogMessage[];
   chainLogs?: Record<string, LogMessage[]>;
   reactivating: boolean;
   onToggleEnable: (enable: boolean) => void;
@@ -60,12 +61,13 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
 }));
 
 // profile enhanced item
-export const ProfileMore = (props: Props) => {
+export const ProfileMore = memo(function ProfileMore(props: Props) {
   const {
     sx,
     selected,
     isDragging,
     itemData,
+    logs = [],
     chainLogs = {},
     reactivating,
     onToggleEnable,
@@ -105,8 +107,6 @@ export const ProfileMore = (props: Props) => {
     setAnchorEl(null);
     return fn();
   };
-
-  const logs = chainLogs[uid] || [];
   const hasError = !!logs.find((e) => e.exception);
 
   const menus = [
@@ -323,7 +323,7 @@ export const ProfileMore = (props: Props) => {
       )}
     </Box>
   );
-};
+});
 
 function parseExpire(expire?: number) {
   if (!expire) return "-";

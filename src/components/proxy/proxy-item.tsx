@@ -13,13 +13,14 @@ import {
   Theme,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { useEffect, useState } from "react";
+import { memo } from "react";
 
 interface Props {
   group: IProxyGroupItem;
   proxy: IProxyItem;
   selected: boolean;
   showType?: boolean;
+  delayVersion?: number;
   sx?: SxProps<Theme>;
   onClick?: (name: string) => void;
 }
@@ -50,36 +51,29 @@ const TypeSpan = styled("span")(
   }),
 );
 
-export const ProxyItem = (props: Props) => {
-  const { group, proxy, selected, showType = true, sx, onClick } = props;
-
-  // -1/<=0 为 不显示
-  // -2 为 loading
-  const [delay, setDelay] = useState(-1);
+export const ProxyItem = memo(function ProxyItem(props: Props) {
+  const {
+    group,
+    proxy,
+    selected,
+    showType = true,
+    delayVersion,
+    sx,
+    onClick,
+  } = props;
   const { verge } = useVerge();
   const timeout = verge?.default_latency_timeout || 5000;
-  useEffect(() => {
-    delayManager.setListener(proxy.name, group.name, setDelay);
-
-    return () => {
-      delayManager.removeListener(proxy.name, group.name);
-    };
-  }, [proxy.name, group.name]);
-
-  useEffect(() => {
-    if (!proxy) return;
-    setDelay(delayManager.getDelayFix(proxy, group.name));
-  }, [proxy]);
+  const delay = delayManager.getDelayFix(proxy, group.name);
 
   const onDelay = useLockFn(async () => {
-    setDelay(-2);
-    setDelay(await delayManager.checkDelay(proxy.name, group.name, timeout));
+    await delayManager.checkDelay(proxy.name, group.name, timeout);
   });
 
   return (
     <ListItem sx={sx}>
       <ListItemButton
         dense
+        data-delay-version={delayVersion}
         selected={selected}
         onClick={() => onClick?.(proxy.name)}
         sx={(theme) => {
@@ -196,4 +190,4 @@ export const ProxyItem = (props: Props) => {
       </ListItemButton>
     </ListItem>
   );
-};
+});

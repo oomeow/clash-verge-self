@@ -26,7 +26,7 @@ import {
 } from "@mui/material";
 import { useLockFn } from "ahooks";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { mutate } from "swr";
 import { useNotice } from "../base/notifies";
@@ -40,20 +40,18 @@ interface Props {
   isDragging?: boolean;
   activating: boolean;
   itemData: IProfileItem;
-  chainLogs: Record<string, LogMessage[]>;
   onSelect: (force: boolean) => void;
   onDelete: () => void;
   onReactivate: () => void;
 }
 
-export const ProfileItem = (props: Props) => {
+export const ProfileItem = memo(function ProfileItem(props: Props) {
   const {
     sx,
     selected,
     isDragging,
     activating,
     itemData,
-    chainLogs,
     onSelect,
     onDelete,
     onReactivate,
@@ -384,7 +382,6 @@ export const ProfileItem = (props: Props) => {
       <ProfileEditorViewer
         open={open}
         profileItem={itemData}
-        chainLogs={chainLogs}
         type="clash"
         onChange={() => {
           if (selected) {
@@ -406,7 +403,7 @@ export const ProfileItem = (props: Props) => {
       />
     </Box>
   );
-};
+});
 
 function parseUrl(url?: string) {
   if (!url) return "";

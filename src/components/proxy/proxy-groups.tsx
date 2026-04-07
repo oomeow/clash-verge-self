@@ -7,7 +7,7 @@ import delayManager from "@/services/delay";
 import { cn } from "@/utils";
 import { Box } from "@mui/material";
 import { useLockFn, useMemoizedFn, useThrottleFn } from "ahooks";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import {
   closeConnection,
@@ -33,6 +33,41 @@ export const ProxyGroups = (props: Props) => {
   const timeout = verge.default_latency_timeout || 5000;
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const [groupDelayVersions, setGroupDelayVersions] = useState<
+    Record<string, number>
+  >({});
+  const groupNames = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          renderList
+            .filter((item) => item.type === 0)
+            .map((item) => item.group.name),
+        ),
+      ),
+    [renderList],
+  );
+
+  useEffect(() => {
+    if (!groupNames.length) return;
+
+    const listeners = groupNames.map((groupName) => {
+      const listener = () => {
+        setGroupDelayVersions((prev) => ({
+          ...prev,
+          [groupName]: (prev[groupName] ?? 0) + 1,
+        }));
+      };
+      delayManager.setGroupListener(groupName, listener);
+      return { groupName, listener };
+    });
+
+    return () => {
+      listeners.forEach(({ groupName, listener }) => {
+        delayManager.removeGroupListener(groupName, listener);
+      });
+    };
+  }, [groupNames]);
 
   // 切换分组的节点代理
   const handleChangeProxy = useMemoizedFn(
@@ -200,6 +235,9 @@ export const ProxyGroups = (props: Props) => {
               <ProxyRender
                 key={renderList[index].key}
                 item={renderList[index]}
+                delayVersion={
+                  groupDelayVersions[renderList[index].group.name] ?? 0
+                }
                 onLocation={handleLocation}
                 onCheckAll={handleCheckAll}
                 onChangeProxy={handleChangeProxy}

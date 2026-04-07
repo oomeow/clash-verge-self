@@ -3,8 +3,7 @@ import { useVerge } from "@/hooks/use-verge";
 import delayManager from "@/services/delay";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { alpha, Box, ListItemButton, styled, Typography } from "@mui/material";
-import { useLockFn, useThrottleFn } from "ahooks";
-import { useEffect, useState } from "react";
+import { memo } from "react";
 
 interface Props {
   groupName: string;
@@ -12,6 +11,7 @@ interface Props {
   fixed: boolean;
   selected: boolean;
   showType?: boolean;
+  delayVersion?: number;
   onClick?: (name: string) => void;
 }
 
@@ -43,36 +43,28 @@ const TypeSpan = styled("span")(
 );
 
 // 多列布局
-export const ProxyItemMini = (props: Props) => {
-  const { groupName, proxy, fixed, selected, showType = true, onClick } = props;
-
-  // -1/<=0 为 不显示
-  // -2 为 loading
-  const [delay, setDelay] = useState(-1);
+export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
+  const {
+    groupName,
+    proxy,
+    fixed,
+    selected,
+    showType = true,
+    delayVersion,
+    onClick,
+  } = props;
   const { verge } = useVerge();
   const timeout = verge?.default_latency_timeout || 5000;
-
-  useEffect(() => {
-    delayManager.setListener(proxy.name, groupName, setDelay);
-
-    return () => {
-      delayManager.removeListener(proxy.name, groupName);
-    };
-  }, [proxy.name, groupName]);
-
-  useEffect(() => {
-    if (!proxy) return;
-    setDelay(delayManager.getDelayFix(proxy, groupName));
-  }, [proxy]);
+  const delay = delayManager.getDelayFix(proxy, groupName);
 
   const onDelay = async () => {
-    setDelay(-2);
-    setDelay(await delayManager.checkDelay(proxy.name, groupName, timeout));
+    await delayManager.checkDelay(proxy.name, groupName, timeout);
   };
 
   return (
     <ListItemButton
       dense
+      data-delay-version={delayVersion}
       selected={selected}
       onClick={() => onClick?.(proxy.name)}
       sx={[
@@ -229,4 +221,4 @@ export const ProxyItemMini = (props: Props) => {
       )}
     </ListItemButton>
   );
-};
+});
