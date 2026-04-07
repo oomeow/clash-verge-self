@@ -48,7 +48,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { ConfigViewer } from "./mods/config-viewer";
 import { GuardState } from "./mods/guard-state";
 import { HotkeyViewer } from "./mods/hotkey-viewer";

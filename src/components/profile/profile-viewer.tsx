@@ -20,7 +20,7 @@ import {
 } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 
 interface Props {
   onChange: () => void;

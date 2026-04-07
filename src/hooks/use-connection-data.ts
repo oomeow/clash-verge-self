@@ -1,8 +1,8 @@
-import { useLocalStorage } from "foxact/use-local-storage";
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { useRefreshConnectionDateStore } from "@/stores";
 
 export const initConnData: IConnections = {
   uploadTotal: 0,
@@ -11,7 +11,8 @@ export const initConnData: IConnections = {
 };
 
 export const useConnectionData = () => {
-  const [date, setDate] = useLocalStorage("mihomo_connection_date", Date.now());
+  const date = useRefreshConnectionDateStore((s) => s.date);
+  const refresh = useRefreshConnectionDateStore((s) => s.refresh);
   const subscriptKey = `getClashConnection-${date}`;
 
   const ws = useRef<MihomoWebSocket | null>(null);
@@ -101,7 +102,7 @@ export const useConnectionData = () => {
   }, [date, subscriptKey]);
 
   const refreshGetClashConnection = () => {
-    setDate(Date.now());
+    refresh();
   };
 
   return { response, refreshGetClashConnection };

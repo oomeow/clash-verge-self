@@ -13,7 +13,7 @@ import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { t } from "i18next";
 import { debounce } from "lodash-es";
 import { useEffect, useRef } from "react";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { TrafficGraph, type TrafficRef } from "./traffic-graph";
 
 // setup the traffic

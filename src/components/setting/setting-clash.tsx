@@ -7,7 +7,7 @@ import { usePortable } from "@/hooks/use-portable";
 import { useService } from "@/hooks/use-service";
 import { useVerge } from "@/hooks/use-verge";
 import { invoke_uwp_tool } from "@/services/cmds";
-import { useClashLog } from "@/services/states";
+import { useClashLogStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Lan from "@mui/icons-material/Lan";
@@ -27,7 +27,7 @@ import {
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { ClashCoreViewer } from "./mods/clash-core-viewer";
 import { ClashPortViewer } from "./mods/clash-port-viewer";
 import { ControllerViewer } from "./mods/controller-viewer";
@@ -77,7 +77,7 @@ const SettingClash = ({ onError }: Props) => {
   const isLinuxPortable = portable && OS === "linux";
   const disableTunSetting =
     !(isLinuxPortable && permissionsGranted) && serviceStatus !== "active";
-  const [_clashLog, setClashLog] = useClashLog();
+  const setLogLevel = useClashLogStore((s) => s.setLogLevel);
 
   const webRef = useRef<DialogRef>(null);
   const portRef = useRef<DialogRef>(null);
@@ -307,7 +307,7 @@ const SettingClash = ({ onError }: Props) => {
           onFormat={(e: any) => e.target.value}
           // onChange={(e) => onChangeData({ "log-level": e })}
           onGuard={(e) => {
-            setClashLog((pre: any) => ({ ...pre, logLevel: e }));
+            setLogLevel(e);
             return patchClash({ "log-level": e });
           }}>
           <Select size="small" sx={{ width: 100, "> div": { py: "7.5px" } }}>

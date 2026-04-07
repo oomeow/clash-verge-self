@@ -1,7 +1,10 @@
-import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import { useThemeMode, useThemeSettings } from "@/services/states";
+import {
+  defaultThemeSettings,
+  useThemeModeStore,
+  useThemeSettingsStore,
+} from "@/stores";
 import { useDebounce } from "ahooks";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ThemeKey =
   | "primary_color"
@@ -20,27 +23,40 @@ interface Props {
 
 const ThemeColorSelect = (props: Props) => {
   const { label, themeKey } = props;
-  const [themeSettings, setThemeSettings] = useThemeSettings();
-  const themeMode = useThemeMode();
-  const theme =
-    (themeMode === "light" ? themeSettings.light : themeSettings.dark) ?? {};
-  const dt = themeMode === "light" ? defaultTheme : defaultDarkTheme;
-  const [color, setColor] = useState<string>(theme[themeKey] || dt[themeKey]);
+  const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
+  const setThemeColor = useThemeSettingsStore((s) => s.setThemeColor);
+  const themeMode = useThemeModeStore((s) => s.themeMode);
+  const currentThemeSetting =
+    themeMode === "light" ? themeSettings.light : themeSettings.dark;
+  const theme = (currentThemeSetting ??
+    (themeMode === "light"
+      ? defaultThemeSettings.light
+      : defaultThemeSettings.dark)) as NonNullable<
+    IVergeConfig["light_theme_setting"]
+  >;
+  const [color, setColor] = useState<string>(theme[themeKey] ?? "");
   const debounceValue = useDebounce(color, { wait: 300 });
+  const skipNextCommitRef = useRef(false);
+  const lastThemeColorRef = useRef(theme[themeKey] ?? "");
 
   useEffect(() => {
-    setColor(theme[themeKey] || dt[themeKey]);
-  }, [theme, dt]);
+    const nextColor = theme[themeKey] ?? "";
+    if (lastThemeColorRef.current === nextColor) return;
+
+    lastThemeColorRef.current = nextColor;
+    skipNextCommitRef.current = true;
+    setColor(nextColor);
+  }, [theme, themeKey]);
 
   useEffect(() => {
-    setThemeSettings((prev: any) => ({
-      ...prev,
-      [themeMode]: {
-        ...prev[themeMode],
-        [themeKey]: debounceValue,
-      },
-    }));
-  }, [debounceValue]);
+    if (skipNextCommitRef.current) {
+      skipNextCommitRef.current = false;
+      return;
+    }
+    if (debounceValue !== color) return;
+    if (theme[themeKey] === debounceValue) return;
+    setThemeColor(themeMode, themeKey, debounceValue);
+  }, [color, debounceValue, setThemeColor, themeKey, themeMode, theme]);
 
   return (
     <div className="text-primary-text my-1 flex h-12 items-center justify-between px-1">

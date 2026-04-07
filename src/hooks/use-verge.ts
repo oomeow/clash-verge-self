@@ -1,5 +1,5 @@
 import { getVergeConfig, patchVergeConfig } from "@/services/cmds";
-import { useThemeSettings } from "@/services/states";
+import { useThemeSettingsStore } from "@/stores";
 import useSWR from "swr";
 
 export const useVerge = () => {
@@ -8,15 +8,21 @@ export const useVerge = () => {
     getVergeConfig,
     { suspense: true },
   );
-  const [themeSettings, setThemeSettings] = useThemeSettings();
+  const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
+  const setLightThemeSetting = useThemeSettingsStore(
+    (s) => s.setLightThemeSetting,
+  );
+  const setDarkThemeSetting = useThemeSettingsStore(
+    (s) => s.setDarkThemeSetting,
+  );
 
   const patchVerge = async (value: Partial<IVergeConfig>) => {
     await patchVergeConfig(value);
-    if (value.light_theme_setting || value.dark_theme_setting) {
-      setThemeSettings({
-        light: value.light_theme_setting || themeSettings.light,
-        dark: value.dark_theme_setting || themeSettings.dark,
-      });
+    if (value.light_theme_setting) {
+      setLightThemeSetting(value.light_theme_setting);
+    }
+    if (value.dark_theme_setting) {
+      setDarkThemeSetting(value.dark_theme_setting);
     }
     mutateVerge();
   };

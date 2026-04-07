@@ -1,6 +1,6 @@
 import MetaIcon from "@/assets/image/Meta.svg?react";
 import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";

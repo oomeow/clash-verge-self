@@ -1,12 +1,13 @@
 import { TrafficRef } from "@/components/layout/traffic-graph";
-import { useLocalStorage } from "foxact/use-local-storage";
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { useRefreshTrafficDateStore } from "@/stores";
 
 export const useTrafficData = () => {
-  const [date, setDate] = useLocalStorage("mihomo_traffic_date", Date.now());
+  const date = useRefreshTrafficDateStore((s) => s.date);
+  const refresh = useRefreshTrafficDateStore((s) => s.refresh);
   const subscriptKey = `getClashTraffic-${date}`;
 
   const trafficRef = useRef<TrafficRef>(null);
@@ -76,7 +77,7 @@ export const useTrafficData = () => {
   }, [date, subscriptKey]);
 
   const refreshGetClashTraffic = () => {
-    setDate(Date.now());
+    refresh();
   };
 
   return { response, refreshGetClashTraffic };

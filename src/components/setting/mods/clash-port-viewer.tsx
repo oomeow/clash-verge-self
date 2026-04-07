@@ -1,5 +1,5 @@
 import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import { checkPortAvailable } from "@/services/cmds";
 import getSystem from "@/utils/get-system";

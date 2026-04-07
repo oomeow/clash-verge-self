@@ -16,5 +16,5 @@ export { SwitchLovely } from "./base-switch-lovely";
 export { CopyButton } from "./copy-button";
 export { Marquee } from "./marquee";
 export { MyNoticeContainer } from "./my-notice-container";
-export { NoticeProvider } from "./notifice";
+export { NoticeProvider } from "./notifies";
 export { TailwindIndicator } from "./tailwind-indicator";

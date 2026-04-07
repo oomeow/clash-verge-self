@@ -4,7 +4,7 @@ import { Marquee } from "@/components/base";
 import { LogViewer } from "@/components/profile/log-viewer";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
 import { viewProfile } from "@/services/cmds";
-import { useThemeMode } from "@/services/states";
+import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 import Block from "@mui/icons-material/Block";
 import CheckCircle from "@mui/icons-material/CheckCircle";
@@ -31,7 +31,7 @@ import { Message } from "console-feed/lib/definitions/Component";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
 
@@ -76,7 +76,7 @@ export const ProfileMore = (props: Props) => {
   const { uid, type } = itemData;
   const { t, i18n } = useTranslation();
   const { notice } = useNotice();
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const [anchorEl, setAnchorEl] = useState<any>(null);
   if (anchorEl && isDragging) {
     setAnchorEl(null);

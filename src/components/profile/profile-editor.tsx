@@ -12,7 +12,7 @@ import {
   loadMonaco,
   configureYaml,
 } from "@/services/monaco";
-import { useThemeMode } from "@/services/states";
+import { useThemeModeStore } from "@/stores";
 import { sleep } from "@/utils";
 import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutline from "@mui/icons-material/ErrorOutline";
@@ -31,7 +31,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import type { editor } from "monaco-editor";
 import { useAsyncEffect } from "ahooks";
 
@@ -79,7 +79,7 @@ export const ProfileEditor = (props: Props) => {
   const { t } = useTranslation();
   const { size } = useWindowSize();
   const { notice } = useNotice();
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const language = profileItem.type === "script" ? "javascript" : "yaml";
   const type =
     profileItem.type === "merge"

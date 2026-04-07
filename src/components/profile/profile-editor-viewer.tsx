@@ -45,7 +45,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { mutate } from "swr";
-import { useNotice } from "../base/notifice";
+import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileEditor, ProfileEditorHandle } from "./profile-editor";
 import ProfileMoreMini from "./profile-more-mini";

@@ -1,12 +1,8 @@
 import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { usePortable } from "@/hooks/use-portable";
 import { useWindowSize } from "@/hooks/use-window-size";
-import {
-  useSetUpdateState,
-  useThemeMode,
-  useUpdateState,
-} from "@/services/states";
+import { useThemeModeStore, useAppUpdateStateStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 import { Box, Button, LinearProgress } from "@mui/material";
 import { relaunch } from "@tauri-apps/plugin-process";
@@ -28,10 +24,10 @@ const OS = getSystem();
 export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const [open, setOpen] = useState(false);
-  const updateState = useUpdateState();
-  const setUpdateState = useSetUpdateState();
+  const appUpdateState = useAppUpdateStateStore((s) => s.appUpdateState);
+  const setAppUpdateState = useAppUpdateStateStore((s) => s.setAppUpdateState);
   const { size } = useWindowSize();
   const { portable } = usePortable();
 
@@ -75,8 +71,8 @@ export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
       notice("error", t("Break Change Update Error"));
       return;
     }
-    if (updateState) return;
-    setUpdateState(true);
+    if (appUpdateState) return;
+    setAppUpdateState(true);
     try {
       await updateInfo.downloadAndInstall((e) => {
         if (e.event === "Started") setTotal(e.data.contentLength || 100);
@@ -92,7 +88,7 @@ export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
     } catch (err: any) {
       notice("error", err.message || err.toString());
     } finally {
-      setUpdateState(false);
+      setAppUpdateState(false);
     }
   });
 
@@ -145,7 +141,7 @@ export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
         variant="buffer"
         value={(downloaded / total) * 100}
         valueBuffer={buffer}
-        sx={{ marginTop: "10px", opacity: updateState ? 1 : 0 }}
+        sx={{ marginTop: "10px", opacity: appUpdateState ? 1 : 0 }}
       />
     </BaseDialog>
   );

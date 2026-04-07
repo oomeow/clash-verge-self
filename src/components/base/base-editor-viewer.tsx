@@ -7,7 +7,7 @@ import {
   registerPacCompletion,
   registerPacFunctionLib,
 } from "@/services/monaco";
-import { useThemeMode } from "@/services/states";
+import { useThemeModeStore } from "@/stores";
 import {
   Button,
   Dialog,
@@ -20,7 +20,7 @@ import { IDisposable } from "monaco-editor";
 import { nanoid } from "nanoid";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "./notifice";
+import { useNotice } from "./notifies";
 import type { editor } from "monaco-editor";
 
 interface Props {
@@ -48,7 +48,7 @@ export const EditorViewer = (props: Props) => {
   const { t } = useTranslation();
   const editorDomRef = useRef<any>(null);
   const instanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
-  const themeMode = useThemeMode();
+  const themeMode = useThemeModeStore((s) => s.themeMode);
   const [monaco, setMonaco] = useState<typeof import("monaco-editor") | null>(
     null,
   );

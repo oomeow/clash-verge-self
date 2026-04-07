@@ -1,8 +1,12 @@
 import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { useVerge } from "@/hooks/use-verge";
-import { useThemeMode, useThemeSettings } from "@/services/states";
+import {
+  defaultThemeSettings,
+  useThemeModeStore,
+  useThemeSettingsStore,
+} from "@/stores";
 import {
   Box,
   Button,
@@ -28,10 +32,30 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
   const { verge, patchVerge } = useVerge();
   const { light_theme_setting, dark_theme_setting } = verge || {};
   const { toggleTheme } = useCustomTheme();
-  const themeMode = useThemeMode();
-  const [themeSettings, setThemeSettings] = useThemeSettings();
-  const theme =
-    (themeMode === "light" ? themeSettings.light : themeSettings.dark) ?? {};
+  const themeMode = useThemeModeStore((s) => s.themeMode);
+  const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
+  const setThemeColor = useThemeSettingsStore((s) => s.setThemeColor);
+  const setLightThemeSetting = useThemeSettingsStore(
+    (s) => s.setLightThemeSetting,
+  );
+  const setDarkThemeSetting = useThemeSettingsStore(
+    (s) => s.setDarkThemeSetting,
+  );
+  const resetLightThemeSetting = useThemeSettingsStore(
+    (s) => s.resetLightThemeSetting,
+  );
+  const resetDarkThemeSetting = useThemeSettingsStore(
+    (s) => s.resetDarkThemeSetting,
+  );
+
+  const currentThemeSetting =
+    themeMode === "light" ? themeSettings.light : themeSettings.dark;
+  const theme = (currentThemeSetting ??
+    (themeMode === "light"
+      ? defaultThemeSettings.light
+      : defaultThemeSettings.dark)) as NonNullable<
+    IVergeConfig["light_theme_setting"]
+  >;
   const [editorOpen, setEditorOpen] = useState(false);
 
   useImperativeHandle(ref, () => ({
@@ -47,21 +71,13 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
     sx: { width: 135 },
   } as const;
 
-  const handleChange = (field: keyof typeof theme) => (e: any) => {
+  const handleChange = (field: "font_family") => (e: any) => {
     const value = e.target.value as string;
-    setThemeSettings((t: any) => {
-      return themeMode === "light"
-        ? { ...t, light: { ...t.light, [field]: value } }
-        : { ...t, dark: { ...t.dark, [field]: value } };
-    });
+    setThemeColor(themeMode, field, value);
   };
 
   const handleCSSInjection = (css: string) => {
-    setThemeSettings((t: any) => {
-      return themeMode === "light"
-        ? { ...t, light: { ...t.light, css_injection: css } }
-        : { ...t, dark: { ...t.dark, css_injection: css } };
-    });
+    setThemeColor(themeMode, "css_injection", css);
   };
 
   const onSave = useLockFn(async () => {
@@ -89,10 +105,11 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
               variant="outlined"
               className="!text-primary-text !mr-2"
               onClick={() => {
-                setThemeSettings((prev: any) => ({
-                  ...prev,
-                  [themeMode]: {},
-                }));
+                if (themeMode === "light") {
+                  resetLightThemeSetting();
+                } else {
+                  resetDarkThemeSetting();
+                }
               }}>
               {t("Default Color")}
             </Button>
@@ -120,17 +137,13 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
       okBtn={t("Save")}
       cancelBtn={t("Cancel")}
       onClose={() => {
-        setThemeSettings({
-          light: light_theme_setting ?? {},
-          dark: dark_theme_setting ?? {},
-        });
+        setLightThemeSetting(light_theme_setting ?? defaultThemeSettings.light);
+        setDarkThemeSetting(dark_theme_setting ?? defaultThemeSettings.dark);
         setOpen(false);
       }}
       onCancel={() => {
-        setThemeSettings({
-          light: light_theme_setting ?? {},
-          dark: dark_theme_setting ?? {},
-        });
+        setLightThemeSetting(light_theme_setting ?? defaultThemeSettings.light);
+        setDarkThemeSetting(dark_theme_setting ?? defaultThemeSettings.dark);
         setOpen(false);
       }}
       onOk={onSave}>

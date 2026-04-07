@@ -1,14 +1,15 @@
+import { useProfiles } from "@/hooks/use-profiles";
+import {
+  DEFAULT_STATE,
+  useProxyHeadStateStore,
+} from "@/stores/proxyHeadStateStore";
 import { useVerge } from "@/hooks/use-verge";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { calcuProxies } from "@/services/api";
 import { useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { filterSort } from "./use-filter-sort";
-import {
-  DEFAULT_STATE,
-  useHeadStateNew,
-  type HeadState,
-} from "./use-head-state";
+import type { HeadState } from "@/stores/proxyHeadStateStore";
 
 export interface IRenderItem {
   // 组 ｜ head ｜ item ｜ empty | item col
@@ -28,8 +29,15 @@ export const useRenderList = (mode: string) => {
     { refreshInterval: 45000 },
   );
 
+  const { profiles } = useProfiles();
+  const current = profiles?.current || "";
   const { verge } = useVerge();
   const { size } = useWindowSize();
+  const headStates = useProxyHeadStateStore((state) =>
+    current
+      ? (state.headStates[current] ?? EMPTY_HEAD_STATES)
+      : EMPTY_HEAD_STATES,
+  );
 
   let col = Math.floor(verge?.proxy_layout_column || 6);
 
@@ -41,8 +49,6 @@ export const useRenderList = (mode: string) => {
     else if (size.width >= 700) col = 2;
     else col = 1;
   }
-
-  const [headStates, setHeadState] = useHeadStateNew();
 
   // make sure that fetch the proxies successfully
   useEffect(() => {
@@ -120,9 +126,10 @@ export const useRenderList = (mode: string) => {
   return {
     renderList,
     onProxies: mutateProxies,
-    onHeadState: setHeadState,
   };
 };
+
+const EMPTY_HEAD_STATES: Record<string, HeadState> = {};
 
 function groupList<T = any>(list: T[], size: number): T[][] {
   return list.reduce((p, n) => {

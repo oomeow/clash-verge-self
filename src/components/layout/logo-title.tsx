@@ -2,7 +2,7 @@ import AppNameSvg from "@/assets/image/clash_verge.svg?react";
 import LogoSvg from "@/assets/image/logo.svg?react";
 import { UpdateButton } from "@/components/layout/update-button";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
-import { useThemeMode } from "@/services/states";
+import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import DarkMode from "@mui/icons-material/DarkMode";
@@ -11,7 +11,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 export const LogoTitle = ({ open }: { open: boolean }) => {
   const { toggleTheme } = useCustomTheme();
-  const mode = useThemeMode();
+  const mode = useThemeModeStore((s) => s.themeMode);
   const isDark = mode === "dark";
   const isMacOS = getSystem() === "macos";
 

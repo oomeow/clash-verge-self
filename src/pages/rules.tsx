@@ -5,7 +5,7 @@ import { getRuleProviderPayload } from "@/services/cmds";
 import ExpandIcon from "@mui/icons-material/Expand";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 import { Box, IconButton } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
 import useSWR from "swr";
@@ -16,6 +16,7 @@ import {
   RuleBehavior,
   RuleFormat,
 } from "tauri-plugin-mihomo-api";
+import { useRulesStateStore } from "@/stores";
 import LoadingPage from "./loading";
 
 export type CustomRule = Rule &
@@ -45,7 +46,14 @@ const RulesPage = () => {
     },
   );
 
-  const [customRules, setCustomRules] = useState<CustomRule[] | null>(null);
+  const customRules = useRulesStateStore((s) => s.customRules);
+  const setCustomRules = useRulesStateStore((s) => s.setCustomRules);
+
+  const [match, setMatch] = useState(() => (_: string) => true);
+  const [expandedRules, setExpandedRules] = useState<Record<string, boolean>>(
+    {},
+  );
+
   useEffect(() => {
     if (!data) return;
     getRuleProviders().then(async (ruleProviders) => {
@@ -72,20 +80,19 @@ const RulesPage = () => {
       }
       setCustomRules(res);
     });
-  }, [data]);
+  }, [data, setCustomRules]);
 
-  const [rules, setRules] = useState<CustomRule[]>([]);
-  const [match, setMatch] = useState(() => (_: string) => true);
-  const hasRuleSet = rules?.findIndex((item) => item.type === "RuleSet") !== -1;
+  const rules = useMemo(() => {
+    if (!customRules) return [];
 
-  useEffect(() => {
-    if (!customRules) return;
-
-    const filterData = customRules
+    return customRules
       .map((item) => {
-        // 清空上一次搜索匹配的规则
-        item.matchPayloadItems = [];
-        return item;
+        const newItem: CustomRule = {
+          ...item,
+          expanded: expandedRules[item.payload] ?? item.expanded,
+          matchPayloadItems: [],
+        };
+        return newItem;
       })
       .filter((item) => {
         if (item.rules && item.rules.length > 0) {
@@ -101,8 +108,28 @@ const RulesPage = () => {
           return match(item.payload);
         }
       });
-    setRules(filterData);
-  }, [customRules, match]);
+  }, [customRules, expandedRules, match]);
+
+  const hasRuleSet = rules.findIndex((item) => item.type === "RuleSet") !== -1;
+
+  const updateRuleExpanded = (payload: string, expanded: boolean) => {
+    setExpandedRules((prev) => ({
+      ...prev,
+      [payload]: expanded,
+    }));
+  };
+
+  const expandAllRules = () => {
+    setExpandedRules(
+      Object.fromEntries(rules.map((rule) => [rule.payload, true])),
+    );
+  };
+
+  const collapseAllRules = () => {
+    setExpandedRules(
+      Object.fromEntries(rules.map((rule) => [rule.payload, false])),
+    );
+  };
 
   return (
     <BasePage
@@ -118,12 +145,7 @@ const RulesPage = () => {
                 color="primary"
                 size="small"
                 onClick={() => {
-                  setRules((pre) =>
-                    pre.map((o) => {
-                      o.expanded = true;
-                      return o;
-                    }),
-                  );
+                  expandAllRules();
                 }}>
                 <ExpandIcon />
               </IconButton>
@@ -132,12 +154,7 @@ const RulesPage = () => {
                 color="primary"
                 size="small"
                 onClick={() => {
-                  setRules((pre) =>
-                    pre.map((o) => {
-                      o.expanded = false;
-                      return o;
-                    }),
-                  );
+                  collapseAllRules();
                 }}>
                 <VerticalAlignCenterIcon />
               </IconButton>
@@ -179,14 +196,7 @@ const RulesPage = () => {
                 index={index + 1}
                 value={item}
                 onExpand={(expanded) => {
-                  setRules((pre) =>
-                    pre.map((o) => {
-                      if (o.payload === item.payload) {
-                        o.expanded = !expanded;
-                      }
-                      return o;
-                    }),
-                  );
+                  updateRuleExpanded(item.payload, !expanded);
                 }}
               />
             )}

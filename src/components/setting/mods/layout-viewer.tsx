@@ -1,5 +1,5 @@
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
-import { useNotice } from "@/components/base/notifice";
+import { useNotice } from "@/components/base/notifies";
 import { GuardState } from "@/components/setting/mods/guard-state";
 import { useVerge } from "@/hooks/use-verge";
 import { copyIconFile, getAppDir } from "@/services/cmds";
