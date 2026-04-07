@@ -62,9 +62,9 @@ export const BaseSearchBox = (props: SearchProps) => {
   const validateSearchText = (searchItem: string) => {
     if (!searchItem) return;
 
-    let searchItemCopy = searchItem;
     if (searchOptions.matchWholeWord) {
-      new RegExp(`\\b${searchItemCopy}\\b`);
+      const escaped = searchOptions.useRegularExpression ? searchItem : searchItem.replace(/[.*+?^${}()|[\\\]\\\\]/g, "\\\\$&");
+      new RegExp(`\\\\b${escaped}\\\\b`);
     }
     if (searchOptions.useRegularExpression) {
       new RegExp(searchItemCopy);
