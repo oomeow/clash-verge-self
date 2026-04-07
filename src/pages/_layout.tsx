@@ -147,26 +147,20 @@ const Layout = () => {
   }, [language, visible]);
 
   useEffect(() => {
-    if (!pendingPath || pathname !== pendingPath) return;
+    if (!pendingPath) return;
 
-    const timeoutId = globalThis.setTimeout(() => {
+    const stopRouteLoading = () => {
       setShowRouteLoading(false);
       setPendingPath(null);
-    }, 180);
+    };
+
+    const timeoutId = globalThis.setTimeout(
+      stopRouteLoading,
+      pathname === pendingPath ? 180 : 4000,
+    );
 
     return () => globalThis.clearTimeout(timeoutId);
   }, [pathname, pendingPath]);
-
-  useEffect(() => {
-    if (!showRouteLoading || !pendingPath) return;
-
-    const timeoutId = globalThis.setTimeout(() => {
-      setShowRouteLoading(false);
-      setPendingPath(null);
-    }, 4000);
-
-    return () => globalThis.clearTimeout(timeoutId);
-  }, [showRouteLoading, pendingPath]);
 
   return (
     <SWRConfig

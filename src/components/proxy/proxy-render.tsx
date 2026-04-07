@@ -115,14 +115,16 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const isDataIcon = groupIcon.startsWith("data");
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
 
-  const initIconCachePath = useMemoizedFn(async () => {
-    if (isHttpIcon) {
-      const fileName =
-        group.name.replaceAll(" ", "") + "-" + getFileName(groupIcon);
-      const iconPath = await downloadIconCache(groupIcon, fileName);
-      setIconCachePath(convertFileSrc(iconPath));
-    }
-  });
+  const initIconCachePath = useMemoizedFn(
+    async (groupName: string, groupIcon: string) => {
+      if (isHttpIcon) {
+        const fileName =
+          groupName.replaceAll(" ", "") + "-" + getFileName(groupIcon);
+        const iconPath = await downloadIconCache(groupIcon, fileName);
+        setIconCachePath(convertFileSrc(iconPath));
+      }
+    },
+  );
 
   const getFileName = useMemoizedFn((url: string) => {
     return url.substring(url.lastIndexOf("/") + 1);
@@ -133,8 +135,8 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
       setIconCachePath("");
       return;
     }
-    initIconCachePath();
-  }, [initIconCachePath, isHttpIcon]);
+    initIconCachePath(group.name, groupIcon);
+  }, [initIconCachePath, isHttpIcon, group.name, groupIcon]);
 
   if (type === 0) {
     return (
