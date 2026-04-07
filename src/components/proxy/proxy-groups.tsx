@@ -27,7 +27,7 @@ export const ProxyGroups = (props: Props) => {
   const { mode } = props;
   const isDirectMode = mode === "direct";
 
-  const { renderList, onProxies, onHeadState } = useRenderList(mode);
+  const { renderList, onProxies } = useRenderList(mode);
   const { verge } = useVerge();
   const { current, patchCurrent } = useProfiles();
   const timeout = verge.default_latency_timeout || 5000;
@@ -200,10 +200,8 @@ export const ProxyGroups = (props: Props) => {
               <ProxyRender
                 key={renderList[index].key}
                 item={renderList[index]}
-                indent={mode === "rule"}
                 onLocation={handleLocation}
                 onCheckAll={handleCheckAll}
-                onHeadState={onHeadState}
                 onChangeProxy={handleChangeProxy}
               />
             </div>

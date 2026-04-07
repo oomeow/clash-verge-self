@@ -42,7 +42,7 @@ export const useRenderList = (mode: string) => {
     else col = 1;
   }
 
-  const [headStates, setHeadState] = useHeadStateNew();
+  const headStates = useHeadStateNew();
 
   // make sure that fetch the proxies successfully
   useEffect(() => {
@@ -120,7 +120,6 @@ export const useRenderList = (mode: string) => {
   return {
     renderList,
     onProxies: mutateProxies,
-    onHeadState: setHeadState,
   };
 };
 

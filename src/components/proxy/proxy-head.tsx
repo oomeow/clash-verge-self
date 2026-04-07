@@ -16,22 +16,22 @@ import debounce from "lodash-es/debounce";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ProxySortType } from "./use-filter-sort";
-import type { HeadState } from "./use-head-state";
+import { useHeadState, useScopedHeadStateActions } from "./use-head-state";
 
 interface Props {
   sx?: SxProps;
   groupName: string;
-  headState: HeadState;
   onLocation: () => void;
   onCheckDelay: () => void;
-  onHeadState: (val: Partial<HeadState>) => void;
 }
 
 export const ProxyHead = (props: Props) => {
-  const { sx = {}, groupName, headState, onHeadState } = props;
+  const { sx = {}, groupName } = props;
+  const headState = useHeadState(groupName);
+  const headStateActions = useScopedHeadStateActions(groupName);
 
   const { showType, sortType, filterText, textState, testUrl } = headState;
-  const [filterTextInp, setFilterTextInp] = useState(filterText ?? "");
+  const [filterTextInp, setFilterTextInp] = useState(filterText);
 
   const { t } = useTranslation();
   const [autoFocus, setAutoFocus] = useState(false);
@@ -49,7 +49,7 @@ export const ProxyHead = (props: Props) => {
   }, [groupName, testUrl, verge?.default_latency_test]);
 
   const filterChange = debounce((text: string) => {
-    onHeadState({ filterText: text });
+    headStateActions.setFilterText(text);
   }, 500);
 
   return (
@@ -75,7 +75,7 @@ export const ProxyHead = (props: Props) => {
         onClick={() => {
           // Remind the user that it is custom test url
           if (testUrl?.trim() && textState !== "filter") {
-            onHeadState({ textState: "url" });
+            headStateActions.setTextState("url");
           }
           props.onCheckDelay();
         }}>
@@ -91,7 +91,7 @@ export const ProxyHead = (props: Props) => {
           ]
         }
         onClick={() =>
-          onHeadState({ sortType: ((sortType + 1) % 3) as ProxySortType })
+          headStateActions.setSortType(((sortType + 1) % 3) as ProxySortType)
         }>
         {sortType !== 1 && sortType !== 2 && <SortRounded />}
         {sortType === 1 && <AccessTimeRounded />}
@@ -103,7 +103,7 @@ export const ProxyHead = (props: Props) => {
         color="inherit"
         title={t("Delay check URL")}
         onClick={() =>
-          onHeadState({ textState: textState === "url" ? null : "url" })
+          headStateActions.setTextState(textState === "url" ? null : "url")
         }>
         {textState === "url" ? (
           <WifiTetheringRounded />
@@ -116,7 +116,7 @@ export const ProxyHead = (props: Props) => {
         size="small"
         color="inherit"
         title={showType ? t("Proxy basic") : t("Proxy detail")}
-        onClick={() => onHeadState({ showType: !showType })}>
+        onClick={() => headStateActions.setShowType(!showType)}>
         {showType ? <VisibilityRounded /> : <VisibilityOffRounded />}
       </IconButton>
 
@@ -126,10 +126,10 @@ export const ProxyHead = (props: Props) => {
         title={t("Filter")}
         onClick={() => {
           setFilterTextInp("");
-          onHeadState({
-            textState: textState === "filter" ? null : "filter",
-            filterText: "",
-          });
+          headStateActions.setTextState(
+            textState === "filter" ? null : "filter",
+          );
+          headStateActions.setFilterText("");
         }}>
         {textState === "filter" ? (
           <FilterAltRounded />
@@ -165,7 +165,7 @@ export const ProxyHead = (props: Props) => {
           size="small"
           variant="outlined"
           placeholder={t("Delay check URL")}
-          onChange={(e) => onHeadState({ testUrl: e.target.value })}
+          onChange={(e) => headStateActions.setTestUrl(e.target.value)}
           sx={{ ml: 0.5, flex: "1 1 auto", input: { py: 0.65, px: 1 } }}
         />
       )}

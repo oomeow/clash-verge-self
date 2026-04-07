@@ -4,7 +4,7 @@ import { immer } from "zustand/middleware/immer";
 import { ProxySortType } from "@/components/proxy/use-filter-sort";
 
 export interface HeadState {
-  open?: boolean;
+  open: boolean;
   showType: boolean;
   sortType: ProxySortType;
   filterText: string;
@@ -25,25 +25,25 @@ type ProxyHeadStateState = {
   headStates: Record<string, Record<string, HeadState>>;
 };
 
+type HeadStateScope = {
+  current: string;
+  groupName: string;
+};
+
+export type ScopedHeadStateActions = {
+  setOpen: (open: boolean) => void;
+  setShowType: (showType: boolean) => void;
+  setSortType: (sortType: ProxySortType) => void;
+  setFilterText: (filterText: string) => void;
+  setTextState: (textState: "url" | "filter" | null) => void;
+  setTestUrl: (testUrl: string) => void;
+};
+
 type ProxyHeadStateActions = {
-  setOpen: (current: string, groupName: string, open?: boolean) => void;
-  setShowType: (current: string, groupName: string, showType: boolean) => void;
-  setSortType: (
-    current: string,
-    groupName: string,
-    sortType: ProxySortType,
+  updateHeadState: (
+    scope: HeadStateScope,
+    updater: (headState: HeadState) => void,
   ) => void;
-  setFilterText: (
-    current: string,
-    groupName: string,
-    filterText: string,
-  ) => void;
-  setTextState: (
-    current: string,
-    groupName: string,
-    textState: "url" | "filter" | null,
-  ) => void;
-  setTestUrl: (current: string, groupName: string, testUrl: string) => void;
 };
 
 const ensureHeadState = (
@@ -62,34 +62,11 @@ export const useProxyHeadStateStore = create<
   persist(
     immer((set) => ({
       headStates: {},
-      setOpen: (current, groupName, open) =>
+      updateHeadState: (scope, updater) =>
         set((state) => {
-          ensureHeadState(state.headStates, current, groupName).open = open;
-        }),
-      setShowType: (current, groupName, showType) =>
-        set((state) => {
-          ensureHeadState(state.headStates, current, groupName).showType =
-            showType;
-        }),
-      setSortType: (current, groupName, sortType) =>
-        set((state) => {
-          ensureHeadState(state.headStates, current, groupName).sortType =
-            sortType;
-        }),
-      setFilterText: (current, groupName, filterText) =>
-        set((state) => {
-          ensureHeadState(state.headStates, current, groupName).filterText =
-            filterText;
-        }),
-      setTextState: (current, groupName, textState) =>
-        set((state) => {
-          ensureHeadState(state.headStates, current, groupName).textState =
-            textState;
-        }),
-      setTestUrl: (current, groupName, testUrl) =>
-        set((state) => {
-          ensureHeadState(state.headStates, current, groupName).testUrl =
-            testUrl;
+          updater(
+            ensureHeadState(state.headStates, scope.current, scope.groupName),
+          );
         }),
     })),
     {
@@ -98,3 +75,38 @@ export const useProxyHeadStateStore = create<
     },
   ),
 );
+
+export const createScopedHeadStateActions = (
+  scope: HeadStateScope,
+): ScopedHeadStateActions => ({
+  setOpen: (open) => {
+    useProxyHeadStateStore.getState().updateHeadState(scope, (headState) => {
+      headState.open = open;
+    });
+  },
+  setShowType: (showType) => {
+    useProxyHeadStateStore.getState().updateHeadState(scope, (headState) => {
+      headState.showType = showType;
+    });
+  },
+  setSortType: (sortType) => {
+    useProxyHeadStateStore.getState().updateHeadState(scope, (headState) => {
+      headState.sortType = sortType;
+    });
+  },
+  setFilterText: (filterText) => {
+    useProxyHeadStateStore.getState().updateHeadState(scope, (headState) => {
+      headState.filterText = filterText;
+    });
+  },
+  setTextState: (textState) => {
+    useProxyHeadStateStore.getState().updateHeadState(scope, (headState) => {
+      headState.textState = textState;
+    });
+  },
+  setTestUrl: (testUrl) => {
+    useProxyHeadStateStore.getState().updateHeadState(scope, (headState) => {
+      headState.testUrl = testUrl;
+    });
+  },
+});

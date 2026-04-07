@@ -17,15 +17,13 @@ import { memo, useEffect, useState } from "react";
 import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
-import { HeadState } from "./use-head-state";
+import { useHeadState, useScopedHeadStateActions } from "./use-head-state";
 import type { IRenderItem } from "./use-render-list";
 
 interface RenderProps {
   item: IRenderItem;
-  indent: boolean;
   onLocation: (group: IProxyGroupItem) => void;
   onCheckAll: (groupName: string) => void;
-  onHeadState: (groupName: string, patch: Partial<HeadState>) => void;
   onChangeProxy: (group: IProxyGroupItem, proxy: IProxyItem) => void;
 }
 
@@ -94,10 +92,11 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
 });
 
 export const ProxyRender = (props: RenderProps) => {
-  const { indent, item, onLocation, onCheckAll, onHeadState, onChangeProxy } =
-    props;
-  const { type, group, headState, proxy } = item;
+  const { item, onLocation, onCheckAll, onChangeProxy } = props;
+  const { type, group, proxy } = item;
+  const headState = useHeadState(group.name);
   const { verge } = useVerge();
+  const headStateActions = useScopedHeadStateActions(group.name);
   const enable_group_icon = verge?.enable_group_icon ?? true;
   const [iconCachePath, setIconCachePath] = useState("");
 
@@ -133,7 +132,7 @@ export const ProxyRender = (props: RenderProps) => {
           borderRadius: "8px",
           transition: "background-color 0s",
         })}
-        onClick={() => onHeadState(group.name, { open: !headState?.open })}>
+        onClick={() => headStateActions.setOpen(!headState?.open)}>
         {enable_group_icon &&
           group.icon &&
           group.icon.trim().startsWith("http") && (
@@ -194,10 +193,8 @@ export const ProxyRender = (props: RenderProps) => {
       <ProxyHead
         sx={{ pl: 2, pr: 3 }}
         groupName={group.name}
-        headState={headState!}
         onLocation={() => onLocation(group)}
         onCheckDelay={() => onCheckAll(group.name)}
-        onHeadState={(p) => onHeadState(group.name, p)}
       />
     );
   }
