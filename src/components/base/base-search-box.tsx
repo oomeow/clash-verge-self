@@ -4,20 +4,54 @@ import useRegularExpressionIcon from "@/assets/image/component/use_regular_expre
 import ClearRounded from "@mui/icons-material/ClearRounded";
 import { Box, IconButton, SvgIcon, TextField, Tooltip } from "@mui/material";
 import { useDebounce, useMemoizedFn } from "ahooks";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
+
+type SearchState = {
+  text: string;
+  matchCase: boolean;
+  matchWholeWord: boolean;
+  useRegularExpression: boolean;
+};
 
 type SearchProps = {
   placeholder?: string;
-  onSearch: (
-    match: (content: string) => boolean,
-    state: {
-      text: string;
-      matchCase: boolean;
-      matchWholeWord: boolean;
-      useRegularExpression: boolean;
-    },
-  ) => void;
+  onSearch: (match: (content: string) => boolean, state: SearchState) => void;
+};
+
+const DEFAULT_SEARCH_OPTIONS = {
+  matchCase: true,
+  matchWholeWord: false,
+  useRegularExpression: false,
+};
+
+const EMPTY_MATCHER = (content: string) => content.includes("");
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const createMatcher = (state: SearchState) => {
+  const { text, matchCase, matchWholeWord, useRegularExpression } = state;
+
+  if (!text) {
+    return EMPTY_MATCHER;
+  }
+
+  if (useRegularExpression || matchWholeWord) {
+    const pattern = useRegularExpression ? text : escapeRegExp(text);
+    const source = matchWholeWord ? `\\b(?:${pattern})\\b` : pattern;
+    const flags = matchCase ? "" : "i";
+    const regex = new RegExp(source, flags);
+
+    return (content: string) => regex.test(content);
+  }
+
+  if (matchCase) {
+    return (content: string) => content.includes(text);
+  }
+
+  const normalizedText = text.toLowerCase();
+  return (content: string) => content.toLowerCase().includes(normalizedText);
 };
 
 export const BaseSearchBox = (props: SearchProps) => {
@@ -25,11 +59,7 @@ export const BaseSearchBox = (props: SearchProps) => {
   const { t } = useTranslation();
   const [filterText, setFilterText] = useState("");
   const debounceFilterText = useDebounce(filterText, { wait: 500 });
-  const [searchOptions, setSearchOptions] = useState({
-    matchCase: true,
-    matchWholeWord: false,
-    useRegularExpression: false,
-  });
+  const [searchOptions, setSearchOptions] = useState(DEFAULT_SEARCH_OPTIONS);
   const [errorMessage, setErrorMessage] = useState("");
 
   const iconStyle = {
@@ -37,69 +67,30 @@ export const BaseSearchBox = (props: SearchProps) => {
       height: "24px",
       width: "24px",
       cursor: "pointer",
-    } as React.CSSProperties,
+    } as CSSProperties,
     inheritViewBox: true,
   };
+  const emitSearch = useMemoizedFn(onSearch);
+
+  const searchState = useMemo(
+    () => ({
+      text: debounceFilterText,
+      ...searchOptions,
+    }),
+    [debounceFilterText, searchOptions],
+  );
 
   useEffect(() => {
-    onChange(debounceFilterText);
-  }, [debounceFilterText, searchOptions]);
-
-  const onChange = useMemoizedFn((text: string) => {
     try {
-      validateSearchText(text);
-      setErrorMessage("");
+      const matcher = createMatcher(searchState);
+      setErrorMessage((prev) => (prev ? "" : prev));
+      emitSearch(matcher, searchState);
     } catch (err) {
-      setErrorMessage(`${err}`);
+      const nextError = `${err}`;
+      setErrorMessage((prev) => (prev === nextError ? prev : nextError));
+      emitSearch(() => false, searchState);
     }
-
-    onSearch((content) => doSearch([content], text), {
-      text: text,
-      ...searchOptions,
-    });
-  });
-
-  const validateSearchText = (searchItem: string) => {
-    if (!searchItem) return;
-
-    if (searchOptions.matchWholeWord) {
-      const escaped = searchOptions.useRegularExpression ? searchItem : searchItem.replace(/[.*+?^${}()|[\\\]\\\\]/g, "\\\\$&");
-      new RegExp(`\\\\b${escaped}\\\\b`);
-    }
-    if (searchOptions.useRegularExpression) {
-      new RegExp(searchItemCopy);
-    }
-  };
-
-  const doSearch = (searchList: string[], searchItem: string) => {
-    return (
-      searchList.filter((item) => {
-        try {
-          let searchItemCopy = searchItem;
-          if (!searchOptions.matchCase) {
-            item = item.toLowerCase();
-            searchItemCopy = searchItemCopy.toLowerCase();
-          }
-          if (searchOptions.matchWholeWord) {
-            const regex = new RegExp(`\\b${searchItemCopy}\\b`);
-            if (searchOptions.useRegularExpression) {
-              const regexWithOptions = new RegExp(searchItemCopy);
-              return regexWithOptions.test(item) && regex.test(item);
-            } else {
-              return regex.test(item);
-            }
-          } else if (searchOptions.useRegularExpression) {
-            const regex = new RegExp(searchItemCopy);
-            return regex.test(item);
-          } else {
-            return item.includes(searchItemCopy);
-          }
-        } catch (err) {
-          return false;
-        }
-      }).length > 0
-    );
-  };
+  }, [emitSearch, searchState]);
 
   return (
     <Tooltip title={errorMessage} placement="bottom-start">
