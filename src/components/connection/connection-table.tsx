@@ -158,7 +158,7 @@ export const ConnectionTable = (props: Props) => {
       temp.unshift({
         field: "closedTime",
         headerName: t("ClosedTime"),
-        type: "date",
+        type: "dateTime",
         width: 100,
         sortComparator: (v1, v2) => {
           return v1 - v2;
