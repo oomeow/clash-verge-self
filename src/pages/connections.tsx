@@ -91,7 +91,7 @@ const ConnectionsPage = () => {
     ) {
       await closeAllConnections();
     } else {
-      filterConn.forEach(async (conn) => await closeConnection(conn.id));
+      await Promise.all(filterConn.map((conn) => closeConnection(conn.id)));
     }
   });
 

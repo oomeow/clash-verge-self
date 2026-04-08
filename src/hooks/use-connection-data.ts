@@ -56,42 +56,34 @@ export const useConnectionData = () => {
                 } else {
                   const data = JSON.parse(msg.data) as IConnections;
                   next(null, (old = initConnData) => {
-                    const oldConn = old.activeConnections;
-                    const oldClosedConnections = old.closedConnections;
-
-                    const maxLen = data.connections?.length;
-                    const activeConnections: IConnectionsItem[] = [];
-
-                    const oldConnMap = new Map(
-                      oldConn.map((c, i) => [c.id, { conn: c, index: i }]),
+                    const oldActiveConns = old.activeConnections;
+                    const oldClosedConns = old.closedConnections;
+                    const oldActiveConnMap = new Map(
+                      oldActiveConns.map((c, i) => [c.id, c]),
                     );
-                    const rest = (data.connections || []).filter((each) => {
-                      const existing = oldConnMap.get(each.id);
-                      if (existing && existing.index < maxLen) {
-                        const old = existing.conn;
-                        each.curUpload = each.upload - old.upload;
-                        each.curDownload = each.download - old.download;
-                        activeConnections[existing.index] = each;
-                        return false;
-                      }
-                      return true;
-                    });
-                    for (let i = 0; i < maxLen; ++i) {
-                      if (!activeConnections[i] && rest.length > 0) {
-                        activeConnections[i] = rest.shift()!;
-                        activeConnections[i].curUpload = 0;
-                        activeConnections[i].curDownload = 0;
-                      }
-                    }
+
+                    const activeConnections = (data.connections || []).map(
+                      (c) => {
+                        const prev = oldActiveConnMap.get(c.id);
+                        if (prev) {
+                          c.curUpload = c.upload - prev.upload;
+                          c.curDownload = c.download - prev.download;
+                        } else {
+                          c.curUpload = 0;
+                          c.curDownload = 0;
+                        }
+                        return c;
+                      },
+                    );
 
                     const activeIds = new Set(
                       activeConnections.map((item) => item.id),
                     );
-                    const closed = oldConn.filter(
+                    const closed = oldActiveConns.filter(
                       (item) => !activeIds.has(item.id),
                     );
                     const closedConnections = [
-                      ...oldClosedConnections,
+                      ...oldClosedConns,
                       ...closed,
                     ].slice(-MAX_CLOSED_CONNS);
 
