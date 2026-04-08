@@ -21,7 +21,6 @@ import Restore from "@mui/icons-material/Restore";
 import Save from "@mui/icons-material/Save";
 import Terminal from "@mui/icons-material/Terminal";
 import { Badge, BadgeProps, IconButton, styled, Tooltip } from "@mui/material";
-import { IDisposable, KeyCode, KeyMod, Uri } from "monaco-editor";
 import { nanoid } from "nanoid";
 import {
   ForwardedRef,
@@ -32,7 +31,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useNotice } from "../base/notifies";
-import type { editor } from "monaco-editor";
+import type { IDisposable, editor } from "monaco-editor";
 import { useAsyncEffect } from "ahooks";
 
 export type ProfileEditorHandle = {
@@ -161,7 +160,7 @@ export const ProfileEditor = (props: Props) => {
         originContentRef.current = data;
         // create uri to use schemas
         const id = nanoid();
-        const uri = Uri.parse(`${id}.${type}.${language}`);
+        const uri = monaco.Uri.parse(`${id}.${type}.${language}`);
         const model = monaco.editor.createModel(data, language, uri);
         const oldModel = instanceRef.current!.getModel();
         instanceRef.current!.setModel(model);
@@ -208,7 +207,7 @@ export const ProfileEditor = (props: Props) => {
     const runCheckAction = instanceRef.current.addAction({
       id: "runChainCheck",
       label: "check run",
-      keybindings: [KeyCode.F5],
+      keybindings: [monaco.KeyCode.F5],
       keybindingContext: "textInputFocus && editChain",
       run: async (ed) => {
         await handleRunCheck(profileItem.uid);
@@ -219,7 +218,7 @@ export const ProfileEditor = (props: Props) => {
     const saveAction = instanceRef.current.addAction({
       id: "saveProfile",
       label: "save profile",
-      keybindings: [KeyMod.CtrlCmd | KeyCode.KeyS],
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
       keybindingContext: "textInputFocus",
       run: async (_ed) => {
         await handleSave();

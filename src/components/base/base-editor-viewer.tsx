@@ -16,12 +16,11 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { IDisposable } from "monaco-editor";
 import { nanoid } from "nanoid";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNotice } from "./notifies";
-import type { editor } from "monaco-editor";
+import type { IDisposable, editor } from "monaco-editor";
 
 interface Props {
   title?: string | ReactNode;
@@ -56,10 +55,13 @@ export const EditorViewer = (props: Props) => {
   const { notice } = useNotice();
 
   useEffect(() => {
+    if (!open) return;
+
     loadMonaco().then((instance) => {
       setMonaco(instance);
       configureYaml();
     });
+
     if (!open || !monaco) return;
 
     const fetchContent = Promise.resolve(property);

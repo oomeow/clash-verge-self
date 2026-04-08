@@ -1,17 +1,43 @@
 import { t } from "i18next";
-import { configureMonacoYaml, type JSONSchema } from "monaco-yaml";
-import pac from "types-pac/pac.d.ts?raw";
 import { getTemplate } from "./cmds";
 import type { editor } from "monaco-editor";
+import type { JSONSchema } from "monaco-yaml";
 
 // 延迟加载 Monaco Editor
 let monacoInstance: typeof import("monaco-editor") | null = null;
+let monacoYamlModule: typeof import("monaco-yaml") | null = null;
+let pacDefinition: string | null = null;
+
+const resolveModuleDefault = <T>(module: T | { default: T }): T => {
+  if (typeof module === "object" && module !== null && "default" in module) {
+    return module.default;
+  }
+
+  return module as T;
+};
 
 export const loadMonaco = async () => {
   if (!monacoInstance) {
     monacoInstance = await import("monaco-editor");
   }
   return monacoInstance;
+};
+
+const loadMonacoYaml = async () => {
+  if (!monacoYamlModule) {
+    monacoYamlModule = await import("monaco-yaml");
+  }
+
+  return monacoYamlModule;
+};
+
+const loadPacDefinition = async () => {
+  if (!pacDefinition) {
+    const pacModule = await import("types-pac/pac.d.ts?raw");
+    pacDefinition = resolveModuleDefault(pacModule);
+  }
+
+  return pacDefinition;
 };
 
 // 缓存配置
@@ -23,7 +49,14 @@ let pacCompletionRegistered = false;
 export const configureYaml = async () => {
   if (yamlConfigured) return;
 
-  const monaco = await loadMonaco();
+  const [monaco, { configureMonacoYaml }, metaSchemaModule, mergeSchemaModule] =
+    await Promise.all([
+      loadMonaco(),
+      loadMonacoYaml(),
+      import("meta-json-schema/schemas/meta-json-schema.json"),
+      import("meta-json-schema/schemas/clash-verge-merge-json-schema.json"),
+    ]);
+
   configureMonacoYaml(monaco, {
     validate: true,
     enableSchemaRequest: true,
@@ -31,14 +64,14 @@ export const configureYaml = async () => {
       {
         uri: "http://example.com/meta-json-schema.json",
         fileMatch: ["**/*.clash.yaml*"],
-        schema:
-          import("meta-json-schema/schemas/meta-json-schema.json") as unknown as JSONSchema,
+        schema: resolveModuleDefault(metaSchemaModule) as unknown as JSONSchema,
       },
       {
         uri: "http://example.com/clash-verge-merge-json-schema.json",
         fileMatch: ["**/*.merge.yaml*"],
-        schema:
-          import("meta-json-schema/schemas/clash-verge-merge-json-schema.json") as unknown as JSONSchema,
+        schema: resolveModuleDefault(
+          mergeSchemaModule,
+        ) as unknown as JSONSchema,
       },
     ],
   });
@@ -68,7 +101,7 @@ export const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
 export const registerPacFunctionLib = async () => {
   if (pacLibRegistered) return;
 
-  const monaco = await loadMonaco();
+  const [monaco, pac] = await Promise.all([loadMonaco(), loadPacDefinition()]);
   let disposable = monaco.typescript.javascriptDefaults.addExtraLib(
     pac,
     "pac.d.ts",
