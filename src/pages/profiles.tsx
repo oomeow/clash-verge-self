@@ -502,6 +502,7 @@ const ProfilePage = () => {
                       isDragging={draggingItem?.uid === item.uid}
                       activating={activatingUidSet.has(item.uid)}
                       itemData={item}
+                      chainLogs={chainLogs}
                       onSelect={(f) => onSelect(item.uid, f)}
                       onDelete={() => onDelete(item.uid)}
                       // onEdit={() => viewerRef.current?.edit(item)}
@@ -528,6 +529,7 @@ const ProfilePage = () => {
                 }
                 activating={activatingUidSet.has(draggingItem.uid)}
                 itemData={draggingItem}
+                chainLogs={chainLogs}
                 onSelect={(f) => onSelect(draggingItem.uid, f)}
                 onDelete={() => onDelete(draggingItem.uid)}
                 // onEdit={() => viewerRef.current?.edit(draggingProfileItem)}
