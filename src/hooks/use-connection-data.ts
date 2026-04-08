@@ -4,11 +4,25 @@ import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { useRefreshConnectionDateStore } from "@/stores";
 
-export const initConnData: IConnections = {
+export type IClosedConnectionItem = IConnectionsItem & {
+  closedTime: number;
+};
+
+export interface ConnectionMonitorData {
+  uploadTotal: number;
+  downloadTotal: number;
+  activeConnections: IClosedConnectionItem[];
+  closedConnections: IClosedConnectionItem[];
+}
+
+export const initConnData: ConnectionMonitorData = {
   uploadTotal: 0,
   downloadTotal: 0,
-  connections: [],
+  activeConnections: [],
+  closedConnections: [],
 };
+
+const MAX_CLOSED_CONNS = 500;
 
 export const useConnectionData = () => {
   const date = useRefreshConnectionDateStore((s) => s.date);
@@ -19,7 +33,11 @@ export const useConnectionData = () => {
   const wsFirstConnection = useRef<boolean>(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const response = useSWRSubscription<IConnections, any, string | null>(
+  const response = useSWRSubscription<
+    ConnectionMonitorData,
+    any,
+    string | null
+  >(
     subscriptKey,
     (_key, { next }) => {
       const reconnect = async () => {
@@ -42,28 +60,43 @@ export const useConnectionData = () => {
                 } else {
                   const data = JSON.parse(msg.data) as IConnections;
                   next(null, (old = initConnData) => {
-                    const oldConn = old.connections;
-                    const maxLen = data.connections?.length;
-                    const connections: IConnectionsItem[] = [];
-                    const rest = (data.connections || []).filter((each) => {
-                      const index = oldConn.findIndex((o) => o.id === each.id);
-                      if (index >= 0 && index < maxLen) {
-                        const old = oldConn[index];
-                        each.curUpload = each.upload - old.upload;
-                        each.curDownload = each.download - old.download;
-                        connections[index] = each;
-                        return false;
-                      }
-                      return true;
-                    });
-                    for (let i = 0; i < maxLen; ++i) {
-                      if (!connections[i] && rest.length > 0) {
-                        connections[i] = rest.shift()!;
-                        connections[i].curUpload = 0;
-                        connections[i].curDownload = 0;
-                      }
-                    }
-                    return { ...data, connections };
+                    const oldActiveConns = old.activeConnections;
+                    const oldClosedConns = old.closedConnections;
+                    const oldActiveConnMap = new Map(
+                      oldActiveConns.map((c, i) => [c.id, c]),
+                    );
+
+                    const activeConnections = (data.connections || []).map(
+                      (c) => {
+                        const prev = oldActiveConnMap.get(c.id);
+                        if (prev) {
+                          c.curUpload = c.upload - prev.upload;
+                          c.curDownload = c.download - prev.download;
+                        } else {
+                          c.curUpload = 0;
+                          c.curDownload = 0;
+                        }
+                        return { ...c, closedTime: 0 } as IClosedConnectionItem;
+                      },
+                    );
+
+                    const activeIds = new Set(
+                      activeConnections.map((item) => item.id),
+                    );
+                    const closed = oldActiveConns
+                      .filter((item) => !activeIds.has(item.id))
+                      .map((item) => ({ ...item, closedTime: Date.now() }));
+                    const closedConnections = [
+                      ...oldClosedConns,
+                      ...closed,
+                    ].slice(-MAX_CLOSED_CONNS);
+
+                    return {
+                      uploadTotal: data.uploadTotal,
+                      downloadTotal: data.downloadTotal,
+                      activeConnections,
+                      closedConnections,
+                    };
                   });
                 }
               }
@@ -105,5 +138,14 @@ export const useConnectionData = () => {
     refresh();
   };
 
-  return { response, refreshGetClashConnection };
+  const clearClosedConnections = () => {
+    mutate(`$sub$${subscriptKey}`, {
+      uploadTotal: response.data?.uploadTotal ?? 0,
+      downloadTotal: response.data?.downloadTotal ?? 0,
+      activeConnections: response.data?.activeConnections ?? [],
+      closedConnections: [],
+    });
+  };
+
+  return { response, refreshGetClashConnection, clearClosedConnections };
 };

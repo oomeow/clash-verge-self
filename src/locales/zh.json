@@ -80,6 +80,7 @@
   "Active": "活动",
   "Closed": "已关闭",
   "Actions": "操作",
+  "ClosedTime": "关闭时间",
   "Connections": "连接",
   "Table View": "表格视图",
   "List View": "列表视图",
@@ -101,6 +102,7 @@
   "Source": "源地址",
   "Destination": "目标地址",
   "Close Connection": "关闭连接",
+  "Start At": "开始于{{time}}",
 
   "Rules": "规则",
   "Rule Provider": "规则集合",

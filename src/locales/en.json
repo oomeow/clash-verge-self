@@ -80,6 +80,7 @@
   "Active": "Active",
   "Closed": "Closed",
   "Actions": "Actions",
+  "ClosedTime": "ClosedTime",
   "Connections": "Connections",
   "Table View": "Table View",
   "List View": "List View",
@@ -101,6 +102,7 @@
   "Source": "Source",
   "Destination": "Destination",
   "Close Connection": "Close Connection",
+  "Start At": "Start at {{time}}",
 
   "Rules": "Rules",
   "Rule Provider": "Rule Provider",
