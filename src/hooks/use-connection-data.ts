@@ -4,11 +4,15 @@ import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { useRefreshConnectionDateStore } from "@/stores";
 
+export type IClosedConnectionItem = IConnectionsItem & {
+  closedTime: number;
+};
+
 export interface ConnectionMonitorData {
   uploadTotal: number;
   downloadTotal: number;
-  activeConnections: IConnectionsItem[];
-  closedConnections: IConnectionsItem[];
+  activeConnections: IClosedConnectionItem[];
+  closedConnections: IClosedConnectionItem[];
 }
 
 export const initConnData: ConnectionMonitorData = {
@@ -72,16 +76,16 @@ export const useConnectionData = () => {
                           c.curUpload = 0;
                           c.curDownload = 0;
                         }
-                        return c;
+                        return { ...c, closedTime: 0 } as IClosedConnectionItem;
                       },
                     );
 
                     const activeIds = new Set(
                       activeConnections.map((item) => item.id),
                     );
-                    const closed = oldActiveConns.filter(
-                      (item) => !activeIds.has(item.id),
-                    );
+                    const closed = oldActiveConns
+                      .filter((item) => !activeIds.has(item.id))
+                      .map((item) => ({ ...item, closedTime: Date.now() }));
                     const closedConnections = [
                       ...oldClosedConns,
                       ...closed,

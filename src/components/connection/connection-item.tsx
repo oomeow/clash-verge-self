@@ -1,14 +1,17 @@
+import { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import parseTraffic from "@/utils/parse-traffic";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import {
   IconButton,
   ListItem,
   ListItemText,
+  Typography,
   alpha,
   styled,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 import { closeConnection } from "tauri-plugin-mihomo-api";
 
 const Tag = styled("span")(({ theme }) => ({
@@ -23,12 +26,13 @@ const Tag = styled("span")(({ theme }) => ({
 }));
 
 interface Props {
-  value: IConnectionsItem;
+  value: IClosedConnectionItem;
   isActive: boolean;
   onShowDetail?: () => void;
 }
 
 export const ConnectionItem = (props: Props) => {
+  const { t } = useTranslation();
   const { value, isActive, onShowDetail } = props;
 
   const { id, metadata, chains, start, curUpload, curDownload } = value;
@@ -41,10 +45,14 @@ export const ConnectionItem = (props: Props) => {
       dense
       sx={{ borderBottom: "1px solid var(--divider-color)" }}
       secondaryAction={
-        isActive && (
+        isActive ? (
           <IconButton edge="end" color="inherit" onClick={onDelete}>
             <CloseRounded />
           </IconButton>
+        ) : (
+          <Typography sx={{ fontSize: 14 }} color="textSecondary">
+            {dayjs(value.closedTime).fromNow()}
+          </Typography>
         )
       }>
       <ListItemText
@@ -65,7 +73,7 @@ export const ConnectionItem = (props: Props) => {
               <Tag>{[...chains].reverse().join(" / ")}</Tag>
             )}
 
-            <Tag>{dayjs(start).fromNow()}</Tag>
+            <Tag>{t("Start At", { time: dayjs(start).fromNow() })}</Tag>
 
             {showTraffic && (
               <Tag>

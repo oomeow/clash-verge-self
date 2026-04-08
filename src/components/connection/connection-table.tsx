@@ -1,3 +1,4 @@
+import { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import { useConnectionsStore } from "@/stores";
 import parseTraffic from "@/utils/parse-traffic";
 import { truncateStr } from "@/utils/truncate-str";
@@ -18,9 +19,9 @@ import { closeConnection } from "tauri-plugin-mihomo-api";
 
 interface Props {
   gridApiRef: RefObject<GridApiCommunity>;
-  connections: IConnectionsItem[];
+  connections: IClosedConnectionItem[];
   isActive: boolean;
-  onShowDetail: (data: IConnectionsItem) => void;
+  onShowDetail: (data: IClosedConnectionItem) => void;
 }
 
 export const ConnectionTable = (props: Props) => {
@@ -153,6 +154,17 @@ export const ConnectionTable = (props: Props) => {
           ];
         },
       });
+    } else {
+      temp.unshift({
+        field: "closedTime",
+        headerName: t("ClosedTime"),
+        type: "date",
+        width: 100,
+        sortComparator: (v1, v2) => {
+          return v1 - v2;
+        },
+        valueFormatter: (value) => dayjs(value).fromNow(),
+      });
     }
     return temp;
   }, [tabColumnsWidths, isActive, t]);
@@ -180,8 +192,8 @@ export const ConnectionTable = (props: Props) => {
           ? `${metadata.destinationIP}`
           : `${metadata.remoteDestination}`,
         type: `${metadata.type} (${metadata.network})`,
-
         connectionData: each,
+        closedTime: each.closedTime,
       };
     });
   }, [connections]);

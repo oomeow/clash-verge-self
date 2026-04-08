@@ -10,7 +10,11 @@ import {
 } from "@/components/connection/connection-detail";
 import { ConnectionItem } from "@/components/connection/connection-item";
 import { ConnectionTable } from "@/components/connection/connection-table";
-import { initConnData, useConnectionData } from "@/hooks/use-connection-data";
+import {
+  IClosedConnectionItem,
+  initConnData,
+  useConnectionData,
+} from "@/hooks/use-connection-data";
 import { useConnectionsStore, type ConnectionsOrderType } from "@/stores";
 import parseTraffic from "@/utils/parse-traffic";
 import Download from "@mui/icons-material/Download";
@@ -35,7 +39,7 @@ import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
 
-type OrderFunc = (list: IConnectionsItem[]) => IConnectionsItem[];
+type OrderFunc = (list: IClosedConnectionItem[]) => IClosedConnectionItem[];
 
 const ConnectionsPage = () => {
   const { t } = useTranslation();
@@ -53,7 +57,7 @@ const ConnectionsPage = () => {
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
 
-  const orderOpts: Record<string, OrderFunc> = {
+  const orderOpts: Record<ConnectionsOrderType, OrderFunc> = {
     Default: (list) =>
       list.sort(
         (a, b) =>
@@ -83,6 +87,8 @@ const ConnectionsPage = () => {
     match(conn.metadata.host || conn.metadata.destinationIP || ""),
   );
   if (orderFunc) filterConn = orderFunc(filterConn);
+  if (!isActiveTab)
+    filterConn = filterConn.sort((a, b) => b.closedTime - a.closedTime);
 
   const onCloseAll = useLockFn(async () => {
     if (
@@ -160,7 +166,9 @@ const ConnectionsPage = () => {
               variant={isActiveTab ? "contained" : "outlined"}
               onClick={() => {
                 setTabName("active");
-                gridApiRef.current.scroll({ top: 0 });
+                if (isTableLayout && gridApiRef.current) {
+                  gridApiRef.current.scroll({ top: 0 });
+                }
               }}>
               {t("Active")} {activeConns.length}
             </Button>
@@ -168,7 +176,9 @@ const ConnectionsPage = () => {
               variant={!isActiveTab ? "contained" : "outlined"}
               onClick={() => {
                 setTabName("closed");
-                gridApiRef.current.scroll({ top: 0 });
+                if (isTableLayout && gridApiRef.current) {
+                  gridApiRef.current.scroll({ top: 0 });
+                }
               }}>
               {t("Closed")} {closedConns.length}
             </Button>
