@@ -155,7 +155,7 @@ export const ConnectionTable = (props: Props) => {
       });
     }
     return temp;
-  }, [tabColumnsWidths, isActive]);
+  }, [tabColumnsWidths, isActive, t]);
 
   const connRows = useMemo(() => {
     return connections.map((each) => {
