@@ -130,7 +130,7 @@ export const ConnectionTable = (props: Props) => {
         align: "right",
         headerAlign: "right",
         sortComparator: (v1, v2) => {
-          return new Date(v2).getTime() - new Date(v1).getTime();
+          return new Date(v1).getTime() - new Date(v2).getTime();
         },
         valueFormatter: (value) => dayjs(value).fromNow(),
       },
