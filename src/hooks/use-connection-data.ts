@@ -80,17 +80,16 @@ export const useConnectionData = () => {
                       }
                     }
 
-                    const ids = activeConnections.map((item) => item.id);
+                    const activeIds = new Set(
+                      activeConnections.map((item) => item.id),
+                    );
                     const closed = oldConn.filter(
-                      (item) => !ids.includes(item.id),
+                      (item) => !activeIds.has(item.id),
                     );
                     const closedConnections = [
                       ...oldClosedConnections,
                       ...closed,
-                    ];
-                    closedConnections.length > MAX_CLOSED_CONNS
-                      ? closedConnections.slice(-MAX_CLOSED_CONNS)
-                      : closedConnections;
+                    ].slice(-MAX_CLOSED_CONNS);
 
                     return {
                       uploadTotal: data.uploadTotal,

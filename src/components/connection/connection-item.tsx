@@ -24,11 +24,12 @@ const Tag = styled("span")(({ theme }) => ({
 
 interface Props {
   value: IConnectionsItem;
+  isActive: boolean;
   onShowDetail?: () => void;
 }
 
 export const ConnectionItem = (props: Props) => {
-  const { value, onShowDetail } = props;
+  const { value, isActive, onShowDetail } = props;
 
   const { id, metadata, chains, start, curUpload, curDownload } = value;
 
@@ -40,9 +41,11 @@ export const ConnectionItem = (props: Props) => {
       dense
       sx={{ borderBottom: "1px solid var(--divider-color)" }}
       secondaryAction={
-        <IconButton edge="end" color="inherit" onClick={onDelete}>
-          <CloseRounded />
-        </IconButton>
+        isActive && (
+          <IconButton edge="end" color="inherit" onClick={onDelete}>
+            <CloseRounded />
+          </IconButton>
+        )
       }>
       <ListItemText
         sx={{ userSelect: "text", cursor: "pointer" }}

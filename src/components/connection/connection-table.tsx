@@ -17,12 +17,13 @@ import { closeConnection } from "tauri-plugin-mihomo-api";
 interface Props {
   gridApiRef: RefObject<GridApiCommunity>;
   connections: IConnectionsItem[];
+  isActive: boolean;
   onShowDetail: (data: IConnectionsItem) => void;
 }
 
 export const ConnectionTable = (props: Props) => {
   const { t } = useTranslation();
-  const { gridApiRef, connections, onShowDetail } = props;
+  const { gridApiRef, connections, isActive, onShowDetail } = props;
 
   const Toolbar = () => (
     <div style={{ margin: "5px" }}>
@@ -36,23 +37,6 @@ export const ConnectionTable = (props: Props) => {
   >({});
 
   const columns: GridColDef[] = [
-    {
-      field: "actions",
-      type: "actions",
-      width: 50,
-      cellClassName: "actions",
-      getActions: ({ id }) => {
-        return [
-          <GridActionsCellItem
-            icon={<CancelIcon />}
-            label="Cancel"
-            className="textPrimary"
-            onClick={() => closeConnection(id.toString())}
-            color="inherit"
-          />,
-        ];
-      },
-    },
     { field: "type", headerName: t("Type"), flex: 160, minWidth: 100 },
     { field: "host", headerName: t("Host"), flex: 220, minWidth: 220 },
     {
@@ -110,6 +94,25 @@ export const ConnectionTable = (props: Props) => {
       valueFormatter: (value) => dayjs(value).fromNow(),
     },
   ];
+  if (isActive) {
+    columns.unshift({
+      field: "actions",
+      type: "actions",
+      width: 50,
+      cellClassName: "actions",
+      getActions: ({ id }) => {
+        return [
+          <GridActionsCellItem
+            icon={<CancelIcon />}
+            label="Cancel"
+            className="textPrimary"
+            onClick={() => closeConnection(id.toString())}
+            color="inherit"
+          />,
+        ];
+      },
+    });
+  }
 
   const connRows = useMemo(() => {
     return connections.map((each) => {
@@ -130,7 +133,7 @@ export const ConnectionTable = (props: Props) => {
         process: truncateStr(metadata.process || metadata.processPath),
         time: each.start,
         source: `${metadata.sourceIP}:${metadata.sourcePort}`,
-        remoteDestination: metadata.destinationIP 
+        remoteDestination: metadata.destinationIP
           ? `${metadata.destinationIP}`
           : `${metadata.remoteDestination}`,
         type: `${metadata.type} (${metadata.network})`,

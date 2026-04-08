@@ -208,6 +208,7 @@ const ConnectionsPage = () => {
             <ConnectionTable
               gridApiRef={gridApiRef}
               connections={filterConn}
+              isActive={isActiveTab}
               onShowDetail={(detail) =>
                 detailRef.current?.open(detail, isActiveTab)
               }
@@ -219,6 +220,7 @@ const ConnectionsPage = () => {
                 <ConnectionItem
                   key={item.id}
                   value={item}
+                  isActive={isActiveTab}
                   onShowDetail={() =>
                     detailRef.current?.open(item, isActiveTab)
                   }
