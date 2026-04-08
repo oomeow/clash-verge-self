@@ -16,24 +16,26 @@ import parseTraffic from "@/utils/parse-traffic";
 import Download from "@mui/icons-material/Download";
 import TableChartRounded from "@mui/icons-material/TableChartRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
+import DeleteForeverRounded from "@mui/icons-material/DeleteForeverRounded";
 import Upload from "@mui/icons-material/Upload";
 import {
   Box,
   Button,
   ButtonGroup,
+  Fab,
   IconButton,
   MenuItem,
   Tooltip,
+  Zoom,
 } from "@mui/material";
 import { useGridApiRef } from "@mui/x-data-grid";
 import { useLockFn } from "ahooks";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
 
 type OrderFunc = (list: IConnectionsItem[]) => IConnectionsItem[];
-const MAX_CLOSED_CONNS = 500;
 
 const ConnectionsPage = () => {
   const { t } = useTranslation();
@@ -47,8 +49,6 @@ const ConnectionsPage = () => {
   const tabName = useConnectionsStore((s) => s.tabName);
   const setTabName = useConnectionsStore((s) => s.setTabName);
   const gridApiRef = useGridApiRef();
-  const [activeConns, setActiveConns] = useState<IConnectionsItem[]>([]);
-  const [closedConns, setClosedConns] = useState<IConnectionsItem[]>([]);
 
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
@@ -67,32 +67,14 @@ const ConnectionsPage = () => {
 
   const {
     response: { data: connData = initConnData },
+    clearClosedConnections,
   } = useConnectionData();
 
   const detailRef = useRef<ConnectionDetailRef>(null!);
   const totalUpload = parseTraffic(connData.uploadTotal);
   const totalDownload = parseTraffic(connData.downloadTotal);
-
-  useEffect(() => {
-    const ids = connData.connections.map((o) => o.id);
-
-    setActiveConns((prevActiveConns) => {
-      setClosedConns((prevClosedConns) => {
-        const closed = prevActiveConns.filter((o) => !ids.includes(o.id));
-        const nextClosedConns = [...prevClosedConns, ...closed];
-
-        if (nextClosedConns.length > MAX_CLOSED_CONNS) {
-          return nextClosedConns.slice(
-            -Math.min(MAX_CLOSED_CONNS, nextClosedConns.length),
-          );
-        }
-
-        return nextClosedConns;
-      });
-
-      return connData.connections;
-    });
-  }, [connData]);
+  const activeConns = connData.activeConnections;
+  const closedConns = connData.closedConnections;
 
   // filter connections
   const orderFunc = orderOpts[curOrderOpt];
@@ -103,7 +85,10 @@ const ConnectionsPage = () => {
   if (orderFunc) filterConn = orderFunc(filterConn);
 
   const onCloseAll = useLockFn(async () => {
-    if (!isActiveTab || filterConn.length === connData.connections.length) {
+    if (
+      !isActiveTab ||
+      filterConn.length === connData.activeConnections.length
+    ) {
       await closeAllConnections();
     } else {
       filterConn.forEach(async (conn) => await closeConnection(conn.id));
@@ -243,6 +228,21 @@ const ConnectionsPage = () => {
           )}
         </Box>
         <ConnectionDetail ref={detailRef} />
+        <Zoom in={!isActiveTab && filterConn.length > 0} unmountOnExit>
+          <Fab
+            size="medium"
+            variant="extended"
+            sx={{
+              position: "absolute",
+              right: 16,
+              bottom: isTableLayout ? 70 : 16,
+            }}
+            color="primary"
+            onClick={() => clearClosedConnections()}>
+            <DeleteForeverRounded sx={{ mr: 1 }} fontSize="small" />
+            {t("Clear")}
+          </Fab>
+        </Zoom>
       </div>
     </BasePage>
   );

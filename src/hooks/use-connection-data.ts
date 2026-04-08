@@ -4,11 +4,21 @@ import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 import { useRefreshConnectionDateStore } from "@/stores";
 
-export const initConnData: IConnections = {
+export interface ConnectionMonitorData {
+  uploadTotal: number;
+  downloadTotal: number;
+  activeConnections: IConnectionsItem[];
+  closedConnections: IConnectionsItem[];
+}
+
+export const initConnData: ConnectionMonitorData = {
   uploadTotal: 0,
   downloadTotal: 0,
-  connections: [],
+  activeConnections: [],
+  closedConnections: [],
 };
+
+const MAX_CLOSED_CONNS = 500;
 
 export const useConnectionData = () => {
   const date = useRefreshConnectionDateStore((s) => s.date);
@@ -19,7 +29,11 @@ export const useConnectionData = () => {
   const wsFirstConnection = useRef<boolean>(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const response = useSWRSubscription<IConnections, any, string | null>(
+  const response = useSWRSubscription<
+    ConnectionMonitorData,
+    any,
+    string | null
+  >(
     subscriptKey,
     (_key, { next }) => {
       const reconnect = async () => {
@@ -42,28 +56,48 @@ export const useConnectionData = () => {
                 } else {
                   const data = JSON.parse(msg.data) as IConnections;
                   next(null, (old = initConnData) => {
-                    const oldConn = old.connections;
+                    const oldConn = old.activeConnections;
+                    const oldClosedConnections = old.closedConnections;
+
                     const maxLen = data.connections?.length;
-                    const connections: IConnectionsItem[] = [];
+                    const activeConnections: IConnectionsItem[] = [];
                     const rest = (data.connections || []).filter((each) => {
                       const index = oldConn.findIndex((o) => o.id === each.id);
                       if (index >= 0 && index < maxLen) {
                         const old = oldConn[index];
                         each.curUpload = each.upload - old.upload;
                         each.curDownload = each.download - old.download;
-                        connections[index] = each;
+                        activeConnections[index] = each;
                         return false;
                       }
                       return true;
                     });
                     for (let i = 0; i < maxLen; ++i) {
-                      if (!connections[i] && rest.length > 0) {
-                        connections[i] = rest.shift()!;
-                        connections[i].curUpload = 0;
-                        connections[i].curDownload = 0;
+                      if (!activeConnections[i] && rest.length > 0) {
+                        activeConnections[i] = rest.shift()!;
+                        activeConnections[i].curUpload = 0;
+                        activeConnections[i].curDownload = 0;
                       }
                     }
-                    return { ...data, connections };
+
+                    const ids = activeConnections.map((item) => item.id);
+                    const closed = oldConn.filter(
+                      (item) => !ids.includes(item.id),
+                    );
+                    const closedConnections = [
+                      ...oldClosedConnections,
+                      ...closed,
+                    ];
+                    closedConnections.length > MAX_CLOSED_CONNS
+                      ? closedConnections.slice(-MAX_CLOSED_CONNS)
+                      : closedConnections;
+
+                    return {
+                      uploadTotal: data.uploadTotal,
+                      downloadTotal: data.downloadTotal,
+                      activeConnections,
+                      closedConnections,
+                    };
                   });
                 }
               }
@@ -105,5 +139,14 @@ export const useConnectionData = () => {
     refresh();
   };
 
-  return { response, refreshGetClashConnection };
+  const clearClosedConnections = () => {
+    mutate(`$sub$${subscriptKey}`, {
+      uploadTotal: response.data?.uploadTotal ?? 0,
+      downloadTotal: response.data?.downloadTotal ?? 0,
+      activeConnections: response.data?.activeConnections ?? [],
+      closedConnections: [],
+    });
+  };
+
+  return { response, refreshGetClashConnection, clearClosedConnections };
 };
