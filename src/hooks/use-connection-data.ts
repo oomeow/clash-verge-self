@@ -61,13 +61,17 @@ export const useConnectionData = () => {
 
                     const maxLen = data.connections?.length;
                     const activeConnections: IConnectionsItem[] = [];
+
+                    const oldConnMap = new Map(
+                      oldConn.map((c, i) => [c.id, { conn: c, index: i }]),
+                    );
                     const rest = (data.connections || []).filter((each) => {
-                      const index = oldConn.findIndex((o) => o.id === each.id);
-                      if (index >= 0 && index < maxLen) {
-                        const old = oldConn[index];
+                      const existing = oldConnMap.get(each.id);
+                      if (existing && existing.index < maxLen) {
+                        const old = existing.conn;
                         each.curUpload = each.upload - old.upload;
                         each.curDownload = each.download - old.download;
-                        activeConnections[index] = each;
+                        activeConnections[existing.index] = each;
                         return false;
                       }
                       return true;
