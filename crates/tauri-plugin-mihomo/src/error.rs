@@ -6,6 +6,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("Missing {0} parameter")]
+    MissingPathParameter(String),
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error(transparent)]

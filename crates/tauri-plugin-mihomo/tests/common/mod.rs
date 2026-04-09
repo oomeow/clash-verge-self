@@ -9,25 +9,37 @@ pub const TIMEOUT: u32 = 3000;
 
 pub fn mihomo() -> Mihomo {
     dotenvy::dotenv().unwrap();
-    let mihomo_socket = std::env::var("MIHOMO_SOCKET").unwrap_or(String::from("0"));
-    if mihomo_socket == "1" {
+    let use_local_socket = std::env::var("MIHOMO_SOCKET").unwrap_or(String::from("0")) == "1";
+    let request_timeout = Duration::from_secs(5);
+    let socket_path = if use_local_socket {
+        None
+    } else {
+        if cfg!(unix) {
+            Some("/tmp/self-mihomo.sock".to_string())
+            // Some("/tmp/clash-rs.sock".to_string())
+        } else {
+            Some(r"\\.\pipe\self-mihomo".to_string())
+            // Some(r"\\.\pipe\clash-rs".to_string())
+        }
+    };
+    let protocol = if use_local_socket {
+        Protocol::LocalSocket
+    } else {
+        Protocol::Http
+    };
+    let client = Mihomo::build_client(&protocol, socket_path.as_deref()).unwrap();
+    if use_local_socket {
         println!("connect to mihomo by local socket");
         // use local socket
-        let socket_path = if cfg!(unix) {
-            "/tmp/self-mihomo.sock".to_string()
-            // "/tmp/clash-rs.sock".to_string()
-        } else {
-            r"\\.\pipe\self-mihomo".to_string()
-            // r"\\.\pipe\clash-rs".to_string()
-        };
         Mihomo {
             protocol: Protocol::LocalSocket,
             external_host: None,
             external_port: None,
             secret: None,
-            socket_path: Some(socket_path),
-            request_timeout: Duration::from_secs(5),
+            socket_path,
+            request_timeout,
             connection_manager: Arc::new(Default::default()),
+            client,
         }
     } else {
         println!("connect to mihomo by http");
@@ -37,9 +49,10 @@ pub fn mihomo() -> Mihomo {
             external_host: Some("127.0.0.1".into()),
             external_port: Some(9090),
             secret: Some("yPMJk9i7UaR1hv3-2BkPy".into()),
-            socket_path: None,
-            request_timeout: Duration::from_secs(5),
+            socket_path,
+            request_timeout,
             connection_manager: Arc::new(Default::default()),
+            client,
         }
     }
 }
