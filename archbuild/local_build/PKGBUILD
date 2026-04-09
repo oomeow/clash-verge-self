@@ -9,14 +9,14 @@ pkgdesc="Continuation of Clash Verge | A Mihomo GUI based on Tauri"
 arch=('x86_64')
 url="https://github.com/oomeow/clash-verge-self"
 license=('GPL3')
-depends=('cairo' 'desktop-file-utils' 'gdk-pixbuf2' 'glib2' 'gtk3' 'hicolor-icon-theme' 'libsoup' 'pango' 'webkit2gtk' 'libkeybinder3')
+depends=('cairo' 'desktop-file-utils' 'gdk-pixbuf2' 'glib2' 'gtk3' 'hicolor-icon-theme' 'libsoup' 'pango' 'webkit2gtk-4.1' 'libkeybinder3')
 options=('!strip' '!emptydirs')
 conflicts=("$_pkgname" "$_pkgname-alpha" "$_pkgname-alpha-bin" "$_pkgname-git" "clash-meta")
 install=clash-verge-self.install
 
-source_x86_64=("clash-verge_${_pkgver}_amd64.deb")
+source_x86_64=("clash-verge-self_${_pkgver}_amd64.deb")
 
-sha256sums_x86_64=("743d1da9ec73ad5a9faa82efb9ad2a1b5a49b382a9db9751e566506253494cfa")
+sha256sums_x86_64=("8e45002b913974ee56d05dcacb3811a233428cfeff5518fc3f653b22935c6302")
 
 package() {
 	# Extract package data
