@@ -13,7 +13,6 @@ type RulesActions = {
 export const useRulesStateStore = create<RulesState & RulesActions>()(
   (set) => ({
     customRules: null,
-    setCustomRules: (rules) =>
-      set((state) => ({ ...state, customRules: rules })),
+    setCustomRules: (rules) => set({ customRules: rules }),
   }),
 );

@@ -116,26 +116,20 @@ export const useThemeSettingsStore = create<
     (set) => ({
       themeSettings: defaultThemeSettings,
       setLightThemeSetting: (setting) => {
-        set((state) => {
-          const nextSetting = normalizeThemeSetting("light", setting);
-          if (isSameThemeSetting(state.themeSettings.light, nextSetting)) {
-            return state;
-          }
-          return {
-            themeSettings: { ...state.themeSettings, light: nextSetting },
-          };
-        });
+        set((state) => ({
+          themeSettings: {
+            ...state.themeSettings,
+            light: normalizeThemeSetting("light", setting),
+          },
+        }));
       },
       setDarkThemeSetting: (setting) =>
-        set((state) => {
-          const nextSetting = normalizeThemeSetting("dark", setting);
-          if (isSameThemeSetting(state.themeSettings.dark, nextSetting)) {
-            return state;
-          }
-          return {
-            themeSettings: { ...state.themeSettings, dark: nextSetting },
-          };
-        }),
+        set((state) => ({
+          themeSettings: {
+            ...state.themeSettings,
+            dark: normalizeThemeSetting("dark", setting),
+          },
+        })),
       setThemeColor: (mode, key, value) =>
         set((state) => {
           if (state.themeSettings[mode]?.[key] === value) {
@@ -172,7 +166,7 @@ export const useThemeSettingsStore = create<
     }),
     {
       name: "theme_settings",
-      version: 2,
+      version: 1,
     },
   ),
 );

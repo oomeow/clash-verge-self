@@ -43,7 +43,6 @@ export const useConnectionsStore = create<
       setTabSortModel: (tabSortModel) => set({ tabSortModel }),
       setTabColumnWidth: (tabColumn, width) =>
         set((state) => ({
-          ...state,
           tabColumnsWidths: { ...state.tabColumnsWidths, [tabColumn]: width },
         })),
     }),
