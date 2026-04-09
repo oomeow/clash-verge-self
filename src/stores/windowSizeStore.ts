@@ -22,13 +22,10 @@ type Actions = {
 
 export const useWindowSizeStore = create<State & Actions>()(
   persist(
-    immer((set) => ({
+    (set) => ({
       windowSize: getDefaultWindowSize(),
-      setWindowSize: (size) =>
-        set((state) => {
-          state.windowSize = size;
-        }),
-    })),
+      setWindowSize: (size) => set(() => ({ windowSize: size })),
+    }),
     {
       name: "window-size",
       version: 1,

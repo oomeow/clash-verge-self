@@ -1,7 +1,6 @@
 import { GridSortItem, GridSortModel } from "@mui/x-data-grid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
 
 export type ConnectionsLayout = "table" | "list";
 
@@ -32,7 +31,7 @@ export const useConnectionsStore = create<
   ConnectionsState & ConnectionsActions
 >()(
   persist(
-    immer((set) => ({
+    (set) => ({
       layout: "table",
       curOrderOpt: "Default",
       tabName: "active",
@@ -40,25 +39,28 @@ export const useConnectionsStore = create<
       tabColumnsWidths: {},
       setConnectionsLayout: (layout) =>
         set((state) => {
-          state.layout = layout;
+          return { ...state, layout };
         }),
       setOrderType: (orderType) =>
         set((state) => {
-          state.curOrderOpt = orderType;
+          return { ...state, curOrderOpt: orderType };
         }),
       setTabName: (tabName) =>
         set((state) => {
-          state.tabName = tabName;
+          return { ...state, tabName };
         }),
-      setTabSortModel: (sortModel) =>
+      setTabSortModel: (tabSortModel) =>
         set((state) => {
-          state.tabSortModel = sortModel;
+          return { ...state, tabSortModel };
         }),
       setTabColumnWidth: (tabColumn, width) =>
         set((state) => {
-          state.tabColumnsWidths[tabColumn] = width;
+          return {
+            ...state,
+            tabColumnsWidths: { ...state.tabColumnsWidths, [tabColumn]: width },
+          };
         }),
-    })),
+    }),
     {
       name: "connections-settings",
       version: 1,

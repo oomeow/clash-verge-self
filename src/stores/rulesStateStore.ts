@@ -11,11 +11,11 @@ type RulesActions = {
 };
 
 export const useRulesStateStore = create<RulesState & RulesActions>()(
-  immer((set) => ({
+  (set) => ({
     customRules: null,
     setCustomRules: (rules) =>
       set((state) => {
-        state.customRules = rules;
+        return { ...state, customRules: rules };
       }),
-  })),
+  }),
 );

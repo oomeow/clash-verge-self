@@ -9,12 +9,7 @@ type Actions = {
   refresh: () => void;
 };
 
-export const useRefreshMemoryDateStore = create<State & Actions>()(
-  immer((set) => ({
-    date: Date.now(),
-    refresh: () =>
-      set((state) => {
-        state.date = Date.now();
-      }),
-  })),
-);
+export const useRefreshMemoryDateStore = create<State & Actions>()((set) => ({
+  date: Date.now(),
+  refresh: () => set(() => ({ date: Date.now() })),
+}));

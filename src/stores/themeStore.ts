@@ -85,16 +85,16 @@ type ThemeModeActions = {
 };
 
 export const useThemeModeStore = create<ThemeModeState & ThemeModeActions>()(
-  immer((set) => ({
+  (set) => ({
     themeMode: "light",
     setThemeMode: (mode) =>
       set((state) => {
         if (state.themeMode === mode) {
-          return;
+          return state;
         }
-        state.themeMode = mode;
+        return { themeMode: mode };
       }),
-  })),
+  }),
 );
 
 type ThemeSettingsState = {
@@ -113,43 +113,64 @@ export const useThemeSettingsStore = create<
   ThemeSettingsState & ThemeSettingsActions
 >()(
   persist(
-    immer((set) => ({
+    (set) => ({
       themeSettings: defaultThemeSettings,
-      setLightThemeSetting: (setting) =>
+      setLightThemeSetting: (setting) => {
+        if (!setting) return;
         set((state) => {
           const nextSetting = normalizeThemeSetting("light", setting);
           if (isSameThemeSetting(state.themeSettings.light, nextSetting)) {
-            return;
+            return state;
           }
-          state.themeSettings.light = nextSetting;
-        }),
+          return {
+            themeSettings: { ...state.themeSettings, light: nextSetting },
+          };
+        });
+      },
       setDarkThemeSetting: (setting) =>
         set((state) => {
           const nextSetting = normalizeThemeSetting("dark", setting);
           if (isSameThemeSetting(state.themeSettings.dark, nextSetting)) {
-            return;
+            return state;
           }
-          state.themeSettings.dark = nextSetting;
+          return {
+            themeSettings: { ...state.themeSettings, dark: nextSetting },
+          };
         }),
       setThemeColor: (mode, key, value) =>
         set((state) => {
           if (state.themeSettings[mode]?.[key] === value) {
-            return;
+            return state;
           }
-          state.themeSettings[mode] = {
-            ...state.themeSettings[mode],
-            [key]: value,
+          return {
+            themeSettings: {
+              ...state.themeSettings,
+              [mode]: {
+                ...state.themeSettings[mode],
+                [key]: value,
+              },
+            },
           };
         }),
       resetLightThemeSetting: () =>
         set((state) => {
-          state.themeSettings.light = { ...defaultThemeSettings.light };
+          return {
+            themeSettings: {
+              ...state.themeSettings,
+              light: { ...defaultThemeSettings.light },
+            },
+          };
         }),
       resetDarkThemeSetting: () =>
         set((state) => {
-          state.themeSettings.dark = { ...defaultThemeSettings.dark };
+          return {
+            themeSettings: {
+              ...state.themeSettings,
+              dark: { ...defaultThemeSettings.dark },
+            },
+          };
         }),
-    })),
+    }),
     {
       name: "theme_settings",
       version: 2,
