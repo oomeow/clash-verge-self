@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
 
 type State = {
   date: number;
@@ -10,11 +9,8 @@ type Actions = {
 };
 
 export const useRefreshConnectionDateStore = create<State & Actions>()(
-  immer((set) => ({
+  (set) => ({
     date: Date.now(),
-    refresh: () =>
-      set((state) => {
-        state.date = Date.now();
-      }),
-  })),
+    refresh: () => set({ date: Date.now() }),
+  }),
 );

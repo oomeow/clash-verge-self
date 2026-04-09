@@ -1,7 +1,6 @@
-import { GridSortItem, GridSortModel } from "@mui/x-data-grid";
+import { GridSortItem } from "@mui/x-data-grid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
 
 export type ConnectionsLayout = "table" | "list";
 
@@ -32,33 +31,21 @@ export const useConnectionsStore = create<
   ConnectionsState & ConnectionsActions
 >()(
   persist(
-    immer((set) => ({
+    (set) => ({
       layout: "table",
       curOrderOpt: "Default",
       tabName: "active",
       tabSortModel: [],
       tabColumnsWidths: {},
-      setConnectionsLayout: (layout) =>
-        set((state) => {
-          state.layout = layout;
-        }),
-      setOrderType: (orderType) =>
-        set((state) => {
-          state.curOrderOpt = orderType;
-        }),
-      setTabName: (tabName) =>
-        set((state) => {
-          state.tabName = tabName;
-        }),
-      setTabSortModel: (sortModel) =>
-        set((state) => {
-          state.tabSortModel = sortModel;
-        }),
+      setConnectionsLayout: (layout) => set({ layout }),
+      setOrderType: (orderType) => set({ curOrderOpt: orderType }),
+      setTabName: (tabName) => set({ tabName }),
+      setTabSortModel: (tabSortModel) => set({ tabSortModel }),
       setTabColumnWidth: (tabColumn, width) =>
-        set((state) => {
-          state.tabColumnsWidths[tabColumn] = width;
-        }),
-    })),
+        set((state) => ({
+          tabColumnsWidths: { ...state.tabColumnsWidths, [tabColumn]: width },
+        })),
+    }),
     {
       name: "connections-settings",
       version: 1,

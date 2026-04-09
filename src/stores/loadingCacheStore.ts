@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
 
 type State = {
   loadingCache: Record<string, boolean>;
@@ -12,24 +11,23 @@ type Actions = {
   removeLoading: (key: string) => void;
 };
 
-export const useLoadingCacheStore = create<State & Actions>()(
-  immer((set) => ({
-    loadingCache: {},
-    setLoading: (key, value) =>
-      set((state) => {
-        state.loadingCache[key] = value;
-      }),
-    toggleLoading: (key) =>
-      set((state) => {
-        state.loadingCache[key] = !state.loadingCache[key];
-      }),
-    clearLoadingCache: () =>
-      set((state) => {
-        state.loadingCache = {};
-      }),
-    removeLoading: (key) =>
-      set((state) => {
-        delete state.loadingCache[key];
-      }),
-  })),
-);
+export const useLoadingCacheStore = create<State & Actions>()((set) => ({
+  loadingCache: {},
+  setLoading: (key, value) =>
+    set((state) => ({
+      loadingCache: { ...state.loadingCache, [key]: value },
+    })),
+  toggleLoading: (key) =>
+    set((state) => ({
+      loadingCache: {
+        ...state.loadingCache,
+        [key]: !state.loadingCache[key],
+      },
+    })),
+  clearLoadingCache: () => set({ loadingCache: {} }),
+  removeLoading: (key) =>
+    set((state) => {
+      const { [key]: _, ...rest } = state.loadingCache;
+      return { loadingCache: rest };
+    }),
+}));

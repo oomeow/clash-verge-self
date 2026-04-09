@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
 
 export interface WindowSize {
   height: number;
@@ -22,13 +21,10 @@ type Actions = {
 
 export const useWindowSizeStore = create<State & Actions>()(
   persist(
-    immer((set) => ({
+    (set) => ({
       windowSize: getDefaultWindowSize(),
-      setWindowSize: (size) =>
-        set((state) => {
-          state.windowSize = size;
-        }),
-    })),
+      setWindowSize: (size) => set({ windowSize: size }),
+    }),
     {
       name: "window-size",
       version: 1,

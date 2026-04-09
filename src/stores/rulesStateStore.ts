@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { immer } from "zustand/middleware/immer";
 import { CustomRule } from "@/pages/rules";
 
 type RulesState = {
@@ -11,11 +10,8 @@ type RulesActions = {
 };
 
 export const useRulesStateStore = create<RulesState & RulesActions>()(
-  immer((set) => ({
+  (set) => ({
     customRules: null,
-    setCustomRules: (rules) =>
-      set((state) => {
-        state.customRules = rules;
-      }),
-  })),
+    setCustomRules: (rules) => set({ customRules: rules }),
+  }),
 );
