@@ -1,4 +1,4 @@
-import { GridSortItem, GridSortModel } from "@mui/x-data-grid";
+import { GridSortItem } from "@mui/x-data-grid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 

@@ -1,10 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { immer } from "zustand/middleware/immer";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
 
 export type ThemeMode = "light" | "dark";
-type ThemeSetting = NonNullable<IVergeConfig["light_theme_setting"]>;
+type ThemeSetting = NonNullable<IVergeConfig["theme_setting"]>;
 
 const THEME_KEYS = [
   "primary_color",
@@ -22,13 +21,13 @@ const THEME_KEYS = [
 type ThemeKey = keyof ThemeSetting;
 
 interface ThemeSettings {
-  light: IVergeConfig["light_theme_setting"];
-  dark: IVergeConfig["dark_theme_setting"];
+  light: IVergeConfig["theme_setting"];
+  dark: IVergeConfig["theme_setting"];
 }
 
 const toThemeSetting = (
   theme: typeof defaultTheme,
-): IVergeConfig["light_theme_setting"] => ({
+): IVergeConfig["theme_setting"] => ({
   primary_color: theme.primary_color,
   secondary_color: theme.secondary_color,
   primary_text: theme.primary_text,
@@ -41,12 +40,8 @@ const toThemeSetting = (
 });
 
 const isSameThemeSetting = (
-  left:
-    | IVergeConfig["light_theme_setting"]
-    | IVergeConfig["dark_theme_setting"],
-  right:
-    | IVergeConfig["light_theme_setting"]
-    | IVergeConfig["dark_theme_setting"],
+  left: IVergeConfig["theme_setting"],
+  right: IVergeConfig["theme_setting"],
 ) =>
   THEME_KEYS.every((key) => {
     const leftValue = left?.[key] ?? null;
@@ -61,9 +56,7 @@ export const defaultThemeSettings: ThemeSettings = {
 
 export const normalizeThemeSetting = (
   mode: ThemeMode,
-  setting:
-    | IVergeConfig["light_theme_setting"]
-    | IVergeConfig["dark_theme_setting"],
+  setting: IVergeConfig["theme_setting"],
 ) => {
   const fallback =
     mode === "light" ? defaultThemeSettings.light : defaultThemeSettings.dark;
@@ -102,8 +95,8 @@ type ThemeSettingsState = {
 };
 
 type ThemeSettingsActions = {
-  setLightThemeSetting: (setting: IVergeConfig["light_theme_setting"]) => void;
-  setDarkThemeSetting: (setting: IVergeConfig["dark_theme_setting"]) => void;
+  setLightThemeSetting: (setting: IVergeConfig["theme_setting"]) => void;
+  setDarkThemeSetting: (setting: IVergeConfig["theme_setting"]) => void;
   setThemeColor: (mode: ThemeMode, key: ThemeKey, value: string) => void;
   resetLightThemeSetting: () => void;
   resetDarkThemeSetting: () => void;
