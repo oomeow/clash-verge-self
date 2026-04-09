@@ -37,8 +37,10 @@ pub struct Mihomo {
 }
 
 impl Mihomo {
-    pub fn update_protocol(&mut self, protocol: Protocol) {
+    pub fn update_protocol(&mut self, protocol: Protocol) -> Result<()> {
         self.protocol = protocol;
+        self.client = Self::build_client(&self.protocol, self.socket_path.as_deref())?;
+        Ok(())
     }
 
     pub fn update_external_host(&mut self, host: Option<String>) {
@@ -126,18 +128,19 @@ impl Mihomo {
     fn build_request(&self, method: Method, suffix_url: &str) -> Result<RequestBuilder> {
         let url = self.generate_req_url(suffix_url)?;
         let headers = self.generate_req_headers()?;
-        match method {
-            Method::POST => Ok(self.client.post(url).headers(headers)),
-            Method::GET => Ok(self.client.get(url).headers(headers)),
-            Method::PUT => Ok(self.client.put(url).headers(headers)),
-            Method::PATCH => Ok(self.client.patch(url).headers(headers)),
-            Method::DELETE => Ok(self.client.delete(url).headers(headers)),
+        let request = match method {
+            Method::POST => self.client.post(url),
+            Method::GET => self.client.get(url),
+            Method::PUT => self.client.put(url),
+            Method::PATCH => self.client.patch(url),
+            Method::DELETE => self.client.delete(url),
             _ => {
                 let method_str = method.as_str().to_string();
                 log::error!("method not supported: {method_str}");
-                Err(Error::MethodNotSupported(method_str))
+                return Err(Error::MethodNotSupported(method_str));
             }
-        }
+        };
+        Ok(request.headers(headers).timeout(self.request_timeout))
     }
 
     fn get_websocket_url(&self, suffix_url: &str) -> Result<String> {

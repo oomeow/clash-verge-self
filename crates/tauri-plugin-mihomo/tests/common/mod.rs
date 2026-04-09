@@ -12,8 +12,6 @@ pub fn mihomo() -> Mihomo {
     let use_local_socket = std::env::var("MIHOMO_SOCKET").unwrap_or(String::from("0")) == "1";
     let request_timeout = Duration::from_secs(5);
     let socket_path = if use_local_socket {
-        None
-    } else {
         if cfg!(unix) {
             Some("/tmp/self-mihomo.sock".to_string())
             // Some("/tmp/clash-rs.sock".to_string())
@@ -21,6 +19,8 @@ pub fn mihomo() -> Mihomo {
             Some(r"\\.\pipe\self-mihomo".to_string())
             // Some(r"\\.\pipe\clash-rs".to_string())
         }
+    } else {
+        None
     };
     let protocol = if use_local_socket {
         Protocol::LocalSocket
