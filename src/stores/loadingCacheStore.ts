@@ -33,7 +33,8 @@ export const useLoadingCacheStore = create<State & Actions>()((set) => ({
   clearLoadingCache: () => set(() => ({ loadingCache: {} })),
   removeLoading: (key) =>
     set((state) => {
-      delete state.loadingCache[key];
-      return { ...state };
+      const loadingCache = { ...state.loadingCache };
+      delete loadingCache[key];
+      return { ...state, loadingCache };
     }),
 }));
