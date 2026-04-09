@@ -115,21 +115,32 @@ export const useThemeSettingsStore = create<
   persist(
     (set) => ({
       themeSettings: defaultThemeSettings,
-      setLightThemeSetting: (setting) => {
-        set((state) => ({
-          themeSettings: {
-            ...state.themeSettings,
-            light: normalizeThemeSetting("light", setting),
-          },
-        }));
-      },
+      setLightThemeSetting: (setting) =>
+        set((state) => {
+          const nextSetting = normalizeThemeSetting("light", setting);
+          if (isSameThemeSetting(state.themeSettings.light, nextSetting)) {
+            return state;
+          }
+          return {
+            themeSettings: {
+              ...state.themeSettings,
+              light: nextSetting,
+            },
+          };
+        }),
       setDarkThemeSetting: (setting) =>
-        set((state) => ({
-          themeSettings: {
-            ...state.themeSettings,
-            dark: normalizeThemeSetting("dark", setting),
-          },
-        })),
+        set((state) => {
+          const nextSetting = normalizeThemeSetting("dark", setting);
+          if (isSameThemeSetting(state.themeSettings.dark, nextSetting)) {
+            return state;
+          }
+          return {
+            themeSettings: {
+              ...state.themeSettings,
+              dark: nextSetting,
+            },
+          };
+        }),
       setThemeColor: (mode, key, value) =>
         set((state) => {
           if (state.themeSettings[mode]?.[key] === value) {
