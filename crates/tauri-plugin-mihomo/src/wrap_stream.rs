@@ -22,52 +22,6 @@ pub enum WrapStream {
     NamedPipe(#[pin] NamedPipeClient),
 }
 
-impl WrapStream {
-    pub fn is_available(&self) -> Result<bool> {
-        match self {
-            #[cfg(unix)]
-            WrapStream::Unix(s) => {
-                use std::io::ErrorKind;
-
-                let mut buf = [0u8; 1];
-                match s.try_read(&mut buf) {
-                    Ok(n) => Ok(n != 0),
-                    Err(e) if e.kind() == ErrorKind::WouldBlock => Ok(true),
-                    Err(e) => Err(Error::Io(e)),
-                }
-            }
-            #[cfg(windows)]
-            WrapStream::NamedPipe(s) => {
-                use std::io::ErrorKind;
-
-                let mut buf = [0u8; 1];
-                match s.try_read(&mut buf) {
-                    Ok(n) => Ok(n != 0),
-                    Err(e) if e.kind() == ErrorKind::WouldBlock => Ok(true),
-                    Err(e) => Err(Error::Io(e)),
-                }
-            }
-        }
-    }
-
-    pub async fn readable(&self) -> std::io::Result<()> {
-        match self {
-            #[cfg(unix)]
-            WrapStream::Unix(s) => s.readable().await,
-            #[cfg(windows)]
-            WrapStream::NamedPipe(s) => s.readable().await,
-        }
-    }
-    pub async fn writable(&self) -> std::io::Result<()> {
-        match self {
-            #[cfg(unix)]
-            WrapStream::Unix(s) => s.writable().await,
-            #[cfg(windows)]
-            WrapStream::NamedPipe(s) => s.writable().await,
-        }
-    }
-}
-
 impl AsyncRead for WrapStream {
     fn poll_read(
         self: Pin<&mut Self>,

@@ -33,11 +33,14 @@ pub struct Mihomo {
     pub socket_path: Option<String>,
     pub request_timeout: Duration,
     pub connection_manager: Arc<ConnectionManager>,
+    pub client: reqwest::Client,
 }
 
 impl Mihomo {
-    pub fn update_protocol(&mut self, protocol: Protocol) {
+    pub fn update_protocol(&mut self, protocol: Protocol) -> Result<()> {
         self.protocol = protocol;
+        self.client = Self::build_client(&self.protocol, self.socket_path.as_deref())?;
+        Ok(())
     }
 
     pub fn update_external_host(&mut self, host: Option<String>) {
@@ -52,8 +55,32 @@ impl Mihomo {
         self.secret = secret;
     }
 
-    pub fn update_socket_path<S: Into<String>>(&mut self, socket_path: S) {
+    pub fn update_socket_path<S: Into<String>>(&mut self, socket_path: S) -> Result<()> {
         self.socket_path = Some(socket_path.into());
+        self.client = Self::build_client(&self.protocol, self.socket_path.as_deref())?;
+        Ok(())
+    }
+
+    pub fn build_client(protocol: &Protocol, socket_path: Option<&str>) -> Result<reqwest::Client> {
+        let mut builder = reqwest::ClientBuilder::new();
+        match protocol {
+            Protocol::Http => Ok(builder.build()?),
+            Protocol::LocalSocket => {
+                let Some(socket_path) = socket_path else {
+                    log::error!("missing socket path parameter");
+                    return Err(Error::MissingPathParameter("socket_path".into()));
+                };
+                #[cfg(windows)]
+                {
+                    builder = builder.windows_named_pipe(socket_path);
+                }
+                #[cfg(unix)]
+                {
+                    builder = builder.unix_socket(socket_path);
+                }
+                Ok(builder.build()?)
+            }
+        }
     }
 
     pub fn start_ws_connections_watcher(&self) {
@@ -69,7 +96,7 @@ impl Mihomo {
         });
     }
 
-    fn get_req_url(&self, suffix_url: &str) -> Result<String> {
+    fn generate_req_url(&self, suffix_url: &str) -> Result<String> {
         let suffix_url = suffix_url.trim_start_matches("/");
         match self.protocol {
             Protocol::Http => {
@@ -78,17 +105,14 @@ impl Mihomo {
                     Ok(format!("http://{host}:{port}/{suffix_url}"))
                 } else {
                     log::error!("missing external host parameter");
-                    Err(Error::Io(std::io::Error::new(
-                        std::io::ErrorKind::InvalidInput,
-                        "missing external host".to_string(),
-                    )))
+                    Err(Error::MissingPathParameter("external_host".into()))
                 }
             }
             Protocol::LocalSocket => Ok(format!("http://localhost/{suffix_url}")),
         }
     }
 
-    fn get_req_headers(&self) -> Result<HeaderMap<HeaderValue>> {
+    fn generate_req_headers(&self) -> Result<HeaderMap<HeaderValue>> {
         let mut headers = HeaderMap::new();
         headers.insert(HOST, HeaderValue::from_str("localhost")?);
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
@@ -102,42 +126,21 @@ impl Mihomo {
     }
 
     fn build_request(&self, method: Method, suffix_url: &str) -> Result<RequestBuilder> {
-        let url = self.get_req_url(suffix_url)?;
-        let headers = self.get_req_headers()?;
-        let client = {
-            let mut builder = reqwest::ClientBuilder::new().timeout(self.request_timeout);
-            if matches!(self.protocol, Protocol::LocalSocket) {
-                let Some(socket_path) = self.socket_path.as_deref() else {
-                    log::error!("missing socket path parameter");
-                    return Err(Error::Io(std::io::Error::new(
-                        std::io::ErrorKind::InvalidInput,
-                        "missing socket path".to_string(),
-                    )));
-                };
-                #[cfg(windows)]
-                {
-                    builder = builder.windows_named_pipe(socket_path);
-                }
-                #[cfg(unix)]
-                {
-                    builder = builder.unix_socket(socket_path);
-                }
-            }
-            builder.build()?
-        };
-
-        match method {
-            Method::POST => Ok(client.post(url).headers(headers)),
-            Method::GET => Ok(client.get(url).headers(headers)),
-            Method::PUT => Ok(client.put(url).headers(headers)),
-            Method::PATCH => Ok(client.patch(url).headers(headers)),
-            Method::DELETE => Ok(client.delete(url).headers(headers)),
+        let url = self.generate_req_url(suffix_url)?;
+        let headers = self.generate_req_headers()?;
+        let request = match method {
+            Method::POST => self.client.post(url),
+            Method::GET => self.client.get(url),
+            Method::PUT => self.client.put(url),
+            Method::PATCH => self.client.patch(url),
+            Method::DELETE => self.client.delete(url),
             _ => {
                 let method_str = method.as_str().to_string();
                 log::error!("method not supported: {method_str}");
-                Err(Error::MethodNotSupported(method_str))
+                return Err(Error::MethodNotSupported(method_str));
             }
-        }
+        };
+        Ok(request.headers(headers).timeout(self.request_timeout))
     }
 
     fn get_websocket_url(&self, suffix_url: &str) -> Result<String> {
@@ -150,10 +153,7 @@ impl Mihomo {
                     Ok(format!("ws://{host}:{port}/{suffix_url}?token={secret}"))
                 } else {
                     log::error!("missing external host parameter");
-                    Err(Error::Io(std::io::Error::new(
-                        std::io::ErrorKind::InvalidInput,
-                        "missing external host".to_string(),
-                    )))
+                    Err(Error::MissingPathParameter("external_host".into()))
                 }
             }
             Protocol::LocalSocket => Ok(format!("ws://localhost/{suffix_url}")),
@@ -265,10 +265,7 @@ impl Mihomo {
                     Ok(id)
                 } else {
                     log::error!("missing socket path parameter");
-                    Err(Error::Io(std::io::Error::new(
-                        std::io::ErrorKind::InvalidInput,
-                        "missing socket path".to_string(),
-                    )))
+                    Err(Error::MissingPathParameter("socket_path".into()))
                 }
             }
         }

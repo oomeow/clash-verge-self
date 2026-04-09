@@ -151,6 +151,7 @@ impl Builder {
                 // commands::ws_send,
             ])
             .setup(move |app, _api| {
+                let client = Mihomo::build_client(&protocol, socket_path.as_deref())?;
                 let mihomo = Mihomo {
                     protocol,
                     external_host,
@@ -159,6 +160,7 @@ impl Builder {
                     socket_path,
                     request_timeout,
                     connection_manager: Default::default(),
+                    client,
                 };
                 mihomo.start_ws_connections_watcher();
                 app.manage(RwLock::new(mihomo));
