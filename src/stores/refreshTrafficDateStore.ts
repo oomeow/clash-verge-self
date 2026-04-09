@@ -10,5 +10,5 @@ type Actions = {
 
 export const useRefreshTrafficDateStore = create<State & Actions>()((set) => ({
   date: Date.now(),
-  refresh: () => set(() => ({ date: Date.now() })),
+  refresh: () => set({ date: Date.now() }),
 }));

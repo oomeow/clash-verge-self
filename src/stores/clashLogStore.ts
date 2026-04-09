@@ -23,18 +23,9 @@ export const useClashLogStore = create<State & Actions>()(
       enable: true,
       logLevel: "info",
       logFilter: "all",
-      toggleEnable: () =>
-        set((state) => {
-          return { ...state, enable: !state.enable };
-        }),
-      setLogLevel: (level) =>
-        set((state) => {
-          return { ...state, logLevel: level };
-        }),
-      setLogFilter: (filter) =>
-        set((state) => {
-          return { ...state, logFilter: filter };
-        }),
+      toggleEnable: () => set((state) => ({ enable: !state.enable })),
+      setLogLevel: (level) => set({ logLevel: level }),
+      setLogFilter: (filter) => set({ logFilter: filter }),
     }),
     {
       name: "clash-log",

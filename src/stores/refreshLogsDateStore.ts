@@ -10,5 +10,5 @@ type Actions = {
 
 export const useRefreshLogsDateStore = create<State & Actions>()((set) => ({
   date: Date.now(),
-  refresh: () => set(() => ({ date: Date.now() })),
+  refresh: () => set({ date: Date.now() }),
 }));

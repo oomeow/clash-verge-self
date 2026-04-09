@@ -14,8 +14,6 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
   (set) => ({
     customRules: null,
     setCustomRules: (rules) =>
-      set((state) => {
-        return { ...state, customRules: rules };
-      }),
+      set((state) => ({ ...state, customRules: rules })),
   }),
 );

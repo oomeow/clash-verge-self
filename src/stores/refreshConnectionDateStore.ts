@@ -11,6 +11,6 @@ type Actions = {
 export const useRefreshConnectionDateStore = create<State & Actions>()(
   (set) => ({
     date: Date.now(),
-    refresh: () => set(() => ({ date: Date.now() })),
+    refresh: () => set({ date: Date.now() }),
   }),
 );

@@ -10,5 +10,5 @@ type Actions = {
 
 export const useAppUpdateStateStore = create<State & Actions>()((set) => ({
   appUpdateState: false,
-  setAppUpdateState: (updating) => set(() => ({ appUpdateState: updating })),
+  setAppUpdateState: (updating) => set({ appUpdateState: updating }),
 }));

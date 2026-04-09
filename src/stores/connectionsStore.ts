@@ -37,29 +37,15 @@ export const useConnectionsStore = create<
       tabName: "active",
       tabSortModel: [],
       tabColumnsWidths: {},
-      setConnectionsLayout: (layout) =>
-        set((state) => {
-          return { ...state, layout };
-        }),
-      setOrderType: (orderType) =>
-        set((state) => {
-          return { ...state, curOrderOpt: orderType };
-        }),
-      setTabName: (tabName) =>
-        set((state) => {
-          return { ...state, tabName };
-        }),
-      setTabSortModel: (tabSortModel) =>
-        set((state) => {
-          return { ...state, tabSortModel };
-        }),
+      setConnectionsLayout: (layout) => set({ layout }),
+      setOrderType: (orderType) => set({ curOrderOpt: orderType }),
+      setTabName: (tabName) => set({ tabName }),
+      setTabSortModel: (tabSortModel) => set({ tabSortModel }),
       setTabColumnWidth: (tabColumn, width) =>
-        set((state) => {
-          return {
-            ...state,
-            tabColumnsWidths: { ...state.tabColumnsWidths, [tabColumn]: width },
-          };
-        }),
+        set((state) => ({
+          ...state,
+          tabColumnsWidths: { ...state.tabColumnsWidths, [tabColumn]: width },
+        })),
     }),
     {
       name: "connections-settings",

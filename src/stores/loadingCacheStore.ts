@@ -14,23 +14,17 @@ type Actions = {
 export const useLoadingCacheStore = create<State & Actions>()((set) => ({
   loadingCache: {},
   setLoading: (key, value) =>
-    set((state) => {
-      return {
-        ...state,
-        loadingCache: { ...state.loadingCache, [key]: value },
-      };
-    }),
+    set((state) => ({
+      loadingCache: { ...state.loadingCache, [key]: value },
+    })),
   toggleLoading: (key) =>
-    set((state) => {
-      return {
-        ...state,
-        loadingCache: {
-          ...state.loadingCache,
-          [key]: !state.loadingCache[key],
-        },
-      };
-    }),
-  clearLoadingCache: () => set(() => ({ loadingCache: {} })),
+    set((state) => ({
+      loadingCache: {
+        ...state.loadingCache,
+        [key]: !state.loadingCache[key],
+      },
+    })),
+  clearLoadingCache: () => set({ loadingCache: {} }),
   removeLoading: (key) =>
     set((state) => {
       const loadingCache = { ...state.loadingCache };

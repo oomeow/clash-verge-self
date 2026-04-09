@@ -116,7 +116,6 @@ export const useThemeSettingsStore = create<
     (set) => ({
       themeSettings: defaultThemeSettings,
       setLightThemeSetting: (setting) => {
-        if (!setting) return;
         set((state) => {
           const nextSetting = normalizeThemeSetting("light", setting);
           if (isSameThemeSetting(state.themeSettings.light, nextSetting)) {
