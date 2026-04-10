@@ -138,6 +138,10 @@ pub fn create_window() {
         trace_err!(window.unminimize(), "set win unminimize");
         trace_err!(window.show(), "set win visible");
         trace_err!(window.set_focus(), "set win focus");
+        #[cfg(target_os = "macos")]
+        {
+            apply_tray_policy(app_handle, true);
+        }
         return;
     }
 
