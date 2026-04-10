@@ -22,7 +22,7 @@ use crate::{
         WebSocketConnectionId, WebSocketMessage,
     },
     ret_failed_resp,
-    stream::{WsReadeKind, WsStream},
+    stream::{WsReadKind, WsStream},
 };
 
 pub struct Mihomo {
@@ -189,7 +189,7 @@ impl Mihomo {
             Ok(msg)
         };
 
-        let spawn_read = move |mut reader: WsReadeKind, on_message: F, manager: Arc<ConnectionManager>| {
+        let spawn_read = move |mut reader: WsReadKind, on_message: F, manager: Arc<ConnectionManager>| {
             tokio::spawn(async move {
                 let manager_ = manager.clone();
                 while let Some(message) = reader.next().await {
@@ -203,7 +203,6 @@ impl Mihomo {
                     }
                     if is_close {
                         log::debug!("connection [{id}] is closed");
-                        manager_.0.write().await.remove(&id);
                         break;
                     }
                 }

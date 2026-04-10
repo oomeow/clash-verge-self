@@ -40,26 +40,26 @@ impl From<WebSocketStream<SocketStreamKind>> for WsStream {
 }
 
 impl WsStream {
-    pub fn split(self) -> (WsWriteKind, WsReadeKind) {
+    pub fn split(self) -> (WsWriteKind, WsReadKind) {
         match self {
             Self::Tcp(stream) => {
                 let (write, read) = stream.split();
-                (WsWriteKind::Tcp(write), WsReadeKind::Tcp(read))
+                (WsWriteKind::Tcp(write), WsReadKind::Tcp(read))
             }
             Self::Socket(stream) => {
                 let (write, read) = stream.split();
-                (WsWriteKind::Socket(write), WsReadeKind::Socket(read))
+                (WsWriteKind::Socket(write), WsReadKind::Socket(read))
             }
         }
     }
 }
 
-pub enum WsReadeKind {
+pub enum WsReadKind {
     Tcp(SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>),
     Socket(SplitStream<WebSocketStream<SocketStreamKind>>),
 }
 
-impl WsReadeKind {
+impl WsReadKind {
     pub async fn next(&mut self) -> Option<crate::Result<Message>> {
         match self {
             Self::Tcp(read) => read.next().await.map(|v| v.map_err(Into::into)),
