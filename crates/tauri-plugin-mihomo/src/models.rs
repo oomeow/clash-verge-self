@@ -1,15 +1,10 @@
 use std::{collections::HashMap, fmt::Display};
 
-use futures_util::{
-    SinkExt, StreamExt,
-    stream::{SplitSink, SplitStream},
-};
 use serde::{Deserialize, Serialize};
-use tokio::{net::TcpStream, sync::RwLock};
-use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, tungstenite::Message};
+use tokio::sync::RwLock;
 use ts_rs::TS;
 
-use crate::wrap_stream::SocketStreamKind;
+use crate::stream::WsWriteKind;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -889,72 +884,6 @@ pub enum WebSocketMessage {
 }
 
 pub type WebSocketConnectionId = u32;
-pub enum WsStream {
-    Tcp(WebSocketStream<MaybeTlsStream<TcpStream>>),
-    Socket(WebSocketStream<SocketStreamKind>),
-}
-
-impl From<WebSocketStream<MaybeTlsStream<TcpStream>>> for WsStream {
-    fn from(value: WebSocketStream<MaybeTlsStream<TcpStream>>) -> Self {
-        WsStream::Tcp(value)
-    }
-}
-
-impl From<WebSocketStream<SocketStreamKind>> for WsStream {
-    fn from(value: WebSocketStream<SocketStreamKind>) -> Self {
-        WsStream::Socket(value)
-    }
-}
-
-impl WsStream {
-    pub fn split(self) -> (WsWriteKind, WsReadeKind) {
-        match self {
-            Self::Tcp(stream) => {
-                let (write, read) = stream.split();
-                (WsWriteKind::Tcp(write), WsReadeKind::Tcp(read))
-            }
-            Self::Socket(stream) => {
-                let (write, read) = stream.split();
-                (WsWriteKind::Socket(write), WsReadeKind::Socket(read))
-            }
-        }
-    }
-}
-
-pub enum WsReadeKind {
-    Tcp(SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>),
-    Socket(SplitStream<WebSocketStream<SocketStreamKind>>),
-}
-
-impl WsReadeKind {
-    pub async fn next(&mut self) -> Option<crate::Result<Message>> {
-        match self {
-            Self::Tcp(read) => read
-                .next()
-                .await
-                .map_or_else(|| None, |v| Some(v.map_err(|e| e.into()))),
-            Self::Socket(read) => read
-                .next()
-                .await
-                .map_or_else(|| None, |v| Some(v.map_err(|e| e.into()))),
-        }
-    }
-}
-
-pub enum WsWriteKind {
-    Tcp(SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>),
-    Socket(SplitSink<WebSocketStream<SocketStreamKind>, Message>),
-}
-
-impl WsWriteKind {
-    pub async fn send(&mut self, message: Message) -> crate::Result<()> {
-        match self {
-            Self::Tcp(write) => write.send(message).await?,
-            Self::Socket(write) => write.send(message).await?,
-        }
-        Ok(())
-    }
-}
 
 #[derive(Default)]
 pub struct ConnectionManager(pub RwLock<HashMap<WebSocketConnectionId, WsWriteKind>>);

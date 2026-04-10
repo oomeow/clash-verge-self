@@ -19,9 +19,10 @@ use crate::{
     models::{
         BaseConfig, CloseFrame, ConnectionManager, Connections, CoreUpdaterChannel, ErrorResponse, Groups, LogLevel,
         MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules,
-        WebSocketConnectionId, WebSocketMessage, WsReadeKind, WsStream,
+        WebSocketConnectionId, WebSocketMessage,
     },
     ret_failed_resp,
+    stream::{WsReadeKind, WsStream},
 };
 
 pub struct Mihomo {
@@ -179,7 +180,7 @@ impl Mihomo {
                     code: v.code.into(),
                     reason: v.reason.to_string(),
                 })))?,
-                Ok(Message::Frame(_)) => serde_json::Value::Null, // This value can't be received.;
+                Ok(Message::Frame(_)) => serde_json::Value::Null, // This value can't be received.
                 Err(e) => {
                     log::error!("websocket error: {e}");
                     serde_json::to_value(WebSocketMessage::Text(e.to_string()))?
@@ -191,27 +192,22 @@ impl Mihomo {
         let spawn_read = move |mut reader: WsReadeKind, on_message: F, manager: Arc<ConnectionManager>| {
             tokio::spawn(async move {
                 let manager_ = manager.clone();
-                loop {
-                    let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
-                    if !ids.contains(&id) {
+                while let Some(message) = reader.next().await {
+                    if !manager_.0.read().await.contains_key(&id) {
                         log::debug!("connection [{id}] is removed from manager");
                         break;
                     }
-                    while let Some(message) = reader.next().await {
-                        let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
-                        if !ids.contains(&id) {
-                            log::debug!("connection [{id}] is removed from manager");
-                            break;
-                        }
-                        if let Ok(Message::Close(_)) = message {
-                            log::debug!("connection [{id}] is closed");
-                            manager_.0.write().await.remove(&id);
-                        }
-                        if let Ok(response) = handle_message(message) {
-                            on_message(response);
-                        }
+                    let is_close = matches!(&message, Ok(Message::Close(_)));
+                    if let Ok(response) = handle_message(message) {
+                        on_message(response);
+                    }
+                    if is_close {
+                        log::debug!("connection [{id}] is closed");
+                        manager_.0.write().await.remove(&id);
+                        break;
                     }
                 }
+                manager_.0.write().await.remove(&id);
             });
         };
 
@@ -230,7 +226,7 @@ impl Mihomo {
             Protocol::LocalSocket => {
                 if let Some(socket_path) = self.socket_path.as_ref() {
                     log::debug!("starting connect to websocket by using local socket: {socket_path}");
-                    let stream = crate::wrap_stream::connect_to_socket(socket_path).await?;
+                    let stream = crate::stream::connect_to_socket(socket_path).await?;
 
                     let request = Request::builder()
                         .uri(url)
