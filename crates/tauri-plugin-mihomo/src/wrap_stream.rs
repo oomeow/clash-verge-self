@@ -15,14 +15,14 @@ use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
 use crate::{Error, Result};
 
 #[pin_project(project = WrapStreamProj)]
-pub enum WrapStream {
+pub enum SocketStreamKind {
     #[cfg(unix)]
     Unix(#[pin] UnixStream),
     #[cfg(windows)]
     NamedPipe(#[pin] NamedPipeClient),
 }
 
-impl AsyncRead for WrapStream {
+impl AsyncRead for SocketStreamKind {
     fn poll_read(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -37,7 +37,7 @@ impl AsyncRead for WrapStream {
     }
 }
 
-impl AsyncWrite for WrapStream {
+impl AsyncWrite for SocketStreamKind {
     fn poll_write(self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &[u8]) -> Poll<std::io::Result<usize>> {
         match self.project() {
             #[cfg(unix)]
@@ -66,7 +66,7 @@ impl AsyncWrite for WrapStream {
     }
 }
 
-pub async fn connect_to_socket(socket_path: &str) -> Result<WrapStream> {
+pub async fn connect_to_socket(socket_path: &str) -> Result<SocketStreamKind> {
     #[cfg(unix)]
     {
         if !std::path::Path::new(socket_path).exists() {
@@ -76,7 +76,7 @@ pub async fn connect_to_socket(socket_path: &str) -> Result<WrapStream> {
                 format!("socket path: {socket_path} not found"),
             )));
         }
-        Ok(WrapStream::Unix(UnixStream::connect(socket_path).await?))
+        Ok(SocketStreamKind::Unix(UnixStream::connect(socket_path).await?))
     }
 
     #[cfg(windows)]
@@ -94,6 +94,6 @@ pub async fn connect_to_socket(socket_path: &str) -> Result<WrapStream> {
             }
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         };
-        Ok(WrapStream::NamedPipe(client))
+        Ok(SocketStreamKind::NamedPipe(client))
     }
 }

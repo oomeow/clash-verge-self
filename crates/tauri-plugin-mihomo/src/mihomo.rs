@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
-use futures_util::StreamExt;
 use http::{
     HeaderMap, HeaderValue, Request,
     header::{AUTHORIZATION, CONNECTION, CONTENT_TYPE, HOST, SEC_WEBSOCKET_KEY, SEC_WEBSOCKET_VERSION, UPGRADE},
@@ -20,7 +19,7 @@ use crate::{
     models::{
         BaseConfig, CloseFrame, ConnectionManager, Connections, CoreUpdaterChannel, ErrorResponse, Groups, LogLevel,
         MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules,
-        WebSocketConnectionId, WebSocketMessage, WebSocketWriter,
+        WebSocketConnectionId, WebSocketMessage, WsReadeKind, WsStream,
     },
     ret_failed_resp,
 };
@@ -168,24 +167,52 @@ impl Mihomo {
         let id = rand::random();
         log::info!("connecting to websocket: {url}, id: {id}");
         let manager = self.connection_manager.clone();
-        let handle_message = |message| {
+
+        let handle_message = |message: Result<Message>| -> Result<serde_json::Value> {
             // log::trace!("handle message {message:?}");
-            match message {
-                Ok(Message::Text(t)) => serde_json::to_value(WebSocketMessage::Text(t.to_string())).unwrap(),
-                Ok(Message::Binary(t)) => serde_json::to_value(WebSocketMessage::Binary(t.to_vec())).unwrap(),
-                Ok(Message::Ping(t)) => serde_json::to_value(WebSocketMessage::Ping(t.to_vec())).unwrap(),
-                Ok(Message::Pong(t)) => serde_json::to_value(WebSocketMessage::Pong(t.to_vec())).unwrap(),
+            let msg = match message {
+                Ok(Message::Text(t)) => serde_json::to_value(WebSocketMessage::Text(t.to_string()))?,
+                Ok(Message::Binary(t)) => serde_json::to_value(WebSocketMessage::Binary(t.to_vec()))?,
+                Ok(Message::Ping(t)) => serde_json::to_value(WebSocketMessage::Ping(t.to_vec()))?,
+                Ok(Message::Pong(t)) => serde_json::to_value(WebSocketMessage::Pong(t.to_vec()))?,
                 Ok(Message::Close(t)) => serde_json::to_value(WebSocketMessage::Close(t.map(|v| CloseFrame {
                     code: v.code.into(),
                     reason: v.reason.to_string(),
-                })))
-                .unwrap(),
-                Ok(Message::Frame(_)) => serde_json::Value::Null, // This value can't be received.
+                })))?,
+                Ok(Message::Frame(_)) => serde_json::Value::Null, // This value can't be received.;
                 Err(e) => {
                     log::error!("websocket error: {e}");
-                    serde_json::to_value(WebSocketMessage::Text(Error::from(e).to_string())).unwrap()
+                    serde_json::to_value(WebSocketMessage::Text(e.to_string()))?
                 }
-            }
+            };
+            Ok(msg)
+        };
+
+        let spawn_read = move |mut reader: WsReadeKind, on_message: F, manager: Arc<ConnectionManager>| {
+            tokio::spawn(async move {
+                let manager_ = manager.clone();
+                loop {
+                    let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
+                    if !ids.contains(&id) {
+                        log::debug!("connection [{id}] is removed from manager");
+                        break;
+                    }
+                    while let Some(message) = reader.next().await {
+                        let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
+                        if !ids.contains(&id) {
+                            log::debug!("connection [{id}] is removed from manager");
+                            break;
+                        }
+                        if let Ok(Message::Close(_)) = message {
+                            log::debug!("connection [{id}] is closed");
+                            manager_.0.write().await.remove(&id);
+                        }
+                        if let Ok(response) = handle_message(message) {
+                            on_message(response);
+                        }
+                    }
+                }
+            });
         };
 
         match self.protocol {
@@ -193,33 +220,11 @@ impl Mihomo {
                 log::debug!("starting connect to websocket by using http");
                 let request = url.into_client_request()?;
                 let (ws_stream, _) = connect_async(request).await?;
-                let (writer, mut reader) = ws_stream.split();
+                let ws_stream = WsStream::from(ws_stream);
+                let (writer, reader) = ws_stream.split();
 
-                manager
-                    .0
-                    .write()
-                    .await
-                    .insert(id, WebSocketWriter::TcpStreamWriter(writer));
-
-                tokio::spawn(async move {
-                    let manager_ = manager.clone();
-                    loop {
-                        let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
-                        if !ids.contains(&id) {
-                            log::debug!("connection [{id}] is removed from manager");
-                            break;
-                        }
-                        if let Some(message) = reader.next().await {
-                            if let Ok(Message::Close(_)) = message {
-                                log::debug!("connection [{id}] is closed");
-                                manager_.0.write().await.remove(&id);
-                            }
-                            let response = handle_message(message);
-                            on_message(response);
-                        }
-                    }
-                });
-
+                manager.0.write().await.insert(id, writer);
+                spawn_read(reader, on_message, manager.clone());
                 Ok(id)
             }
             Protocol::LocalSocket => {
@@ -236,32 +241,11 @@ impl Mihomo {
                         .header(SEC_WEBSOCKET_VERSION, "13")
                         .body(())?;
                     let (ws_stream, _) = client_async(request, stream).await?;
-                    let (writer, mut reader) = ws_stream.split();
+                    let ws_stream = WsStream::from(ws_stream);
+                    let (writer, reader) = ws_stream.split();
 
-                    manager
-                        .0
-                        .write()
-                        .await
-                        .insert(id, WebSocketWriter::SocketStreamWriter(writer));
-
-                    tokio::spawn(async move {
-                        let manager_ = manager.clone();
-                        loop {
-                            let ids: Vec<u32> = manager_.0.read().await.keys().cloned().collect();
-                            if !ids.contains(&id) {
-                                log::debug!("connection [{id}] is removed from manager");
-                                break;
-                            }
-                            if let Some(message) = reader.next().await {
-                                if let Ok(Message::Close(_)) = message {
-                                    log::debug!("connection [{id}] closed");
-                                    manager_.0.write().await.remove(&id);
-                                }
-                                let response = handle_message(message);
-                                on_message(response);
-                            }
-                        }
-                    });
+                    manager.0.write().await.insert(id, writer);
+                    spawn_read(reader, on_message, manager.clone());
                     Ok(id)
                 } else {
                     log::error!("missing socket path parameter");
