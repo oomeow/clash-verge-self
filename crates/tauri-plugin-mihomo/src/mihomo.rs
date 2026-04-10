@@ -215,8 +215,7 @@ impl Mihomo {
                 log::debug!("starting connect to websocket by using http");
                 let request = url.into_client_request()?;
                 let (ws_stream, _) = connect_async(request).await?;
-                let ws_stream = WsStream::from(ws_stream);
-                let (writer, reader) = ws_stream.split();
+                let (writer, reader) = WsStream::from(ws_stream).split();
 
                 manager.0.write().await.insert(id, writer);
                 spawn_read(reader, on_message, manager.clone());
@@ -236,8 +235,7 @@ impl Mihomo {
                         .header(SEC_WEBSOCKET_VERSION, "13")
                         .body(())?;
                     let (ws_stream, _) = client_async(request, stream).await?;
-                    let ws_stream = WsStream::from(ws_stream);
-                    let (writer, reader) = ws_stream.split();
+                    let (writer, reader) = WsStream::from(ws_stream).split();
 
                     manager.0.write().await.insert(id, writer);
                     spawn_read(reader, on_message, manager.clone());
