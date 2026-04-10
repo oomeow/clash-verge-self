@@ -301,7 +301,7 @@ pub fn handle_window_close(api: CloseRequestApi, app_handle: &AppHandle) {
 }
 
 pub fn is_silent_start() -> bool {
-    let env = handle::Handle::app_handle().env().clone();
+    let env = handle::Handle::app_handle().env();
     let is_bootup_silent = env.args_os.iter().any(|i| i == "--hidden");
     let silent_start = Config::verge().latest().silent_start_mode.clone().unwrap_or_default();
     matches!(silent_start, SilentStartMode::Bootup) && is_bootup_silent
