@@ -109,10 +109,9 @@ pub fn run() -> AppResult<()> {
 
             #[cfg(target_os = "macos")]
             {
-                let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
-                let show_in_dock = Config::verge().latest().show_in_dock.unwrap_or(true);
-                if !show_in_dock {
-                    let _ = app_handle.set_dock_visibility(false);
+                if resolve::is_silent_start() {
+                    let dock_visible: bool = Config::verge().latest().keep_in_dock.unwrap_or(true);
+                    resolve::apply_tray_policy(app_handle, dock_visible);
                 }
             }
 
@@ -218,7 +217,12 @@ pub fn run() -> AppResult<()> {
                             resolve::save_window_size_position(app_handle),
                             "save window size position failed"
                         );
-                        resolve::handle_window_close(api, app_handle)
+                        resolve::handle_window_close(api, app_handle);
+                        #[cfg(target_os = "macos")]
+                        {
+                            let dock_visible: bool = Config::verge().latest().keep_in_dock.unwrap_or(true);
+                            resolve::apply_tray_policy(app_handle, dock_visible);
+                        }
                     }
                     _ => {}
                 }

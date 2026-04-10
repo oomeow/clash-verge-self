@@ -52,23 +52,20 @@ pub async fn resolve_setup() {
         create_window();
     }
 
-    let process_silent_start = || {
-        let silent_start = Config::verge().latest().silent_start_mode.clone().unwrap_or_default();
-        if matches!(silent_start, SilentStartMode::Bootup | SilentStartMode::Off) {
-            create_window();
-        }
-    };
-
     let argvs = std::env::args().collect::<Vec<String>>();
     if let [_, second, ..] = argvs.as_slice() {
         if second.as_str() == "--hidden" {
             tracing::debug!("silent start app at boot-up");
         } else if second.starts_with("clash:") {
-            process_silent_start();
+            if !is_silent_start() {
+                create_window();
+            }
             resolve_scheme(second.to_owned()).await;
         }
     } else {
-        process_silent_start();
+        if !is_silent_start() {
+            create_window();
+        }
     }
 }
 
@@ -141,6 +138,10 @@ pub fn create_window() {
         trace_err!(window.unminimize(), "set win unminimize");
         trace_err!(window.show(), "set win visible");
         trace_err!(window.set_focus(), "set win focus");
+        #[cfg(target_os = "macos")]
+        {
+            apply_tray_policy(app_handle, true);
+        }
         return;
     }
 
@@ -218,6 +219,11 @@ pub fn create_window() {
             }
             #[cfg(debug_assertions)]
             win.open_devtools();
+
+            #[cfg(target_os = "macos")]
+            {
+                apply_tray_policy(app_handle, true);
+            }
         }
         Err(e) => {
             tracing::error!("failed to create window: {e}");
@@ -295,5 +301,28 @@ pub fn handle_window_close(api: CloseRequestApi, app_handle: &AppHandle) {
             let _ = window.hide();
         }
         api.prevent_close();
+    }
+}
+
+pub fn is_silent_start() -> bool {
+    let env = handle::Handle::app_handle().env();
+    let is_bootup_silent = env.args_os.iter().any(|i| i == "--hidden");
+    let silent_start = Config::verge().latest().silent_start_mode.clone().unwrap_or_default();
+    matches!(silent_start, SilentStartMode::Bootup) && is_bootup_silent
+        || matches!(silent_start, SilentStartMode::Global)
+}
+
+#[cfg(target_os = "macos")]
+pub fn apply_tray_policy(app: &tauri::AppHandle, dock_visible: bool) {
+    if let Err(err) = app.set_dock_visibility(dock_visible) {
+        tracing::warn!("set dock visibility failed: {err}");
+    }
+    let policy = if dock_visible {
+        tauri::ActivationPolicy::Regular
+    } else {
+        tauri::ActivationPolicy::Accessory
+    };
+    if let Err(err) = app.set_activation_policy(policy) {
+        tracing::warn!("set activation policy failed: {err}");
     }
 }

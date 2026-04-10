@@ -312,7 +312,7 @@ interface IVergeConfig {
   webdav_username?: string;
   webdav_password?: string;
   enable_tray?: boolean;
-  show_in_dock?: boolean;
+  keep_in_dock?: boolean;
   enable_external_controller?: boolean;
 }
 

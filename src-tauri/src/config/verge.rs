@@ -67,7 +67,7 @@ pub struct IVerge {
     pub enable_auto_launch: Option<bool>,
 
     /// 是否启用系统标题栏
-    #[serde(alias = "enable_system_title", alias = "enable_system_title_bar")]
+    #[serde(alias = "enable_system_title")]
     pub enable_system_title_bar: Option<bool>,
 
     /// 是否保持UI界面活动
@@ -167,8 +167,9 @@ pub struct IVerge {
     /// enable tray
     pub enable_tray: Option<bool>,
 
-    /// show in dock
-    pub show_in_dock: Option<bool>,
+    /// keep in dock
+    #[serde(alias = "show_in_dock")]
+    pub keep_in_dock: Option<bool>,
 
     /// enable external controller, such as 127.0.0.1:8080
     pub enable_external_controller: Option<bool>,
@@ -304,7 +305,7 @@ impl IVerge {
             auto_check_update: Some(true),
             auto_log_clean: Some(3),
             enable_tray: Some(true),
-            show_in_dock: Some(true),
+            keep_in_dock: Some(true),
             enable_external_controller: Some(false),
             ..Self::default()
         }
@@ -381,7 +382,7 @@ impl IVerge {
         patch!(webdav_username);
         patch!(webdav_password);
         patch!(enable_tray);
-        patch!(show_in_dock);
+        patch!(keep_in_dock);
         patch!(enable_external_controller);
     }
 
