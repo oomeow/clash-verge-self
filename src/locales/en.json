@@ -297,7 +297,8 @@
 
   "Splashscreen": "Splash Screen",
   "System Title Bar": "System Title Bar",
-  "Show In Dock": "Show In Dock",
+  "Keep In Dock": "Keep in Dock",
+  "Keep In Dock Info": "The application icon remains in the dock after the application window is closed",
   "Keep UI Active": "Keep UI Active",
   "Keep UI Active Info": "Keep the UI active and open it again without re-rendering the interface",
   "From": "From",

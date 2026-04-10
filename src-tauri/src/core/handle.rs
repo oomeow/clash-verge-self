@@ -98,14 +98,14 @@ impl Handle {
         Ok(())
     }
 
-    #[cfg(target_os = "macos")]
-    pub fn set_dock_visible(visible: bool) -> AppResult<()> {
-        log_err!(
-            Self::app_handle().set_dock_visibility(visible),
-            "failed to set visible in macos dock"
-        );
-        Ok(())
-    }
+    // #[cfg(target_os = "macos")]
+    // pub fn set_dock_visible(visible: bool) -> AppResult<()> {
+    //     log_err!(
+    //         Self::app_handle().set_dock_visibility(visible),
+    //         "failed to set visible in macos dock"
+    //     );
+    //     Ok(())
+    // }
 
     pub fn notify<T: Into<String>, B: Into<String>>(title: T, body: B) {
         let notification = Self::app_handle().notification().builder().title(title).body(body);

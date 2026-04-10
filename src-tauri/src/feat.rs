@@ -443,8 +443,6 @@ pub async fn patch_verge(patch: IVerge) -> AppResult<()> {
         let log_level = patch.app_log_level;
         let enable_tray = patch.enable_tray;
         let service_mode = patch.enable_service_mode;
-        #[cfg(target_os = "macos")]
-        let show_in_dock = patch.show_in_dock;
 
         if let Some(enable_external_controller) = enable_external_controller {
             tracing::info!("enable external controller: {enable_external_controller}");
@@ -515,12 +513,6 @@ pub async fn patch_verge(patch: IVerge) -> AppResult<()> {
         if let Some(enable_tray) = enable_tray {
             tracing::debug!("toggle tray enable: {enable_tray}");
             handle::Handle::set_tray_visible(enable_tray)?;
-        }
-
-        #[cfg(target_os = "macos")]
-        if let Some(show_in_dock) = show_in_dock {
-            tracing::debug!("toggle show in macos dock, {show_in_dock}");
-            handle::Handle::set_dock_visible(show_in_dock)?;
         }
 
         Ok(())

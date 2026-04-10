@@ -218,6 +218,11 @@ pub fn create_window() {
             }
             #[cfg(debug_assertions)]
             win.open_devtools();
+
+            #[cfg(target_os = "macos")]
+            {
+                apply_tray_policy(app_handle, true);
+            }
         }
         Err(e) => {
             tracing::error!("failed to create window: {e}");
@@ -295,5 +300,20 @@ pub fn handle_window_close(api: CloseRequestApi, app_handle: &AppHandle) {
             let _ = window.hide();
         }
         api.prevent_close();
+    }
+}
+
+#[cfg(target_os = "macos")]
+pub fn apply_tray_policy(app: &tauri::AppHandle, dock_visible: bool) {
+    if let Err(err) = app.set_dock_visibility(dock_visible) {
+        tracing::warn!("set dock visibility failed: {err}");
+    }
+    let policy = if dock_visible {
+        tauri::ActivationPolicy::Regular
+    } else {
+        tauri::ActivationPolicy::Accessory
+    };
+    if let Err(err) = app.set_activation_policy(policy) {
+        tracing::warn!("set activation policy failed: {err}");
     }
 }

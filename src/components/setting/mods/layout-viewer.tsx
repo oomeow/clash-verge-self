@@ -118,7 +118,21 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
 
         {OS === "macos" && (
           <Item>
-            <ListItemText primary={t("Show In Dock")} />
+            <ListItemText
+              primary={
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <span>{t("Keep In Dock")}</span>
+                  <Tooltip title={t("Keep In Dock Info")} placement="top">
+                    <IconButton color="inherit" size="small">
+                      <InfoRounded
+                        fontSize="inherit"
+                        style={{ cursor: "pointer", opacity: 0.75 }}
+                      />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              }
+            />
             <GuardState
               value={verge?.show_in_dock ?? true}
               valueProps="checked"

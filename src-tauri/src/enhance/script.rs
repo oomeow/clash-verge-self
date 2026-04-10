@@ -69,6 +69,7 @@ pub fn use_script(script: String, config: Mapping) -> AppResult<(Mapping, Vec<Lo
         }
         let res: AppResult<Mapping> = Ok(serde_json::from_str::<Mapping>(result.as_str())?);
         let mut out = outputs.lock().unwrap();
+        drop(context);
         match res {
             Ok(config) => Ok((use_lowercase(config), out.to_vec())),
             Err(err) => {
@@ -81,6 +82,7 @@ pub fn use_script(script: String, config: Mapping) -> AppResult<(Mapping, Vec<Lo
             }
         }
     } else {
+        drop(context);
         Err(any_err!("main function should return object"))
     }
 }
