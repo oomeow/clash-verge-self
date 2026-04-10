@@ -18,7 +18,7 @@ hooks = [
     id = "cargo-fmt",
     name = "cargo fmt",
     description = "Format files with rustfmt.",
-    entry = "cargo +nightly fmt  -- --check",
+    entry = "cargo +nightly fmt -- --check",
     language = "system",
     types = ["rust"]
   },

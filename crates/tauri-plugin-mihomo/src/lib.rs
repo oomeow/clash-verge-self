@@ -11,7 +11,7 @@ mod commands;
 mod error;
 mod mihomo;
 pub mod models;
-mod wrap_stream;
+mod stream;
 
 pub use error::{Error, Result};
 

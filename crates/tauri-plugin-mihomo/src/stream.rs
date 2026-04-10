@@ -3,26 +3,95 @@ use std::{
     task::{Context, Poll},
 };
 
+use futures_util::{
+    SinkExt, StreamExt,
+    stream::{SplitSink, SplitStream},
+};
 use pin_project::pin_project;
-use tokio::io::{AsyncRead, AsyncWrite};
 #[cfg(unix)]
 use tokio::net::UnixStream;
 #[cfg(windows)]
 use tokio::net::windows::named_pipe::{ClientOptions, NamedPipeClient};
+use tokio::{
+    io::{AsyncRead, AsyncWrite},
+    net::TcpStream,
+};
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, tungstenite::Message};
 #[cfg(windows)]
 use windows_sys::Win32::Foundation::ERROR_PIPE_BUSY;
 
 use crate::{Error, Result};
 
+pub enum WsStream {
+    Tcp(WebSocketStream<MaybeTlsStream<TcpStream>>),
+    Socket(WebSocketStream<SocketStreamKind>),
+}
+
+impl From<WebSocketStream<MaybeTlsStream<TcpStream>>> for WsStream {
+    fn from(value: WebSocketStream<MaybeTlsStream<TcpStream>>) -> Self {
+        WsStream::Tcp(value)
+    }
+}
+
+impl From<WebSocketStream<SocketStreamKind>> for WsStream {
+    fn from(value: WebSocketStream<SocketStreamKind>) -> Self {
+        WsStream::Socket(value)
+    }
+}
+
+impl WsStream {
+    pub fn split(self) -> (WsWriteKind, WsReadKind) {
+        match self {
+            Self::Tcp(stream) => {
+                let (write, read) = stream.split();
+                (WsWriteKind::Tcp(write), WsReadKind::Tcp(read))
+            }
+            Self::Socket(stream) => {
+                let (write, read) = stream.split();
+                (WsWriteKind::Socket(write), WsReadKind::Socket(read))
+            }
+        }
+    }
+}
+
+pub enum WsReadKind {
+    Tcp(SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>),
+    Socket(SplitStream<WebSocketStream<SocketStreamKind>>),
+}
+
+impl WsReadKind {
+    pub async fn next(&mut self) -> Option<crate::Result<Message>> {
+        match self {
+            Self::Tcp(read) => read.next().await.map(|v| v.map_err(Into::into)),
+            Self::Socket(read) => read.next().await.map(|v| v.map_err(Into::into)),
+        }
+    }
+}
+
+pub enum WsWriteKind {
+    Tcp(SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>),
+    Socket(SplitSink<WebSocketStream<SocketStreamKind>, Message>),
+}
+
+impl WsWriteKind {
+    pub async fn send(&mut self, message: Message) -> crate::Result<()> {
+        match self {
+            Self::Tcp(write) => write.send(message).await?,
+            Self::Socket(write) => write.send(message).await?,
+        }
+        Ok(())
+    }
+}
+
 #[pin_project(project = WrapStreamProj)]
-pub enum WrapStream {
+pub enum SocketStreamKind {
     #[cfg(unix)]
     Unix(#[pin] UnixStream),
     #[cfg(windows)]
     NamedPipe(#[pin] NamedPipeClient),
 }
 
-impl AsyncRead for WrapStream {
+impl AsyncRead for SocketStreamKind {
     fn poll_read(
         self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -37,7 +106,7 @@ impl AsyncRead for WrapStream {
     }
 }
 
-impl AsyncWrite for WrapStream {
+impl AsyncWrite for SocketStreamKind {
     fn poll_write(self: Pin<&mut Self>, cx: &mut Context<'_>, buf: &[u8]) -> Poll<std::io::Result<usize>> {
         match self.project() {
             #[cfg(unix)]
@@ -66,7 +135,7 @@ impl AsyncWrite for WrapStream {
     }
 }
 
-pub async fn connect_to_socket(socket_path: &str) -> Result<WrapStream> {
+pub async fn connect_to_socket(socket_path: &str) -> Result<SocketStreamKind> {
     #[cfg(unix)]
     {
         if !std::path::Path::new(socket_path).exists() {
@@ -76,7 +145,7 @@ pub async fn connect_to_socket(socket_path: &str) -> Result<WrapStream> {
                 format!("socket path: {socket_path} not found"),
             )));
         }
-        Ok(WrapStream::Unix(UnixStream::connect(socket_path).await?))
+        Ok(SocketStreamKind::Unix(UnixStream::connect(socket_path).await?))
     }
 
     #[cfg(windows)]
@@ -94,6 +163,6 @@ pub async fn connect_to_socket(socket_path: &str) -> Result<WrapStream> {
             }
             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         };
-        Ok(WrapStream::NamedPipe(client))
+        Ok(SocketStreamKind::NamedPipe(client))
     }
 }

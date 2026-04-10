@@ -1,12 +1,10 @@
 use std::{collections::HashMap, fmt::Display};
 
-use futures_util::{SinkExt, stream::SplitSink};
 use serde::{Deserialize, Serialize};
-use tokio::{net::TcpStream, sync::RwLock};
-use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, tungstenite::Message};
+use tokio::sync::RwLock;
 use ts_rs::TS;
 
-use crate::wrap_stream::WrapStream;
+use crate::stream::WsWriteKind;
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -886,24 +884,6 @@ pub enum WebSocketMessage {
 }
 
 pub type WebSocketConnectionId = u32;
-pub enum WebSocketWriter {
-    TcpStreamWriter(SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>),
-    SocketStreamWriter(SplitSink<WebSocketStream<WrapStream>, Message>),
-}
-
-impl WebSocketWriter {
-    pub async fn send(&mut self, message: Message) -> crate::Result<()> {
-        match self {
-            WebSocketWriter::TcpStreamWriter(write) => {
-                write.send(message).await?;
-            }
-            WebSocketWriter::SocketStreamWriter(write) => {
-                write.send(message).await?;
-            }
-        }
-        Ok(())
-    }
-}
 
 #[derive(Default)]
-pub struct ConnectionManager(pub RwLock<HashMap<WebSocketConnectionId, WebSocketWriter>>);
+pub struct ConnectionManager(pub RwLock<HashMap<WebSocketConnectionId, WsWriteKind>>);
