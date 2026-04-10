@@ -168,7 +168,6 @@ pub struct IVerge {
     pub enable_tray: Option<bool>,
 
     /// keep in dock
-    #[serde(alias = "show_in_dock")]
     pub keep_in_dock: Option<bool>,
 
     /// enable external controller, such as 127.0.0.1:8080

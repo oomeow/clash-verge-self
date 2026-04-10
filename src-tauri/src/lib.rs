@@ -107,6 +107,14 @@ pub fn run() -> AppResult<()> {
                 .set(app_handle.clone())
                 .expect("failed to set global app handle");
 
+            #[cfg(target_os = "macos")]
+            {
+                if resolve::is_silent_start() {
+                    let dock_visible: bool = Config::verge().latest().keep_in_dock.unwrap_or(true);
+                    resolve::apply_tray_policy(app_handle, dock_visible);
+                }
+            }
+
             let version = app_handle.package_info().version.to_string();
             app_handle.manage(AppState {
                 app_version: version,
