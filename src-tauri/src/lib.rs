@@ -107,15 +107,6 @@ pub fn run() -> AppResult<()> {
                 .set(app_handle.clone())
                 .expect("failed to set global app handle");
 
-            // #[cfg(target_os = "macos")]
-            // {
-            //     let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
-            //     let show_in_dock = Config::verge().latest().show_in_dock.unwrap_or(true);
-            //     if !show_in_dock {
-            //         let _ = app_handle.set_dock_visibility(false);
-            //     }
-            // }
-
             let version = app_handle.package_info().version.to_string();
             app_handle.manage(AppState {
                 app_version: version,
@@ -221,7 +212,7 @@ pub fn run() -> AppResult<()> {
                         resolve::handle_window_close(api, app_handle);
                         #[cfg(target_os = "macos")]
                         {
-                            let dock_visible: bool = Config::verge().latest().show_in_dock.unwrap_or(true);
+                            let dock_visible: bool = Config::verge().latest().keep_in_dock.unwrap_or(true);
                             resolve::apply_tray_policy(app_handle, dock_visible);
                         }
                     }
