@@ -26,6 +26,7 @@ interface Props {
 export const ProxyGroups = (props: Props) => {
   const { mode } = props;
   const isDirectMode = mode === "direct";
+  const isRuleMode = mode === "rule";
 
   const { renderList, onProxies } = useRenderList(mode);
   const { verge } = useVerge();
@@ -220,7 +221,10 @@ export const ProxyGroups = (props: Props) => {
 
   return (
     <Box className="relative flex h-full w-full">
-      <Box className="h-full w-full pr-7">
+      <Box
+        className={cn("h-full w-full", {
+          "pr-7": isRuleMode,
+        })}>
         <Virtuoso
           ref={virtuosoRef}
           style={{ height: "100%" }}
@@ -247,16 +251,18 @@ export const ProxyGroups = (props: Props) => {
         />
       </Box>
 
-      <div className="absolute top-0 right-0 bottom-0 z-10 mr-0 w-7 bg-transparent hover:w-[120px]">
-        <div className="flex h-full w-full items-center justify-center hover:shadow-2xl">
-          <ProxyGroupSidebar
-            groupNameList={groupNameList}
-            onGroupNameClick={(groupName) => {
-              handleGroupLocation(groupName);
-            }}
-          />
+      {isRuleMode && (
+        <div className="absolute top-0 right-0 bottom-0 z-10 mr-0 w-7 bg-transparent hover:w-[120px]">
+          <div className="flex h-full w-full items-center justify-center hover:shadow-2xl">
+            <ProxyGroupSidebar
+              groupNameList={groupNameList}
+              onGroupNameClick={(groupName) => {
+                handleGroupLocation(groupName);
+              }}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </Box>
   );
 };
