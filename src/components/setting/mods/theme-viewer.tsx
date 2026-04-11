@@ -103,7 +103,7 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
               sx={{ textTransform: "capitalize" }}
               size="small"
               variant="outlined"
-              className="!text-primary-text !mr-2"
+              className="text-primary-text! mr-2!"
               onClick={() => {
                 if (themeMode === "light") {
                   resetLightThemeSetting();

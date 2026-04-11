@@ -340,7 +340,7 @@ export const ProfileEditor = (props: Props) => {
   return (
     <div className="flex h-full w-full overflow-hidden">
       <div className="h-full w-full overflow-hidden" ref={editorDomRef} />
-      <div className="flex w-14 flex-col items-center justify-end !space-y-2 px-1 pb-4">
+      <div className="flex w-14 flex-col items-center justify-end space-y-2! px-1 pb-4">
         <Tooltip title={t("Restore Changes")} placement="left">
           <span>
             <IconButton

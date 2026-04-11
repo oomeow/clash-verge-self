@@ -116,7 +116,7 @@ export function Marquee({
       ref={containerRef}
       {...props}
       className={cn(
-        "group flex w-full [gap:var(--gap)] overflow-hidden [--duration:5s] [--gap:1rem]",
+        "group flex w-full gap-(--gap) overflow-hidden [--duration:5s] [--gap:1rem]",
         vertical ? "flex-col" : "flex-row",
         className,
       )}>
@@ -130,7 +130,7 @@ export function Marquee({
             key={i}
             ref={i === 0 ? childrenRef : undefined}
             className={cn(
-              "flex shrink-0 justify-around [gap:var(--gap)]",
+              "flex shrink-0 justify-around gap-(--gap)",
               vertical
                 ? "animate-marquee-vertical flex-col"
                 : "animate-marquee flex-row",

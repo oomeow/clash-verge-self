@@ -38,7 +38,7 @@ export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
         "flex h-full w-full flex-col items-center justify-center bg-white text-center text-sm dark:bg-[#282A36]",
         className,
       )}>
-      <div className="no-scrollbar hover:scrollbar w-full !space-y-2 overflow-auto px-1 py-2">
+      <div className="no-scrollbar hover:scrollbar w-full space-y-2! overflow-auto px-1 py-2">
         {groupNameListWithShortName.map((item) => (
           <Tooltip
             title={item.name}

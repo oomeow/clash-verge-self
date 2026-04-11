@@ -6,6 +6,7 @@ import { Box, IconButton, Slide, Snackbar, Typography } from "@mui/material";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ReactNode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+
 const appWindow = getCurrentWebviewWindow();
 interface InnerProps {
   type: string;

@@ -61,7 +61,7 @@ const ThemeColorSelect = (props: Props) => {
   return (
     <div className="text-primary-text my-1 flex h-12 items-center justify-between px-1">
       <p className="text-lg">{label}</p>
-      <div className="flex w-[150px] items-center justify-between">
+      <div className="flex w-37.5 items-center justify-between">
         <input
           className="cursor-pointer border-none bg-transparent outline-hidden"
           type="color"

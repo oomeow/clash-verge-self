@@ -368,7 +368,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
             onClick={item.handler}
             sx={{ minWidth: 120 }}
             dense>
-            <ListItemIcon className="!text-primary-main">
+            <ListItemIcon className="text-primary-main!">
               {item.icon}
             </ListItemIcon>
             <ListItemText

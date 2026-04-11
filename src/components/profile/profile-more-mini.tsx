@@ -69,7 +69,7 @@ export default function ProfileMoreMini(props: Props) {
 
   return (
     <>
-      <div className="bg-comment my-2 flex h-[56px] w-full cursor-pointer items-center justify-between rounded-md">
+      <div className="bg-comment my-2 flex h-14 w-full cursor-pointer items-center justify-between rounded-md">
         <div
           style={{
             backgroundColor: item.enable
@@ -83,9 +83,9 @@ export default function ProfileMoreMini(props: Props) {
           className={cn(
             "relative flex h-full w-full items-center justify-between overflow-hidden rounded-md p-1 shadow-xs",
             {
-              "border-primary-main border-0 !border-l-2 border-solid":
+              "border-primary-main border-0 border-l-2! border-solid":
                 item.enable && !hasError,
-              "animate-pulse border-1 border-red-500":
+              "animate-pulse border border-red-500":
                 item.enable && hasError && !selected,
               "border-primary-main animate-highlight border border-solid shadow-md":
                 selected,

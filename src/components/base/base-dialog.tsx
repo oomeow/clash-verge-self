@@ -99,7 +99,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
               ...contentStyle,
             }}
             className={cn(
-              "bg-comment text-primary-text inline-flex max-h-[calc(100%-100px)] w-full max-w-md flex-col rounded-[4px] shadow-xl",
+              "bg-comment text-primary-text inline-flex max-h-[calc(100%-100px)] w-full max-w-md flex-col rounded-sm shadow-xl",
               { "h-full max-w-[calc(100%-100px)]": fullWidth },
               { "h-full max-h-full w-full max-w-full": full },
             )}>
@@ -117,7 +117,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
             </div>
 
             {!hideFooter && (
-              <div className="my-4 flex justify-end !space-x-2 px-6">
+              <div className="my-4 flex justify-end space-x-2! px-6">
                 {!hideCancelBtn && (
                   <Button variant="outlined" onClick={onCancel}>
                     {cancelBtn}

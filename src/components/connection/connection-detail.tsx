@@ -92,7 +92,7 @@ const InnerConnectionDetail = ({ data, active, onClose }: InnerProps) => {
       value: metadata.destinationIP
         ? `${metadata.destinationIP}`
         : `${metadata.remoteDestination}`,
-    }, 
+    },
     { label: t("Time"), value: dayjs(data.start).fromNow() },
   ];
 
@@ -102,7 +102,7 @@ const InnerConnectionDetail = ({ data, active, onClose }: InnerProps) => {
     <Box sx={{ userSelect: "text", maxWidth: 500, minWidth: 300 }}>
       {information.map((each) => (
         <div key={each.label} className="flex w-full break-all">
-          <div className="text-primary-main w-fit min-w-[102px] shrink-0 grow-0 pr-2 text-right font-bold">
+          <div className="text-primary-main w-fit min-w-25.5 shrink-0 grow-0 pr-2 text-right font-bold">
             {each.label}
           </div>
           <div className="grow">{each.value}</div>

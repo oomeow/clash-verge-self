@@ -169,7 +169,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                       <MacIcon className="h-full w-full" />
                     )}
                   </div>
-                  <div className="mr-2 flex grow flex-col justify-center !space-y-2 overflow-hidden py-1">
+                  <div className="mr-2 flex grow flex-col justify-center space-y-2! overflow-hidden py-1">
                     <Marquee pauseOnHover>
                       <span>{file.filename}</span>
                     </Marquee>

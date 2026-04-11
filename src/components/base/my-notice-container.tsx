@@ -37,7 +37,7 @@ export const MyNoticeContainer = (props: MyNoticeContainerProps) => {
     <ThemeProvider theme={theme}>
       <SnackbarContent
         ref={ref}
-        className="max-w-[500px] overflow-hidden rounded-md shadow-xl">
+        className="max-w-125 overflow-hidden rounded-md shadow-xl">
         <div
           className={cn("flex w-full items-center p-3", {
             "bg-[#313131] dark:bg-[#4B4B4B]": variant === "default",
@@ -47,18 +47,18 @@ export const MyNoticeContainer = (props: MyNoticeContainerProps) => {
             "bg-[#D32F2F] dark:bg-[#890F0F]": variant === "error",
           })}>
           <div className="flex w-full items-center overflow-hidden">
-            {variant !== "default" && <Icon className="!fill-white" />}
-            <div className="mx-4 w-full overflow-hidden text-wrap break-words text-white">
+            {variant !== "default" && <Icon className="fill-white!" />}
+            <div className="mx-4 w-full overflow-hidden text-wrap wrap-break-word text-white">
               {message}
             </div>
             <div className="flex items-center">
               <CopyButton
                 size="small"
-                className="!text-white"
+                className="text-white!"
                 content={message as string}
               />
               <IconButton size="small" onClick={handleDismiss}>
-                <Close fontSize="small" className="!fill-white" />
+                <Close fontSize="small" className="fill-white!" />
               </IconButton>
             </div>
           </div>

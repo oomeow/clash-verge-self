@@ -418,7 +418,7 @@ const SettingVerge = ({ onError }: Props) => {
                   label={t("Only Backup Profiles")}
                 />
               </div>
-              <div className="flex w-full items-center justify-around !space-x-4">
+              <div className="flex w-full items-center justify-around space-x-4!">
                 <Button
                   startIcon={<Refresh />}
                   onClick={() => handleSelectLocalBackup()}
@@ -509,7 +509,7 @@ const SettingVerge = ({ onError }: Props) => {
                     label={t("Only Backup Profiles")}
                   />
                 </div>
-                <div className="flex w-full items-center justify-around !space-x-4">
+                <div className="flex w-full items-center justify-around space-x-4!">
                   {webdavChanged ? (
                     <Button
                       loading={saving}

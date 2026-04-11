@@ -59,7 +59,7 @@ import { useTranslation } from "react-i18next";
 import useSWR, { mutate } from "swr";
 const FlexDecorationItems = memo(function FlexDecoratorItems() {
   return [...Array(20)].map((_, index) => (
-    <i key={index} className="mx-[5px] my-0 flex h-0 w-[260px] grow"></i>
+    <i key={index} className="mx-1.25 my-0 flex h-0 w-65 grow"></i>
   ));
 });
 
@@ -410,7 +410,7 @@ const ProfilePage = () => {
           </Button>
         </Box>
       }>
-      <div className="bg-comment sticky top-0 z-10 mb-1 flex items-center !space-x-2 px-2 pt-2 pb-1">
+      <div className="bg-comment space-x-2!! sticky top-0 z-10 mb-1 flex items-center px-2 pt-2 pb-1">
         <BaseStyledTextField
           value={url}
           variant="outlined"
