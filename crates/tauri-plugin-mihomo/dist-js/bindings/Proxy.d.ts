@@ -13,7 +13,7 @@ export type Proxy = {
     alive: boolean;
     history: Array<DelayHistory>;
     extra: {
-        [key in string]?: Extra;
+        [key in string]: Extra;
     };
     name: string;
     udp: boolean;

@@ -4,7 +4,7 @@ export type TuicServer = {
     listen: string;
     token?: Array<string>;
     users?: {
-        [key in string]?: string;
+        [key in string]: string;
     };
     certificate: string;
     privateKey: string;
