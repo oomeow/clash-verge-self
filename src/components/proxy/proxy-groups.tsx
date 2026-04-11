@@ -37,22 +37,22 @@ export const ProxyGroups = (props: Props) => {
   const [groupDelayVersions, setGroupDelayVersions] = useState<
     Record<string, number>
   >({});
-  const groupNames = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          renderList
-            .filter((item) => item.type === 0)
-            .map((item) => item.group.name),
-        ),
+  const groupNamesForDelayCheck = useMemo(() => {
+    const names = Array.from(
+      new Set(
+        renderList
+          .filter((item) => item.type === 0)
+          .map((item) => item.group.name)
+          .concat(["GLOBAL"]),
       ),
-    [renderList],
-  );
+    );
+    return names;
+  }, [renderList]);
 
   useEffect(() => {
-    if (!groupNames.length) return;
+    if (!groupNamesForDelayCheck.length) return;
 
-    const listeners = groupNames.map((groupName) => {
+    const listeners = groupNamesForDelayCheck.map((groupName) => {
       const listener = () => {
         setGroupDelayVersions((prev) => ({
           ...prev,
@@ -68,7 +68,7 @@ export const ProxyGroups = (props: Props) => {
         delayManager.removeGroupListener(groupName, listener);
       });
     };
-  }, [groupNames]);
+  }, [groupNamesForDelayCheck]);
 
   // 切换分组的节点代理
   const handleChangeProxy = useMemoizedFn(
