@@ -1,7 +1,6 @@
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClash } from "@/hooks/use-clash";
-import { translateDynamicKey } from "@/services/i18n";
 import getSystem from "@/utils/get-system";
 import {
   Box,
@@ -85,7 +84,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         );
         setLoading(false);
         setOpen(false);
-        notice("error", translateDynamicKey(t, err));
+        notice("error", err);
       } else {
         setTimeout(() => doSave(retry - 1), 1000);
       }

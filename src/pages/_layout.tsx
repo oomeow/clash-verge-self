@@ -107,7 +107,7 @@ const Layout = () => {
         const {
           payload: { status, msg },
         } = e;
-        notice(status, translateDynamicKey(t, msg));
+        notice(status, t(msg));
       },
     );
 
