@@ -410,7 +410,7 @@ const ProfilePage = () => {
           </Button>
         </Box>
       }>
-      <div className="bg-comment space-x-2!! sticky top-0 z-10 mb-1 flex items-center px-2 pt-2 pb-1">
+      <div className="bg-comment sticky top-0 z-10 mb-1 flex items-center space-x-2! px-2 pt-2 pb-1">
         <BaseStyledTextField
           value={url}
           variant="outlined"
