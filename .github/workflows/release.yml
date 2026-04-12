@@ -190,7 +190,7 @@ jobs:
       #     files: target/${{ matrix.target }}/release/bundle/appimage/*.AppImage*
 
       - name: Upload Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
           tag_name: v${{steps.get_version.outputs.VERSION}}
           name: "Clash Verge Self v${{steps.get_version.outputs.VERSION}}"
@@ -228,7 +228,7 @@ jobs:
           echo "Package: ${{ steps.makepkg.outputs.pkgfile0 }}"
 
       - name: Upload Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
           tag_name: v${{ needs.release-for-linux.outputs.VERSION }}
           name: "Clash Verge Self v${{ needs.release-for-linux.outputs.VERSION }}"
