@@ -35,7 +35,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@juggle/resize-observer": "^3.4.0",
     "@mui/icons-material": "^7.3.9",
-    "@mui/lab": "7.0.1-beta.23",
+    "@mui/lab": "7.0.1-beta.24",
     "@mui/material": "^7.3.9",
     "@mui/x-data-grid": "^7.29.12",
     "@tanstack/react-router": "^1.168.10",
@@ -73,7 +73,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@actions/github": "9.0.0",
+    "@actions/github": "9.1.0",
     "@eslint/js": "9.39.4",
     "@tailwindcss/vite": "4.2.2",
     "@tanstack/router-cli": "1.166.25",
@@ -114,7 +114,7 @@
     "types-pac": "1.0.3",
     "typescript": "6.0.2",
     "typescript-eslint": "8.58.1",
-    "vite": "8.0.7",
+    "vite": "8.0.8",
     "vite-plugin-monaco-editor": "1.1.0",
     "vite-plugin-svgr": "5.2.0"
   },
