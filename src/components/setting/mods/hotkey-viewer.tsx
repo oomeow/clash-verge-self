@@ -25,12 +25,12 @@ const HOTKEY_FUNC = [
 
 const HOTKEY_LABEL_KEY: Record<(typeof HOTKEY_FUNC)[number], string> = {
   open_or_close_dashboard:
-    "settings.verge.hotkeys.actions.openOrCloseDashboard",
-  clash_mode_rule: "settings.verge.hotkeys.actions.ruleMode",
-  clash_mode_global: "settings.verge.hotkeys.actions.globalMode",
-  clash_mode_direct: "settings.verge.hotkeys.actions.directMode",
-  toggle_system_proxy: "settings.verge.hotkeys.actions.toggleSystemProxy",
-  toggle_tun_mode: "settings.verge.hotkeys.actions.toggleTunMode",
+    "pages.settings.verge.hotkeys.actions.openOrCloseDashboard",
+  clash_mode_rule: "pages.settings.verge.hotkeys.actions.ruleMode",
+  clash_mode_global: "pages.settings.verge.hotkeys.actions.globalMode",
+  clash_mode_direct: "pages.settings.verge.hotkeys.actions.directMode",
+  toggle_system_proxy: "pages.settings.verge.hotkeys.actions.toggleSystemProxy",
+  toggle_tun_mode: "pages.settings.verge.hotkeys.actions.toggleTunMode",
 };
 
 export const HotkeyViewer = forwardRef<DialogRef>((props, ref) => {
@@ -91,7 +91,7 @@ export const HotkeyViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("settings.verge.hotkeys.title")}
+      title={t("pages.settings.verge.hotkeys.title")}
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
       onClose={() => setOpen(false)}

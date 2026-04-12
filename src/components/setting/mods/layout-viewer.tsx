@@ -86,7 +86,7 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("settings.verge.layout.title")}
+      title={t("pages.settings.verge.layout.title")}
       contentStyle={{ width: 450 }}
       hideOkBtn
       hideCancelBtn
@@ -97,7 +97,7 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
             <ListItemText
               primary={
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <span>{t("settings.verge.layout.systemTitleBar")}</span>
+                  <span>{t("pages.settings.verge.layout.systemTitleBar")}</span>
                 </Box>
               }
             />
@@ -121,9 +121,11 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
             <ListItemText
               primary={
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <span>{t("settings.verge.layout.keepInDock.label")}</span>
+                  <span>
+                    {t("pages.settings.verge.layout.keepInDock.label")}
+                  </span>
                   <Tooltip
-                    title={t("settings.verge.layout.keepInDock.info")}
+                    title={t("pages.settings.verge.layout.keepInDock.info")}
                     placement="top">
                     <IconButton color="inherit" size="small">
                       <InfoRounded
@@ -151,9 +153,11 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
           <ListItemText
             primary={
               <Box sx={{ display: "flex", alignItems: "center" }}>
-                <span>{t("settings.verge.layout.keepUiActive.label")}</span>
+                <span>
+                  {t("pages.settings.verge.layout.keepUiActive.label")}
+                </span>
                 <Tooltip
-                  title={t("settings.verge.layout.keepUiActive.info")}
+                  title={t("pages.settings.verge.layout.keepUiActive.info")}
                   placement="top">
                   <IconButton color="inherit" size="small">
                     <InfoRounded
@@ -176,7 +180,9 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
           </GuardState>
         </Item>
         <Item>
-          <ListItemText primary={t("settings.verge.layout.trafficGraph")} />
+          <ListItemText
+            primary={t("pages.settings.verge.layout.trafficGraph")}
+          />
           <GuardState
             value={verge?.traffic_graph ?? true}
             valueProps="checked"
@@ -189,7 +195,9 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
         </Item>
 
         <Item>
-          <ListItemText primary={t("settings.verge.layout.memoryUsage")} />
+          <ListItemText
+            primary={t("pages.settings.verge.layout.memoryUsage")}
+          />
           <GuardState
             value={verge?.enable_memory_usage ?? true}
             valueProps="checked"
@@ -202,7 +210,9 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
         </Item>
 
         <Item>
-          <ListItemText primary={t("settings.verge.layout.proxyGroupIcon")} />
+          <ListItemText
+            primary={t("pages.settings.verge.layout.proxyGroupIcon")}
+          />
           <GuardState
             value={verge?.enable_group_icon ?? true}
             valueProps="checked"
@@ -215,7 +225,7 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
         </Item>
 
         <Item>
-          <ListItemText primary={t("settings.verge.layout.menuIcon")} />
+          <ListItemText primary={t("pages.settings.verge.layout.menuIcon")} />
           <GuardState
             value={verge?.menu_icon ?? "monochrome"}
             onCatch={onError}
@@ -224,10 +234,10 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
             onGuard={(e) => patchVerge({ menu_icon: e })}>
             <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
               <MenuItem value="monochrome">
-                {t("settings.verge.layout.icon.monochrome")}
+                {t("pages.settings.verge.layout.icon.monochrome")}
               </MenuItem>
               <MenuItem value="colorful">
-                {t("settings.verge.layout.icon.colorful")}
+                {t("pages.settings.verge.layout.icon.colorful")}
               </MenuItem>
               <MenuItem value="disable">{t("common.actions.disable")}</MenuItem>
             </Select>
@@ -235,7 +245,7 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
         </Item>
 
         <Item>
-          <ListItemText primary={t("settings.verge.layout.tray.label")} />
+          <ListItemText primary={t("pages.settings.verge.layout.tray.label")} />
           <GuardState
             value={verge?.enable_tray ?? true}
             valueProps="checked"
@@ -249,7 +259,9 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
 
         {OS === "macos" && (
           <Item>
-            <ListItemText primary={t("settings.verge.layout.tray.icon")} />
+            <ListItemText
+              primary={t("pages.settings.verge.layout.tray.icon")}
+            />
             <GuardState
               value={verge?.tray_icon ?? "monochrome"}
               onCatch={onError}
@@ -260,10 +272,10 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
                 size="small"
                 sx={{ width: 140, "> div": { py: "7.5px" } }}>
                 <MenuItem value="monochrome">
-                  {t("settings.verge.layout.icon.monochrome")}
+                  {t("pages.settings.verge.layout.icon.monochrome")}
                 </MenuItem>
                 <MenuItem value="colorful">
-                  {t("settings.verge.layout.icon.colorful")}
+                  {t("pages.settings.verge.layout.icon.colorful")}
                 </MenuItem>
               </Select>
             </GuardState>
@@ -271,7 +283,9 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
         )}
 
         <Item>
-          <ListItemText primary={t("settings.verge.layout.tray.common")} />
+          <ListItemText
+            primary={t("pages.settings.verge.layout.tray.common")}
+          />
           <GuardState
             value={verge?.common_tray_icon}
             onCatch={onError}
@@ -317,7 +331,9 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
         </Item>
 
         <Item>
-          <ListItemText primary={t("settings.verge.layout.tray.systemProxy")} />
+          <ListItemText
+            primary={t("pages.settings.verge.layout.tray.systemProxy")}
+          />
           <GuardState
             value={verge?.sysproxy_tray_icon}
             onCatch={onError}
@@ -363,7 +379,7 @@ export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
         </Item>
 
         <Item>
-          <ListItemText primary={t("settings.verge.layout.tray.tun")} />
+          <ListItemText primary={t("pages.settings.verge.layout.tray.tun")} />
           <GuardState
             value={verge?.tun_tray_icon}
             onCatch={onError}

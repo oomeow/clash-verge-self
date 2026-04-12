@@ -117,7 +117,7 @@ export const LayoutTraffic = () => {
               </IconButton>
             </Tooltip>
             <Box
-              title={t("settings.verge.layout.memoryUsage")}
+              title={t("pages.settings.verge.layout.memoryUsage")}
               display={"flex"}
               flexGrow={1}
               alignItems={"center"}>

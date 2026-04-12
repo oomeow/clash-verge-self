@@ -10,3 +10,6 @@
 - 已手工修正动态翻译点：路由标签、页面模式切换、设置页选项、菜单项标签、热键描述、服务状态等。
 - 已补充缺失空态与编辑器相关文案，并将 `No Logs`、`No Rules`、`No Proxies`、`Direct Mode` 等硬编码切到 i18n。
 - 执行 `pnpm exec tsc --noEmit`，结果通过。
+- 按追加要求完成第二轮整理，已移除 `legacy` 分组并将剩余键重新归类。
+- 修复 `scripts/reshape-i18n.mjs` 的二次生成逻辑，使其可基于现有 `i18n-keymap` 和嵌套 locale 安全重复执行。
+- 再次执行 `pnpm exec tsc --noEmit`，结果通过。

@@ -12,49 +12,28 @@
       "delete": "删除",
       "enable": "启用",
       "disable": "禁用",
-      "updateAll": "更新全部",
-      "import": "导入",
-      "chooseFile": "选择文件",
-      "refresh": "刷新",
-      "select": "使用",
-      "update": "更新",
-      "pause": "暂停",
+      "add": "新增",
+      "apply": "应用",
+      "browse": "浏览",
       "clear": "清除",
-      "resetToDefault": "重置为默认值",
-      "install": "安装",
-      "uninstall": "卸载",
-      "openUrl": "打开链接",
+      "pause": "暂停",
+      "refresh": "刷新",
+      "import": "导入",
+      "update": "更新",
+      "updateAll": "更新全部",
       "upgrade": "升级内核",
       "restart": "重启内核",
-      "reGrant": "重新授权",
+      "install": "安装",
+      "uninstall": "卸载",
       "grant": "授权",
-      "browse": "浏览",
-      "exit": "退出",
+      "reGrant": "重新授权",
+      "select": "使用",
+      "openUrl": "打开链接",
+      "chooseFile": "选择文件",
+      "resetToDefault": "重置为默认值",
       "expandAll": "全部展开",
       "collapseAll": "全部折叠",
-      "apply": "应用",
-      "add": "新增"
-    },
-    "fields": {
-      "location": "当前节点",
-      "type": "类型",
-      "name": "名称",
-      "description": "描述",
-      "host": "主机",
-      "process": "进程",
-      "time": "连接时间",
-      "source": "源地址",
-      "destination": "目标地址",
-      "icon": "图标",
-      "stack": "Tun 模式堆栈",
-      "device": "Tun 网卡名称",
-      "language": "语言设置",
-      "startPage": "启动页面",
-      "startupScript": "启动脚本",
-      "from": "来自",
-      "updatedTime": "更新时间",
-      "expireTime": "过期时间",
-      "usedTotal": "已使用 / 总共"
+      "exit": "退出"
     },
     "status": {
       "active": "活动",
@@ -69,12 +48,33 @@
       },
       "enabled": "已启用",
       "disabled": "未启用",
-      "notAvailable": "不可用",
-      "recommended": "建议设置",
       "granted": "已授权",
       "notGranted": "未授权",
       "readOnly": "只读",
+      "notAvailable": "不可用",
+      "recommended": "建议设置",
       "required": "必填"
+    },
+    "fields": {
+      "name": "名称",
+      "type": "类型",
+      "description": "描述",
+      "icon": "图标",
+      "location": "当前节点",
+      "host": "主机",
+      "process": "进程",
+      "time": "连接时间",
+      "source": "源地址",
+      "destination": "目标地址",
+      "from": "来自",
+      "updatedTime": "更新时间",
+      "expireTime": "过期时间",
+      "usedTotal": "已使用 / 总共",
+      "device": "Tun 网卡名称",
+      "stack": "Tun 模式堆栈",
+      "language": "语言设置",
+      "startPage": "启动页面",
+      "startupScript": "启动脚本"
     },
     "search": {
       "filter": "过滤节点",
@@ -87,8 +87,9 @@
       "noConnections": "暂无连接",
       "noLogs": "暂无日志",
       "noRules": "暂无规则",
+      "noProxies": "暂无代理",
       "directMode": "直连模式",
-      "noProxies": "暂无代理"
+      "empty": "暂无内容"
     }
   },
   "navigation": {
@@ -119,7 +120,8 @@
       },
       "actions": {
         "delayCheck": "延迟测试",
-        "delayCheckUrl": "延迟测试链接"
+        "delayCheckUrl": "延迟测试链接",
+        "delayCheckToCancelFixed": "进行延迟测试，以取消固定"
       },
       "sort": {
         "default": "默认排序",
@@ -140,6 +142,8 @@
         "viewRuntimeConfig": "查看运行时订阅",
         "reactivateProfiles": "重新激活订阅",
         "paste": "粘贴",
+        "home": "首页",
+        "editInfo": "编辑信息",
         "editFile": "编辑文件",
         "openFile": "打开文件",
         "updateProxy": "更新(代理)",
@@ -163,10 +167,25 @@
         "acceptInvalidCertsDanger": "允许无效证书 (危险)"
       },
       "runtime": {
-        "scriptConsole": "脚本控制台输出"
+        "scriptConsole": "脚本控制台输出",
+        "console": "控制台 (当前运行)"
+      },
+      "editor": {
+        "console": "控制台",
+        "restoreChanges": "还原更改",
+        "runCheck": "运行检查{{keymap}}"
       }
     },
     "connections": {
+      "title": "连接",
+      "view": {
+        "table": "表格视图",
+        "list": "列表视图"
+      },
+      "actions": {
+        "closeAll": "关闭全部",
+        "closeConnection": "关闭连接"
+      },
       "columns": {
         "actions": "操作",
         "closedTime": "关闭时间",
@@ -181,15 +200,6 @@
         "chains": "链路",
         "rule": "规则",
         "startAt": "开始于{{time}}"
-      },
-      "title": "连接",
-      "view": {
-        "table": "表格视图",
-        "list": "列表视图"
-      },
-      "actions": {
-        "closeAll": "关闭全部",
-        "closeConnection": "关闭连接"
       }
     },
     "rules": {
@@ -213,263 +223,241 @@
       }
     },
     "settings": {
-      "title": "设置"
-    }
-  },
-  "legacy": {
-    "delayCheckToCancelFixed": "进行延迟测试，以取消固定",
-    "home": "首页",
-    "editInfo": "编辑信息",
-    "replaceHostPortSecretWithPercentHostPercentPortPercentSecret": "使用 %host, %port, %secret 表示 主机, 端口, 访问密钥",
-    "supportPercentHostPercentPortPercentSecret": "支持 %host, %port, %secret",
-    "console": "控制台",
-    "runtimeConsole": "控制台 (当前运行)",
-    "restoreChanges": "还原更改",
-    "runCheck": "运行检查{{keymap}}",
-    "duplicateBypass": "重复的代理绕过",
-    "resetDefaultBypass": "重置为默认代理绕过",
-    "platformNoMatch": "系统平台不匹配",
-    "profileContentNoChanges": "Profile Content No Changes",
-    "platformNotMatch": "Platform Not Match",
-    "external": "External",
-    "coreSecret": "Core Secret",
-    "primaryTextColor": "Primary Text Color",
-    "secondaryTextColor": "Secondary Text Color",
-    "flushFakeIpCache": "Flush Fake-IP Cache",
-    "fakeIpCacheFlushed": "Fake-IP Cache Flushed",
-    "canTReadMonacoContent": "无法读取 Monaco 编辑器内容"
-  },
-  "settings": {
-    "system": {
-      "title": "系统设置",
-      "proxy": {
-        "label": "系统代理",
-        "info": "打开此开关修改操作系统的代理设置，如果开启失败，可手动修改操作系统的代理设置",
-        "dialogTitle": "系统代理设置",
-        "current": "当前系统代理",
-        "enableStatus": "开启状态：",
-        "serverAddr": "服务地址：",
-        "guard": {
-          "label": "系统代理守卫",
-          "info": "开启以防止其他软件修改操作系统的代理设置",
-          "duration": "代理守卫间隔"
-        },
-        "bypass": {
-          "label": "代理绕过设置"
-        },
-        "bypassValue": "当前绕过：",
-        "pac": {
-          "useMode": "使用PAC模式",
-          "content": "PAC脚本内容",
-          "url": "PAC地址："
-        }
-      },
-      "autoLaunch": "开机自启",
-      "silentStart": {
-        "label": "静默启动",
-        "options": {
-          "bootup": "仅开机",
-          "global": "全局",
-          "off": "关闭"
-        }
-      }
-    },
-    "clash": {
-      "tun": {
-        "label": "Tun 模式",
-        "info": "Tun 模式需要授予内核相关权限，使用前请先开启服务模式或手动授权内核",
-        "serviceModeOnly": "System 和 Mixed 只能在服务模式下使用",
-        "autoRoute": "自动设置全局路由",
-        "strictRoute": "严格路由",
-        "autoDetectInterface": "自动选择流量出口接口",
-        "dnsHijack": "DNS 劫持",
-        "mtu": "最大传输单元"
-      },
-      "serviceMode": {
-        "label": "服务模式",
-        "currentState": "当前状态",
-        "info": "提示信息: 请确保 Clash Verge Service 已安装并启用",
-        "disable": "禁用服务模式"
-      },
-      "title": "Clash 设置",
-      "allowLan": "局域网连接",
-      "networkInterfaceInfo": "网络接口信息",
-      "ipv6": "IPv6",
-      "logLevel": "日志等级",
-      "portConfig": {
-        "label": "端口设置",
-        "randomPort": "随机端口",
-        "dialogTitle": "Clash 端口"
-      },
-      "externalController": {
-        "label": "外部控制器",
-        "host": "监听地址",
-        "secret": "API 访问密钥",
-        "enabled": "外部控制器已启用",
-        "disabled": "外部控制器已禁用",
-        "allowPrivateNetwork": "允许私有网络访问",
-        "allowOrigins": "允许的来源",
-        "duplicateAllowOrigins": "重复的允许来源",
-        "resetDefaultAllowOrigins": "重置为默认的允许来源"
-      },
-      "core": {
-        "label": "Clash 内核",
-        "updateRequires": "如需更新内核需要授权"
-      },
-      "openUwpTool": "UWP 工具",
-      "updateGeoData": "更新 GeoData",
-      "unifiedDelay": {
-        "label": "统一延迟",
-        "info": "开启统一延迟时，会进行两次延迟测试，以消除连接握手等带来的不同类型节点的延迟差异"
-      },
-      "findProcessMode": {
-        "label": "进程匹配模式",
-        "options": {
-          "always": "强制匹配所有进程",
-          "strict": "由 Clash 判断是否开启",
-          "off": "不匹配进程"
-        }
-      },
-      "flushCache": "清除 {{cache}} 缓存",
-      "cacheFlushed": "{{cache}} 缓存已清除",
-      "webUi": "Web UI"
-    },
-    "verge": {
-      "title": "Verge 设置",
-      "themeMode": {
-        "label": "主题模式",
-        "options": {
-          "light": "浅色",
-          "dark": "深色",
-          "system": "系统"
-        }
-      },
-      "tray": {
-        "clickEvent": "托盘点击事件",
-        "showMainWindow": "显示主窗口"
-      },
-      "env": {
-        "copyType": "复制环境变量类型",
-        "copySuccess": "复制环境变量成功"
-      },
-      "theme": {
-        "title": "主题设置",
-        "colors": {
-          "default": "默认颜色",
-          "primary": "主要颜色",
-          "secondary": "次要颜色",
-          "primaryText": "文本主要颜色",
-          "secondaryText": "文本次要颜色",
-          "info": "信息颜色",
-          "warning": "警告颜色",
-          "error": "错误颜色",
-          "success": "成功颜色"
-        },
-        "fontFamily": "字体系列",
-        "cssInjection": "CSS 注入"
-      },
-      "layout": {
-        "title": "界面设置",
-        "trafficGraph": "流量图显",
-        "memoryUsage": "内存使用",
-        "proxyGroupIcon": "代理组图标",
-        "menuIcon": "菜单图标",
-        "icon": {
-          "monochrome": "单色图标",
-          "colorful": "彩色图标"
-        },
-        "tray": {
-          "label": "系统托盘",
-          "icon": "托盘图标",
-          "common": "常规托盘图标",
-          "systemProxy": "系统代理托盘图标",
-          "tun": "Tun 模式托盘图标"
-        },
-        "splashscreen": "启动页",
-        "systemTitleBar": "系统标题栏",
-        "keepInDock": {
-          "label": "在程序坞中保留",
-          "info": "应用程序图标在关闭应用程序窗口后仍保留在停靠栏中"
-        },
-        "keepUiActive": {
-          "label": "保持UI界面活动",
-          "info": "保持UI界面活动，再次打开无需重新渲染界面"
-        }
-      },
-      "misc": {
-        "title": "杂项设置",
-        "appLogLevel": "App日志等级",
-        "autoCloseConnections": "自动关闭连接",
-        "autoCheckUpdate": "自动检查更新",
-        "enableBuiltinEnhanced": "内置增强功能",
-        "proxyLayoutColumn": "代理页布局列数",
-        "autoLogClean": {
-          "label": "自动清理日志",
-          "options": {
-            "never": "不清理",
-            "sevenDays": "保留7天",
-            "thirtyDays": "保留30天",
-            "ninetyDays": "保留90天"
+      "title": "设置",
+      "system": {
+        "title": "系统设置",
+        "proxy": {
+          "label": "系统代理",
+          "info": "打开此开关修改操作系统的代理设置，如果开启失败，可手动修改操作系统的代理设置",
+          "dialogTitle": "系统代理设置",
+          "current": "当前系统代理",
+          "enableStatus": "开启状态：",
+          "serverAddr": "服务地址：",
+          "bypassValue": "当前绕过：",
+          "guard": {
+            "label": "系统代理守卫",
+            "info": "开启以防止其他软件修改操作系统的代理设置",
+            "duration": "代理守卫间隔"
+          },
+          "bypass": {
+            "label": "代理绕过设置",
+            "duplicate": "重复的代理绕过",
+            "resetDefault": "重置为默认代理绕过"
+          },
+          "pac": {
+            "useMode": "使用PAC模式",
+            "content": "PAC脚本内容",
+            "url": "PAC地址："
           }
         },
-        "defaultLatencyTest": "默认测试链接",
-        "defaultLatencyTimeout": "测试超时时间"
-      },
-      "hotkeys": {
-        "title": "热键设置",
-        "actions": {
-          "openOrCloseDashboard": "打开/关闭面板",
-          "ruleMode": "规则模式",
-          "globalMode": "全局模式",
-          "directMode": "直连模式",
-          "toggleSystemProxy": "打开/关闭系统代理",
-          "toggleTunMode": "打开/关闭 Tun 模式"
+        "autoLaunch": "开机自启",
+        "silentStart": {
+          "label": "静默启动",
+          "options": {
+            "bootup": "仅开机",
+            "global": "全局",
+            "off": "关闭"
+          }
         }
       },
-      "runtimeConfig": "当前配置",
-      "actions": {
-        "openAppDir": "应用目录",
-        "openCoreDir": "内核目录",
-        "openLogsDir": "日志目录",
-        "checkForUpdates": "检查更新",
-        "goToReleasePage": "前往发布页",
-        "openDevTools": "打开开发者工具"
+      "clash": {
+        "title": "Clash 设置",
+        "tun": {
+          "label": "Tun 模式",
+          "info": "Tun 模式需要授予内核相关权限，使用前请先开启服务模式或手动授权内核",
+          "serviceModeOnly": "System 和 Mixed 只能在服务模式下使用",
+          "autoRoute": "自动设置全局路由",
+          "strictRoute": "严格路由",
+          "autoDetectInterface": "自动选择流量出口接口",
+          "dnsHijack": "DNS 劫持",
+          "mtu": "最大传输单元"
+        },
+        "serviceMode": {
+          "label": "服务模式",
+          "currentState": "当前状态",
+          "info": "提示信息: 请确保 Clash Verge Service 已安装并启用",
+          "disable": "禁用服务模式"
+        },
+        "allowLan": "局域网连接",
+        "networkInterfaceInfo": "网络接口信息",
+        "ipv6": "IPv6",
+        "findProcessMode": {
+          "label": "进程匹配模式",
+          "options": {
+            "always": "强制匹配所有进程",
+            "strict": "由 Clash 判断是否开启",
+            "off": "不匹配进程"
+          }
+        },
+        "logLevel": "日志等级",
+        "portConfig": {
+          "label": "端口设置",
+          "randomPort": "随机端口",
+          "dialogTitle": "Clash 端口"
+        },
+        "externalController": {
+          "label": "External",
+          "host": "监听地址",
+          "secret": "Core Secret",
+          "enabled": "外部控制器已启用",
+          "disabled": "外部控制器已禁用",
+          "allowPrivateNetwork": "允许私有网络访问",
+          "allowOrigins": "允许的来源",
+          "duplicateAllowOrigins": "重复的允许来源",
+          "resetDefaultAllowOrigins": "重置为默认的允许来源"
+        },
+        "webUi": {
+          "label": "Web UI",
+          "replaceTemplateHint": "使用 %host, %port, %secret 表示 主机, 端口, 访问密钥",
+          "supportPlaceholders": "支持 %host, %port, %secret"
+        },
+        "core": {
+          "label": "Clash 内核",
+          "updateRequires": "如需更新内核需要授权"
+        },
+        "openUwpTool": "UWP 工具",
+        "updateGeoData": "更新 GeoData",
+        "unifiedDelay": {
+          "label": "统一延迟",
+          "info": "开启统一延迟时，会进行两次延迟测试，以消除连接握手等带来的不同类型节点的延迟差异"
+        },
+        "flushCache": "Flush Fake-IP Cache",
+        "cacheFlushed": "Fake-IP Cache Flushed"
       },
-      "version": "Verge 版本",
-      "backup": {
-        "title": "备份设置",
-        "types": {
-          "local": "本地",
-          "webdav": "WebDAV"
+      "verge": {
+        "title": "Verge 设置",
+        "themeMode": {
+          "label": "主题模式",
+          "options": {
+            "light": "浅色",
+            "dark": "深色",
+            "system": "系统"
+          }
         },
-        "invalidFileFormat": "无效的文件格式",
-        "webdavTitle": "WebDav 备份",
+        "tray": {
+          "clickEvent": "托盘点击事件",
+          "showMainWindow": "显示主窗口"
+        },
+        "env": {
+          "copyType": "复制环境变量类型",
+          "copySuccess": "复制环境变量成功"
+        },
+        "theme": {
+          "title": "主题设置",
+          "colors": {
+            "default": "默认颜色",
+            "primary": "主要颜色",
+            "secondary": "次要颜色",
+            "primaryText": "Primary Text Color",
+            "secondaryText": "Secondary Text Color",
+            "info": "信息颜色",
+            "warning": "警告颜色",
+            "error": "错误颜色",
+            "success": "成功颜色"
+          },
+          "fontFamily": "字体系列",
+          "cssInjection": "CSS 注入"
+        },
+        "layout": {
+          "title": "界面设置",
+          "trafficGraph": "流量图显",
+          "memoryUsage": "内存使用",
+          "proxyGroupIcon": "代理组图标",
+          "menuIcon": "菜单图标",
+          "icon": {
+            "monochrome": "单色图标",
+            "colorful": "彩色图标"
+          },
+          "tray": {
+            "label": "系统托盘",
+            "icon": "托盘图标",
+            "common": "常规托盘图标",
+            "systemProxy": "系统代理托盘图标",
+            "tun": "Tun 模式托盘图标"
+          },
+          "splashscreen": "启动页",
+          "systemTitleBar": "系统标题栏",
+          "keepInDock": {
+            "label": "在程序坞中保留",
+            "info": "应用程序图标在关闭应用程序窗口后仍保留在停靠栏中"
+          },
+          "keepUiActive": {
+            "label": "保持UI界面活动",
+            "info": "保持UI界面活动，再次打开无需重新渲染界面"
+          }
+        },
+        "misc": {
+          "title": "杂项设置",
+          "appLogLevel": "App日志等级",
+          "autoCloseConnections": "自动关闭连接",
+          "autoCheckUpdate": "自动检查更新",
+          "enableBuiltinEnhanced": "内置增强功能",
+          "proxyLayoutColumn": "代理页布局列数",
+          "autoLogClean": {
+            "label": "自动清理日志",
+            "options": {
+              "never": "不清理",
+              "sevenDays": "保留7天",
+              "thirtyDays": "保留30天",
+              "ninetyDays": "保留90天"
+            }
+          },
+          "defaultLatencyTest": "默认测试链接",
+          "defaultLatencyTimeout": "测试超时时间"
+        },
+        "hotkeys": {
+          "title": "热键设置",
+          "actions": {
+            "openOrCloseDashboard": "打开/关闭面板",
+            "ruleMode": "规则模式",
+            "globalMode": "全局模式",
+            "directMode": "直连模式",
+            "toggleSystemProxy": "打开/关闭系统代理",
+            "toggleTunMode": "打开/关闭 Tun 模式"
+          }
+        },
+        "runtimeConfig": "当前配置",
         "actions": {
-          "recovery": "恢复",
-          "backup": "备份"
+          "openAppDir": "应用目录",
+          "openCoreDir": "内核目录",
+          "openLogsDir": "日志目录",
+          "checkForUpdates": "检查更新",
+          "goToReleasePage": "前往发布页",
+          "openDevTools": "打开开发者工具"
         },
-        "onlyProfiles": "仅备份订阅文件",
-        "webdav": {
-          "url": "WebDav 地址",
-          "username": "WebDav 用户名",
-          "password": "WebDav 密码"
-        },
-        "files": "备份文件列表",
-        "scopes": {
-          "all": "配置 + 订阅",
-          "profiles": "订阅"
+        "version": "Verge 版本",
+        "backup": {
+          "title": "备份设置",
+          "types": {
+            "local": "本地",
+            "webdav": "WebDAV"
+          },
+          "invalidFileFormat": "无效的文件格式",
+          "webdavTitle": "WebDav 备份",
+          "actions": {
+            "recovery": "恢复",
+            "backup": "备份"
+          },
+          "onlyProfiles": "仅备份订阅文件",
+          "webdav": {
+            "url": "WebDav 地址",
+            "username": "WebDav 用户名",
+            "password": "WebDav 密码"
+          },
+          "files": "备份文件列表",
+          "scopes": {
+            "all": "配置 + 订阅",
+            "profiles": "订阅"
+          }
         }
       }
     }
   },
   "messages": {
-    "updater": {
-      "portableError": "便携版不支持应用内更新，请手动下载替换",
-      "breakingChangeError": "此版本为重大更新，不支持应用内更新，请卸载后手动下载安装"
-    },
     "editor": {
       "readOnly": "无法在只读模式下编辑",
-      "regenerateTemplateContent": "重新生成模板内容"
+      "regenerateTemplateContent": "重新生成模板内容",
+      "readMonacoContentFailed": "无法读取 Monaco 编辑器内容"
     },
     "profiles": {
       "imported": "导入订阅成功",
@@ -479,7 +467,7 @@
       "scriptRunCheckFailed": "脚本运行检查失败, 请检查脚本是否正确",
       "scriptRunCheckSuccessful": "脚本运行检查成功, 可正常运行",
       "contentSaved": "内容保存成功",
-      "contentUnchanged": "配置内容无变化",
+      "contentUnchanged": "Profile Content No Changes",
       "configUnchanged": "订阅相关设置无变化",
       "configUpdated": "订阅相关设置已更新",
       "contentSaveFailed": "内容保存失败",
@@ -521,6 +509,10 @@
       "updateProviderError": "[ {{name}} ] 更新失败：{{errorMsg}}",
       "readProvidersError": "读取规则集失败, 请确认规则集文件是否已经更新同步"
     },
+    "updater": {
+      "portableError": "便携版不支持应用内更新，请手动下载替换",
+      "breakingChangeError": "此版本为重大更新，不支持应用内更新，请卸载后手动下载安装"
+    },
     "backup": {
       "webdavConnectionFailed": "WebDav 连接失败, {{error}}",
       "success": "备份成功",
@@ -528,7 +520,8 @@
       "deleteSuccess": "删除备份成功",
       "deleteFailed": "删除备份失败, {{error}}",
       "applySuccess": "应用备份成功, 即将重启应用",
-      "applyFailed": "应用备份失败, {{error}}"
+      "applyFailed": "应用备份失败, {{error}}",
+      "platformNoMatch": "Platform Not Match"
     }
   }
 }

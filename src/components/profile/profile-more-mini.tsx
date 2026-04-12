@@ -134,7 +134,9 @@ export default function ProfileMoreMini(props: Props) {
           </div>
 
           {isScriptMerge && (
-            <Tooltip title={t("legacy.runtimeConsole")} placement="top">
+            <Tooltip
+              title={t("pages.profiles.runtime.console")}
+              placement="top">
               <IconButton
                 aria-label="terminal"
                 size="small"

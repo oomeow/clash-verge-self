@@ -5,76 +5,76 @@
       "close": "Закрыть",
       "cancel": "Отмена",
       "confirm": "Подтвердить",
-      "auto": "自动",
+      "auto": "Авто",
       "new": "Новый",
       "edit": "Редактировать",
       "save": "Сохранить",
       "delete": "Удалить",
       "enable": "Включить",
       "disable": "Отключить",
-      "updateAll": "Обновить все",
-      "import": "Импорт",
-      "chooseFile": "Выбрать файл",
-      "refresh": "Обновить",
-      "select": "Выбрать",
-      "update": "Обновить",
-      "pause": "Пауза",
+      "add": "Добавить",
+      "apply": "Применить",
+      "browse": "Просмотреть",
       "clear": "Очистить",
-      "resetToDefault": "Сбросить настройки по умолчанию",
+      "pause": "Пауза",
+      "refresh": "Обновить",
+      "import": "Импорт",
+      "update": "Обновить",
+      "updateAll": "Обновить все",
+      "upgrade": "Обновить",
+      "restart": "Перезапустить",
       "install": "Установить",
       "uninstall": "Удалить",
+      "grant": "Выдать",
+      "reGrant": "Выдать повторно",
+      "select": "Выбрать",
       "openUrl": "Открыть URL",
-      "upgrade": "Обновлять",
-      "restart": "Перезапуск",
-      "reGrant": "重新授权",
-      "grant": "Предоставить",
-      "browse": "Просмотреть",
-      "exit": "Выход",
+      "chooseFile": "Выбрать файл",
+      "resetToDefault": "Сбросить настройки по умолчанию",
       "expandAll": "Расширить все",
       "collapseAll": "Свернуть все",
-      "apply": "应用",
-      "add": "Add"
+      "exit": "Выход"
+    },
+    "status": {
+      "active": "Активные",
+      "closed": "Закрытые",
+      "default": "По умолчанию",
+      "service": {
+        "pending": "Ожидание",
+        "installed": "Установлен",
+        "uninstall": "Не установлен",
+        "active": "Активен",
+        "unknown": "Неизвестно"
+      },
+      "enabled": "Включено",
+      "disabled": "Отключено",
+      "granted": "Предоставлено",
+      "notGranted": "Не предоставлено",
+      "readOnly": "Только для чтения",
+      "notAvailable": "Недоступно",
+      "recommended": "Рекомендуется",
+      "required": "Обязательно"
     },
     "fields": {
-      "location": "Местоположение",
-      "type": "Тип",
       "name": "Название",
-      "description": "Описания",
+      "type": "Тип",
+      "description": "Описание",
+      "icon": "Икона",
+      "location": "Местоположение",
       "host": "Хост",
       "process": "Процесс",
       "time": "Время подключения",
       "source": "Исходный адрес",
-      "destination": "пункт назначения",
-      "icon": "Икона",
-      "stack": "Стек",
+      "destination": "Назначение",
+      "from": "Источник",
+      "updatedTime": "Время обновления",
+      "expireTime": "Время истечения",
+      "usedTotal": "Использовано / Всего",
       "device": "Имя устройства",
+      "stack": "Стек",
       "language": "Язык",
       "startPage": "Главная страница",
-      "startupScript": "Скрипт запуска",
-      "from": "от",
-      "updatedTime": "Обновленное время",
-      "expireTime": "Время истечения",
-      "usedTotal": "Использовано / Всего"
-    },
-    "status": {
-      "active": "活动",
-      "closed": "已关闭",
-      "default": "По умолчанию",
-      "service": {
-        "pending": "Ожидающий",
-        "installed": "Установленный",
-        "uninstall": "Не установленный",
-        "active": "Активированный",
-        "unknown": "неизвестный"
-      },
-      "enabled": "Включено",
-      "disabled": "Отключено",
-      "notAvailable": "Недоступно",
-      "recommended": "Рекомендуется",
-      "granted": "已授权",
-      "notGranted": "未授权",
-      "readOnly": "Только для чтения",
-      "required": "Required"
+      "startupScript": "Скрипт запуска"
     },
     "search": {
       "filter": "Фильтр",
@@ -84,11 +84,12 @@
       "useRegularExpression": "Использовать регулярные выражения"
     },
     "empty": {
-      "noConnections": "No Connections",
-      "noLogs": "No Logs",
-      "noRules": "No Rules",
-      "directMode": "Direct Mode",
-      "noProxies": "No Proxies"
+      "noConnections": "Нет подключений",
+      "noLogs": "Нет журналов",
+      "noRules": "Нет правил",
+      "noProxies": "Нет прокси",
+      "directMode": "Прямой режим",
+      "empty": "Пусто"
     }
   },
   "navigation": {
@@ -109,17 +110,18 @@
       "provider": "Провайдер прокси",
       "updateAt": "Обновлено в",
       "modes": {
-        "rule": "правила",
-        "global": "глобальный",
-        "direct": "прямой",
-        "script": "скриптовый",
-        "merge": "объединить",
-        "remote": "удаленный",
-        "local": "местный"
+        "rule": "Правила",
+        "global": "Глобальный",
+        "direct": "Прямой",
+        "script": "Скрипт",
+        "merge": "Слияние",
+        "remote": "Удалённый",
+        "local": "Локальный"
       },
       "actions": {
         "delayCheck": "Проверка задержки",
-        "delayCheckUrl": "URL проверки задержки"
+        "delayCheckUrl": "URL проверки задержки",
+        "delayCheckToCancelFixed": "Проверить задержку, чтобы снять фиксацию"
       },
       "sort": {
         "default": "Сортировать по умолчанию",
@@ -127,24 +129,26 @@
         "name": "Сортировать по названию"
       },
       "view": {
-        "basic": "Резюме о прокси",
-        "detail": "Подробности о прокси"
+        "basic": "Скрыть детали прокси",
+        "detail": "Показать детали прокси"
       }
     },
     "profiles": {
       "title": "Профили",
       "actions": {
-        "enhanceScripts": "Улучшение сценариев",
+        "enhanceScripts": "Улучшенные скрипты",
         "updateProfile": "Обновить профиль",
         "updateAllProfiles": "Обновить все профили",
-        "viewRuntimeConfig": "Просмотреть используемый конфиг",
+        "viewRuntimeConfig": "Просмотреть текущую конфигурацию",
         "reactivateProfiles": "Реактивировать профили",
         "paste": "Вставить",
+        "home": "Главная",
+        "editInfo": "Изменить информацию",
         "editFile": "Изменить файл",
         "openFile": "Открыть файл",
         "updateProxy": "Обновить (прокси)",
-        "toTop": "Наверх",
-        "toEnd": "Вниз"
+        "toTop": "Переместить вверх",
+        "toEnd": "Переместить вниз"
       },
       "inputs": {
         "profileUrl": "URL профиля"
@@ -163,38 +167,44 @@
         "acceptInvalidCertsDanger": "Принимать недействительные сертификаты (Опасно)"
       },
       "runtime": {
-        "scriptConsole": "Консоль скрипта"
+        "scriptConsole": "Консоль скрипта",
+        "console": "Консоль (текущий запуск)"
+      },
+      "editor": {
+        "console": "Консоль",
+        "restoreChanges": "Отменить изменения",
+        "runCheck": "Запустить проверку{{keymap}}"
       }
     },
     "connections": {
+      "title": "Соединения",
+      "view": {
+        "table": "Табличный вид",
+        "list": "Список"
+      },
+      "actions": {
+        "closeAll": "Закрыть всё",
+        "closeConnection": "Закрыть соединение"
+      },
       "columns": {
         "actions": "Действия",
-        "closedTime": "关闭时间",
+        "closedTime": "Время закрытия",
         "downloadSpeed": "Скорость загрузки",
         "uploadSpeed": "Скорость загрузки",
-        "totalDownloaded": "总下载量",
-        "totalUploaded": "总上传量",
+        "totalDownloaded": "Всего загружено",
+        "totalUploaded": "Всего отправлено",
         "downloaded": "Скачано",
         "uploaded": "Загружено",
         "dlSpeed": "Скорость загрузки",
         "ulSpeed": "Скорость выгрузки",
         "chains": "Цепочки",
         "rule": "Правило",
-        "startAt": "开始于{{time}}"
-      },
-      "title": "Соединения",
-      "view": {
-        "table": "Tablichnyy vid",
-        "list": "Spiskovyy vid"
-      },
-      "actions": {
-        "closeAll": "Закрыть всё",
-        "closeConnection": "Закрыть соединение"
+        "startAt": "Начато в {{time}}"
       }
     },
     "rules": {
       "title": "Правила",
-      "provider": "Провайдер правило"
+      "provider": "Поставщик правил"
     },
     "logs": {
       "title": "Логи"
@@ -202,7 +212,7 @@
     "test": {
       "title": "Тест",
       "actions": {
-        "testAll": "Тест Все"
+        "testAll": "Проверить всё"
       },
       "dialog": {
         "createTitle": "Создать тест",
@@ -213,278 +223,256 @@
       }
     },
     "settings": {
-      "title": "Настройки"
-    }
-  },
-  "legacy": {
-    "delayCheckToCancelFixed": "Проверка задержки для отмены фиксированного",
-    "home": "Главная",
-    "editInfo": "Изменить информацию",
-    "replaceHostPortSecretWithPercentHostPercentPortPercentSecret": "Замените хост, порт, секрет на %host, %port, %secret",
-    "supportPercentHostPercentPortPercentSecret": "Поддержка %host, %port, %secret",
-    "console": "Консоль",
-    "runtimeConsole": "控制台 (当前运行)",
-    "restoreChanges": "还原更改",
-    "runCheck": "运行检查{{keymap}}",
-    "duplicateBypass": "重复的代理绕过",
-    "resetDefaultBypass": "重置为默认代理绕过",
-    "platformNoMatch": "系统平台不匹配",
-    "profileContentNoChanges": "Profile Content No Changes",
-    "platformNotMatch": "Platform Not Match",
-    "external": "Внешний",
-    "coreSecret": "Секрет",
-    "primaryTextColor": "Основной текст",
-    "secondaryTextColor": "Вторичный текст",
-    "flushFakeIpCache": "Очистить кэш Fake-IP",
-    "fakeIpCacheFlushed": "Кэш Fake-IP очищен",
-    "canTReadMonacoContent": "Can't read monaco content"
-  },
-  "settings": {
-    "system": {
-      "title": "Настройки системы",
-      "proxy": {
-        "label": "Системный прокси",
-        "info": "Разрешить изменение настроек прокси-сервера операционной системы. Если разрешение не удастся, измените настройки прокси-сервера операционной системы вручную",
-        "dialogTitle": "Настройка системного прокси",
-        "current": "Текущий системный прокси",
-        "enableStatus": "Статус включения",
-        "serverAddr": "Адрес сервера: ",
-        "guard": {
-          "label": "Защита прокси",
-          "info": "Включите эту функцию чтобы предотвратить изменение настроек прокси-сервера операционной системы другим программным обеспечением",
-          "duration": "Период защиты"
-        },
-        "bypass": {
-          "label": "Игнорирование прокси: "
-        },
-        "bypassValue": "Игнорирование: ",
-        "pac": {
-          "useMode": "Используйте режим PAC",
-          "content": "Содержание сценария PAC",
-          "url": "Адрес PAC: "
-        }
-      },
-      "autoLaunch": "Автозапуск",
-      "silentStart": {
-        "label": "Тихий запуск",
-        "options": {
-          "bootup": "仅开机",
-          "global": "全局",
-          "off": "关闭"
-        }
-      }
-    },
-    "clash": {
-      "tun": {
-        "label": "Режим туннеля",
-        "info": "Режим туннеля требует предоставления разрешений, связанных с ядрам. Пожалуйста, включите сервисный режим перед его использованием",
-        "serviceModeOnly": "Система и смешанные могут использоваться только в сервисном режиме",
-        "autoRoute": "Автоматическая маршрутизация",
-        "strictRoute": "Строгий маршрут",
-        "autoDetectInterface": "Автоопределение интерфейса",
-        "dnsHijack": "DNS-перехват",
-        "mtu": "Максимальная единица передачи"
-      },
-      "serviceMode": {
-        "label": "Режим сервиса",
-        "currentState": "Текущее состояние",
-        "info": "Информация: Пожалуйста, убедитесь, что сервис Clash Verge Service установлен и включен",
-        "disable": "Отключить режим обслуживания"
-      },
-      "title": "Настройки Clash",
-      "allowLan": "Разрешить локальную сеть",
-      "networkInterfaceInfo": "网络接口信息",
-      "ipv6": "IPv6",
-      "logLevel": "Уровень логов",
-      "portConfig": {
-        "label": "Настройка порта",
-        "randomPort": "Случайный порт",
-        "dialogTitle": "Clash Port"
-      },
-      "externalController": {
-        "label": "Адрес прослушивания внешнего контроллера",
-        "host": "监听地址",
-        "secret": "API 访问密钥",
-        "enabled": "外部控制器已启用",
-        "disabled": "外部控制器已禁用",
-        "allowPrivateNetwork": "允许私有网络访问",
-        "allowOrigins": "允许的来源",
-        "duplicateAllowOrigins": "重复的允许来源",
-        "resetDefaultAllowOrigins": "重置为默认的允许来源"
-      },
-      "core": {
-        "label": "Ядра Clash",
-        "updateRequires": "требуется обновление ядра"
-      },
-      "openUwpTool": "Открыть UWP инструмент",
-      "updateGeoData": "Обновление GeoData",
-      "unifiedDelay": {
-        "label": "единая задержка",
-        "info": "Когда унифицированная задержка включена, будут выполнены два теста задержки, чтобы устранить различия в задержке между разными типами узлов, вызванные подтверждением соединения и т. д"
-      },
-      "findProcessMode": {
-        "label": "进程匹配模式",
-        "options": {
-          "always": "强制匹配所有进程",
-          "strict": "由 Clash 判断是否开启",
-          "off": "不匹配进程"
-        }
-      },
-      "flushCache": "清除 {{cache}} 缓存",
-      "cacheFlushed": "{{cache}} 缓存已清除",
-      "webUi": "Web UI"
-    },
-    "verge": {
-      "title": "Настройки Verge",
-      "themeMode": {
-        "label": "Режим темы",
-        "options": {
-          "light": "Светлая",
-          "dark": "Тёмная",
-          "system": "Системная"
-        }
-      },
-      "tray": {
-        "clickEvent": "Событие щелчка в лотке",
-        "showMainWindow": "Показать главное окно"
-      },
-      "env": {
-        "copyType": "Скопировать тип Env",
-        "copySuccess": "复制环境变量成功"
-      },
-      "theme": {
-        "title": "Настройки темы",
-        "colors": {
-          "default": "默认颜色",
-          "primary": "Основной цвет",
-          "secondary": "Вторичный цвет",
-          "primaryText": "文本主要颜色",
-          "secondaryText": "文本次要颜色",
-          "info": "Информационный цвет",
-          "warning": "Цвет предупреждения",
-          "error": "Цвет ошибки",
-          "success": "Цвет успеха"
-        },
-        "fontFamily": "Семейство шрифтов",
-        "cssInjection": "Внедрение CSS"
-      },
-      "layout": {
-        "title": "Настройки раскладки",
-        "trafficGraph": "График трафика",
-        "memoryUsage": "Использование памяти",
-        "proxyGroupIcon": "Иконка Группы прокси",
-        "menuIcon": "Иконка меню",
-        "icon": {
-          "monochrome": "Монохромный",
-          "colorful": "Полноцветный"
-        },
-        "tray": {
-          "label": "системный лоток",
-          "icon": "Иконка лотка",
-          "common": "Общий значок в лотке",
-          "systemProxy": "Значок системного прокси в лотке",
-          "tun": "Значок туннеля в лотке"
-        },
-        "splashscreen": "заставка",
-        "systemTitleBar": "Панель заголовка системы",
-        "keepInDock": {
-          "label": "在程序坞中保留",
-          "info": "应用程序图标在关闭应用程序窗口后仍保留在停靠栏中"
-        },
-        "keepUiActive": {
-          "label": "Поддерживайте пользовательский интерфейс в активном состоянии",
-          "info": "Сохраняйте пользовательский интерфейс активным и открывайте его снова, не перерисовывая интерфейс."
-        }
-      },
-      "misc": {
-        "title": "Настройки Прочие",
-        "appLogLevel": "Уровень журнала приложения",
-        "autoCloseConnections": "Автоматическое закрытие соединений",
-        "autoCheckUpdate": "Автоматическая проверка обновлений",
-        "enableBuiltinEnhanced": "Включить встроенные улучшения",
-        "proxyLayoutColumn": "Количество столбцов в макете прокси",
-        "autoLogClean": {
-          "label": "Автоматическая очистка журналов",
-          "options": {
-            "never": "Никогда не очищать",
-            "sevenDays": "Сохранять 7 дней",
-            "thirtyDays": "Сохранять 30 дней",
-            "ninetyDays": "Сохранять 90 дней"
+      "title": "Настройки",
+      "system": {
+        "title": "Настройки системы",
+        "proxy": {
+          "label": "Системный прокси",
+          "info": "Включите этот параметр, чтобы изменить настройки прокси в операционной системе. Если включение не удалось, настройте прокси вручную.",
+          "dialogTitle": "Настройка системного прокси",
+          "current": "Текущий системный прокси",
+          "enableStatus": "Статус:",
+          "serverAddr": "Адрес сервера: ",
+          "bypassValue": "Исключения:",
+          "guard": {
+            "label": "Защита системного прокси",
+            "info": "Не позволяет другим программам изменять настройки прокси в системе",
+            "duration": "Интервал проверки защиты"
+          },
+          "bypass": {
+            "label": "Исключения прокси:",
+            "duplicate": "Повторяющееся исключение прокси",
+            "resetDefault": "Сбросить исключения прокси по умолчанию"
+          },
+          "pac": {
+            "useMode": "Использовать режим PAC",
+            "content": "Содержимое PAC-скрипта",
+            "url": "Адрес PAC: "
           }
         },
-        "defaultLatencyTest": "Ссылка на тестирование задержки по умолчанию",
-        "defaultLatencyTimeout": "Таймаут задержки по умолчанию"
-      },
-      "hotkeys": {
-        "title": "Настройки клавиатурных сокращений",
-        "actions": {
-          "openOrCloseDashboard": "Открыть/Закрыть панель управления",
-          "ruleMode": "Режим правил",
-          "globalMode": "Глобальный режим",
-          "directMode": "Прямой режим",
-          "toggleSystemProxy": "Включить/Отключить системный прокси",
-          "toggleTunMode": "Включить/Отключить режим туннеля"
+        "autoLaunch": "Автозапуск",
+        "silentStart": {
+          "label": "Тихий запуск",
+          "options": {
+            "bootup": "Только при запуске системы",
+            "global": "Глобально",
+            "off": "Отключено"
+          }
         }
       },
-      "runtimeConfig": "Используемый конфиг",
-      "actions": {
-        "openAppDir": "Открыть папку приложения",
-        "openCoreDir": "Открыть папку ядра",
-        "openLogsDir": "Открыть папку логов",
-        "checkForUpdates": "Проверить обновления",
-        "goToReleasePage": "Перейти на страницу релизов",
-        "openDevTools": "Открыть инструменты разработчика"
+      "clash": {
+        "title": "Настройки Clash",
+        "tun": {
+          "label": "Режим туннеля",
+          "info": "Режим туннеля требует предоставления разрешений, связанных с ядрам. Пожалуйста, включите сервисный режим перед его использованием",
+          "serviceModeOnly": "Система и смешанные могут использоваться только в сервисном режиме",
+          "autoRoute": "Автоматическая маршрутизация",
+          "strictRoute": "Строгий маршрут",
+          "autoDetectInterface": "Автоопределение интерфейса",
+          "dnsHijack": "DNS-перехват",
+          "mtu": "Максимальная единица передачи"
+        },
+        "serviceMode": {
+          "label": "Режим сервиса",
+          "currentState": "Текущее состояние",
+          "info": "Информация: Пожалуйста, убедитесь, что сервис Clash Verge Service установлен и включен",
+          "disable": "Отключить режим обслуживания"
+        },
+        "allowLan": "Разрешить локальную сеть",
+        "networkInterfaceInfo": "Информация о сетевом интерфейсе",
+        "ipv6": "IPv6",
+        "findProcessMode": {
+          "label": "Режим сопоставления процессов",
+          "options": {
+            "always": "Всегда сопоставлять все процессы",
+            "strict": "Определяется Clash",
+            "off": "Не сопоставлять процессы"
+          }
+        },
+        "logLevel": "Уровень логов",
+        "portConfig": {
+          "label": "Настройка порта",
+          "randomPort": "Случайный порт",
+          "dialogTitle": "Порты Clash"
+        },
+        "externalController": {
+          "label": "Внешний контроллер",
+          "host": "Адрес прослушивания",
+          "secret": "Секрет",
+          "enabled": "Внешний контроллер включен",
+          "disabled": "Внешний контроллер отключен",
+          "allowPrivateNetwork": "Разрешить доступ из частной сети",
+          "allowOrigins": "Разрешённые источники",
+          "duplicateAllowOrigins": "Повторяющийся разрешённый источник",
+          "resetDefaultAllowOrigins": "Сбросить источники по умолчанию"
+        },
+        "webUi": {
+          "label": "Веб-интерфейс",
+          "replaceTemplateHint": "Замените хост, порт, секрет на %host, %port, %secret",
+          "supportPlaceholders": "Поддержка %host, %port, %secret"
+        },
+        "core": {
+          "label": "Ядра Clash",
+          "updateRequires": "требуется обновление ядра"
+        },
+        "openUwpTool": "Открыть UWP инструмент",
+        "updateGeoData": "Обновление GeoData",
+        "unifiedDelay": {
+          "label": "единая задержка",
+          "info": "Когда унифицированная задержка включена, будут выполнены два теста задержки, чтобы устранить различия в задержке между разными типами узлов, вызванные подтверждением соединения и т. д"
+        },
+        "flushCache": "Очистить кэш Fake-IP",
+        "cacheFlushed": "Кэш Fake-IP очищен"
       },
-      "version": "Версия Verge",
-      "backup": {
-        "title": "备份设置",
-        "types": {
-          "local": "本地",
-          "webdav": "WebDAV"
+      "verge": {
+        "title": "Настройки Verge",
+        "themeMode": {
+          "label": "Режим темы",
+          "options": {
+            "light": "Светлая",
+            "dark": "Тёмная",
+            "system": "Системная"
+          }
         },
-        "invalidFileFormat": "无效的文件格式",
-        "webdavTitle": "WebDav 备份",
+        "tray": {
+          "clickEvent": "Событие щелчка в лотке",
+          "showMainWindow": "Показать главное окно"
+        },
+        "env": {
+          "copyType": "Скопировать тип Env",
+          "copySuccess": "Переменные окружения скопированы"
+        },
+        "theme": {
+          "title": "Настройки темы",
+          "colors": {
+            "default": "Цвет по умолчанию",
+            "primary": "Основной цвет",
+            "secondary": "Вторичный цвет",
+            "primaryText": "Основной текст",
+            "secondaryText": "Вторичный текст",
+            "info": "Информационный цвет",
+            "warning": "Цвет предупреждения",
+            "error": "Цвет ошибки",
+            "success": "Цвет успеха"
+          },
+          "fontFamily": "Семейство шрифтов",
+          "cssInjection": "Внедрение CSS"
+        },
+        "layout": {
+          "title": "Настройки раскладки",
+          "trafficGraph": "График трафика",
+          "memoryUsage": "Использование памяти",
+          "proxyGroupIcon": "Иконка Группы прокси",
+          "menuIcon": "Иконка меню",
+          "icon": {
+            "monochrome": "Монохромный",
+            "colorful": "Полноцветный"
+          },
+          "tray": {
+            "label": "системный лоток",
+            "icon": "Иконка лотка",
+            "common": "Общий значок в лотке",
+            "systemProxy": "Значок системного прокси в лотке",
+            "tun": "Значок туннеля в лотке"
+          },
+          "splashscreen": "заставка",
+          "systemTitleBar": "Панель заголовка системы",
+          "keepInDock": {
+            "label": "Оставлять в Dock",
+            "info": "Значок приложения остаётся в Dock после закрытия окна"
+          },
+          "keepUiActive": {
+            "label": "Поддерживайте пользовательский интерфейс в активном состоянии",
+            "info": "Сохраняйте пользовательский интерфейс активным и открывайте его снова, не перерисовывая интерфейс."
+          }
+        },
+        "misc": {
+          "title": "Настройки Прочие",
+          "appLogLevel": "Уровень журнала приложения",
+          "autoCloseConnections": "Автоматическое закрытие соединений",
+          "autoCheckUpdate": "Автоматическая проверка обновлений",
+          "enableBuiltinEnhanced": "Включить встроенные улучшения",
+          "proxyLayoutColumn": "Количество столбцов в макете прокси",
+          "autoLogClean": {
+            "label": "Автоматическая очистка журналов",
+            "options": {
+              "never": "Никогда не очищать",
+              "sevenDays": "Сохранять 7 дней",
+              "thirtyDays": "Сохранять 30 дней",
+              "ninetyDays": "Сохранять 90 дней"
+            }
+          },
+          "defaultLatencyTest": "Ссылка на тестирование задержки по умолчанию",
+          "defaultLatencyTimeout": "Таймаут задержки по умолчанию"
+        },
+        "hotkeys": {
+          "title": "Настройки клавиатурных сокращений",
+          "actions": {
+            "openOrCloseDashboard": "Открыть/Закрыть панель управления",
+            "ruleMode": "Режим правил",
+            "globalMode": "Глобальный режим",
+            "directMode": "Прямой режим",
+            "toggleSystemProxy": "Включить/Отключить системный прокси",
+            "toggleTunMode": "Включить/Отключить режим туннеля"
+          }
+        },
+        "runtimeConfig": "Используемый конфиг",
         "actions": {
-          "recovery": "恢复",
-          "backup": "备份"
+          "openAppDir": "Открыть папку приложения",
+          "openCoreDir": "Открыть папку ядра",
+          "openLogsDir": "Открыть папку логов",
+          "checkForUpdates": "Проверить обновления",
+          "goToReleasePage": "Перейти на страницу релизов",
+          "openDevTools": "Открыть инструменты разработчика"
         },
-        "onlyProfiles": "仅备份订阅文件",
-        "webdav": {
-          "url": "WebDav 地址",
-          "username": "WebDav 用户名",
-          "password": "WebDav 密码"
-        },
-        "files": "备份文件列表",
-        "scopes": {
-          "all": "配置 + 订阅",
-          "profiles": "订阅"
+        "version": "Версия Verge",
+        "backup": {
+          "title": "Настройки резервного копирования",
+          "types": {
+            "local": "Локально",
+            "webdav": "WebDAV"
+          },
+          "invalidFileFormat": "Недопустимый формат файла",
+          "webdavTitle": "Резервная копия WebDAV",
+          "actions": {
+            "recovery": "Восстановление",
+            "backup": "Резервное копирование"
+          },
+          "onlyProfiles": "Резервировать только профили",
+          "webdav": {
+            "url": "Адрес WebDAV",
+            "username": "Имя пользователя WebDAV",
+            "password": "Пароль WebDAV"
+          },
+          "files": "Файлы резервных копий",
+          "scopes": {
+            "all": "Конфигурация + профили",
+            "profiles": "Профили"
+          }
         }
       }
     }
   },
   "messages": {
-    "updater": {
-      "portableError": "Портативная версия не поддерживает обновление внутри приложения, пожалуйста, скачайте и замените вручную",
-      "breakingChangeError": "Это крупное обновление, которое не поддерживает обновление внутри приложения. Пожалуйста, удалите его и загрузите установочный файл вручную."
-    },
     "editor": {
       "readOnly": "Невозможно редактировать в режиме только для чтения",
-      "regenerateTemplateContent": "Восстановить содержимое шаблона"
+      "regenerateTemplateContent": "Восстановить содержимое шаблона",
+      "readMonacoContentFailed": "Не удалось прочитать содержимое Monaco"
     },
     "profiles": {
       "imported": "Профиль успешно импортирован",
-      "switched": "Профиль изменен",
+      "switched": "Профиль переключён",
       "reactivated": "Профиль повторно активирован",
       "onlyYamlSupported": "Поддерживаются только файлы YAML",
-      "scriptRunCheckFailed": "脚本运行检查失败, 请检查脚本是否正确",
-      "scriptRunCheckSuccessful": "脚本运行检查成功, 可正常运行",
-      "contentSaved": "内容保存成功",
-      "contentUnchanged": "配置内容无变化",
-      "configUnchanged": "订阅相关设置无变化",
-      "configUpdated": "订阅相关设置已更新",
-      "contentSaveFailed": "内容保存失败",
-      "saveContent": "保存内容{{keymap}}",
-      "askSaveContentNow": "内容已改变，是否立即保存当前内容？"
+      "scriptRunCheckFailed": "Проверка запуска скрипта не удалась, проверьте корректность скрипта",
+      "scriptRunCheckSuccessful": "Проверка запуска скрипта выполнена успешно",
+      "contentSaved": "Содержимое успешно сохранено",
+      "contentUnchanged": "Содержимое профиля не изменилось",
+      "configUnchanged": "Настройки профиля не изменились",
+      "configUpdated": "Настройки профиля обновлены",
+      "contentSaveFailed": "Не удалось сохранить содержимое",
+      "saveContent": "Сохранить содержимое{{keymap}}",
+      "askSaveContentNow": "Содержимое изменилось. Сохранить его сейчас?"
     },
     "clash": {
       "configUpdated": "Clash конфигурация Обновлена",
@@ -493,7 +481,7 @@
       "externalControllerAddressModified": "Изменен адрес внешнего контроллера",
       "core": {
         "permissionsGranted": "Разрешения успешно предоставлены для ядра {{core}}",
-        "requireGrant": "当前 Tun 模式已开启，请给 {{core}} 内核授权后再切换",
+        "requireGrant": "Tun уже включён. Предоставьте права для ядра {{core}} перед переключением",
         "versionUpdated": "Обновлена версия ядра",
         "restarted": "Clash ядра перезапущено",
         "switched": "Переключено на ядра {{core}}"
@@ -515,20 +503,25 @@
     "app": {
       "restartToApply": "Чтобы изменения вступили в силу, необходимо перезапустить приложение",
       "latestVersion": "В настоящее время используется последняя версия",
-      "restartSoon": "即将重启应用"
+      "restartSoon": "Приложение скоро будет перезапущено"
     },
     "rules": {
       "updateProviderError": "[ {{name}} ] Не удалось обновить：{{errorMsg}}",
-      "readProvidersError": "Не удалось прочитать поставщиков правил. Проверьте, обновлены ли и синхронизированы ли поставщики правил"
+      "readProvidersError": "Не удалось прочитать наборы правил. Убедитесь, что файлы правил обновлены и синхронизированы."
+    },
+    "updater": {
+      "portableError": "Портативная версия не поддерживает обновление внутри приложения, пожалуйста, скачайте и замените вручную",
+      "breakingChangeError": "Это крупное обновление, которое не поддерживает обновление внутри приложения. Пожалуйста, удалите его и загрузите установочный файл вручную."
     },
     "backup": {
-      "webdavConnectionFailed": "WebDav 连接失败, {{error}}",
-      "success": "备份成功",
-      "failed": "备份失败, {{error}}",
-      "deleteSuccess": "删除备份成功",
-      "deleteFailed": "删除备份失败, {{error}}",
-      "applySuccess": "应用备份成功, 即将重启应用",
-      "applyFailed": "应用备份失败, {{error}}"
+      "webdavConnectionFailed": "Не удалось подключиться к WebDAV: {{error}}",
+      "success": "Резервная копия успешно создана",
+      "failed": "Не удалось создать резервную копию: {{error}}",
+      "deleteSuccess": "Резервная копия удалена",
+      "deleteFailed": "Не удалось удалить резервную копию: {{error}}",
+      "applySuccess": "Резервная копия применена, приложение будет перезапущено",
+      "applyFailed": "Не удалось применить резервную копию: {{error}}",
+      "platformNoMatch": "Платформа не совпадает"
     }
   }
 }

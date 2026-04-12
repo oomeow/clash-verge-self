@@ -307,7 +307,7 @@ export const ProfileEditor = (props: Props) => {
     const uid = profileItem.uid;
     const val = instanceRef.current?.getValue();
     if (!val) {
-      notice("error", t("legacy.canTReadMonacoContent"));
+      notice("error", t("messages.editor.readMonacoContentFailed"));
       setSaving(false);
       return false;
     }
@@ -341,7 +341,9 @@ export const ProfileEditor = (props: Props) => {
     <div className="flex h-full w-full overflow-hidden">
       <div className="h-full w-full overflow-hidden" ref={editorDomRef} />
       <div className="flex w-14 flex-col items-center justify-end space-y-2! px-1 pb-4">
-        <Tooltip title={t("legacy.restoreChanges")} placement="left">
+        <Tooltip
+          title={t("pages.profiles.editor.restoreChanges")}
+          placement="left">
           <span>
             <IconButton
               aria-label="rollback"
@@ -362,7 +364,9 @@ export const ProfileEditor = (props: Props) => {
         {type !== "clash" && (
           <>
             {type === "script" && (
-              <Tooltip title={t("legacy.console")} placement="left">
+              <Tooltip
+                title={t("pages.profiles.editor.console")}
+                placement="left">
                 <span>
                   <IconButton
                     aria-label="terminal"
@@ -383,7 +387,7 @@ export const ProfileEditor = (props: Props) => {
               </Tooltip>
             )}
             <Tooltip
-              title={t("legacy.runCheck", { keymap: " F5 " })}
+              title={t("pages.profiles.editor.runCheck", { keymap: " F5 " })}
               placement="left">
               <span>
                 <IconButton

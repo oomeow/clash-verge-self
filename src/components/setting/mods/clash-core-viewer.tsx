@@ -156,7 +156,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       open={open}
       title={
         <Box display="flex" justifyContent="space-between">
-          {t("settings.clash.core.label")}
+          {t("pages.settings.clash.core.label")}
           <Box>
             <Button
               variant="contained"

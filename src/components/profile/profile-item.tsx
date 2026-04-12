@@ -205,7 +205,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
     });
     if (hasHome) {
       menus.splice(1, 0, {
-        label: "legacy.home",
+        label: "pages.profiles.actions.home",
         icon: <Home fontSize="small" />,
         handler: onOpenHome,
       });

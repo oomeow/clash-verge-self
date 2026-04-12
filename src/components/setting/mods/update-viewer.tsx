@@ -107,7 +107,7 @@ export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
                   `https://github.com/oomeow/clash-verge-self/releases/tag/v${updateInfo?.version}`,
                 );
               }}>
-              {t("settings.verge.actions.goToReleasePage")}
+              {t("pages.settings.verge.actions.goToReleasePage")}
             </Button>
           </Box>
         </div>

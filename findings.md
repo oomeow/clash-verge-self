@@ -24,3 +24,4 @@
 - 新增 `src/services/i18n-keymap.ts`，保存旧扁平键到新嵌套路径的映射。
 - `src/services/i18n.ts` 增加动态键解析能力，用于兼容后端通知消息和少量运行时字符串。
 - 已补齐若干原本缺失但前端实际使用的文案键，如 `No Connections`、`No Logs`、`No Rules`、`No Proxies`、`Direct Mode`、`Add`、`Required`、`Clash Port`、`Web UI`、`Can't read monaco content`。
+- 第二轮整理后，`legacy` 分组已移除，剩余过渡键已归入 `pages.profiles.editor`、`pages.profiles.runtime`、`settings.system.proxy.bypass`、`settings.clash.webUi`、`messages.editor`、`messages.backup` 等具体模块。

@@ -74,7 +74,7 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("settings.clash.externalController.label")}
+      title={t("pages.settings.clash.externalController.label")}
       contentStyle={{ maxWidth: 500, width: "fit-content", minWidth: 400 }}
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
@@ -83,7 +83,9 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
       onOk={onSave}>
       <List>
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.clash.externalController.host")} />
+          <ListItemText
+            primary={t("pages.settings.clash.externalController.host")}
+          />
           <TextField
             size="small"
             autoComplete="off"
@@ -103,7 +105,9 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
                   alignItems: "center",
                   gap: "3px",
                 }}>
-                <span>{t("settings.clash.externalController.secret")}</span>
+                <span>
+                  {t("pages.settings.clash.externalController.secret")}
+                </span>
                 <IconButton
                   color="inherit"
                   size="small"
@@ -127,7 +131,9 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
 
         <ListItem sx={{ padding: "5px 2px" }}>
           <ListItemText
-            primary={t("settings.clash.externalController.allowPrivateNetwork")}
+            primary={t(
+              "pages.settings.clash.externalController.allowPrivateNetwork",
+            )}
           />
           <SwitchLovely
             checked={allowPrivateNetwork}
@@ -142,10 +148,10 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
           <ListItemText
             primary={
               <Box sx={{ display: "flex", alignItems: "center" }}>
-                {t("settings.clash.externalController.allowOrigins")}
+                {t("pages.settings.clash.externalController.allowOrigins")}
                 <Tooltip
                   title={t(
-                    "settings.clash.externalController.resetDefaultAllowOrigins",
+                    "pages.settings.clash.externalController.resetDefaultAllowOrigins",
                   )}>
                   <span>
                     <IconButton
@@ -180,7 +186,7 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
                   notice(
                     "warning",
                     t(
-                      "settings.clash.externalController.duplicateAllowOrigins",
+                      "pages.settings.clash.externalController.duplicateAllowOrigins",
                     ),
                   );
                 } else {
@@ -203,7 +209,7 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
                         notice(
                           "warning",
                           t(
-                            "settings.clash.externalController.duplicateAllowOrigins",
+                            "pages.settings.clash.externalController.duplicateAllowOrigins",
                           ),
                         );
                       } else {

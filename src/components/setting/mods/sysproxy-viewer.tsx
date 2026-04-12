@@ -146,7 +146,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("settings.system.proxy.dialogTitle")}
+      title={t("pages.settings.system.proxy.dialogTitle")}
       contentStyle={{ width: 450 }}
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
@@ -161,11 +161,11 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
       onOk={onSave}>
       <List>
         <BaseFieldset
-          label={t("settings.system.proxy.current")}
+          label={t("pages.settings.system.proxy.current")}
           padding="15px 10px">
           <FlexBox>
             <Typography className="label">
-              {t("settings.system.proxy.enableStatus")}
+              {t("pages.settings.system.proxy.enableStatus")}
             </Typography>
             <Typography className="value">
               {value.pac
@@ -181,7 +181,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
             <>
               <FlexBox>
                 <Typography className="label">
-                  {t("settings.system.proxy.serverAddr")}
+                  {t("pages.settings.system.proxy.serverAddr")}
                 </Typography>
                 <Typography className="value">
                   {sysproxy?.server
@@ -191,7 +191,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
               </FlexBox>
               <FlexBox>
                 <Typography className="label">
-                  {t("settings.system.proxy.bypassValue")}
+                  {t("pages.settings.system.proxy.bypassValue")}
                 </Typography>
                 <Typography className="value wrap-anywhere">
                   {sysproxy?.bypass
@@ -204,14 +204,16 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
           {value.pac && (
             <FlexBox>
               <Typography className="label">
-                {t("settings.system.proxy.pac.url")}
+                {t("pages.settings.system.proxy.pac.url")}
               </Typography>
               <Typography className="value">{autoproxy?.url || "-"}</Typography>
             </FlexBox>
           )}
         </BaseFieldset>
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.system.proxy.pac.useMode")} />
+          <ListItemText
+            primary={t("pages.settings.system.proxy.pac.useMode")}
+          />
           <SwitchLovely
             edge="end"
             disabled={!enabled}
@@ -221,8 +223,10 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.system.proxy.guard.label")} />
-          <Tooltip title={t("settings.system.proxy.guard.info")}>
+          <ListItemText
+            primary={t("pages.settings.system.proxy.guard.label")}
+          />
+          <Tooltip title={t("pages.settings.system.proxy.guard.info")}>
             <IconButton color="inherit" size="small">
               <InfoRounded
                 fontSize="inherit"
@@ -239,7 +243,9 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.system.proxy.guard.duration")} />
+          <ListItemText
+            primary={t("pages.settings.system.proxy.guard.duration")}
+          />
           <TextField
             disabled={!enabled}
             size="small"
@@ -264,8 +270,11 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
               <ListItemText
                 primary={
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                    {t("settings.system.proxy.bypass.label")}
-                    <Tooltip title={t("legacy.resetDefaultBypass")}>
+                    {t("pages.settings.system.proxy.bypass.label")}
+                    <Tooltip
+                      title={t(
+                        "pages.settings.system.proxy.bypass.resetDefault",
+                      )}>
                       <span>
                         <IconButton
                           // disabled={!enabled}
@@ -298,7 +307,10 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
                   if (bypassInput.trim().length > 0) {
                     if (bypass.includes(bypassInput)) {
                       setBypassInput("");
-                      notice("info", t("legacy.duplicateBypass"));
+                      notice(
+                        "info",
+                        t("pages.settings.system.proxy.bypass.duplicate"),
+                      );
                     } else {
                       setBypass((v) => [...v, bypassInput.trim()]);
                       setBypassInput("");
@@ -317,7 +329,10 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
                         if (bypassInput.trim().length > 0) {
                           if (bypass.includes(bypassInput)) {
                             setBypassInput("");
-                            notice("info", t("legacy.duplicateBypass"));
+                            notice(
+                              "info",
+                              t("pages.settings.system.proxy.bypass.duplicate"),
+                            );
                           } else {
                             setBypass((v) => [...v, bypassInput.trim()]);
                             setBypassInput("");
@@ -359,7 +374,9 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
         {value.pac && (
           <>
             <ListItem sx={{ padding: "5px 2px", alignItems: "start" }}>
-              <ListItemText primary={t("settings.system.proxy.pac.content")} />
+              <ListItemText
+                primary={t("pages.settings.system.proxy.pac.content")}
+              />
               <Input
                 value={value.pac_content ?? ""}
                 disabled

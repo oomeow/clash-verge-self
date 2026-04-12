@@ -179,7 +179,7 @@ const SettingVerge = ({ onError }: Props) => {
         await applyLocalBackup(selected);
         notice("success", t("messages.backup.applySuccess"));
       } else {
-        notice("error", t("settings.verge.backup.invalidFileFormat"));
+        notice("error", t("pages.settings.verge.backup.invalidFileFormat"));
       }
     }
   };
@@ -201,7 +201,7 @@ const SettingVerge = ({ onError }: Props) => {
   };
 
   return (
-    <SettingList title={t("settings.verge.title")}>
+    <SettingList title={t("pages.settings.verge.title")}>
       {themeRef.mounted && <ThemeViewer ref={themeRef.dialogRef} />}
       {configRef.mounted && <ConfigViewer ref={configRef.dialogRef} />}
       {hotkeyRef.mounted && <HotkeyViewer ref={hotkeyRef.dialogRef} />}
@@ -210,7 +210,7 @@ const SettingVerge = ({ onError }: Props) => {
       {updateRef.mounted && <UpdateViewer ref={updateRef.dialogRef} />}
       {webDavRef.mounted && <WebDavFilesViewer ref={webDavRef.dialogRef} />}
 
-      <SettingItem label={t("settings.verge.misc.appLogLevel")}>
+      <SettingItem label={t("pages.settings.verge.misc.appLogLevel")}>
         <GuardState
           value={app_log_level ?? "info"}
           onCatch={onError}
@@ -243,7 +243,7 @@ const SettingVerge = ({ onError }: Props) => {
         </GuardState>
       </SettingItem>
 
-      <SettingItem label={t("settings.verge.themeMode.label")}>
+      <SettingItem label={t("pages.settings.verge.themeMode.label")}>
         <GuardState
           value={theme_mode}
           onCatch={onError}
@@ -254,7 +254,7 @@ const SettingVerge = ({ onError }: Props) => {
       </SettingItem>
 
       {OS !== "linux" && (
-        <SettingItem label={t("settings.verge.tray.clickEvent")}>
+        <SettingItem label={t("pages.settings.verge.tray.clickEvent")}>
           <GuardState
             value={tray_event ?? "main_window"}
             onCatch={onError}
@@ -263,13 +263,13 @@ const SettingVerge = ({ onError }: Props) => {
             onGuard={(e) => patchVerge({ tray_event: e })}>
             <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
               <MenuItem value="main_window">
-                {t("settings.verge.tray.showMainWindow")}
+                {t("pages.settings.verge.tray.showMainWindow")}
               </MenuItem>
               <MenuItem value="system_proxy">
-                {t("settings.system.proxy.label")}
+                {t("pages.settings.system.proxy.label")}
               </MenuItem>
               <MenuItem value="tun_mode">
-                {t("settings.clash.tun.label")}
+                {t("pages.settings.clash.tun.label")}
               </MenuItem>
               <MenuItem value="disable">{t("common.actions.disable")}</MenuItem>
             </Select>
@@ -278,14 +278,14 @@ const SettingVerge = ({ onError }: Props) => {
       )}
 
       <SettingItem
-        label={t("settings.verge.env.copyType")}
+        label={t("pages.settings.verge.env.copyType")}
         extra={
           <IconButton
             color="inherit"
             size="small"
             onClick={() => {
               copyClashEnv();
-              notice("success", t("settings.verge.env.copySuccess"));
+              notice("success", t("pages.settings.verge.env.copySuccess"));
             }}>
             <ContentCopy fontSize="inherit" style={{ opacity: 0.75 }} />
           </IconButton>
@@ -373,19 +373,19 @@ const SettingVerge = ({ onError }: Props) => {
       <SettingItem
         openMoreSettings
         onClick={() => themeRef.open()}
-        label={t("settings.verge.theme.title")}
+        label={t("pages.settings.verge.theme.title")}
       />
 
       <SettingItem
         openMoreSettings
         onClick={() => layoutRef.open()}
-        label={t("settings.verge.layout.title")}
+        label={t("pages.settings.verge.layout.title")}
       />
 
       <SettingItem
         openMoreSettings
         onClick={() => miscRef.open()}
-        label={t("settings.verge.misc.title")}
+        label={t("pages.settings.verge.misc.title")}
       />
 
       <SettingItem
@@ -396,7 +396,7 @@ const SettingVerge = ({ onError }: Props) => {
           }
           setExpand(!expand);
         }}
-        label={t("settings.verge.backup.title")}
+        label={t("pages.settings.verge.backup.title")}
         expand={expand}
       />
 
@@ -411,12 +411,12 @@ const SettingVerge = ({ onError }: Props) => {
                 }}
                 aria-label="backup model">
                 <Tab
-                  label={t("settings.verge.backup.types.local")}
+                  label={t("pages.settings.verge.backup.types.local")}
                   id="local-tab"
                   value="local"
                 />
                 <Tab
-                  label={t("settings.verge.backup.types.webdav")}
+                  label={t("pages.settings.verge.backup.types.webdav")}
                   id="webdav-tab"
                   value="webdav"
                 />
@@ -433,7 +433,7 @@ const SettingVerge = ({ onError }: Props) => {
                       onChange={(e) => setOnlyBackupProfiles(e.target.checked)}
                     />
                   }
-                  label={t("settings.verge.backup.onlyProfiles")}
+                  label={t("pages.settings.verge.backup.onlyProfiles")}
                 />
               </div>
               <div className="flex w-full items-center justify-around space-x-4!">
@@ -443,7 +443,7 @@ const SettingVerge = ({ onError }: Props) => {
                   size="small"
                   fullWidth
                   variant="contained">
-                  {t("settings.verge.backup.actions.recovery")}
+                  {t("pages.settings.verge.backup.actions.recovery")}
                 </Button>
                 <Button
                   loading={startingBackup}
@@ -453,14 +453,14 @@ const SettingVerge = ({ onError }: Props) => {
                   fullWidth
                   variant="contained"
                   onClick={() => handleBackup()}>
-                  {t("settings.verge.backup.actions.backup")}
+                  {t("pages.settings.verge.backup.actions.backup")}
                 </Button>
               </div>
             </TabPanel>
             <TabPanel value="webdav">
               <form onSubmit={handleSubmit(onSubmit)}>
                 <TextField
-                  label={t("settings.verge.backup.webdav.url")}
+                  label={t("pages.settings.verge.backup.webdav.url")}
                   {...register("url")}
                   size="small"
                   fullWidth
@@ -470,7 +470,7 @@ const SettingVerge = ({ onError }: Props) => {
                   autoCorrect="off"
                 />
                 <TextField
-                  label={t("settings.verge.backup.webdav.username")}
+                  label={t("pages.settings.verge.backup.webdav.username")}
                   {...register("username")}
                   size="small"
                   fullWidth
@@ -480,7 +480,7 @@ const SettingVerge = ({ onError }: Props) => {
                   autoCorrect="off"
                 />
                 <TextField
-                  label={t("settings.verge.backup.webdav.password")}
+                  label={t("pages.settings.verge.backup.webdav.password")}
                   type={showPassword ? "text" : "password"}
                   {...register("password")}
                   size="small"
@@ -524,7 +524,7 @@ const SettingVerge = ({ onError }: Props) => {
                         }
                       />
                     }
-                    label={t("settings.verge.backup.onlyProfiles")}
+                    label={t("pages.settings.verge.backup.onlyProfiles")}
                   />
                 </div>
                 <div className="flex w-full items-center justify-around space-x-4!">
@@ -549,7 +549,7 @@ const SettingVerge = ({ onError }: Props) => {
                         size="small"
                         fullWidth
                         variant="contained">
-                        {t("settings.verge.backup.actions.recovery")}
+                        {t("pages.settings.verge.backup.actions.recovery")}
                       </Button>
                       <Button
                         loading={startingBackup}
@@ -559,7 +559,7 @@ const SettingVerge = ({ onError }: Props) => {
                         fullWidth
                         variant="contained"
                         onClick={() => handleBackup()}>
-                        {t("settings.verge.backup.actions.backup")}
+                        {t("pages.settings.verge.backup.actions.backup")}
                       </Button>
                     </>
                   )}
@@ -573,42 +573,42 @@ const SettingVerge = ({ onError }: Props) => {
       <SettingItem
         openMoreSettings
         onClick={() => hotkeyRef.open()}
-        label={t("settings.verge.hotkeys.title")}
+        label={t("pages.settings.verge.hotkeys.title")}
       />
 
       <SettingItem
         onClick={() => configRef.open()}
-        label={t("settings.verge.runtimeConfig")}
+        label={t("pages.settings.verge.runtimeConfig")}
       />
 
       <SettingItem
         onClick={openAppDir}
-        label={t("settings.verge.actions.openAppDir")}
+        label={t("pages.settings.verge.actions.openAppDir")}
       />
 
       <SettingItem
         onClick={openCoreDir}
-        label={t("settings.verge.actions.openCoreDir")}
+        label={t("pages.settings.verge.actions.openCoreDir")}
       />
 
       <SettingItem
         onClick={openLogsDir}
-        label={t("settings.verge.actions.openLogsDir")}
+        label={t("pages.settings.verge.actions.openLogsDir")}
       />
 
       <SettingItem
         onClick={onCheckUpdate}
-        label={t("settings.verge.actions.checkForUpdates")}
+        label={t("pages.settings.verge.actions.checkForUpdates")}
       />
 
       <SettingItem
         onClick={openDevTools}
-        label={t("settings.verge.actions.openDevTools")}
+        label={t("pages.settings.verge.actions.openDevTools")}
       />
 
       <SettingItem onClick={() => exitApp()} label={t("common.actions.exit")} />
 
-      <SettingItem label={t("settings.verge.version")}>
+      <SettingItem label={t("pages.settings.verge.version")}>
         <Typography sx={{ py: "7px", pr: 1 }}>v{version}</Typography>
       </SettingItem>
     </SettingList>

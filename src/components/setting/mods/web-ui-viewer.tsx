@@ -82,7 +82,7 @@ export const WebUIViewer = forwardRef<DialogRef>((props, ref) => {
       open={open}
       title={
         <Box display="flex" justifyContent="space-between">
-          {t("settings.clash.webUi")}
+          {t("pages.settings.clash.webUi.label")}
           <Button
             variant="contained"
             size="small"
@@ -102,12 +102,10 @@ export const WebUIViewer = forwardRef<DialogRef>((props, ref) => {
       onClose={() => setOpen(false)}>
       {!editing && webUIList.length === 0 && (
         <BaseEmpty
-          text="Empty"
+          text={t("common.empty.empty")}
           extra={
             <Typography mt={2} sx={{ fontSize: "12px" }}>
-              {t(
-                "legacy.replaceHostPortSecretWithPercentHostPercentPortPercentSecret",
-              )}
+              {t("pages.settings.clash.webUi.replaceTemplateHint")}
             </Typography>
           }
         />

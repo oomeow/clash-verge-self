@@ -23,7 +23,7 @@ export const ConfigViewer = forwardRef<DialogRef>((_, ref) => {
     <EditorViewer
       title={
         <div className="flex w-full items-center">
-          {t("settings.verge.runtimeConfig")}
+          {t("pages.settings.verge.runtimeConfig")}
           <Chip
             label={t("common.status.readOnly")}
             size="small"

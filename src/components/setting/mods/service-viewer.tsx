@@ -77,7 +77,7 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("settings.clash.serviceMode.label")}
+      title={t("pages.settings.clash.serviceMode.label")}
       contentStyle={{ width: 360, userSelect: "text" }}
       hideFooter
       onClose={() => setOpen(false)}>
@@ -94,12 +94,12 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
                 color: state === "active" ? "primary.main" : "text.primary",
               },
             }}>
-            {t("settings.clash.serviceMode.currentState")}:{" "}
+            {t("pages.settings.clash.serviceMode.currentState")}:{" "}
             {t(`common.status.service.${state}`)}
           </Typography>
           {(state === "unknown" || state === "uninstall") && (
             <Typography mt={1} fontSize={14} color={"text.secondary"}>
-              {t("settings.clash.serviceMode.info")}
+              {t("pages.settings.clash.serviceMode.info")}
             </Typography>
           )}
         </Box>
@@ -111,7 +111,7 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
         sx={{ mt: 4, justifyContent: "flex-end" }}>
         {state === "uninstall" && enable && (
           <Button variant="contained" onClick={onDisable}>
-            {t("settings.clash.serviceMode.disable")}
+            {t("pages.settings.clash.serviceMode.disable")}
           </Button>
         )}
 

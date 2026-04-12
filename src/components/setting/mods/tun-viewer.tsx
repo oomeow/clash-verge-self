@@ -115,7 +115,9 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
       open={open}
       title={
         <Box display="flex" justifyContent="space-between" gap={1}>
-          <Typography variant="h6">{t("settings.clash.tun.label")}</Typography>
+          <Typography variant="h6">
+            {t("pages.settings.clash.tun.label")}
+          </Typography>
           <Button
             variant="outlined"
             size="small"
@@ -170,7 +172,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.clash.tun.autoRoute")} />
+          <ListItemText primary={t("pages.settings.clash.tun.autoRoute")} />
           <SwitchLovely
             edge="end"
             checked={values.autoRoute}
@@ -179,7 +181,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.clash.tun.strictRoute")} />
+          <ListItemText primary={t("pages.settings.clash.tun.strictRoute")} />
           <SwitchLovely
             edge="end"
             checked={values.strictRoute}
@@ -188,7 +190,9 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.clash.tun.autoDetectInterface")} />
+          <ListItemText
+            primary={t("pages.settings.clash.tun.autoDetectInterface")}
+          />
           <SwitchLovely
             edge="end"
             checked={values.autoDetectInterface}
@@ -199,7 +203,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.clash.tun.dnsHijack")} />
+          <ListItemText primary={t("pages.settings.clash.tun.dnsHijack")} />
           <TextField
             size="small"
             autoComplete="off"
@@ -216,7 +220,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.clash.tun.mtu")} />
+          <ListItemText primary={t("pages.settings.clash.tun.mtu")} />
           <TextField
             size="small"
             type="number"

@@ -65,7 +65,7 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("settings.verge.misc.title")}
+      title={t("pages.settings.verge.misc.title")}
       contentStyle={{ width: 450 }}
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
@@ -75,7 +75,7 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
       <List>
         <ListItem sx={{ padding: "5px 2px" }}>
           <ListItemText
-            primary={t("settings.verge.misc.autoCloseConnections")}
+            primary={t("pages.settings.verge.misc.autoCloseConnections")}
           />
           <SwitchLovely
             edge="end"
@@ -87,7 +87,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.verge.misc.autoCheckUpdate")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.autoCheckUpdate")}
+          />
           <SwitchLovely
             edge="end"
             checked={values.autoCheckUpdate}
@@ -99,7 +101,7 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
 
         <ListItem sx={{ padding: "5px 2px" }}>
           <ListItemText
-            primary={t("settings.verge.misc.enableBuiltinEnhanced")}
+            primary={t("pages.settings.verge.misc.enableBuiltinEnhanced")}
           />
           <SwitchLovely
             edge="end"
@@ -111,7 +113,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.verge.misc.proxyLayoutColumn")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.proxyLayoutColumn")}
+          />
           <Select
             size="small"
             sx={{ width: 135, "> div": { py: "7.5px" } }}
@@ -134,7 +138,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.verge.misc.autoLogClean.label")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.autoLogClean.label")}
+          />
           <Select
             size="small"
             sx={{ width: 135, "> div": { py: "7.5px" } }}
@@ -147,19 +153,19 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
             }}>
             {[
               {
-                key: "settings.verge.misc.autoLogClean.options.never",
+                key: "pages.settings.verge.misc.autoLogClean.options.never",
                 value: 0,
               },
               {
-                key: "settings.verge.misc.autoLogClean.options.sevenDays",
+                key: "pages.settings.verge.misc.autoLogClean.options.sevenDays",
                 value: 1,
               },
               {
-                key: "settings.verge.misc.autoLogClean.options.thirtyDays",
+                key: "pages.settings.verge.misc.autoLogClean.options.thirtyDays",
                 value: 2,
               },
               {
-                key: "settings.verge.misc.autoLogClean.options.ninetyDays",
+                key: "pages.settings.verge.misc.autoLogClean.options.ninetyDays",
                 value: 3,
               },
             ].map((i) => (
@@ -171,7 +177,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("settings.verge.misc.defaultLatencyTest")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.defaultLatencyTest")}
+          />
           <TextField
             size="small"
             autoComplete="off"
@@ -189,7 +197,7 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
 
         <ListItem sx={{ padding: "5px 2px" }}>
           <ListItemText
-            primary={t("settings.verge.misc.defaultLatencyTimeout")}
+            primary={t("pages.settings.verge.misc.defaultLatencyTimeout")}
           />
           <TextField
             size="small"

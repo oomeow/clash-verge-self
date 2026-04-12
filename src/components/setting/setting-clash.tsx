@@ -111,7 +111,7 @@ const SettingClash = ({ onError }: Props) => {
       await flushFakeIp();
       notice(
         "success",
-        t("settings.clash.cacheFlushed", {
+        t("pages.settings.clash.cacheFlushed", {
           cache: "Fake-IP",
         }),
       );
@@ -123,14 +123,17 @@ const SettingClash = ({ onError }: Props) => {
   const onFlushDNS = async () => {
     try {
       await flushDNS();
-      notice("success", t("settings.clash.cacheFlushed", { cache: "DNS" }));
+      notice(
+        "success",
+        t("pages.settings.clash.cacheFlushed", { cache: "DNS" }),
+      );
     } catch (err: any) {
       notice("error", err.message || err.toString());
     }
   };
 
   return (
-    <SettingList title={t("settings.clash.title")}>
+    <SettingList title={t("pages.settings.clash.title")}>
       {tunRef.mounted && <TunViewer ref={tunRef.dialogRef} />}
       {webRef.mounted && <WebUIViewer ref={webRef.dialogRef} />}
       {portRef.mounted && <ClashPortViewer ref={portRef.dialogRef} />}
@@ -151,11 +154,13 @@ const SettingClash = ({ onError }: Props) => {
 
       <SettingItem
         disabled={disableTunSetting}
-        label={t("settings.clash.tun.label")}
+        label={t("pages.settings.clash.tun.label")}
         extra={
           <>
             {disableTunSetting ? (
-              <Tooltip title={t("settings.clash.tun.info")} placement="top">
+              <Tooltip
+                title={t("pages.settings.clash.tun.info")}
+                placement="top">
                 <IconButton color="error" size="small">
                   <InfoRounded fontSize="inherit" />
                 </IconButton>
@@ -182,7 +187,7 @@ const SettingClash = ({ onError }: Props) => {
       </SettingItem>
 
       <SettingItem
-        label={t("settings.clash.serviceMode.label")}
+        label={t("pages.settings.clash.serviceMode.label")}
         extra={
           <IconButton
             color="inherit"
@@ -217,10 +222,10 @@ const SettingClash = ({ onError }: Props) => {
       </SettingItem>
 
       <SettingItem
-        label={t("settings.clash.unifiedDelay.label")}
+        label={t("pages.settings.clash.unifiedDelay.label")}
         extra={
           <Tooltip
-            title={t("settings.clash.unifiedDelay.info")}
+            title={t("pages.settings.clash.unifiedDelay.info")}
             placement="top">
             <IconButton color="inherit" size="small">
               <InfoRounded fontSize="inherit" sx={{ opacity: 0.75 }} />
@@ -239,10 +244,10 @@ const SettingClash = ({ onError }: Props) => {
       </SettingItem>
 
       <SettingItem
-        label={t("settings.clash.allowLan")}
+        label={t("pages.settings.clash.allowLan")}
         extra={
           <Tooltip
-            title={t("settings.clash.networkInterfaceInfo")}
+            title={t("pages.settings.clash.networkInterfaceInfo")}
             placement="top">
             <IconButton
               color="inherit"
@@ -265,7 +270,7 @@ const SettingClash = ({ onError }: Props) => {
         </GuardState>
       </SettingItem>
 
-      <SettingItem label={t("settings.clash.ipv6")}>
+      <SettingItem label={t("pages.settings.clash.ipv6")}>
         <GuardState
           value={ipv6 ?? false}
           valueProps="checked"
@@ -277,7 +282,7 @@ const SettingClash = ({ onError }: Props) => {
         </GuardState>
       </SettingItem>
 
-      <SettingItem label={t("settings.clash.findProcessMode.label")}>
+      <SettingItem label={t("pages.settings.clash.findProcessMode.label")}>
         <GuardState
           value={findProcessMode}
           valueProps="checked"
@@ -292,7 +297,9 @@ const SettingClash = ({ onError }: Props) => {
               }[mode];
               return (
                 <Tooltip
-                  title={t(`settings.clash.findProcessMode.options.${mode}`)}
+                  title={t(
+                    `pages.settings.clash.findProcessMode.options.${mode}`,
+                  )}
                   placement="top">
                   <Button
                     key={mode}
@@ -310,7 +317,7 @@ const SettingClash = ({ onError }: Props) => {
         </GuardState>
       </SettingItem>
 
-      <SettingItem label={t("settings.clash.logLevel")}>
+      <SettingItem label={t("pages.settings.clash.logLevel")}>
         <GuardState
           // clash premium 2022.08.26 值为warn
           value={logLevel === "warn" ? "warning" : (logLevel ?? "info")}
@@ -332,9 +339,9 @@ const SettingClash = ({ onError }: Props) => {
       </SettingItem>
 
       <SettingItem
-        label={t("settings.clash.portConfig.label")}
+        label={t("pages.settings.clash.portConfig.label")}
         extra={
-          <Tooltip title={t("settings.clash.portConfig.randomPort")}>
+          <Tooltip title={t("pages.settings.clash.portConfig.randomPort")}>
             <IconButton
               color={enable_random_port ? "primary" : "inherit"}
               size="small"
@@ -364,7 +371,7 @@ const SettingClash = ({ onError }: Props) => {
       </SettingItem>
 
       <SettingItem
-        label={t("settings.clash.externalController.label")}
+        label={t("pages.settings.clash.externalController.label")}
         extra={
           <IconButton
             color="inherit"
@@ -386,11 +393,11 @@ const SettingClash = ({ onError }: Props) => {
       <SettingItem
         openMoreSettings
         onClick={() => webRef.open()}
-        label={t("settings.clash.webUi")}
+        label={t("pages.settings.clash.webUi.label")}
       />
 
       <SettingItem
-        label={t("settings.clash.core.label")}
+        label={t("pages.settings.clash.core.label")}
         extra={
           <IconButton
             color="inherit"
@@ -408,21 +415,21 @@ const SettingClash = ({ onError }: Props) => {
       {OS === "windows" && (
         <SettingItem
           onClick={invoke_uwp_tool}
-          label={t("settings.clash.openUwpTool")}
+          label={t("pages.settings.clash.openUwpTool")}
         />
       )}
 
       <SettingItem
         onClick={onUpdateGeo}
-        label={t("settings.clash.updateGeoData")}
+        label={t("pages.settings.clash.updateGeoData")}
       />
       <SettingItem
         onClick={onFlushFakeip}
-        label={t("settings.clash.flushCache", { cache: "Fake-IP" })}
+        label={t("pages.settings.clash.flushCache", { cache: "Fake-IP" })}
       />
       <SettingItem
         onClick={onFlushDNS}
-        label={t("settings.clash.flushCache", { cache: "DNS" })}
+        label={t("pages.settings.clash.flushCache", { cache: "DNS" })}
       />
     </SettingList>
   );

@@ -118,7 +118,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
         contentStyle={{ width: 600 }}
         title={
           <div className="flex items-center justify-between">
-            {t("settings.verge.backup.files")}
+            {t("pages.settings.verge.backup.files")}
             <div>
               <FormControl>
                 <RadioGroup
@@ -137,12 +137,12 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                   <FormControlLabel
                     value="all"
                     control={<Radio />}
-                    label={t("settings.verge.backup.scopes.all")}
+                    label={t("pages.settings.verge.backup.scopes.all")}
                   />
                   <FormControlLabel
                     value="profiles"
                     control={<Radio />}
-                    label={t("settings.verge.backup.scopes.profiles")}
+                    label={t("pages.settings.verge.backup.scopes.profiles")}
                   />
                 </RadioGroup>
               </FormControl>
@@ -180,8 +180,8 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                         color="primary"
                         label={
                           file.type === "profiles"
-                            ? t("settings.verge.backup.scopes.profiles")
-                            : t("settings.verge.backup.scopes.all")
+                            ? t("pages.settings.verge.backup.scopes.profiles")
+                            : t("pages.settings.verge.backup.scopes.all")
                         }
                       />
                       <span className="ml-4 text-xs text-gray-500 dark:text-gray-400">

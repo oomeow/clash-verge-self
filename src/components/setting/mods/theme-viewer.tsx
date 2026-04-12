@@ -98,7 +98,7 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
       title={
         <Box display="flex" justifyContent={"space-between"} gap={1}>
           <Typography variant="h6">
-            {t("settings.verge.theme.title")}
+            {t("pages.settings.verge.theme.title")}
           </Typography>
           <div className="flex items-center justify-between">
             <Button
@@ -113,7 +113,7 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
                   resetDarkThemeSetting();
                 }
               }}>
-              {t("settings.verge.theme.colors.default")}
+              {t("pages.settings.verge.theme.colors.default")}
             </Button>
             <ButtonGroup size="small">
               <Button
@@ -122,7 +122,7 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
                 onClick={(e) => {
                   toggleTheme(e, "light");
                 }}>
-                {t("settings.verge.themeMode.options.light")}
+                {t("pages.settings.verge.themeMode.options.light")}
               </Button>
               <Button
                 sx={{ textTransform: "capitalize" }}
@@ -130,7 +130,7 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
                 onClick={(e) => {
                   toggleTheme(e, "dark");
                 }}>
-                {t("settings.verge.themeMode.options.dark")}
+                {t("pages.settings.verge.themeMode.options.dark")}
               </Button>
             </ButtonGroup>
           </div>

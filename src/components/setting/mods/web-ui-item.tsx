@@ -45,7 +45,7 @@ export const WebUIItem = (props: Props) => {
             size="small"
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
-            placeholder={t("legacy.supportPercentHostPercentPortPercentSecret")}
+            placeholder={t("pages.settings.clash.webUi.supportPlaceholders")}
             autoComplete="off"
           />
           <IconButton
