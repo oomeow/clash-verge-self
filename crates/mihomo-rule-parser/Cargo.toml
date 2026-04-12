@@ -9,8 +9,9 @@ description = "Mihomo Rule Parser"
 name = "mihomo_rule_parser"
 
 [dependencies]
+serde.workspace = true
+serde_yaml.workspace = true
+thiserror.workspace = true
+
 byteorder = "1.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.9"
-thiserror = "2.0"
 zstd = "0.13"

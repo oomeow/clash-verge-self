@@ -144,18 +144,18 @@ pub struct RawConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub disable_keep_alive: Option<bool>,
 
-    // TODO: replace all serde_yaml_ng::Value to custom struct, like `ProxyProvider` struct
+    // TODO: replace all serde_yaml::Value to custom struct, like `ProxyProvider` struct
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub proxy_providers: Option<HashMap<String, HashMap<String, serde_yaml_ng::Value>>>,
+    pub proxy_providers: Option<HashMap<String, HashMap<String, serde_yaml::Value>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rule_providers: Option<HashMap<String, HashMap<String, serde_yaml_ng::Value>>>,
+    pub rule_providers: Option<HashMap<String, HashMap<String, serde_yaml::Value>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub proxies: Option<Vec<HashMap<String, serde_yaml_ng::Value>>>,
+    pub proxies: Option<Vec<HashMap<String, serde_yaml::Value>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub proxy_groups: Option<Vec<HashMap<String, serde_yaml_ng::Value>>>,
+    pub proxy_groups: Option<Vec<HashMap<String, serde_yaml::Value>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rules: Option<Vec<String>>,
@@ -164,10 +164,10 @@ pub struct RawConfig {
     pub sub_rules: Option<HashMap<String, Vec<String>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub listeners: Option<Vec<HashMap<String, serde_yaml_ng::Value>>>,
+    pub listeners: Option<Vec<HashMap<String, serde_yaml::Value>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub hosts: Option<HashMap<String, serde_yaml_ng::Value>>,
+    pub hosts: Option<HashMap<String, serde_yaml::Value>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dns: Option<RawDNS>,
@@ -286,7 +286,7 @@ pub struct RawDNS {
     pub cache_max_size: Option<i32>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub nameserver_policy: Option<IndexMap<String, serde_yaml_ng::Value>>,
+    pub nameserver_policy: Option<IndexMap<String, serde_yaml::Value>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proxy_server_nameserver: Option<Vec<String>>,

@@ -1,0 +1,48 @@
+fail_fast: true
+# default_install_hook_types: [pre-push]
+
+repos:
+  - repo: builtin
+    hooks:
+      - id: trailing-whitespace
+        exclude:
+          glob: CHANGELOG.md
+      - id: mixed-line-ending
+      - id: check-yaml
+      - id: check-toml
+      - id: end-of-file-fixer
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.44.0
+    hooks:
+      - id: typos
+
+  - repo: local
+    hooks:
+      - id: "lint"
+        name: "lint"
+        description: "lint."
+        entry: "pnpm lint"
+        language: "node"
+        files:
+          glob: ["src/**/*.{js,mjs,ts,tsx}", "vite.config.ts"]
+
+      - id: "pretty staged"
+        name: "pretty staged"
+        description: "pretty."
+        entry: "pnpm pretty-quick --staged"
+        language: "node"
+
+      - id: cargo-fmt
+        name: cargo nightly fmt
+        entry: cargo +nightly fmt --
+        language: system
+        types: [rust]
+        pass_filenames: false # This makes it a lot faster
+
+      - id: cargo-clippy
+        name: cargo clippy
+        language: system
+        types: [rust]
+        pass_filenames: false
+        entry: cargo clippy --all-targets --all-features -- -D warnings

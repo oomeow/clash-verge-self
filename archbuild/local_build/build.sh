@@ -12,7 +12,7 @@ VERSION=$(cat $PROJECT_ROOT_DIR/package.json | jq '.version' | tr -d '"')
 # deb file name
 DEB_FILE="${APP_NAME}_${VERSION}_amd64.deb"
 # deb path
-DEB_PATH="$PROJECT_ROOT_DIR/src-tauri/target/release/bundle/deb/${DEB_FILE}"
+DEB_PATH="$PROJECT_ROOT_DIR/target/release/bundle/deb/${DEB_FILE}"
 # arch build bundle name
 ARCH_PKG_NAME=$(grep "^pkgname=" ${CURRENT_SCRIPT_DIR}/PKGBUILD | sed 's/^pkgname=//')
 AUR_VERSION=$(echo "$VERSION" | awk -F'-' '{

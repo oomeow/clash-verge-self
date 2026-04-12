@@ -67,7 +67,7 @@ impl Mihomo {
             Protocol::Http => Ok(builder.build()?),
             Protocol::LocalSocket => {
                 let Some(socket_path) = socket_path else {
-                    log::error!("missing socket path parameter");
+                    tracing::error!("missing socket path parameter");
                     return Err(Error::MissingPathParameter("socket_path".into()));
                 };
                 #[cfg(windows)]
@@ -91,7 +91,7 @@ impl Mihomo {
                 interval.tick().await;
                 let ids_map = manager.0.read().await;
                 let ids: Vec<&u32> = ids_map.keys().collect();
-                log::trace!("manager websocket connection ids: {ids:?}",);
+                tracing::trace!("manager websocket connection ids: {ids:?}",);
             }
         });
     }
@@ -104,7 +104,7 @@ impl Mihomo {
                     let port = self.external_port.unwrap_or(9090);
                     Ok(format!("http://{host}:{port}/{suffix_url}"))
                 } else {
-                    log::error!("missing external host parameter");
+                    tracing::error!("missing external host parameter");
                     Err(Error::MissingPathParameter("external_host".into()))
                 }
             }
@@ -136,7 +136,7 @@ impl Mihomo {
             Method::DELETE => self.client.delete(url),
             _ => {
                 let method_str = method.as_str().to_string();
-                log::error!("method not supported: {method_str}");
+                tracing::error!("method not supported: {method_str}");
                 return Err(Error::MethodNotSupported(method_str));
             }
         };
@@ -152,7 +152,7 @@ impl Mihomo {
                     let secret = self.secret.as_deref().unwrap_or_default();
                     Ok(format!("ws://{host}:{port}/{suffix_url}?token={secret}"))
                 } else {
-                    log::error!("missing external host parameter");
+                    tracing::error!("missing external host parameter");
                     Err(Error::MissingPathParameter("external_host".into()))
                 }
             }
@@ -166,11 +166,11 @@ impl Mihomo {
         F: Fn(serde_json::Value) + Send + 'static,
     {
         let id = rand::random();
-        log::info!("connecting to websocket: {url}, id: {id}");
+        tracing::info!("connecting to websocket: {url}, id: {id}");
         let manager = self.connection_manager.clone();
 
         let handle_message = |message: Result<Message>| -> Result<serde_json::Value> {
-            // log::trace!("handle message {message:?}");
+            // tracing::trace!("handle message {message:?}");
             let msg = match message {
                 Ok(Message::Text(t)) => serde_json::to_value(WebSocketMessage::Text(t.to_string()))?,
                 Ok(Message::Binary(t)) => serde_json::to_value(WebSocketMessage::Binary(t.to_vec()))?,
@@ -182,7 +182,7 @@ impl Mihomo {
                 })))?,
                 Ok(Message::Frame(_)) => serde_json::Value::Null, // This value can't be received.
                 Err(e) => {
-                    log::error!("websocket error: {e}");
+                    tracing::error!("websocket error: {e}");
                     serde_json::to_value(WebSocketMessage::Text(e.to_string()))?
                 }
             };
@@ -194,7 +194,7 @@ impl Mihomo {
                 let manager_ = manager.clone();
                 while let Some(message) = reader.next().await {
                     if !manager_.0.read().await.contains_key(&id) {
-                        log::debug!("connection [{id}] is removed from manager");
+                        tracing::debug!("connection [{id}] is removed from manager");
                         break;
                     }
                     let is_close = matches!(&message, Ok(Message::Close(_)));
@@ -202,7 +202,7 @@ impl Mihomo {
                         on_message(response);
                     }
                     if is_close {
-                        log::debug!("connection [{id}] is closed");
+                        tracing::debug!("connection [{id}] is closed");
                         break;
                     }
                 }
@@ -212,7 +212,7 @@ impl Mihomo {
 
         match self.protocol {
             Protocol::Http => {
-                log::debug!("starting connect to websocket by using http");
+                tracing::debug!("starting connect to websocket by using http");
                 let request = url.into_client_request()?;
                 let (ws_stream, _) = connect_async(request).await?;
                 let (writer, reader) = WsStream::from(ws_stream).split();
@@ -223,7 +223,7 @@ impl Mihomo {
             }
             Protocol::LocalSocket => {
                 if let Some(socket_path) = self.socket_path.as_ref() {
-                    log::debug!("starting connect to websocket by using local socket: {socket_path}");
+                    tracing::debug!("starting connect to websocket by using local socket: {socket_path}");
                     let stream = crate::stream::connect_to_socket(socket_path).await?;
 
                     let request = Request::builder()
@@ -241,7 +241,7 @@ impl Mihomo {
                     spawn_read(reader, on_message, manager.clone());
                     Ok(id)
                 } else {
-                    log::error!("missing socket path parameter");
+                    tracing::error!("missing socket path parameter");
                     Err(Error::MissingPathParameter("socket_path".into()))
                 }
             }
@@ -266,14 +266,14 @@ impl Mihomo {
             writer.send(data).await?;
             Ok(())
         } else {
-            log::error!("connection not found: {id}");
+            tracing::error!("connection not found: {id}");
             Err(Error::WebSocketConnectionNotFound(id))
         }
     }
 
     /// 取消 WebSocket 连接
     pub async fn disconnect(&self, id: WebSocketConnectionId, force_timeout: Option<u64>) -> Result<()> {
-        log::debug!("disconnecting connection: {id}");
+        tracing::debug!("disconnecting connection: {id}");
         let mut manager = self.connection_manager.0.write().await;
         if let Some(writer) = manager.get_mut(&id) {
             let close_message = Message::Close(Some(ProtocolCloseFrame {
@@ -286,23 +286,23 @@ impl Mihomo {
                 let manager_ = self.connection_manager.clone();
                 tokio::spawn(async move {
                     tokio::time::sleep(Duration::from_millis(timeout)).await;
-                    log::debug!("force close websocket connection");
+                    tracing::debug!("force close websocket connection");
                     manager_.0.write().await.remove(&id);
                 });
             }
             Ok(())
         } else {
-            log::error!("connection not found: {id}");
+            tracing::error!("connection not found: {id}");
             Err(Error::WebSocketConnectionNotFound(id))
         }
     }
 
     pub async fn clear_all_ws_connections(&self) -> Result<()> {
-        log::debug!("start to clear all websocket connections");
+        tracing::debug!("start to clear all websocket connections");
         let mut manager = self.connection_manager.0.write().await;
-        log::debug!("manage_ids: {:?}", manager.keys());
+        tracing::debug!("manage_ids: {:?}", manager.keys());
         manager.clear();
-        log::debug!("clear all done, manager_ids: {:?}", manager.keys());
+        tracing::debug!("clear all done, manager_ids: {:?}", manager.keys());
         Ok(())
     }
 
@@ -526,7 +526,7 @@ impl Mihomo {
             // maybe proxy delay is timeout response, try parse it.
             match response.json::<ErrorResponse>().await {
                 Ok(err_response) => {
-                    log::debug!("delay error: {}", err_response.message);
+                    tracing::debug!("delay error: {}", err_response.message);
                     return Ok(ProxyDelay { delay: 0 });
                 }
                 Err(e) => {
@@ -605,7 +605,7 @@ impl Mihomo {
         if !response.status().is_success() {
             match response.json::<ErrorResponse>().await {
                 Ok(err_response) => {
-                    log::debug!("delay error: {}", err_response.message);
+                    tracing::debug!("delay error: {}", err_response.message);
                     return Ok(ProxyDelay { delay: 0 });
                 }
                 Err(e) => {
