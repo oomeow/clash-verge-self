@@ -97,7 +97,9 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
       open={open}
       title={
         <Box display="flex" justifyContent={"space-between"} gap={1}>
-          <Typography variant="h6">{t("Theme Setting")}</Typography>
+          <Typography variant="h6">
+            {t("settings.verge.theme.title")}
+          </Typography>
           <div className="flex items-center justify-between">
             <Button
               sx={{ textTransform: "capitalize" }}
@@ -111,7 +113,7 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
                   resetDarkThemeSetting();
                 }
               }}>
-              {t("Default Color")}
+              {t("settings.verge.theme.colors.default")}
             </Button>
             <ButtonGroup size="small">
               <Button
@@ -120,7 +122,7 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
                 onClick={(e) => {
                   toggleTheme(e, "light");
                 }}>
-                {t("theme.light")}
+                {t("settings.verge.themeMode.options.light")}
               </Button>
               <Button
                 sx={{ textTransform: "capitalize" }}
@@ -128,14 +130,14 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
                 onClick={(e) => {
                   toggleTheme(e, "dark");
                 }}>
-                {t("theme.dark")}
+                {t("settings.verge.themeMode.options.dark")}
               </Button>
             </ButtonGroup>
           </div>
         </Box>
       }
-      okBtn={t("Save")}
-      cancelBtn={t("Cancel")}
+      okBtn={t("common.actions.save")}
+      cancelBtn={t("common.actions.cancel")}
       onClose={() => {
         setLightThemeSetting(light_theme_setting ?? defaultThemeSettings.light);
         setDarkThemeSetting(dark_theme_setting ?? defaultThemeSettings.dark);
@@ -177,7 +179,7 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
               <Button
                 sx={{ textTransform: "capitalize" }}
                 onClick={() => setEditorOpen(true)}>
-                {t("Edit")}
+                {t("common.actions.edit")}
               </Button>
             }
           />

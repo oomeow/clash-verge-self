@@ -71,7 +71,11 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
       if (conflictPorts[i] === 0) continue;
       for (let j = i + 1; j < conflictPorts.length; j++) {
         if (conflictPorts[i] === conflictPorts[j]) {
-          notice("error", t("Port Conflict", { portName: portNames[j] }), 4000);
+          notice(
+            "error",
+            t("messages.clash.portConflict", { portName: portNames[j] }),
+            4000,
+          );
           return;
         }
       }
@@ -85,7 +89,7 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
           if (!res) {
             notice(
               "error",
-              t("Port Conflict", { portName: "redir port" }),
+              t("messages.clash.portConflict", { portName: "redir port" }),
               4000,
             );
             return;
@@ -100,7 +104,7 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
           if (!res) {
             notice(
               "error",
-              t("Port Conflict", { portName: "tproxy port" }),
+              t("messages.clash.portConflict", { portName: "tproxy port" }),
               4000,
             );
             return;
@@ -115,7 +119,7 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
           if (!res) {
             notice(
               "error",
-              t("Port Conflict", { portName: "mixed port" }),
+              t("messages.clash.portConflict", { portName: "mixed port" }),
               4000,
             );
             return;
@@ -130,7 +134,7 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
           if (!res) {
             notice(
               "error",
-              t("Port Conflict", { portName: "socks port" }),
+              t("messages.clash.portConflict", { portName: "socks port" }),
               4000,
             );
             return;
@@ -143,7 +147,11 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
         if (!usingPorts.includes(port)) {
           const res = await checkPortAvailable(port);
           if (!res) {
-            notice("error", t("Port Conflict", { portName: "port" }), 4000);
+            notice(
+              "error",
+              t("messages.clash.portConflict", { portName: "port" }),
+              4000,
+            );
             return;
           }
         }
@@ -153,7 +161,7 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
       await patchInfo(updatePorts);
       await mutate("getRuntimeConfig");
       setOpen(false);
-      notice("success", t("Clash Port Modified"), 1000);
+      notice("success", t("messages.clash.portModified"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 4000);
     }
@@ -162,10 +170,10 @@ export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("Clash Port")}
+      title={t("settings.clash.portConfig.dialogTitle")}
       contentStyle={{ width: 300 }}
-      okBtn={t("Save")}
-      cancelBtn={t("Cancel")}
+      okBtn={t("common.actions.save")}
+      cancelBtn={t("common.actions.cancel")}
       onClose={() => setOpen(false)}
       onCancel={() => setOpen(false)}
       onOk={onSave}>

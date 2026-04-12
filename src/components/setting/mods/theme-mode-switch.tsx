@@ -24,7 +24,7 @@ export const ThemeModeSwitch = (props: Props) => {
           variant={mode === value ? "contained" : "outlined"}
           onClick={(e) => toggleTheme(e, mode)}
           sx={{ textTransform: "capitalize" }}>
-          {t(`theme.${mode}`)}
+          {t(`settings.verge.themeMode.options.${mode}`)}
         </Button>
       ))}
     </ButtonGroup>

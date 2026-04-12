@@ -1,6 +1,7 @@
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClash } from "@/hooks/use-clash";
+import { translateDynamicKey } from "@/services/i18n";
 import getSystem from "@/utils/get-system";
 import {
   Box,
@@ -71,7 +72,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
       );
       setLoading(false);
       setOpen(false);
-      notice("success", t("Clash Config Updated"));
+      notice("success", t("messages.clash.configUpdated"));
     } catch (err: any) {
       if (retry < 0) {
         await patchClash({ tun: { enable: false } });
@@ -84,7 +85,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         );
         setLoading(false);
         setOpen(false);
-        notice("error", t(err));
+        notice("error", translateDynamicKey(t, err));
       } else {
         setTimeout(() => doSave(retry - 1), 1000);
       }
@@ -95,7 +96,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
     if (isMacos) {
       let device = values.device;
       if (!device.startsWith("utun")) {
-        notice("error", t("Macos Tun Device Name Error"), 3000);
+        notice("error", t("messages.clash.tun.macosDeviceNameError"), 3000);
         return;
       } else {
         let suffix = device.slice(3);
@@ -115,7 +116,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
       open={open}
       title={
         <Box display="flex" justifyContent="space-between" gap={1}>
-          <Typography variant="h6">{t("Tun Mode")}</Typography>
+          <Typography variant="h6">{t("settings.clash.tun.label")}</Typography>
           <Button
             variant="outlined"
             size="small"
@@ -130,20 +131,20 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
                 mtu: 9000,
               });
             }}>
-            {t("Reset to Default")}
+            {t("common.actions.resetToDefault")}
           </Button>
         </Box>
       }
       loading={isLoading}
       contentStyle={{ width: 450 }}
-      okBtn={t("Save")}
-      cancelBtn={t("Cancel")}
+      okBtn={t("common.actions.save")}
+      cancelBtn={t("common.actions.cancel")}
       onClose={() => setOpen(false)}
       onCancel={() => setOpen(false)}
       onOk={onSave}>
       <List>
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Stack")} />
+          <ListItemText primary={t("common.fields.stack")} />
           <StackModeSwitch
             value={values.stack}
             onChange={(value) => {
@@ -153,7 +154,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Device")} />
+          <ListItemText primary={t("common.fields.device")} />
           <TextField
             size="small"
             autoComplete="off"
@@ -170,7 +171,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Auto Route")} />
+          <ListItemText primary={t("settings.clash.tun.autoRoute")} />
           <SwitchLovely
             edge="end"
             checked={values.autoRoute}
@@ -179,7 +180,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Strict Route")} />
+          <ListItemText primary={t("settings.clash.tun.strictRoute")} />
           <SwitchLovely
             edge="end"
             checked={values.strictRoute}
@@ -188,7 +189,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Auto Detect Interface")} />
+          <ListItemText primary={t("settings.clash.tun.autoDetectInterface")} />
           <SwitchLovely
             edge="end"
             checked={values.autoDetectInterface}
@@ -199,7 +200,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("DNS Hijack")} />
+          <ListItemText primary={t("settings.clash.tun.dnsHijack")} />
           <TextField
             size="small"
             autoComplete="off"
@@ -216,7 +217,7 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("MTU")} />
+          <ListItemText primary={t("settings.clash.tun.mtu")} />
           <TextField
             size="small"
             type="number"

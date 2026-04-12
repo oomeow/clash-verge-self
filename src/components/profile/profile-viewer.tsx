@@ -211,9 +211,13 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
     return (
       <BaseDialog
         open={open}
-        title={openType === "new" ? t("Create Profile") : t("Edit Profile")}
-        okBtn={t("Save")}
-        cancelBtn={t("Cancel")}
+        title={
+          openType === "new"
+            ? t("pages.profiles.dialog.createTitle")
+            : t("pages.profiles.dialog.editTitle")
+        }
+        okBtn={t("common.actions.save")}
+        cancelBtn={t("common.actions.cancel")}
         onClose={handleClose}
         onCancel={handleClose}
         onOk={handleOk}
@@ -233,7 +237,7 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                     key={type}
                     variant={formType === type ? "contained" : "outlined"}
                     onClick={() => field.onChange(type)}>
-                    {t(type)}
+                    {t(`pages.proxies.modes.${type}`)}
                   </Button>
                 ))}
               </ButtonGroup>
@@ -243,14 +247,23 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
             name="name"
             control={control}
             render={({ field }) => (
-              <TextField {...text} {...field} required label={t("Name")} />
+              <TextField
+                {...text}
+                {...field}
+                required
+                label={t("common.fields.name")}
+              />
             )}
           />
           <Controller
             name="desc"
             control={control}
             render={({ field }) => (
-              <TextField {...text} {...field} label={t("Descriptions")} />
+              <TextField
+                {...text}
+                {...field}
+                label={t("common.fields.description")}
+              />
             )}
           />
           {isLocal && openType === "new" && (
@@ -277,7 +290,7 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                     {...text}
                     {...field}
                     multiline
-                    label={t("Subscription URL")}
+                    label={t("pages.profiles.fields.subscriptionUrl")}
                   />
                 )}
               />
@@ -301,7 +314,7 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                         .slice(0, 10);
                       field.onChange(e);
                     }}
-                    label={t("Update Interval")}
+                    label={t("pages.profiles.fields.updateInterval")}
                     slotProps={{
                       input: {
                         endAdornment: (
@@ -317,7 +330,9 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                 control={control}
                 render={({ field }) => (
                   <StyledDiv>
-                    <InputLabel>{t("Use System Proxy")}</InputLabel>
+                    <InputLabel>
+                      {t("pages.profiles.fields.useSystemProxy")}
+                    </InputLabel>
                     <SwitchLovely
                       checked={field.value}
                       {...field}
@@ -331,7 +346,9 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                 control={control}
                 render={({ field }) => (
                   <StyledDiv>
-                    <InputLabel>{t("Use Clash Proxy")}</InputLabel>
+                    <InputLabel>
+                      {t("pages.profiles.fields.useClashProxy")}
+                    </InputLabel>
                     <SwitchLovely
                       checked={field.value}
                       {...field}
@@ -346,7 +363,7 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                 render={({ field }) => (
                   <StyledDiv>
                     <InputLabel>
-                      {t("Accept Invalid Certs (Danger)")}
+                      {t("pages.profiles.fields.acceptInvalidCertsDanger")}
                     </InputLabel>
                     <SwitchLovely
                       checked={field.value}

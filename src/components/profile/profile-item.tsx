@@ -176,17 +176,17 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
   const menus = [
     {
-      label: "Select",
+      label: "common.actions.select",
       icon: <CheckCircle fontSize="small" />,
       handler: onForceSelect,
     },
     {
-      label: "Edit",
+      label: "common.actions.edit",
       icon: <Edit fontSize="small" />,
       handler: onEdit,
     },
     {
-      label: "Open File",
+      label: "pages.profiles.actions.openFile",
       icon: <FileOpen fontSize="small" />,
       handler: onOpenFile,
     },
@@ -194,25 +194,25 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
   if (hasUrl) {
     menus.push({
-      label: "Update",
+      label: "common.actions.update",
       icon: <Refresh fontSize="small" />,
       handler: () => onUpdate(0),
     });
     menus.push({
-      label: "Update(Proxy)",
+      label: "pages.profiles.actions.updateProxy",
       icon: <CloudSync fontSize="small" />,
       handler: () => onUpdate(2),
     });
     if (hasHome) {
       menus.splice(1, 0, {
-        label: "Home",
+        label: "legacy.home",
         icon: <Home fontSize="small" />,
         handler: onOpenHome,
       });
     }
   }
   menus.push({
-    label: "Delete",
+    label: "common.actions.delete",
     icon: <Delete fontSize="small" color="error" />,
     handler: () => {
       setAnchorEl(null);
@@ -280,7 +280,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
           {/* only if has url can it be updated */}
           {hasUrl && (
             <IconButton
-              title={t("Refresh")}
+              title={t("common.actions.refresh")}
               sx={{
                 position: "absolute",
                 p: "3px",
@@ -316,7 +316,9 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
                 </Typography>
               ) : (
                 hasUrl && (
-                  <Typography noWrap title={`${t("From")} ${from}`}>
+                  <Typography
+                    noWrap
+                    title={`${t("common.fields.from")} ${from}`}>
                     {from}
                   </Typography>
                 )
@@ -327,7 +329,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
                   flex="1 0 auto"
                   fontSize={14}
                   textAlign="right"
-                  title={`${t("Updated Time")}: ${parseExpire(updated)}`}>
+                  title={`${t("common.fields.updatedTime")}: ${parseExpire(updated)}`}>
                   {updated > 0 ? dayjs(updated * 1000).fromNow() : ""}
                 </Typography>
               )}
@@ -337,14 +339,16 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         {/* the third line show extra info or last updated time */}
         {hasExtra ? (
           <Box sx={{ ...boxStyle, fontSize: 14 }}>
-            <span title={t("Used / Total")}>
+            <span title={t("common.fields.usedTotal")}>
               {parseTraffic(upload + download)} / {parseTraffic(total)}
             </span>
-            <span title={t("Expire Time")}>{expire}</span>
+            <span title={t("common.fields.expireTime")}>{expire}</span>
           </Box>
         ) : (
           <Box sx={{ ...boxStyle, fontSize: 12, justifyContent: "flex-end" }}>
-            <span title={t("Updated Time")}>{parseExpire(updated)}</span>
+            <span title={t("common.fields.updatedTime")}>
+              {parseExpire(updated)}
+            </span>
           </Box>
         )}
         {hasExtra && <LinearProgress variant="determinate" value={progress} />}
@@ -373,7 +377,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
             </ListItemIcon>
             <ListItemText
               className={cn("text-primary-main", {
-                "text-error-main": item.label === "Delete",
+                "text-error-main": item.label === "common.actions.delete",
               })}>
               {t(item.label)}
             </ListItemText>
@@ -394,8 +398,8 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         onClose={() => setOpen(false)}
       />
       <ConfirmViewer
-        title={t("Confirm deletion")}
-        message={t("This operation is not reversible")}
+        title={t("pages.profiles.dialog.confirmDeletion")}
+        message={t("pages.profiles.dialog.confirmDeletionMessage")}
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={() => {

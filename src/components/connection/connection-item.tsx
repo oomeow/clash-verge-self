@@ -73,7 +73,11 @@ export const ConnectionItem = (props: Props) => {
               <Tag>{[...chains].reverse().join(" / ")}</Tag>
             )}
 
-            <Tag>{t("Start At", { time: dayjs(start).fromNow() })}</Tag>
+            <Tag>
+              {t("pages.connections.columns.startAt", {
+                time: dayjs(start).fromNow(),
+              })}
+            </Tag>
 
             {showTraffic && (
               <Tag>

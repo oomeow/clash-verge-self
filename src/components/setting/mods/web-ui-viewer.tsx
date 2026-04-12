@@ -82,13 +82,13 @@ export const WebUIViewer = forwardRef<DialogRef>((props, ref) => {
       open={open}
       title={
         <Box display="flex" justifyContent="space-between">
-          {t("Web UI")}
+          {t("settings.clash.webUi")}
           <Button
             variant="contained"
             size="small"
             disabled={editing}
             onClick={() => setEditing(true)}>
-            {t("New")}
+            {t("common.actions.new")}
           </Button>
         </Box>
       }
@@ -105,7 +105,9 @@ export const WebUIViewer = forwardRef<DialogRef>((props, ref) => {
           text="Empty"
           extra={
             <Typography mt={2} sx={{ fontSize: "12px" }}>
-              {t("Replace host, port, secret with %host, %port, %secret")}
+              {t(
+                "legacy.replaceHostPortSecretWithPercentHostPercentPortPercentSecret",
+              )}
             </Typography>
           }
         />

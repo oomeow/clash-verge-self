@@ -146,7 +146,7 @@ export const EditorViewer = (props: Props) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
-      <DialogTitle>{title ?? t("Edit File")}</DialogTitle>
+      <DialogTitle>{title ?? t("pages.profiles.actions.editFile")}</DialogTitle>
 
       <DialogContent
         sx={{
@@ -159,10 +159,10 @@ export const EditorViewer = (props: Props) => {
 
       <DialogActions>
         <Button onClick={onClose} variant="outlined">
-          {t("Cancel")}
+          {t("common.actions.cancel")}
         </Button>
         <Button onClick={onSave} variant="contained">
-          {t("Save")}
+          {t("common.actions.save")}
         </Button>
       </DialogActions>
     </Dialog>

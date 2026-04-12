@@ -37,12 +37,12 @@ const LogPage = () => {
   return (
     <BasePage
       full
-      title={t("Logs")}
+      title={t("pages.logs.title")}
       contentStyle={{ height: "100%" }}
       header={
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <IconButton
-            title={t("Pause")}
+            title={t("common.actions.pause")}
             size="small"
             color="inherit"
             onClick={() => toggleEnable()}>
@@ -58,7 +58,7 @@ const LogPage = () => {
             // useSWRSubscription adds a prefix "$sub$" to the cache key
             // https://github.com/vercel/swr/blob/1585a3e37d90ad0df8097b099db38f1afb43c95d/src/subscription/index.ts#L37
             onClick={() => refreshGetClashLog(true)}>
-            {t("Clear")}
+            {t("common.actions.clear")}
           </Button>
         </Box>
       }>
@@ -103,7 +103,7 @@ const LogPage = () => {
             followOutput={"smooth"}
           />
         ) : (
-          <BaseEmpty text="No Logs" />
+          <BaseEmpty text={t("common.empty.noLogs")} />
         )}
       </Box>
     </BasePage>

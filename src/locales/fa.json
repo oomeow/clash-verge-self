@@ -1,266 +1,534 @@
 {
-  "Back": "بازگشت",
-  "Close": "بستن",
-  "Cancel": "لغو",
-  "Confirm": "تأیید",
-
-  "New": "جدید",
-  "Edit": "ویرایش",
-  "Save": "ذخیره",
-  "Delete": "حذف",
-  "Enable": "فعال کردن",
-  "Disable": "غیرفعال کردن",
-
-  "Label-Proxies": "پراکسی‌ها",
-  "Label-Profiles": "پروفایل‌ها",
-  "Label-Connections": "اتصالات",
-  "Label-Rules": "قوانین",
-  "Label-Logs": "لاگ‌ها",
-  "Label-Test": "آزمون",
-  "Label-Settings": "تنظیمات",
-
-  "Proxies": "پراکسی‌ها",
-  "Proxy Groups": "گروه‌های پراکسی",
-  "Proxy Provider": "تأمین‌کننده پروکسی",
-  "Update All": "به‌روزرسانی همه",
-  "Update At": "به‌روزرسانی در",
-  "rule": "قانون",
-  "global": "جهانی",
-  "direct": "مستقیم",
-  "script": "اسکریپت",
-  "Location": "موقعیت",
-  "Delay check": "بررسی تأخیر",
-  "Sort by default": "مرتب‌سازی بر اساس پیش‌فرض",
-  "Sort by delay": "مرتب‌سازی بر اساس تأخیر",
-  "Sort by name": "مرتب‌سازی بر اساس نام",
-  "Delay check URL": "آدرس بررسی تأخیر",
-  "Delay check to cancel fixed": "بررسی تأخیر برای لغو ثابت",
-  "Proxy basic": "پراکسی پایه",
-  "Proxy detail": "جزئیات پراکسی",
-
-  "Profiles": "پروفایل‌ها",
-  "Update All Profiles": "به‌روزرسانی همه پروفایل‌ها",
-  "View Runtime Config": "مشاهده پیکربندی زمان اجرا",
-  "Reactivate Profiles": "فعال‌سازی مجدد پروفایل‌ها",
-  "Paste": "چسباندن",
-  "Profile URL": "آدرس پروفایل",
-  "Import": "وارد کردن",
-  "Create Profile": "ایجاد پروفایل",
-  "Edit Profile": "ویرایش پروفایل",
-  "Type": "نوع",
-  "Name": "نام",
-  "Descriptions": "توضیحات",
-  "Subscription URL": "آدرس اشتراک",
-  "Update Interval": "فاصله زمانی به‌روزرسانی",
-  "Choose File": "انتخاب فایل",
-  "Use System Proxy": "استفاده از پراکسی سیستم",
-  "Use Clash Proxy": "استفاده از پراکسی Clash",
-  "Accept Invalid Certs (Danger)": "پذیرش گواهی‌نامه‌های نامعتبر (خطرناک)",
-  "Refresh": "بازنشانی",
-  "Home": "خانه",
-  "Select": "انتخاب",
-  "Edit Info": "ویرایش اطلاعات",
-  "Edit File": "ویرایش فایل",
-  "Open File": "باز کردن فایل",
-  "Update": "به‌روزرسانی",
-  "Update(Proxy)": "به‌روزرسانی (پراکسی)",
-  "Confirm deletion": "تأیید حذف",
-  "This operation is not reversible": "این عملیات قابل برگشت نیست",
-  "Script Console": "کنسول اسکریپت",
-  "To Top": "به بالا",
-  "To End": "به پایان",
-
-  "Connections": "اتصالات",
-  "Table View": "نمای جدولی",
-  "List View": "نمای لیستی",
-  "Close All": "بستن همه",
-  "Default": "پیش‌فرض",
-  "Download Speed": "سرعت دانلود",
-  "Upload Speed": "سرعت بارگذاری",
-  "Host": "میزبان",
-  "Downloaded": "دانلود شده",
-  "Uploaded": "بارگذاری شده",
-  "DL Speed": "سرعت دانلود",
-  "UL Speed": "سرعت بارگذاری",
-  "Chains": "زنجیره‌ها",
-  "Rule": "قانون",
-  "Process": "فرآیند",
-  "Time": "زمان",
-  "Source": "منبع",
-  "Destination": "وجهة",
-  "Close Connection": "بستن اتصال",
-
-  "Rules": "قوانین",
-  "Rule Provider": "تأمین‌کننده قانون",
-
-  "Logs": "لاگ‌ها",
-  "Pause": "توقف",
-  "Clear": "پاک کردن",
-
-  "Test": "آزمون",
-  "Test All": "آزمون همه",
-  "Create Test": "ایجاد آزمون",
-  "Edit Test": "ویرایش آزمون",
-  "Icon": "آیکون",
-  "Test URL": "آدرس آزمون",
-
-  "Settings": "تنظیمات",
-  "System Setting": "تنظیمات سیستم",
-  "Tun Mode": "حالت Tun",
-  "Reset to Default": "بازنشانی به پیش‌فرض",
-  "Tun Mode Info": "حالت Tun نیاز به اعطای مجوزهای مربوط به هسته دارد. لطفاً قبل از استفاده، حالت سرویس را فعال کنید",
-  "Stack": "انباشته Tun",
-  "System and Mixed Can Only be Used in Service Mode": "سیستم و ترکیبی تنها می‌توانند در حالت سرویس استفاده شوند",
-  "Device": "نام دستگاه",
-  "Auto Route": "مسیر خودکار",
-  "Strict Route": "مسیر دقیق",
-  "Auto Detect Interface": "تشخیص خودکار رابط",
-  "DNS Hijack": "ربایش DNS",
-  "MTU": "واحد حداکثر انتقال",
-  "Service Mode": "حالت سرویس",
-  "Current State": "وضعیت فعلی",
-  "pending": "در انتظار",
-  "installed": "نصب شده",
-  "uninstall": "حذف شده",
-  "active": "فعال",
-  "unknown": "ناشناخته",
-  "Information: Please make sure that the Clash Verge Service is installed and enabled": "اطلاعات: لطفاً مطمئن شوید که سرویس Clash Verge نصب و فعال شده است",
-  "Install": "نصب",
-  "Uninstall": "حذف نصب",
-  "Disable Service Mode": "غیرفعال کردن حالت سرویس",
-  "System Proxy": "پراکسی سیستم",
-  "System Proxy Info": "به امکانات تنظیم پروکسی سیستم عامل دسترسی پیدا کنید. اگر فعال‌سازی ناموفق بود، پروکسی سیستم عامل را به‌صورت دستی تغییر دهید",
-  "System Proxy Setting": "تنظیمات پراکسی سیستم",
-  "Current System Proxy": "پراکسی سیستم فعلی",
-  "Enable status": "وضعیت فعال",
-  "Enabled": "توانایی فعال شد",
-  "Disabled": "غیرفعال شد",
-  "Server Addr": "آدرس سرور: ",
-  "Not available": "غیر فعال شد",
-  "Proxy Guard": "محافظ پراکسی",
-  "Proxy Guard Info": "امکان جلوگیری از نرم‌افزارهای دیگر از تغییر تنظیمات پروکسی سیستم عامل را فعال کنید",
-  "Guard Duration": "مدت محافظت",
-  "Proxy Bypass": "دور زدن پراکسی: ",
-  "Bypass": "دور زدن: ",
-  "Use PAC Mode": "استفاده از حالت PAC",
-  "PAC Script Content": "محتوای اسکریپت PAC",
-  "PAC URL": "PAC URL: ",
-  "Auto Launch": "راه‌اندازی خودکار",
-  "Silent Start": "شروع بی‌صدا",
-
-  "Clash Setting": "تنظیمات Clash",
-  "Allow Lan": "اجازه LAN",
-  "IPv6": "IPv6",
-  "Log Level": "سطح لاگ",
-  "Port Config": "پیکربندی پورت",
-  "Random Port": "پورت تصادفی",
-  "External": "خارجی",
-  "External Controller": "کنترل‌کننده خارجی",
-  "Core Secret": "رمز اصلی",
-  "Recommended": "توصیه شده",
-  "Open URL": "باز کردن آدرس اینترنتی",
-  "Replace host, port, secret with %host, %port, %secret": "جایگزین کردن میزبان، پورت و رمز با %host، %port، %secret",
-  "Support %host, %port, %secret": "پشتیبانی از %host، %port و %secret",
-  "Clash Core": "هسته Clash",
-  "Upgrade": "ارتقاء",
-  "Restart": "راه‌اندازی مجدد",
-  "Update core requires": "Update core نیاز دارد",
-  "Grant": "اعطا",
-  "Open UWP tool": "باز کردن ابزار UWP",
-  "Update GeoData": "به‌روزرسانی GeoData",
-
-  "Verge Setting": "تنظیمات Verge",
-  "Language": "زبان",
-  "Theme Mode": "حالت تم",
-  "theme.light": "روشن",
-  "theme.dark": "تاریک",
-  "theme.system": "سیستم",
-  "Tray Click Event": "رویداد کلیک در سینی سیستم",
-  "Show Main Window": "نمایش پنجره اصلی",
-  "Copy Env Type": "کپی نوع محیط",
-  "Start Page": "صفحه شروع",
-  "Startup Script": "اسکریپت راه‌اندازی",
-  "Browse": "مرور کردن",
-  "Theme Setting": "تنظیمات تم",
-  "Primary Color": "رنگ اصلی",
-  "Secondary Color": "رنگ ثانویه",
-  "Primary Text": "متن اصلی",
-  "Secondary Text": "متن ثانویه",
-  "Info Color": "رنگ اطلاعات",
-  "Warning Color": "رنگ هشدار",
-  "Error Color": "رنگ خطا",
-  "Success Color": "رنگ موفقیت",
-  "Font Family": "خانواده فونت",
-  "CSS Injection": "تزریق CSS",
-  "Layout Setting": "تنظیمات چیدمان",
-  "Traffic Graph": "نمودار ترافیک",
-  "Memory Usage": "استفاده از حافظه",
-  "Proxy Group Icon": "آیکون گروه پراکسی",
-  "Menu Icon": "آیکون منو",
-  "Monochrome": "تک رنگ",
-  "Colorful": "رنگارنگ",
-  "Tray Icon": "آیکون سینی سیستم",
-  "Common Tray Icon": "آیکون مشترک سینی سیستم",
-  "System Proxy Tray Icon": "آیکون سینی پراکسی سیستم",
-  "Tun Tray Icon": "آیکون سینی Tun",
-  "Miscellaneous": "متفرقه",
-  "App Log Level": "سطح لاگ برنامه",
-  "Auto Close Connections": "بستن خودکار اتصالات",
-  "Auto Check Update": "بررسی خودکار به‌روزرسانی",
-  "Enable Builtin Enhanced": "فعال کردن تقویت داخلی",
-  "Proxy Layout Column": "ستون چیدمان پراکسی",
-  "Auto Log Clean": "پاکسازی خودکار لاگ",
-  "Never Clean": "هرگز پاک نکن",
-  "Retain 7 Days": "نگهداری به مدت 7 روز",
-  "Retain 30 Days": "نگهداری به مدت 30 روز",
-  "Retain 90 Days": "نگهداری به مدت 90 روز",
-  "Default Latency Test": "آزمون تأخیر پیش‌فرض",
-  "Default Latency Timeout": "زمان انتظار تأخیر پیش‌فرض",
-  "Hotkey Setting": "تنظیمات کلیدهای میانبر",
-  "open_or_close_dashboard": "باز/بستن داشبورد",
-  "clash_mode_rule": "حالت قانون",
-  "clash_mode_global": "حالت جهانی",
-  "clash_mode_direct": "حالت مستقیم",
-  "toggle_system_proxy": "فعال/غیرفعال کردن پراکسی سیستم",
-  "toggle_tun_mode": "فعال/غیرفعال کردن حالت Tun",
-  "Runtime Config": "پیکربندی زمان اجرا",
-  "Open App Dir": "باز کردن پوشه برنامه",
-  "Open Core Dir": "باز کردن پوشه هسته",
-  "Open Logs Dir": "باز کردن پوشه لاگ‌ها",
-  "Check for Updates": "بررسی برای به‌روزرسانی‌ها",
-  "Go to Release Page": "رفتن به صفحه انتشار",
-  "Portable Updater Error": "نسخه پرتابل از به‌روزرسانی درون برنامه‌ای پشتیبانی نمی‌کند. لطفاً به صورت دستی دانلود و جایگزین کنید",
-  "Break Change Update Error": "این نسخه یک به‌روزرسانی اساسی است و پشتیبانی از به‌روزرسانی درون برنامه را پشتیبانی نمی‌کند. لطفاً پس از حذف، دستی دانلود و نصب کنید.",
-  "Open Dev Tools": "باز کردن ابزارهای توسعه‌دهنده",
-  "Exit": "خروج",
-  "Verge Version": "نسخه Verge",
-
-  "ReadOnly": "فقط خواندنی",
-  "ReadOnlyMessage": "نمی‌توان در ویرایشگر فقط خواندنی ویرایش کرد",
-  "Filter": "فیلتر",
-  "Filter conditions": "شرایط فیلتر",
-  "Match Case": "تطبیق حروف کوچک و بزرگ",
-  "Match Whole Word": "تطبیق کل کلمه",
-  "Use Regular Expression": "استفاده از عبارت منظم",
-
-  "Profile Imported Successfully": "پروفایل با موفقیت وارد شد",
-  "Clash Config Updated": "پیکربندی Clash به‌روزرسانی شد",
-  "Profile Switched": "پروفایل تغییر یافت",
-  "Profile Reactivated": "پروفایل مجدداً فعال شد",
-  "Only YAML Files Supported": "فقط فایل‌های YAML پشتیبانی می‌شوند",
-  "Settings Applied": "تنظیمات اعمال شد",
-  "Service Installed Successfully": "سرویس با موفقیت نصب شد",
-  "Service Uninstalled Successfully": "سرویس با موفقیت حذف نصب شد",
-  "Proxy Daemon Duration Cannot be Less than 1 Second": "مدت زمان دیمن پراکسی نمی‌تواند کمتر از 1 ثانیه باشد",
-  "Invalid Bypass Format": "فرمت عبور نامعتبر است",
-  "Clash Port Modified": "پورت Clash تغییر یافت",
-  "Port Conflict": "{{portName}} تعارض پورت",
-  "Restart Application to Apply Modifications": "راه‌اندازی مجدد برنامه برای اعمال تغییرات",
-  "External Controller Address Modified": "آدرس کنترل‌کننده خارجی تغییر یافت",
-  "Permissions Granted Successfully for _clash Core": "مجوزها با موفقیت برای هسته {{core}} اعطا شد",
-  "Core Version Updated": "نسخه هسته به‌روزرسانی شد",
-  "Clash Core Restarted": "هسته Clash مجدداً راه‌اندازی شد",
-  "Switched to _clash Core": "تغییر به هسته {{core}}",
-  "GeoData Updated": "GeoData به‌روزرسانی شد",
-  "Currently on the Latest Version": "در حال حاضر در آخرین نسخه"
+  "common": {
+    "actions": {
+      "back": "بازگشت",
+      "close": "بستن",
+      "cancel": "لغو",
+      "confirm": "تأیید",
+      "auto": "自动",
+      "new": "جدید",
+      "edit": "ویرایش",
+      "save": "ذخیره",
+      "delete": "حذف",
+      "enable": "فعال کردن",
+      "disable": "غیرفعال کردن",
+      "updateAll": "به‌روزرسانی همه",
+      "import": "وارد کردن",
+      "chooseFile": "انتخاب فایل",
+      "refresh": "بازنشانی",
+      "select": "انتخاب",
+      "update": "به‌روزرسانی",
+      "pause": "توقف",
+      "clear": "پاک کردن",
+      "resetToDefault": "بازنشانی به پیش‌فرض",
+      "install": "نصب",
+      "uninstall": "حذف نصب",
+      "openUrl": "باز کردن آدرس اینترنتی",
+      "upgrade": "ارتقاء",
+      "restart": "راه‌اندازی مجدد",
+      "reGrant": "重新授权",
+      "grant": "اعطا",
+      "browse": "مرور کردن",
+      "exit": "خروج",
+      "expandAll": "全部展开",
+      "collapseAll": "全部折叠",
+      "apply": "应用",
+      "add": "Add"
+    },
+    "fields": {
+      "location": "موقعیت",
+      "type": "نوع",
+      "name": "نام",
+      "description": "توضیحات",
+      "host": "میزبان",
+      "process": "فرآیند",
+      "time": "زمان",
+      "source": "منبع",
+      "destination": "وجهة",
+      "icon": "آیکون",
+      "stack": "انباشته Tun",
+      "device": "نام دستگاه",
+      "language": "زبان",
+      "startPage": "صفحه شروع",
+      "startupScript": "اسکریپت راه‌اندازی",
+      "from": "来自",
+      "updatedTime": "更新时间",
+      "expireTime": "过期时间",
+      "usedTotal": "已使用 / 总共"
+    },
+    "status": {
+      "active": "活动",
+      "closed": "已关闭",
+      "default": "پیش‌فرض",
+      "service": {
+        "pending": "در انتظار",
+        "installed": "نصب شده",
+        "uninstall": "حذف شده",
+        "active": "فعال",
+        "unknown": "ناشناخته"
+      },
+      "enabled": "توانایی فعال شد",
+      "disabled": "غیرفعال شد",
+      "notAvailable": "غیر فعال شد",
+      "recommended": "توصیه شده",
+      "granted": "已授权",
+      "notGranted": "未授权",
+      "readOnly": "فقط خواندنی",
+      "required": "Required"
+    },
+    "search": {
+      "filter": "فیلتر",
+      "filterConditions": "شرایط فیلتر",
+      "matchCase": "تطبیق حروف کوچک و بزرگ",
+      "matchWholeWord": "تطبیق کل کلمه",
+      "useRegularExpression": "استفاده از عبارت منظم"
+    },
+    "empty": {
+      "noConnections": "No Connections",
+      "noLogs": "No Logs",
+      "noRules": "No Rules",
+      "directMode": "Direct Mode",
+      "noProxies": "No Proxies"
+    }
+  },
+  "navigation": {
+    "sidebar": {
+      "proxies": "پراکسی‌ها",
+      "profiles": "پروفایل‌ها",
+      "connections": "اتصالات",
+      "rules": "قوانین",
+      "logs": "لاگ‌ها",
+      "test": "آزمون",
+      "settings": "تنظیمات"
+    }
+  },
+  "pages": {
+    "proxies": {
+      "title": "پراکسی‌ها",
+      "groups": "گروه‌های پراکسی",
+      "provider": "تأمین‌کننده پروکسی",
+      "updateAt": "به‌روزرسانی در",
+      "modes": {
+        "rule": "قانون",
+        "global": "جهانی",
+        "direct": "مستقیم",
+        "script": "اسکریپت",
+        "merge": "合并",
+        "remote": "远端",
+        "local": "本地"
+      },
+      "actions": {
+        "delayCheck": "بررسی تأخیر",
+        "delayCheckUrl": "آدرس بررسی تأخیر"
+      },
+      "sort": {
+        "default": "مرتب‌سازی بر اساس پیش‌فرض",
+        "delay": "مرتب‌سازی بر اساس تأخیر",
+        "name": "مرتب‌سازی بر اساس نام"
+      },
+      "view": {
+        "basic": "پراکسی پایه",
+        "detail": "جزئیات پراکسی"
+      }
+    },
+    "profiles": {
+      "title": "پروفایل‌ها",
+      "actions": {
+        "enhanceScripts": "增强脚本",
+        "updateProfile": "更新订阅",
+        "updateAllProfiles": "به‌روزرسانی همه پروفایل‌ها",
+        "viewRuntimeConfig": "مشاهده پیکربندی زمان اجرا",
+        "reactivateProfiles": "فعال‌سازی مجدد پروفایل‌ها",
+        "paste": "چسباندن",
+        "editFile": "ویرایش فایل",
+        "openFile": "باز کردن فایل",
+        "updateProxy": "به‌روزرسانی (پراکسی)",
+        "toTop": "به بالا",
+        "toEnd": "به پایان"
+      },
+      "inputs": {
+        "profileUrl": "آدرس پروفایل"
+      },
+      "dialog": {
+        "createTitle": "ایجاد پروفایل",
+        "editTitle": "ویرایش پروفایل",
+        "confirmDeletion": "تأیید حذف",
+        "confirmDeletionMessage": "این عملیات قابل برگشت نیست"
+      },
+      "fields": {
+        "subscriptionUrl": "آدرس اشتراک",
+        "updateInterval": "فاصله زمانی به‌روزرسانی",
+        "useSystemProxy": "استفاده از پراکسی سیستم",
+        "useClashProxy": "استفاده از پراکسی Clash",
+        "acceptInvalidCertsDanger": "پذیرش گواهی‌نامه‌های نامعتبر (خطرناک)"
+      },
+      "runtime": {
+        "scriptConsole": "کنسول اسکریپت"
+      }
+    },
+    "connections": {
+      "columns": {
+        "actions": "操作",
+        "closedTime": "关闭时间",
+        "downloadSpeed": "سرعت دانلود",
+        "uploadSpeed": "سرعت بارگذاری",
+        "totalDownloaded": "总下载量",
+        "totalUploaded": "总上传量",
+        "downloaded": "دانلود شده",
+        "uploaded": "بارگذاری شده",
+        "dlSpeed": "سرعت دانلود",
+        "ulSpeed": "سرعت بارگذاری",
+        "chains": "زنجیره‌ها",
+        "rule": "قانون",
+        "startAt": "开始于{{time}}"
+      },
+      "title": "اتصالات",
+      "view": {
+        "table": "نمای جدولی",
+        "list": "نمای لیستی"
+      },
+      "actions": {
+        "closeAll": "بستن همه",
+        "closeConnection": "بستن اتصال"
+      }
+    },
+    "rules": {
+      "title": "قوانین",
+      "provider": "تأمین‌کننده قانون"
+    },
+    "logs": {
+      "title": "لاگ‌ها"
+    },
+    "test": {
+      "title": "آزمون",
+      "actions": {
+        "testAll": "آزمون همه"
+      },
+      "dialog": {
+        "createTitle": "ایجاد آزمون",
+        "editTitle": "ویرایش آزمون"
+      },
+      "fields": {
+        "url": "آدرس آزمون"
+      }
+    },
+    "settings": {
+      "title": "تنظیمات"
+    }
+  },
+  "legacy": {
+    "delayCheckToCancelFixed": "بررسی تأخیر برای لغو ثابت",
+    "home": "خانه",
+    "editInfo": "ویرایش اطلاعات",
+    "replaceHostPortSecretWithPercentHostPercentPortPercentSecret": "جایگزین کردن میزبان، پورت و رمز با %host، %port، %secret",
+    "supportPercentHostPercentPortPercentSecret": "پشتیبانی از %host، %port و %secret",
+    "console": "控制台",
+    "runtimeConsole": "控制台 (当前运行)",
+    "restoreChanges": "还原更改",
+    "runCheck": "运行检查{{keymap}}",
+    "duplicateBypass": "重复的代理绕过",
+    "resetDefaultBypass": "重置为默认代理绕过",
+    "platformNoMatch": "系统平台不匹配",
+    "profileContentNoChanges": "Profile Content No Changes",
+    "platformNotMatch": "Platform Not Match",
+    "external": "خارجی",
+    "coreSecret": "رمز اصلی",
+    "primaryTextColor": "Primary Text Color",
+    "secondaryTextColor": "Secondary Text Color",
+    "flushFakeIpCache": "Flush Fake-IP Cache",
+    "fakeIpCacheFlushed": "Fake-IP Cache Flushed",
+    "canTReadMonacoContent": "Can't read monaco content"
+  },
+  "settings": {
+    "system": {
+      "title": "تنظیمات سیستم",
+      "proxy": {
+        "label": "پراکسی سیستم",
+        "info": "به امکانات تنظیم پروکسی سیستم عامل دسترسی پیدا کنید. اگر فعال‌سازی ناموفق بود، پروکسی سیستم عامل را به‌صورت دستی تغییر دهید",
+        "dialogTitle": "تنظیمات پراکسی سیستم",
+        "current": "پراکسی سیستم فعلی",
+        "enableStatus": "وضعیت فعال",
+        "serverAddr": "آدرس سرور: ",
+        "guard": {
+          "label": "محافظ پراکسی",
+          "info": "امکان جلوگیری از نرم‌افزارهای دیگر از تغییر تنظیمات پروکسی سیستم عامل را فعال کنید",
+          "duration": "مدت محافظت"
+        },
+        "bypass": {
+          "label": "دور زدن پراکسی: "
+        },
+        "bypassValue": "دور زدن: ",
+        "pac": {
+          "useMode": "استفاده از حالت PAC",
+          "content": "محتوای اسکریپت PAC",
+          "url": "PAC URL: "
+        }
+      },
+      "autoLaunch": "راه‌اندازی خودکار",
+      "silentStart": {
+        "label": "شروع بی‌صدا",
+        "options": {
+          "bootup": "仅开机",
+          "global": "全局",
+          "off": "关闭"
+        }
+      }
+    },
+    "clash": {
+      "tun": {
+        "label": "حالت Tun",
+        "info": "حالت Tun نیاز به اعطای مجوزهای مربوط به هسته دارد. لطفاً قبل از استفاده، حالت سرویس را فعال کنید",
+        "serviceModeOnly": "سیستم و ترکیبی تنها می‌توانند در حالت سرویس استفاده شوند",
+        "autoRoute": "مسیر خودکار",
+        "strictRoute": "مسیر دقیق",
+        "autoDetectInterface": "تشخیص خودکار رابط",
+        "dnsHijack": "ربایش DNS",
+        "mtu": "واحد حداکثر انتقال"
+      },
+      "serviceMode": {
+        "label": "حالت سرویس",
+        "currentState": "وضعیت فعلی",
+        "info": "اطلاعات: لطفاً مطمئن شوید که سرویس Clash Verge نصب و فعال شده است",
+        "disable": "غیرفعال کردن حالت سرویس"
+      },
+      "title": "تنظیمات Clash",
+      "allowLan": "اجازه LAN",
+      "networkInterfaceInfo": "网络接口信息",
+      "ipv6": "IPv6",
+      "logLevel": "سطح لاگ",
+      "portConfig": {
+        "label": "پیکربندی پورت",
+        "randomPort": "پورت تصادفی",
+        "dialogTitle": "Clash Port"
+      },
+      "externalController": {
+        "label": "کنترل‌کننده خارجی",
+        "host": "监听地址",
+        "secret": "API 访问密钥",
+        "enabled": "外部控制器已启用",
+        "disabled": "外部控制器已禁用",
+        "allowPrivateNetwork": "允许私有网络访问",
+        "allowOrigins": "允许的来源",
+        "duplicateAllowOrigins": "重复的允许来源",
+        "resetDefaultAllowOrigins": "重置为默认的允许来源"
+      },
+      "core": {
+        "label": "هسته Clash",
+        "updateRequires": "Update core نیاز دارد"
+      },
+      "openUwpTool": "باز کردن ابزار UWP",
+      "updateGeoData": "به‌روزرسانی GeoData",
+      "unifiedDelay": {
+        "label": "统一延迟",
+        "info": "开启统一延迟时，会进行两次延迟测试，以消除连接握手等带来的不同类型节点的延迟差异"
+      },
+      "findProcessMode": {
+        "label": "进程匹配模式",
+        "options": {
+          "always": "强制匹配所有进程",
+          "strict": "由 Clash 判断是否开启",
+          "off": "不匹配进程"
+        }
+      },
+      "flushCache": "清除 {{cache}} 缓存",
+      "cacheFlushed": "{{cache}} 缓存已清除",
+      "webUi": "Web UI"
+    },
+    "verge": {
+      "title": "تنظیمات Verge",
+      "themeMode": {
+        "label": "حالت تم",
+        "options": {
+          "light": "روشن",
+          "dark": "تاریک",
+          "system": "سیستم"
+        }
+      },
+      "tray": {
+        "clickEvent": "رویداد کلیک در سینی سیستم",
+        "showMainWindow": "نمایش پنجره اصلی"
+      },
+      "env": {
+        "copyType": "کپی نوع محیط",
+        "copySuccess": "复制环境变量成功"
+      },
+      "theme": {
+        "title": "تنظیمات تم",
+        "colors": {
+          "default": "默认颜色",
+          "primary": "رنگ اصلی",
+          "secondary": "رنگ ثانویه",
+          "primaryText": "متن اصلی",
+          "secondaryText": "متن ثانویه",
+          "info": "رنگ اطلاعات",
+          "warning": "رنگ هشدار",
+          "error": "رنگ خطا",
+          "success": "رنگ موفقیت"
+        },
+        "fontFamily": "خانواده فونت",
+        "cssInjection": "تزریق CSS"
+      },
+      "layout": {
+        "title": "تنظیمات چیدمان",
+        "trafficGraph": "نمودار ترافیک",
+        "memoryUsage": "استفاده از حافظه",
+        "proxyGroupIcon": "آیکون گروه پراکسی",
+        "menuIcon": "آیکون منو",
+        "icon": {
+          "monochrome": "تک رنگ",
+          "colorful": "رنگارنگ"
+        },
+        "tray": {
+          "label": "系统托盘",
+          "icon": "آیکون سینی سیستم",
+          "common": "آیکون مشترک سینی سیستم",
+          "systemProxy": "آیکون سینی پراکسی سیستم",
+          "tun": "آیکون سینی Tun"
+        },
+        "splashscreen": "启动页",
+        "systemTitleBar": "系统标题栏",
+        "keepInDock": {
+          "label": "在程序坞中保留",
+          "info": "应用程序图标在关闭应用程序窗口后仍保留在停靠栏中"
+        },
+        "keepUiActive": {
+          "label": "保持UI界面活动",
+          "info": "保持UI界面活动，再次打开无需重新渲染界面"
+        }
+      },
+      "misc": {
+        "title": "متفرقه",
+        "appLogLevel": "سطح لاگ برنامه",
+        "autoCloseConnections": "بستن خودکار اتصالات",
+        "autoCheckUpdate": "بررسی خودکار به‌روزرسانی",
+        "enableBuiltinEnhanced": "فعال کردن تقویت داخلی",
+        "proxyLayoutColumn": "ستون چیدمان پراکسی",
+        "autoLogClean": {
+          "label": "پاکسازی خودکار لاگ",
+          "options": {
+            "never": "هرگز پاک نکن",
+            "sevenDays": "نگهداری به مدت 7 روز",
+            "thirtyDays": "نگهداری به مدت 30 روز",
+            "ninetyDays": "نگهداری به مدت 90 روز"
+          }
+        },
+        "defaultLatencyTest": "آزمون تأخیر پیش‌فرض",
+        "defaultLatencyTimeout": "زمان انتظار تأخیر پیش‌فرض"
+      },
+      "hotkeys": {
+        "title": "تنظیمات کلیدهای میانبر",
+        "actions": {
+          "openOrCloseDashboard": "باز/بستن داشبورد",
+          "ruleMode": "حالت قانون",
+          "globalMode": "حالت جهانی",
+          "directMode": "حالت مستقیم",
+          "toggleSystemProxy": "فعال/غیرفعال کردن پراکسی سیستم",
+          "toggleTunMode": "فعال/غیرفعال کردن حالت Tun"
+        }
+      },
+      "runtimeConfig": "پیکربندی زمان اجرا",
+      "actions": {
+        "openAppDir": "باز کردن پوشه برنامه",
+        "openCoreDir": "باز کردن پوشه هسته",
+        "openLogsDir": "باز کردن پوشه لاگ‌ها",
+        "checkForUpdates": "بررسی برای به‌روزرسانی‌ها",
+        "goToReleasePage": "رفتن به صفحه انتشار",
+        "openDevTools": "باز کردن ابزارهای توسعه‌دهنده"
+      },
+      "version": "نسخه Verge",
+      "backup": {
+        "title": "备份设置",
+        "types": {
+          "local": "本地",
+          "webdav": "WebDAV"
+        },
+        "invalidFileFormat": "无效的文件格式",
+        "webdavTitle": "WebDav 备份",
+        "actions": {
+          "recovery": "恢复",
+          "backup": "备份"
+        },
+        "onlyProfiles": "仅备份订阅文件",
+        "webdav": {
+          "url": "WebDav 地址",
+          "username": "WebDav 用户名",
+          "password": "WebDav 密码"
+        },
+        "files": "备份文件列表",
+        "scopes": {
+          "all": "配置 + 订阅",
+          "profiles": "订阅"
+        }
+      }
+    }
+  },
+  "messages": {
+    "updater": {
+      "portableError": "نسخه پرتابل از به‌روزرسانی درون برنامه‌ای پشتیبانی نمی‌کند. لطفاً به صورت دستی دانلود و جایگزین کنید",
+      "breakingChangeError": "این نسخه یک به‌روزرسانی اساسی است و پشتیبانی از به‌روزرسانی درون برنامه را پشتیبانی نمی‌کند. لطفاً پس از حذف، دستی دانلود و نصب کنید."
+    },
+    "editor": {
+      "readOnly": "نمی‌توان در ویرایشگر فقط خواندنی ویرایش کرد",
+      "regenerateTemplateContent": "重新生成模板内容"
+    },
+    "profiles": {
+      "imported": "پروفایل با موفقیت وارد شد",
+      "switched": "پروفایل تغییر یافت",
+      "reactivated": "پروفایل مجدداً فعال شد",
+      "onlyYamlSupported": "فقط فایل‌های YAML پشتیبانی می‌شوند",
+      "scriptRunCheckFailed": "脚本运行检查失败, 请检查脚本是否正确",
+      "scriptRunCheckSuccessful": "脚本运行检查成功, 可正常运行",
+      "contentSaved": "内容保存成功",
+      "contentUnchanged": "配置内容无变化",
+      "configUnchanged": "订阅相关设置无变化",
+      "configUpdated": "订阅相关设置已更新",
+      "contentSaveFailed": "内容保存失败",
+      "saveContent": "保存内容{{keymap}}",
+      "askSaveContentNow": "内容已改变，是否立即保存当前内容？"
+    },
+    "clash": {
+      "configUpdated": "پیکربندی Clash به‌روزرسانی شد",
+      "portModified": "پورت Clash تغییر یافت",
+      "portConflict": "{{portName}} تعارض پورت",
+      "externalControllerAddressModified": "آدرس کنترل‌کننده خارجی تغییر یافت",
+      "core": {
+        "permissionsGranted": "مجوزها با موفقیت برای هسته {{core}} اعطا شد",
+        "requireGrant": "当前 Tun 模式已开启，请给 {{core}} 内核授权后再切换",
+        "versionUpdated": "نسخه هسته به‌روزرسانی شد",
+        "restarted": "هسته Clash مجدداً راه‌اندازی شد",
+        "switched": "تغییر به هسته {{core}}"
+      },
+      "geoDataUpdated": "GeoData به‌روزرسانی شد",
+      "tun": {
+        "macosDeviceNameError": "macos 系统的 Tun 网卡名称必须符合 `utun + 数字` 的组合, 比如 `utun1234`",
+        "deviceBusy": "Tun 网卡或资源繁忙，将关闭 Tun 模式，请稍后再重新启用 Tun 模式",
+        "updateConfigFailed": "更新 Tun 设置失败，请稍后再试"
+      }
+    },
+    "settings": {
+      "applied": "تنظیمات اعمال شد",
+      "serviceInstalled": "سرویس با موفقیت نصب شد",
+      "serviceUninstalled": "سرویس با موفقیت حذف نصب شد",
+      "proxyGuardDurationTooShort": "مدت زمان دیمن پراکسی نمی‌تواند کمتر از 1 ثانیه باشد",
+      "invalidBypassFormat": "فرمت عبور نامعتبر است"
+    },
+    "app": {
+      "restartToApply": "راه‌اندازی مجدد برنامه برای اعمال تغییرات",
+      "latestVersion": "در حال حاضر در آخرین نسخه",
+      "restartSoon": "即将重启应用"
+    },
+    "rules": {
+      "updateProviderError": "[ {{name}} ] 更新失败：{{errorMsg}}",
+      "readProvidersError": "读取规则集失败, 请确认规则集文件是否已经更新同步"
+    },
+    "backup": {
+      "webdavConnectionFailed": "WebDav 连接失败, {{error}}",
+      "success": "备份成功",
+      "failed": "备份失败, {{error}}",
+      "deleteSuccess": "删除备份成功",
+      "deleteFailed": "删除备份失败, {{error}}",
+      "applySuccess": "应用备份成功, 即将重启应用",
+      "applyFailed": "应用备份失败, {{error}}"
+    }
+  }
 }

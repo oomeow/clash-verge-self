@@ -102,7 +102,7 @@ export const BaseSearchBox = (props: SearchProps) => {
         variant="outlined"
         spellCheck="false"
         value={filterText}
-        placeholder={placeholder ?? t("Filter conditions")}
+        placeholder={placeholder ?? t("common.search.filterConditions")}
         sx={[
           { input: { py: 0.65, px: 1.25 } },
           ({ palette: { mode } }) => {
@@ -117,7 +117,7 @@ export const BaseSearchBox = (props: SearchProps) => {
             endAdornment: (
               <Box display="flex">
                 {filterText !== "" && (
-                  <Tooltip title={t("Clear")}>
+                  <Tooltip title={t("common.actions.clear")}>
                     <IconButton
                       size="small"
                       color="primary"
@@ -127,7 +127,7 @@ export const BaseSearchBox = (props: SearchProps) => {
                     </IconButton>
                   </Tooltip>
                 )}
-                <Tooltip title={t("Match Case")}>
+                <Tooltip title={t("common.search.matchCase")}>
                   <IconButton
                     size="small"
                     sx={{ p: 0.5 }}
@@ -145,7 +145,7 @@ export const BaseSearchBox = (props: SearchProps) => {
                     />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={t("Match Whole Word")}>
+                <Tooltip title={t("common.search.matchWholeWord")}>
                   <IconButton
                     size="small"
                     sx={{ p: 0.5 }}
@@ -163,7 +163,7 @@ export const BaseSearchBox = (props: SearchProps) => {
                     />
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={t("Use Regular Expression")}>
+                <Tooltip title={t("common.search.useRegularExpression")}>
                   <IconButton
                     size="small"
                     sx={{ p: 0.5 }}

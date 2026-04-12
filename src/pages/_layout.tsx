@@ -10,6 +10,7 @@ import { usePortable } from "@/hooks/use-portable";
 import { useVerge } from "@/hooks/use-verge";
 import { useVisibility } from "@/hooks/use-visibility";
 import LoadingPage from "@/pages/loading";
+import { translateDynamicKey } from "@/services/i18n";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import { Paper, ThemeProvider } from "@mui/material";
@@ -106,7 +107,7 @@ const Layout = () => {
         const {
           payload: { status, msg },
         } = e;
-        notice(status, t(msg));
+        notice(status, translateDynamicKey(t, msg));
       },
     );
 

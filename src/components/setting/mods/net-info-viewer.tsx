@@ -21,7 +21,7 @@ export const NetInfoViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("Network Interface Info")}
+      title={t("settings.clash.networkInterfaceInfo")}
       contentStyle={{
         width: 450,
         overflowY: "auto",

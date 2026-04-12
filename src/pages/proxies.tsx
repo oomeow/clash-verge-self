@@ -38,7 +38,7 @@ const ProxyPage = () => {
     <BasePage
       full
       contentStyle={{ height: "100%" }}
-      title={t("Proxy Groups")}
+      title={t("pages.proxies.groups")}
       header={
         <Box display="flex" alignItems="center" gap={1}>
           <ProviderButton key={"provider"} />
@@ -50,7 +50,7 @@ const ProxyPage = () => {
                 variant={mode === curMode ? "contained" : "outlined"}
                 onClick={() => onChangeMode(mode)}
                 sx={{ textTransform: "capitalize" }}>
-                {t(mode)}
+                {t(`pages.proxies.modes.${mode}`)}
               </Button>
             ))}
           </ButtonGroup>

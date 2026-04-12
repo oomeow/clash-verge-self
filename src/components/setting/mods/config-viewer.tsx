@@ -23,8 +23,12 @@ export const ConfigViewer = forwardRef<DialogRef>((_, ref) => {
     <EditorViewer
       title={
         <div className="flex w-full items-center">
-          {t("Runtime Config")}
-          <Chip label={t("ReadOnly")} size="small" className="ml-2" />
+          {t("settings.verge.runtimeConfig")}
+          <Chip
+            label={t("common.status.readOnly")}
+            size="small"
+            className="ml-2"
+          />
         </div>
       }
       open={open}

@@ -107,7 +107,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
 
   const onSave = useLockFn(async () => {
     if (value.duration < 1) {
-      notice("error", t("Proxy Daemon Duration Cannot be Less than 1 Second"));
+      notice("error", t("messages.settings.proxyGuardDurationTooShort"));
       return;
     }
 
@@ -146,10 +146,10 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("System Proxy Setting")}
+      title={t("settings.system.proxy.dialogTitle")}
       contentStyle={{ width: 450 }}
-      okBtn={t("Save")}
-      cancelBtn={t("Cancel")}
+      okBtn={t("common.actions.save")}
+      cancelBtn={t("common.actions.cancel")}
       onClose={() => {
         setOpen(false);
         setBypass(sysproxy?.bypass.split(separator) ?? []);
@@ -160,44 +160,58 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
       }}
       onOk={onSave}>
       <List>
-        <BaseFieldset label={t("Current System Proxy")} padding="15px 10px">
+        <BaseFieldset
+          label={t("settings.system.proxy.current")}
+          padding="15px 10px">
           <FlexBox>
-            <Typography className="label">{t("Enable status")}</Typography>
+            <Typography className="label">
+              {t("settings.system.proxy.enableStatus")}
+            </Typography>
             <Typography className="value">
               {value.pac
                 ? autoproxy?.enable
-                  ? t("Enabled")
-                  : t("Disabled")
+                  ? t("common.status.enabled")
+                  : t("common.status.disabled")
                 : sysproxy?.enable
-                  ? t("Enabled")
-                  : t("Disabled")}
+                  ? t("common.status.enabled")
+                  : t("common.status.disabled")}
             </Typography>
           </FlexBox>
           {!value.pac && (
             <>
               <FlexBox>
-                <Typography className="label">{t("Server Addr")}</Typography>
+                <Typography className="label">
+                  {t("settings.system.proxy.serverAddr")}
+                </Typography>
                 <Typography className="value">
-                  {sysproxy?.server ? sysproxy.server : t("Not available")}
+                  {sysproxy?.server
+                    ? sysproxy.server
+                    : t("common.status.notAvailable")}
                 </Typography>
               </FlexBox>
               <FlexBox>
-                <Typography className="label">{t("Bypass")}</Typography>
+                <Typography className="label">
+                  {t("settings.system.proxy.bypassValue")}
+                </Typography>
                 <Typography className="value wrap-anywhere">
-                  {sysproxy?.bypass ? sysproxy.bypass : t("Not available")}
+                  {sysproxy?.bypass
+                    ? sysproxy.bypass
+                    : t("common.status.notAvailable")}
                 </Typography>
               </FlexBox>
             </>
           )}
           {value.pac && (
             <FlexBox>
-              <Typography className="label">{t("PAC URL")}</Typography>
+              <Typography className="label">
+                {t("settings.system.proxy.pac.url")}
+              </Typography>
               <Typography className="value">{autoproxy?.url || "-"}</Typography>
             </FlexBox>
           )}
         </BaseFieldset>
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Use PAC Mode")} />
+          <ListItemText primary={t("settings.system.proxy.pac.useMode")} />
           <SwitchLovely
             edge="end"
             disabled={!enabled}
@@ -207,8 +221,8 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Proxy Guard")} />
-          <Tooltip title={t("Proxy Guard Info")}>
+          <ListItemText primary={t("settings.system.proxy.guard.label")} />
+          <Tooltip title={t("settings.system.proxy.guard.info")}>
             <IconButton color="inherit" size="small">
               <InfoRounded
                 fontSize="inherit"
@@ -225,7 +239,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Guard Duration")} />
+          <ListItemText primary={t("settings.system.proxy.guard.duration")} />
           <TextField
             disabled={!enabled}
             size="small"
@@ -250,8 +264,8 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
               <ListItemText
                 primary={
                   <Box sx={{ display: "flex", alignItems: "center" }}>
-                    {t("Proxy Bypass")}
-                    <Tooltip title={t("Reset Default Bypass")}>
+                    {t("settings.system.proxy.bypass.label")}
+                    <Tooltip title={t("legacy.resetDefaultBypass")}>
                       <span>
                         <IconButton
                           // disabled={!enabled}
@@ -284,7 +298,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
                   if (bypassInput.trim().length > 0) {
                     if (bypass.includes(bypassInput)) {
                       setBypassInput("");
-                      notice("info", t("Duplicate Bypass"));
+                      notice("info", t("legacy.duplicateBypass"));
                     } else {
                       setBypass((v) => [...v, bypassInput.trim()]);
                       setBypassInput("");
@@ -303,7 +317,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
                         if (bypassInput.trim().length > 0) {
                           if (bypass.includes(bypassInput)) {
                             setBypassInput("");
-                            notice("info", t("Duplicate Bypass"));
+                            notice("info", t("legacy.duplicateBypass"));
                           } else {
                             setBypass((v) => [...v, bypassInput.trim()]);
                             setBypassInput("");
@@ -345,7 +359,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
         {value.pac && (
           <>
             <ListItem sx={{ padding: "5px 2px", alignItems: "start" }}>
-              <ListItemText primary={t("PAC Script Content")} />
+              <ListItemText primary={t("settings.system.proxy.pac.content")} />
               <Input
                 value={value.pac_content ?? ""}
                 disabled
@@ -355,12 +369,12 @@ export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
                     onClick={() => {
                       setEditorOpen(true);
                     }}>
-                    {t("Edit")}
+                    {t("common.actions.edit")}
                   </Button>
                 }
               />
               <EditorViewer
-                title={`${t("Edit")} PAC`}
+                title={`${t("common.actions.edit")} PAC`}
                 open={editorOpen}
                 scope="pac"
                 language="javascript"

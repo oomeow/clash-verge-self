@@ -51,19 +51,19 @@ export const ConnectionTable = (props: Props) => {
     const temp: GridColDef[] = [
       {
         field: "type",
-        headerName: t("Type"),
+        headerName: t("common.fields.type"),
         width: tabColumnsWidths["type"] ?? 160,
         minWidth: 100,
       },
       {
         field: "host",
-        headerName: t("Host"),
+        headerName: t("common.fields.host"),
         width: tabColumnsWidths["host"] ?? 220,
         minWidth: 220,
       },
       {
         field: "ulSpeed",
-        headerName: t("UL Speed"),
+        headerName: t("pages.connections.columns.ulSpeed"),
         width: tabColumnsWidths["ulSpeed"] ?? 100,
         align: "center",
         headerAlign: "center",
@@ -71,7 +71,7 @@ export const ConnectionTable = (props: Props) => {
       },
       {
         field: "dlSpeed",
-        headerName: t("DL Speed"),
+        headerName: t("pages.connections.columns.dlSpeed"),
         width: tabColumnsWidths["dlSpeed"] ?? 100,
         align: "center",
         headerAlign: "center",
@@ -79,37 +79,37 @@ export const ConnectionTable = (props: Props) => {
       },
       {
         field: "chains",
-        headerName: t("Chains"),
+        headerName: t("pages.connections.columns.chains"),
         width: tabColumnsWidths["chains"] ?? 260,
         minWidth: 260,
       },
       {
         field: "rule",
-        headerName: t("Rule"),
+        headerName: t("pages.connections.columns.rule"),
         width: tabColumnsWidths["rule"] ?? 300,
         minWidth: 230,
       },
       {
         field: "process",
-        headerName: t("Process"),
+        headerName: t("common.fields.process"),
         width: tabColumnsWidths["process"] ?? 240,
         minWidth: 120,
       },
       {
         field: "source",
-        headerName: t("Source"),
+        headerName: t("common.fields.source"),
         width: tabColumnsWidths["source"] ?? 200,
         minWidth: 150,
       },
       {
         field: "remoteDestination",
-        headerName: t("Destination"),
+        headerName: t("common.fields.destination"),
         width: tabColumnsWidths["remoteDestination"] ?? 200,
         minWidth: 150,
       },
       {
         field: "upload",
-        headerName: t("Uploaded"),
+        headerName: t("pages.connections.columns.uploaded"),
         width: tabColumnsWidths["upload"] ?? 100,
         align: "center",
         headerAlign: "center",
@@ -117,7 +117,7 @@ export const ConnectionTable = (props: Props) => {
       },
       {
         field: "download",
-        headerName: t("Downloaded"),
+        headerName: t("pages.connections.columns.downloaded"),
         width: tabColumnsWidths["download"] ?? 100,
         align: "center",
         headerAlign: "center",
@@ -125,7 +125,7 @@ export const ConnectionTable = (props: Props) => {
       },
       {
         field: "time",
-        headerName: t("Time"),
+        headerName: t("common.fields.time"),
         width: tabColumnsWidths["time"] ?? 120,
         minWidth: 100,
         align: "right",
@@ -157,7 +157,7 @@ export const ConnectionTable = (props: Props) => {
     } else {
       temp.unshift({
         field: "closedTime",
-        headerName: t("ClosedTime"),
+        headerName: t("pages.connections.columns.closedTime"),
         type: "dateTime",
         width: 100,
         sortComparator: (v1, v2) => {

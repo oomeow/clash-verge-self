@@ -84,7 +84,7 @@ export const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
   theme: "light",
   minimap: { enabled: true },
   mouseWheelZoom: true,
-  readOnlyMessage: { value: t("ReadOnlyMessage") },
+  readOnlyMessage: { value: t("messages.editor.readOnly") },
   renderValidationDecorations: "on",
   quickSuggestions: {
     strings: true,
@@ -192,7 +192,7 @@ export const generateTemplate = async (props: GenerateProps) => {
             },
             command: {
               id: generateCommand!,
-              title: t("Regenerate Template Content"),
+              title: t("messages.editor.regenerateTemplateContent"),
               arguments: [generateType, generateLanguage],
             },
           },

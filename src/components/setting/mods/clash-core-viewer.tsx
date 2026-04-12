@@ -73,7 +73,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       if (enableTun && !permissionsGranted) {
         notice(
           "warning",
-          t("Please grant permissions for _clash Core", { core: `${core}` }),
+          t("messages.clash.core.requireGrant", { core: `${core}` }),
         );
         return;
       }
@@ -91,7 +91,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       }, 1000);
       notice(
         "success",
-        t("Switched to _clash Core", { core: `${core}` }),
+        t("messages.clash.core.switched", { core: `${core}` }),
         1000,
       );
     } catch (err: any) {
@@ -108,7 +108,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       if (core === clash_core) await restartSidecar();
       notice(
         "success",
-        t("Permissions Granted Successfully for _clash Core", {
+        t("messages.clash.core.permissionsGranted", {
           core: `${core}`,
         }),
         1000,
@@ -124,7 +124,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
   const onRestart = debounce(async () => {
     try {
       await restartSidecar();
-      notice("success", t(`Clash Core Restarted`), 1000);
+      notice("success", t(`messages.clash.core.restarted`), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString());
     }
@@ -135,14 +135,14 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       setUpgrading(true);
       await upgradeCore();
       setUpgrading(false);
-      notice("success", t(`Core Version Updated`), 1000);
+      notice("success", t(`messages.clash.core.versionUpdated`), 1000);
       setTimeout(async () => {
         await emit("verge://refresh-websocket");
       }, 2000);
     } catch (err: any) {
       setUpgrading(false);
       if (err.includes("already using latest version")) {
-        notice("info", t("Currently on the Latest Version"), 1000);
+        notice("info", t("messages.app.latestVersion"), 1000);
       } else {
         notice("error", err.message || err.toString());
       }
@@ -156,7 +156,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
       open={open}
       title={
         <Box display="flex" justifyContent="space-between">
-          {t("Clash Core")}
+          {t("settings.clash.core.label")}
           <Box>
             <Button
               variant="contained"
@@ -166,14 +166,14 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
               loading={upgrading}
               sx={{ marginRight: "8px" }}
               onClick={onUpgrade}>
-              {t("Upgrade")}
+              {t("common.actions.upgrade")}
             </Button>
             <Button
               variant="contained"
               size="small"
               onClick={onRestart}
               startIcon={<RestartAlt />}>
-              {t("Restart")}
+              {t("common.actions.restart")}
             </Button>
           </Box>
         </Box>
@@ -212,8 +212,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
                         },
                       )}>
                       {each.permissionsGranted
-                        ? t("Granted")
-                        : t("Not Granted")}
+                        ? t("common.status.granted")
+                        : t("common.status.notGranted")}
                     </div>
                   )}
                 </div>
@@ -237,7 +237,9 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
                   e.stopPropagation();
                   onGrant(each.core);
                 }}>
-                {each.permissionsGranted ? t("Re-Grant") : t("Grant")}
+                {each.permissionsGranted
+                  ? t("common.actions.reGrant")
+                  : t("common.actions.grant")}
               </Button>
             )}
           </ListItemButton>

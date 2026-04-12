@@ -73,19 +73,19 @@ export const ProviderButton = () => {
         variant="outlined"
         sx={{ textTransform: "capitalize" }}
         onClick={() => setOpen(true)}>
-        {t("Proxy Provider")}
+        {t("pages.proxies.provider")}
       </Button>
 
       <BaseDialog
         open={open}
         title={
           <Box display="flex" justifyContent="space-between" gap={1}>
-            <Typography variant="h6">{t("Proxy Provider")}</Typography>
+            <Typography variant="h6">{t("pages.proxies.provider")}</Typography>
             <Button
               variant="contained"
               size="small"
               onClick={async () => await updateAll()}>
-              {t("Update All")}
+              {t("common.actions.updateAll")}
             </Button>
           </Box>
         }
@@ -119,7 +119,7 @@ export const ProviderButton = () => {
                   </div>
                   <StyledTypeSpan>{item?.vehicleType}</StyledTypeSpan>
                   <StyledTypeSpan>
-                    {t("Update At")} {time.fromNow()}
+                    {t("pages.proxies.updateAt")} {time.fromNow()}
                   </StyledTypeSpan>
                   {hasSubInfo && (
                     <div className="py-1">
@@ -138,7 +138,7 @@ export const ProviderButton = () => {
                 <IconButton
                   size="small"
                   color="inherit"
-                  title={`${t("Update")}${t("Proxy Provider")}`}
+                  title={`${t("common.actions.update")}${t("pages.proxies.provider")}`}
                   onClick={async () => await updateOne(key)}>
                   <RefreshRounded
                     className={cn({

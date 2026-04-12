@@ -285,12 +285,12 @@ export const ProfileEditor = (props: Props) => {
       setLogs(currentLogs);
       if (currentLogs) {
         if (currentLogs[0]?.exception) {
-          notice("error", t("Script Run Check Failed"));
+          notice("error", t("messages.profiles.scriptRunCheckFailed"));
           saveChainCondition.current?.set(false);
           return false;
         }
       }
-      notice("success", t("Script Run Check Successful"));
+      notice("success", t("messages.profiles.scriptRunCheckSuccessful"));
       saveChainCondition.current?.set(true);
       return true;
     } catch (error: any) {
@@ -307,13 +307,13 @@ export const ProfileEditor = (props: Props) => {
     const uid = profileItem.uid;
     const val = instanceRef.current?.getValue();
     if (!val) {
-      notice("error", t("Can't read monaco content"));
+      notice("error", t("legacy.canTReadMonacoContent"));
       setSaving(false);
       return false;
     }
     const originContent = originContentRef.current;
     if (originContent === val) {
-      notice("info", t("Profile Content No Change"));
+      notice("info", t("messages.profiles.contentUnchanged"));
       setSaving(false);
       return false;
     }
@@ -330,7 +330,7 @@ export const ProfileEditor = (props: Props) => {
     await saveProfileFile(uid, val);
     originContentRef.current = val;
     await sleep(1000);
-    notice("success", t("Save Content Successfully"), 1000);
+    notice("success", t("messages.profiles.contentSaved"), 1000);
     setSaving(false);
     setSaved(true);
     onSave?.();
@@ -341,7 +341,7 @@ export const ProfileEditor = (props: Props) => {
     <div className="flex h-full w-full overflow-hidden">
       <div className="h-full w-full overflow-hidden" ref={editorDomRef} />
       <div className="flex w-14 flex-col items-center justify-end space-y-2! px-1 pb-4">
-        <Tooltip title={t("Restore Changes")} placement="left">
+        <Tooltip title={t("legacy.restoreChanges")} placement="left">
           <span>
             <IconButton
               aria-label="rollback"
@@ -362,7 +362,7 @@ export const ProfileEditor = (props: Props) => {
         {type !== "clash" && (
           <>
             {type === "script" && (
-              <Tooltip title={t("Console")} placement="left">
+              <Tooltip title={t("legacy.console")} placement="left">
                 <span>
                   <IconButton
                     aria-label="terminal"
@@ -383,7 +383,7 @@ export const ProfileEditor = (props: Props) => {
               </Tooltip>
             )}
             <Tooltip
-              title={t("Run Check", { keymap: " F5 " })}
+              title={t("legacy.runCheck", { keymap: " F5 " })}
               placement="left">
               <span>
                 <IconButton
@@ -409,7 +409,7 @@ export const ProfileEditor = (props: Props) => {
           </>
         )}
         <Tooltip
-          title={t("Save Content", { keymap: " Ctrl+S " })}
+          title={t("messages.profiles.saveContent", { keymap: " Ctrl+S " })}
           placement="left">
           <span>
             <IconButton

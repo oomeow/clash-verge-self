@@ -63,12 +63,12 @@ export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
 
   const onUpdate = useLockFn(async () => {
     if (portable) {
-      notice("error", t("Portable Updater Error"));
+      notice("error", t("messages.updater.portableError"));
       return;
     }
     if (!updateInfo?.body) return;
     if (breakChangeFlag) {
-      notice("error", t("Break Change Update Error"));
+      notice("error", t("messages.updater.breakingChangeError"));
       return;
     }
     if (appUpdateState) return;
@@ -107,14 +107,14 @@ export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
                   `https://github.com/oomeow/clash-verge-self/releases/tag/v${updateInfo?.version}`,
                 );
               }}>
-              {t("Go to Release Page")}
+              {t("settings.verge.actions.goToReleasePage")}
             </Button>
           </Box>
         </div>
       }
       contentStyle={{ minWidth: 360, maxWidth: "60%" }}
-      okBtn={t("Update")}
-      cancelBtn={t("Cancel")}
+      okBtn={t("common.actions.update")}
+      cancelBtn={t("common.actions.cancel")}
       hideFooter={OS === "linux"}
       onClose={() => setOpen(false)}
       onCancel={() => setOpen(false)}

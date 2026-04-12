@@ -8,6 +8,7 @@ import { cn } from "@/utils";
 import { Box } from "@mui/material";
 import { useLockFn, useMemoizedFn, useThrottleFn } from "ahooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import {
   closeConnection,
@@ -25,6 +26,7 @@ interface Props {
 
 export const ProxyGroups = (props: Props) => {
   const { mode } = props;
+  const { t } = useTranslation();
   const isDirectMode = mode === "direct";
   const isRuleMode = mode === "rule";
 
@@ -214,7 +216,7 @@ export const ProxyGroups = (props: Props) => {
     .map((item) => item.key);
 
   if (isDirectMode) {
-    return <BaseEmpty text="Direct Mode" />;
+    return <BaseEmpty text={t("common.empty.directMode")} />;
   }
 
   if (renderList.length === 0) return <LoadingPage />;

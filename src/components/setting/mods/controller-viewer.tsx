@@ -60,7 +60,11 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
           "allow-origins": allowOrigins,
         },
       });
-      notice("success", t("External Controller Address Modified"), 1000);
+      notice(
+        "success",
+        t("messages.clash.externalControllerAddressModified"),
+        1000,
+      );
       setOpen(false);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 4000);
@@ -70,22 +74,22 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("External Controller")}
+      title={t("settings.clash.externalController.label")}
       contentStyle={{ maxWidth: 500, width: "fit-content", minWidth: 400 }}
-      okBtn={t("Save")}
-      cancelBtn={t("Cancel")}
+      okBtn={t("common.actions.save")}
+      cancelBtn={t("common.actions.cancel")}
       onClose={() => setOpen(false)}
       onCancel={() => setOpen(false)}
       onOk={onSave}>
       <List>
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("External Controller Host")} />
+          <ListItemText primary={t("settings.clash.externalController.host")} />
           <TextField
             size="small"
             autoComplete="off"
             sx={{ width: 175 }}
             value={controller}
-            placeholder={t("Required")}
+            placeholder={t("common.status.required")}
             onChange={(e) => setController(e.target.value)}
           />
         </ListItem>
@@ -99,7 +103,7 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
                   alignItems: "center",
                   gap: "3px",
                 }}>
-                <span>{t("External Controller Secret")}</span>
+                <span>{t("settings.clash.externalController.secret")}</span>
                 <IconButton
                   color="inherit"
                   size="small"
@@ -114,7 +118,7 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
             autoComplete="off"
             sx={{ width: 175 }}
             value={secret}
-            placeholder={t("Recommended")}
+            placeholder={t("common.status.recommended")}
             onChange={(e) =>
               setSecret(e.target.value?.replace(/[^\x00-\x7F]/g, ""))
             }
@@ -122,7 +126,9 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Allow Private Network")} />
+          <ListItemText
+            primary={t("settings.clash.externalController.allowPrivateNetwork")}
+          />
           <SwitchLovely
             checked={allowPrivateNetwork}
             onChange={(e) => {
@@ -136,8 +142,11 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
           <ListItemText
             primary={
               <Box sx={{ display: "flex", alignItems: "center" }}>
-                {t("Allow Origins")}
-                <Tooltip title={t("Reset Default Allow Origins")}>
+                {t("settings.clash.externalController.allowOrigins")}
+                <Tooltip
+                  title={t(
+                    "settings.clash.externalController.resetDefaultAllowOrigins",
+                  )}>
                   <span>
                     <IconButton
                       color="primary"
@@ -168,7 +177,12 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
               if (allowOriginsInput.trim().length > 0) {
                 if (allowOrigins.includes(allowOriginsInput)) {
                   setAllowOriginsInput("");
-                  notice("warning", t("Duplicate Allow Origins"));
+                  notice(
+                    "warning",
+                    t(
+                      "settings.clash.externalController.duplicateAllowOrigins",
+                    ),
+                  );
                 } else {
                   setAllowOrigins((v) => [...v, allowOriginsInput.trim()]);
                   setAllowOriginsInput("");
@@ -186,7 +200,12 @@ export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
                     if (allowOriginsInput.trim().length > 0) {
                       if (allowOrigins.includes(allowOriginsInput)) {
                         setAllowOriginsInput("");
-                        notice("warning", t("Duplicate Allow Origins"));
+                        notice(
+                          "warning",
+                          t(
+                            "settings.clash.externalController.duplicateAllowOrigins",
+                          ),
+                        );
                       } else {
                         setAllowOrigins((v) => [
                           ...v,
