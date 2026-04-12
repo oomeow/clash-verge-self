@@ -413,6 +413,7 @@ const ProfilePage = () => {
       <div className="bg-comment sticky top-0 z-10 mb-1 flex items-center space-x-2! px-2 pt-2 pb-1">
         <BaseStyledTextField
           value={url}
+          sx={{ flex: 1 }}
           variant="outlined"
           onChange={(e) => setUrl(e.target.value)}
           placeholder={t("pages.profiles.inputs.profileUrl")}

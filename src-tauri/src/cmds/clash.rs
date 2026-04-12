@@ -36,7 +36,7 @@ pub fn get_runtime_yaml() -> AppResult<String> {
     let runtime = runtime.latest();
     let config = runtime.config.as_ref();
     config
-        .ok_or(any_err!("{}", t!("config.parse.failed")))
+        .ok_or(any_err!("{}", t!("error.config.parseFailed")))
         .and_then(|config| serde_yaml::to_string(config).map_err(AppError::SerdeYaml))
 }
 

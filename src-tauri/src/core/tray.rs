@@ -103,7 +103,7 @@ impl Tray {
         let profiles = profiles.latest();
         let current = profiles.get_current();
         let profiles = profiles.get_profiles();
-        let mut switch_menu = SubmenuBuilder::new(app_handle, t!("profiles.switch"));
+        let mut switch_menu = SubmenuBuilder::new(app_handle, t!("tray.profiles.switch.title"));
         for profile in profiles {
             if let Some(uid) = &profile.uid
                 && let Some(name) = &profile.name
@@ -121,32 +121,32 @@ impl Tray {
         }
 
         let menu = MenuBuilder::new(app_handle)
-            .text("open_window", t!("dashboard"))
+            .text("open_window", t!("tray.dashboard"))
             .separator()
-            .check("rule_mode", t!("mode.rule"))
-            .check("global_mode", t!("mode.global"))
-            .check("direct_mode", t!("mode.direct"))
+            .check("rule_mode", t!("tray.mode.rule"))
+            .check("global_mode", t!("tray.mode.global"))
+            .check("direct_mode", t!("tray.mode.direct"))
             .separator()
-            .check("system_proxy", t!("proxy.system"))
-            .check("tun_mode", t!("proxy.tun"))
+            .check("system_proxy", t!("tray.proxy.system"))
+            .check("tun_mode", t!("tray.proxy.tun"))
             .separator()
             .item(&switch_menu.build()?)
             .separator()
-            .check("service_mode", t!("service"))
+            .check("service_mode", t!("tray.service"))
             .separator()
-            .text("copy_env", t!("copy.env"))
+            .text("copy_env", t!("tray.copy.env"))
             .item(
-                &SubmenuBuilder::new(app_handle, t!("open.dir"))
-                    .text("open_app_dir", t!("app.dir"))
-                    .text("open_core_dir", t!("core.dir"))
-                    .text("open_logs_dir", t!("log.dir"))
+                &SubmenuBuilder::new(app_handle, t!("tray.open.dir"))
+                    .text("open_app_dir", t!("tray.open.app.dir"))
+                    .text("open_core_dir", t!("tray.open.core.dir"))
+                    .text("open_logs_dir", t!("tray.open.log.dir"))
                     .build()?,
             )
             .item(
-                &SubmenuBuilder::new(app_handle, t!("more"))
-                    .text("open_devtools", t!("open.devtools"))
-                    .text("restart_clash", t!("restart.clash"))
-                    .text("restart_app", t!("restart"))
+                &SubmenuBuilder::new(app_handle, t!("tray.more"))
+                    .text("open_devtools", t!("tray.open.devtools"))
+                    .text("restart_clash", t!("tray.restart.clash"))
+                    .text("restart_app", t!("tray.restart.app"))
                     .item(
                         &MenuItemBuilder::new(format!("Version: {version}"))
                             .enabled(false)
@@ -156,7 +156,7 @@ impl Tray {
                     .build()?,
             )
             .separator()
-            .text("quit", t!("quit"));
+            .text("quit", t!("tray.quit"));
 
         Ok(menu.build()?)
     }
@@ -275,7 +275,7 @@ impl Tray {
             };
             tray.set_tooltip(Some(&format!(
                 "Clash Verge Self v{version}\n{}: {}",
-                t!("current.profile"),
+                t!("tray.current.profile"),
                 current_name
             )))?;
         }
@@ -336,11 +336,17 @@ impl Tray {
                         .await
                         {
                             Ok(_) => {
-                                handle::Handle::notify(t!("profiles.switch"), t!("profiles.switch.success"));
+                                handle::Handle::notify(
+                                    t!("tray.profiles.switch.title"),
+                                    t!("tray.profiles.switch.success"),
+                                );
                                 tracing::info!("switch profile successfully");
                             }
                             Err(e) => {
-                                handle::Handle::notify(t!("profiles.switch"), t!("profiles.switch.failed"));
+                                handle::Handle::notify(
+                                    t!("tray.profiles.switch.title"),
+                                    t!("tray.profiles.switch.failed"),
+                                );
                                 tracing::error!("failed to switch profile, error: {:?}", e);
                             }
                         };

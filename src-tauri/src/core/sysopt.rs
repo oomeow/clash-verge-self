@@ -115,7 +115,7 @@ impl Sysopt {
                 *self.old_sysproxy.lock() = old;
                 *self.cur_sysproxy.lock() = Some(sys);
             } else {
-                return Err(any_err!("{}", t!("sysproxy.update.failed")));
+                return Err(any_err!("{}", t!("error.sysproxy.updateFailed")));
             }
 
             let old = Autoproxy::get_auto_proxy().ok();
@@ -123,7 +123,7 @@ impl Sysopt {
                 *self.cur_autoproxy.lock() = Some(auto);
                 *self.old_autoproxy.lock() = old;
             } else {
-                return Err(any_err!("{}", t!("sysproxy.pac.update.failed")));
+                return Err(any_err!("{}", t!("error.sysproxy.pac.updateFailed")));
             }
         } else {
             auto.enable = false;
@@ -132,7 +132,7 @@ impl Sysopt {
                 *self.old_autoproxy.lock() = old;
                 *self.cur_autoproxy.lock() = Some(auto);
             } else {
-                return Err(any_err!("{}", t!("sysproxy.update.failed")));
+                return Err(any_err!("{}", t!("error.sysproxy.updateFailed")));
             }
 
             let old = Sysproxy::get_system_proxy().ok();
@@ -140,7 +140,7 @@ impl Sysopt {
                 *self.old_sysproxy.lock() = old;
                 *self.cur_sysproxy.lock() = Some(sys);
             } else {
-                return Err(any_err!("{}", t!("sysproxy.update.failed")));
+                return Err(any_err!("{}", t!("error.sysproxy.updateFailed")));
             }
         }
 
@@ -194,11 +194,11 @@ impl Sysopt {
                     *cur_autoproxy = Some(autoproxy);
                 } else {
                     *cur_autoproxy = Some(autoproxy_);
-                    return Err(any_err!("{}", t!("sysproxy.pac.update.failed")));
+                    return Err(any_err!("{}", t!("error.sysproxy.pac.updateFailed")));
                 }
             } else {
                 *cur_sysproxy = Some(sysproxy_);
-                return Err(any_err!("{}", t!("sysproxy.update.failed")));
+                return Err(any_err!("{}", t!("error.sysproxy.updateFailed")));
             }
         } else {
             autoproxy.enable = false;
@@ -209,11 +209,11 @@ impl Sysopt {
                     *cur_sysproxy = Some(sysproxy);
                 } else {
                     *cur_sysproxy = Some(sysproxy_);
-                    return Err(any_err!("{}", t!("sysproxy.update.failed")));
+                    return Err(any_err!("{}", t!("error.sysproxy.updateFailed")));
                 }
             } else {
                 *cur_autoproxy = Some(autoproxy_);
-                return Err(any_err!("{}", t!("sysproxy.pac.update.failed")));
+                return Err(any_err!("{}", t!("error.sysproxy.pac.updateFailed")));
             }
         }
 

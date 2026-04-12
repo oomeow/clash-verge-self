@@ -1,0 +1,76 @@
+tray:
+  dashboard: باز کردن پنل
+  mode:
+    rule: حالت قوانین
+    global: حالت سراسری
+    direct: حالت مستقیم
+  proxy:
+    system: پراکسی سیستم
+    tun: حالت Tun
+  service: حالت سرویس
+  copy:
+    env: کپی متغیرهای محیطی
+  open:
+    dir: باز کردن پوشه
+    app:
+      dir: پوشه برنامه
+    core:
+      dir: پوشه هسته
+    log:
+      dir: پوشه گزارش‌ها
+    devtools: باز کردن ابزارهای توسعه‌دهنده
+  more: بیشتر
+  restart:
+    clash: راه‌اندازی مجدد Clash
+    app: راه‌اندازی مجدد برنامه
+  quit: خروج
+  current:
+    profile: اشتراک فعلی
+  profiles:
+    switch:
+      title: تغییر اشتراک
+      success: اشتراک با موفقیت تغییر کرد
+      failed: تغییر اشتراک ناموفق بود
+
+notice:
+  disable:
+    failed: غیرفعال‌سازی ناموفق بود
+  enable:
+    failed: فعال‌سازی ناموفق بود
+  install:
+    failed: نصب ناموفق بود
+  service:
+    install:
+      run:
+        failed: نصب با موفقیت انجام شد، اما اجرای سرویس Clash Verge Self Service ناموفق بود
+        success: سرویس Clash Verge Self Service با موفقیت نصب و اجرا شد
+  import:
+    success: فایل اشتراک با موفقیت وارد شد
+    failed: ورود فایل اشتراک ناموفق بود
+
+dialog:
+  install:
+    service:
+      ask: "سرویس Clash Verge Self Service نصب نشده است\nآیا می‌خواهید اکنون سرویس را نصب و اجرا کنید؟"
+  panic:
+    title: خرابی Clash Verge Self
+    backtrace: "ردیابی پشته:\n%{backtrace}"
+    displayBacktraceNote: "نکته: برای نمایش backtrace برنامه را با متغیر محیطی `RUST_BACKTRACE=1` اجرا کنید"
+    content: "موقعیت: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nبرای اطلاعات بیشتر درباره panic، فایل گزارش را بررسی کنید:\n  %{log_file}"
+
+error:
+  tun:
+    busy: دستگاه Tun یا منبع درگیر است؛ راه‌اندازی مجدد هسته ممکن است مشکل را برطرف کند
+    needPermissions: پیش از روشن کردن حالت Tun، مجوزهای لازم را به هسته بدهید یا حالت سرویس را نصب و فعال کنید
+  config:
+    parseFailed: تجزیه پیکربندی به‌عنوان فایل YAML ناموفق بود
+    convertFailed: تبدیل پیکربندی به YAML ناموفق بود
+  runtime:
+    config:
+      getFailed: دریافت پیکربندی زمان اجرا ناموفق بود
+  clash:
+    restartFailed: راه‌اندازی مجدد هسته Clash ناموفق بود
+  sysproxy:
+    updateFailed: به‌روزرسانی پراکسی سیستم ناموفق بود
+    pac:
+      updateFailed: به‌روزرسانی تنظیمات پراکسی PAC ناموفق بود
