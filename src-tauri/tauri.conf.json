@@ -61,11 +61,7 @@
     "beforeBuildCommand": "pnpm run web:build",
     "frontendDist": "./frontend/dist",
     "beforeDevCommand": "pnpm run web:dev",
-    "devUrl": "http://localhost:3000/",
-    "additionalWatchFolders": [
-      "../crates/mihomo-rule-parser/src",
-      "../crates/tauri-plugin-mihomo/src"
-    ]
+    "devUrl": "http://localhost:3000/"
   },
   "plugins": {
     "updater": {
