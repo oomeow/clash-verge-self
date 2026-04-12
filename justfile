@@ -11,6 +11,10 @@ check:
 clippy:
   cargo clippy --all-targets --all-features --tests --benches -- -D warnings
 
+# clippy fix
+fix:
+  cargo clippy --fix --allow-dirty
+
 # fmt
 fmt:
     cargo +nightly fmt
