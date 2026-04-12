@@ -1,5 +1,5 @@
 fail_fast: true
-# default_install_hook_types: [pre-push]
+default_install_hook_types: [pre-push]
 
 repos:
   - repo: builtin
