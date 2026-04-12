@@ -37,8 +37,6 @@ jobs:
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
-        with:
-          workspaces: src-tauri
 
       - name: Install Node
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
@@ -111,8 +109,6 @@ jobs:
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
-        with:
-          workspaces: src-tauri
 
       - name: Install Packages
         run: |
