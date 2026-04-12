@@ -7,11 +7,11 @@ dist-ssr
 update.json
 scripts/_env.sh
 .tool-versions
+target
+.vfox/
+.env
 
 archbuild/local_build/*
 !archbuild/local_build/PKGBUILD
 !archbuild/local_build/clash-verge-self.install
 !archbuild/local_build/build.sh
-
-.vfox/
-.env

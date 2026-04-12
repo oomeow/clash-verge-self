@@ -105,10 +105,7 @@ fn ipv4_prefixes(from: Ipv4Addr, to: Ipv4Addr) -> Vec<Prefix> {
             // 计算 CIDR 块的大小（包含的地址数量）：2^(32-prefix)
             let block_size = 1u32 << (32 - prefix);
             // 计算 CIDR 块的结束地址
-            let block_end = match block_start.checked_add(block_size - 1) {
-                Some(e) => e,
-                None => u32::MAX,
-            };
+            let block_end = block_start.saturating_add(block_size - 1);
 
             // 检查当前 CIDR 块是否完全包含在目标范围内
             if block_start >= from && block_end <= to {
@@ -151,11 +148,7 @@ fn ipv6_prefixes(from: Ipv6Addr, to: Ipv6Addr) -> Vec<Prefix> {
             // let mask = u128::MAX << (128 - prefix);
             let block_start = from;
             let block_size = 1u128 << (128 - prefix);
-            let block_end = match block_start.checked_add(block_size.saturating_sub(1)) {
-                Some(e) => e,
-                None => u128::MAX,
-            };
-
+            let block_end = block_start.saturating_add(block_size.saturating_sub(1));
             if block_start >= from && block_end <= to {
                 break (block_start, block_size);
             }

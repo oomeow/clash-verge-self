@@ -36,9 +36,7 @@ async function resolvePortable() {
     throw new Error("unspport platform to bundle portable version");
   }
 
-  const releaseDir = target
-    ? `./src-tauri/target/${target}/release`
-    : `./src-tauri/target/release`;
+  const releaseDir = target ? `./target/${target}/release` : `./target/release`;
   const require = createRequire(import.meta.url);
   const packageJson = require("../package.json");
   const { version } = packageJson;
