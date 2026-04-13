@@ -248,12 +248,12 @@ impl CoreManager {
     }
 
     fn clash_core_name() -> String {
-        Config::verge()
-            .latest()
-            .clash_core
-            .clone()
-            .filter(|core| CLASH_CORES.contains(&core.as_str()))
-            .unwrap_or_else(|| CLASH_CORES[0].to_string())
+        if let Some(core) = Config::verge().latest().clash_core.as_deref() {
+            if CLASH_CORES.contains(&core) {
+                return core.to_string();
+            }
+        }
+        CLASH_CORES[0].to_string()
     }
 
     fn disable_tun_mapping() -> Mapping {
