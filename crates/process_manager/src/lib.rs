@@ -147,12 +147,19 @@ pub struct ProcessManager {
 }
 
 struct Inner {
+    /// Optional callback invoked for every emitted lifecycle event.
     handler: Option<EventHandler>,
+    /// Pid of the currently tracked child process. `0` means no active child.
     pid: AtomicU32,
+    /// Whether the current generation is considered running.
     running: AtomicBool,
+    /// Whether shutdown was explicitly requested by the caller.
     stop_requested: AtomicBool,
+    /// Restart attempts accumulated for the current generation.
     restart_count: AtomicUsize,
+    /// Monotonic generation counter used to invalidate older supervisor tasks.
     generation: AtomicU64,
+    /// Join handle for the active supervisor task, if one exists.
     task: Mutex<Option<JoinHandle<()>>>,
 }
 
@@ -256,6 +263,19 @@ impl ProcessManager {
         Ok(())
     }
 
+    /// Supervises one process generation until it is intentionally stopped, replaced,
+    /// or exceeds the configured restart policy.
+    ///
+    /// The loop for each child instance is:
+    /// 1. Spawn stdout/stderr pump tasks so output is drained concurrently.
+    /// 2. Wait for the child to exit and for both output pumps to finish.
+    /// 3. Finalize this exit via [`Self::finish_child_exit`], which clears tracked
+    ///    runtime state and emits an `Exited` event.
+    /// 4. If the exit was intentional or this supervisor generation is stale, stop.
+    /// 5. Otherwise attempt a restart via [`Self::restart_child`].
+    ///
+    /// This split keeps the main supervision loop focused on lifecycle order while
+    /// moving exit bookkeeping and restart policy decisions into smaller helpers.
     async fn supervise(&self, generation: u64, spec: ProcessSpec, mut child: Child) {
         let mut attempts = 0usize;
         let mut first_spawn = true;
@@ -286,62 +306,17 @@ impl ProcessManager {
             let _ = stderr_task.await;
             first_spawn = false;
 
-            if let Err(err) = &status {
-                tracing::error!("failed to wait on process `{}`: {err}", spec.label);
-            }
-
-            let intentional = self.inner.stop_requested.load(Ordering::SeqCst)
-                || self.inner.generation.load(Ordering::SeqCst) != generation;
-            let code = status.ok().and_then(|s| s.code());
-
-            if self.inner.generation.load(Ordering::SeqCst) == generation {
-                self.inner.pid.store(0, Ordering::SeqCst);
-                self.inner.running.store(false, Ordering::SeqCst);
-            }
-
-            self.emit(ProcessEvent::Exited {
-                label: spec.label.clone(),
-                pid,
-                code,
-                intentional,
-            });
-
-            if intentional {
+            if self.finish_child_exit(generation, &spec.label, pid, status) {
                 break;
             }
 
-            if attempts >= spec.restart_policy.max_restarts {
-                self.emit(ProcessEvent::RestartLimitReached {
-                    label: spec.label.clone(),
-                    attempts,
-                });
-                break;
-            }
-
-            attempts += 1;
-            self.inner.restart_count.store(attempts, Ordering::SeqCst);
-            self.emit(ProcessEvent::Restarting {
-                label: spec.label.clone(),
-                attempt: attempts,
-                delay: spec.restart_policy.restart_delay,
-            });
-            sleep(spec.restart_policy.restart_delay).await;
-
-            if self.inner.stop_requested.load(Ordering::SeqCst)
-                || self.inner.generation.load(Ordering::SeqCst) != generation
-            {
-                break;
-            }
-
-            match self.spawn_child(&spec) {
+            match self.restart_child(generation, &spec, &mut attempts).await {
                 Ok(new_child) => {
+                    let Some(new_child) = new_child else {
+                        break;
+                    };
                     if let Some(new_pid) = new_child.id() {
-                        self.inner.pid.store(new_pid, Ordering::SeqCst);
-                        self.inner.running.store(true, Ordering::SeqCst);
-                        self.emit(ProcessEvent::Started {
-                            label: spec.label.clone(),
-                            pid: new_pid,
-                        });
+                        self.mark_child_started(&spec.label, new_pid);
                     }
                     child = new_child;
                 }
@@ -360,6 +335,81 @@ impl ProcessManager {
             spec.label,
             generation
         );
+    }
+
+    fn finish_child_exit(
+        &self,
+        generation: u64,
+        label: &str,
+        pid: Option<u32>,
+        status: std::io::Result<std::process::ExitStatus>,
+    ) -> bool {
+        if let Err(err) = &status {
+            tracing::error!("failed to wait on process `{label}`: {err}");
+        }
+
+        let intentional = self.inner.stop_requested.load(Ordering::SeqCst)
+            || self.inner.generation.load(Ordering::SeqCst) != generation;
+        let code = status.ok().and_then(|exit_status| exit_status.code());
+
+        if self.inner.generation.load(Ordering::SeqCst) == generation {
+            self.inner.pid.store(0, Ordering::SeqCst);
+            self.inner.running.store(false, Ordering::SeqCst);
+        }
+
+        self.emit(ProcessEvent::Exited {
+            label: label.to_string(),
+            pid,
+            code,
+            intentional,
+        });
+
+        intentional
+    }
+
+    async fn restart_child(&self, generation: u64, spec: &ProcessSpec, attempts: &mut usize) -> Result<Option<Child>> {
+        if *attempts >= spec.restart_policy.max_restarts {
+            self.emit(ProcessEvent::RestartLimitReached {
+                label: spec.label.clone(),
+                attempts: *attempts,
+            });
+            return Ok(None);
+        }
+
+        *attempts += 1;
+        self.inner.restart_count.store(*attempts, Ordering::SeqCst);
+        self.emit(ProcessEvent::Restarting {
+            label: spec.label.clone(),
+            attempt: *attempts,
+            delay: spec.restart_policy.restart_delay,
+        });
+        sleep(spec.restart_policy.restart_delay).await;
+
+        if self.inner.stop_requested.load(Ordering::SeqCst)
+            || self.inner.generation.load(Ordering::SeqCst) != generation
+        {
+            tracing::debug!(
+                "skip restarting process `{}` because supervisor is no longer active",
+                spec.label
+            );
+            return Ok(None);
+        }
+
+        let child = self.spawn_child(spec)?;
+        if let Some(pid) = child.id() {
+            self.mark_child_started(&spec.label, pid);
+        }
+
+        Ok(Some(child))
+    }
+
+    fn mark_child_started(&self, label: &str, pid: u32) {
+        self.inner.pid.store(pid, Ordering::SeqCst);
+        self.inner.running.store(true, Ordering::SeqCst);
+        self.emit(ProcessEvent::Started {
+            label: label.to_string(),
+            pid,
+        });
     }
 
     fn spawn_child(&self, spec: &ProcessSpec) -> Result<Child> {
