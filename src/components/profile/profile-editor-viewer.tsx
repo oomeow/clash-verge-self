@@ -178,8 +178,8 @@ export const ProfileEditorViewer = (props: Props) => {
   });
 
   const refreshChain = async () => {
-    const chain = await getChains(profileUid);
-    setChain(chain);
+    const fetchedChain = await getChains(profileUid);
+    setChain(fetchedChain);
   };
 
   const handleProfileSubmit = useLockFn(
