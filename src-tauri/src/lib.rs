@@ -75,7 +75,7 @@ pub fn run() -> AppResult<()> {
     // 初始化目录
     init::init_dirs_and_config()?;
 
-    let language = Config::verge().latest().language.clone().unwrap_or("zh".to_string());
+    let language = Config::verge().latest().language.clone().unwrap_or("zh_CN".to_string());
     rust_i18n::set_locale(&language);
 
     // 初始化日志

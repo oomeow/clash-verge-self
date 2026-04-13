@@ -17,7 +17,7 @@ pub struct IVerge {
     /// silent | error | warn | info | debug | trace
     pub app_log_level: Option<String>,
 
-    // i18n (now supported): zh | en | ru | fa
+    // i18n (now supported): zh_CN | en | ru | fa
     pub language: Option<String>,
 
     /// `light` or `dark` or `system`
@@ -262,6 +262,12 @@ impl IVerge {
                     config.enable_system_title_bar = Some(true)
                 }
 
+                if let Some(language) = config.language.as_ref()
+                    && language != "zh_CN"
+                {
+                    config.language = Some("zh_CN".into());
+                }
+
                 config
             }
             Err(err) => {
@@ -274,7 +280,7 @@ impl IVerge {
     pub fn template() -> Self {
         Self {
             clash_core: Some("self-mihomo".into()),
-            language: Some("zh".into()),
+            language: Some("zh_CN".into()),
             theme_mode: Some("system".into()),
             #[cfg(not(target_os = "windows"))]
             env_type: Some("bash".into()),

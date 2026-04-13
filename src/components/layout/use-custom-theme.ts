@@ -39,8 +39,7 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
 
 export const useCustomTheme = () => {
   const { verge, patchVerge } = useVerge();
-  const { theme_mode, light_theme_setting, dark_theme_setting, language } =
-    verge ?? {};
+  const { theme_mode, language } = verge ?? {};
   const mode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);
   const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
@@ -193,10 +192,7 @@ export const useCustomTheme = () => {
     return theme;
   }, [mode, themeSettings, language]);
 
-  const toggleTheme = async (
-    event: MouseEvent,
-    vergeThemeMode: "light" | "dark" | "system",
-  ) => {
+  const toggleTheme = async (vergeThemeMode: "light" | "dark" | "system") => {
     let tmp: "light" | "dark" = "light";
     if (vergeThemeMode === "system") {
       const appTheme = await appWindow.theme();
@@ -218,70 +214,14 @@ export const useCustomTheme = () => {
       document.documentElement.classList.add("dark");
     }
     patchVerge({ theme_mode: vergeThemeMode });
-
-    // // @ts-ignore
-    // // prettier-ignore
-    // const isAppearanceTransition = document.startViewTransition && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // // isAppearanceTransition return true in new webkit version on arch linux, but it not actually work. so we decide to enable it only on windows.
-    // if (!isAppearanceTransition || getSystem() !== "windows") {
-    //   setMode(isDark ? "light" : "dark");
-    //   if (isDark) {
-    //     document.documentElement.classList.remove("dark");
-    //   } else {
-    //     document.documentElement.classList.add("dark");
-    //   }
-    //   patchVerge({ theme_mode: vergeThemeMode });
-    //   return;
-    // }
-
-    // const x = event.clientX;
-    // const y = event.clientY;
-    // const endRadius = Math.hypot(
-    //   Math.max(x, innerWidth - x),
-    //   Math.max(y, innerHeight - y),
-    // );
-
-    // const transition = document.startViewTransition(() => {
-    //   flushSync(() => {
-    //     setMode(isDark ? "light" : "dark");
-    //     if (isDark) {
-    //       document.documentElement.classList.remove("dark");
-    //     } else {
-    //       document.documentElement.classList.add("dark");
-    //     }
-    //     patchVerge({ theme_mode: vergeThemeMode });
-    //   });
-    // });
-    // transition.ready.then(() => {
-    //   const clipPath = [
-    //     `circle(0px at ${x}px ${y}px)`,
-    //     `circle(${endRadius}px at ${x}px ${y}px)`,
-    //   ];
-    //   document.documentElement.animate(
-    //     {
-    //       clipPath: isDark ? [...clipPath].reverse() : clipPath,
-    //     },
-    //     {
-    //       duration: 400,
-    //       easing: "ease-out",
-    //       pseudoElement: isDark
-    //         ? "::view-transition-old(root)"
-    //         : "::view-transition-new(root)",
-    //     },
-    //   );
-    // });
   };
 
   return { theme, toggleTheme };
 };
 
 const isSameThemeSetting = (
-  left:
-    | IVergeConfig["light_theme_setting"]
-    | IVergeConfig["dark_theme_setting"],
-  right:
-    | IVergeConfig["light_theme_setting"]
-    | IVergeConfig["dark_theme_setting"],
+  left: IVergeConfig["theme_setting"],
+  right: IVergeConfig["theme_setting"],
 ) => JSON.stringify(left ?? {}) === JSON.stringify(right ?? {});
 
 export const useSyncThemeSettings = () => {
