@@ -99,7 +99,7 @@ export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
         return;
       } else {
         const suffix = device.slice(4);
-        const isNotNumber = isNaN(Number(suffix));
+        const isNotNumber = !/^\d+$/.test(suffix);
         console.log(suffix, isNotNumber);
         if (isNotNumber) {
           notice("error", "device name must end with number, such as utun1234");
