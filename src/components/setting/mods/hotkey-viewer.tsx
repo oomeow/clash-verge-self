@@ -23,6 +23,16 @@ const HOTKEY_FUNC = [
   "toggle_tun_mode",
 ];
 
+const HOTKEY_LABEL_KEY: Record<(typeof HOTKEY_FUNC)[number], string> = {
+  open_or_close_dashboard:
+    "pages.settings.verge.hotkeys.actions.openOrCloseDashboard",
+  clash_mode_rule: "pages.settings.verge.hotkeys.actions.ruleMode",
+  clash_mode_global: "pages.settings.verge.hotkeys.actions.globalMode",
+  clash_mode_direct: "pages.settings.verge.hotkeys.actions.directMode",
+  toggle_system_proxy: "pages.settings.verge.hotkeys.actions.toggleSystemProxy",
+  toggle_tun_mode: "pages.settings.verge.hotkeys.actions.toggleTunMode",
+};
+
 export const HotkeyViewer = forwardRef<DialogRef>((props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
@@ -81,15 +91,15 @@ export const HotkeyViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("Hotkey Setting")}
-      okBtn={t("Save")}
-      cancelBtn={t("Cancel")}
+      title={t("pages.settings.verge.hotkeys.title")}
+      okBtn={t("common.actions.save")}
+      cancelBtn={t("common.actions.cancel")}
       onClose={() => setOpen(false)}
       onCancel={() => setOpen(false)}
       onOk={onSave}>
       {HOTKEY_FUNC.map((func) => (
         <ItemWrapper key={func}>
-          <Typography>{t(func)}</Typography>
+          <Typography>{t(HOTKEY_LABEL_KEY[func])}</Typography>
           <HotkeyInput
             value={hotkeyMap[func] ?? []}
             onChange={(v) => setHotkeyMap((m) => ({ ...m, [func]: v }))}

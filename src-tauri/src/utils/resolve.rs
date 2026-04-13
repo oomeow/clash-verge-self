@@ -87,9 +87,9 @@ pub fn setup_panic_hook() {
 
         let backtrace = Backtrace::capture();
         let backtrace = if backtrace.status() == BacktraceStatus::Captured {
-            t!("panic.info.backtrace", backtrace = backtrace)
+            t!("dialog.panic.backtrace", backtrace = backtrace)
         } else {
-            t!("panic.info.display.backtrace.note")
+            t!("dialog.panic.displayBacktraceNote")
         };
 
         tracing::error!("panicked at {}:\n{}\n{}", location, payload, backtrace);
@@ -97,14 +97,14 @@ pub fn setup_panic_hook() {
         let log_file = VergeLog::global().get_log_file().unwrap_or_default();
         let log_file = log_file.split(APP_ID).last().unwrap_or_default();
         let content = t!(
-            "panic.info.content",
+            "dialog.panic.content",
             location = location,
             payload = payload,
             limit_backtrace = limit_backtrace,
             log_file = log_file,
         );
         rfd::MessageDialog::new()
-            .set_title(t!("panic.info.title"))
+            .set_title(t!("dialog.panic.title"))
             .set_description(content)
             .set_buttons(rfd::MessageButtons::Ok)
             .set_level(rfd::MessageLevel::Error)
@@ -287,10 +287,10 @@ pub async fn resolve_scheme(param: String) {
     };
     if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
         if Config::profiles().data_mut().append_item(item).is_ok() {
-            handle::Handle::notify("Clash Verge", t!("import.success"));
+            handle::Handle::notify("Clash Verge", t!("notice.import.success"));
         };
     } else {
-        handle::Handle::notify("Clash Verge", t!("import.failed"));
+        handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
         tracing::error!("failed to parse url: {}", url);
     }
 }

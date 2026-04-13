@@ -87,7 +87,7 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
       <IconButton
         size="small"
         color="inherit"
-        title={t("Location")}
+        title={t("common.fields.location")}
         onClick={props.onLocation}>
         <MyLocationRounded />
       </IconButton>
@@ -95,7 +95,7 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
       <IconButton
         size="small"
         color="inherit"
-        title={t("Delay check")}
+        title={t("pages.proxies.actions.delayCheck")}
         onClick={() => {
           // Remind the user that it is custom test url
           if (testUrl?.trim() && textState !== "filter") {
@@ -110,9 +110,11 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
         size="small"
         color="inherit"
         title={
-          [t("Sort by default"), t("Sort by delay"), t("Sort by name")][
-            sortType
-          ]
+          [
+            t("pages.proxies.sort.default"),
+            t("pages.proxies.sort.delay"),
+            t("pages.proxies.sort.name"),
+          ][sortType]
         }
         onClick={() =>
           headStateActions.setSortType(((sortType + 1) % 3) as ProxySortType)
@@ -125,7 +127,7 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
       <IconButton
         size="small"
         color="inherit"
-        title={t("Delay check URL")}
+        title={t("pages.proxies.actions.delayCheckUrl")}
         onClick={() =>
           headStateActions.setTextState(textState === "url" ? null : "url")
         }>
@@ -139,7 +141,11 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
       <IconButton
         size="small"
         color="inherit"
-        title={showType ? t("Proxy basic") : t("Proxy detail")}
+        title={
+          showType
+            ? t("pages.proxies.view.basic")
+            : t("pages.proxies.view.detail")
+        }
         onClick={() => headStateActions.setShowType(!showType)}>
         {showType ? <VisibilityRounded /> : <VisibilityOffRounded />}
       </IconButton>
@@ -147,7 +153,7 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
       <IconButton
         size="small"
         color="inherit"
-        title={t("Filter")}
+        title={t("common.search.filter")}
         onClick={() => {
           setFilterTextInp("");
           headStateActions.setTextState(
@@ -169,7 +175,7 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
           value={filterTextInp}
           size="small"
           variant="outlined"
-          placeholder={t("Filter conditions")}
+          placeholder={t("common.search.filterConditions")}
           onChange={(e) => {
             const text = e.target.value;
             setFilterTextInp(text);
@@ -188,7 +194,7 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
           value={testUrl}
           size="small"
           variant="outlined"
-          placeholder={t("Delay check URL")}
+          placeholder={t("pages.proxies.actions.delayCheckUrl")}
           onChange={(e) => headStateActions.setTestUrl(e.target.value)}
           sx={{ ml: 0.5, flex: "1 1 auto", input: { py: 0.65, px: 1 } }}
         />

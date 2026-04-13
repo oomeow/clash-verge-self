@@ -19,6 +19,7 @@ import {
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useMemoizedFn } from "ahooks";
 import { memo, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
@@ -100,6 +101,7 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
 
 export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const { item, delayVersion, onLocation, onCheckAll, onChangeProxy } = props;
+  const { t } = useTranslation();
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
   const { profiles } = useProfiles();
   const current = profiles?.current || "";
@@ -240,7 +242,9 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           justifyContent: "center",
         }}>
         <InboxRounded sx={{ fontSize: "2.5em", color: "inherit" }} />
-        <Typography sx={{ color: "inherit" }}>No Proxies</Typography>
+        <Typography sx={{ color: "inherit" }}>
+          {t("common.empty.noProxies")}
+        </Typography>
       </Box>
     );
   }

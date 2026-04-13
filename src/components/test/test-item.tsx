@@ -80,8 +80,8 @@ export const TestItem = (props: Props) => {
   });
 
   const menu = [
-    { label: "Edit", handler: onEditTest },
-    { label: "Delete", handler: onDelete },
+    { label: "common.actions.edit", handler: onEditTest },
+    { label: "common.actions.delete", handler: onDelete },
   ];
 
   useEffect(() => {
@@ -161,7 +161,7 @@ export const TestItem = (props: Props) => {
               sx={({ palette }) => ({
                 ":hover": { bgcolor: alpha(palette.primary.main, 0.15) },
               })}>
-              {t("Test")}
+              {t("pages.test.title")}
             </Widget>
           )}
 

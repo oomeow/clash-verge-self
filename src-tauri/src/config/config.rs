@@ -83,7 +83,7 @@ impl Config {
             ConfigType::Run | ConfigType::RuntimeCheck => runtime_config
                 .config
                 .as_ref()
-                .ok_or(any_err!("{}", t!("runtime.config.get.failed")))?,
+                .ok_or(any_err!("{}", t!("error.runtime.config.getFailed")))?,
             ConfigType::MappingCheck(ref check_config) => check_config,
         };
 

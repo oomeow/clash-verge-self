@@ -134,14 +134,14 @@ const RulesPage = () => {
   return (
     <BasePage
       full
-      title={t("Rules")}
+      title={t("pages.rules.title")}
       contentStyle={{ height: "100%" }}
       header={
         <Box display="flex" alignItems="center" gap={1}>
           {hasRuleSet && (
             <>
               <IconButton
-                title={t("Expand All")}
+                title={t("common.actions.expandAll")}
                 color="primary"
                 size="small"
                 onClick={() => {
@@ -150,7 +150,7 @@ const RulesPage = () => {
                 <ExpandIcon />
               </IconButton>
               <IconButton
-                title={t("Collapse All")}
+                title={t("common.actions.collapseAll")}
                 color="primary"
                 size="small"
                 onClick={() => {
@@ -202,7 +202,7 @@ const RulesPage = () => {
             )}
           />
         ) : (
-          <BaseEmpty text="No Rules" />
+          <BaseEmpty text={t("common.empty.noRules")} />
         )}
       </Box>
     </BasePage>

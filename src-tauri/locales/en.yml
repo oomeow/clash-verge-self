@@ -1,51 +1,76 @@
-# system tray related
-# on: ON
-# off: OFF
-dashboard: Dashboard
-mode.rule: Rule Mode
-mode.global: Global Mode
-mode.direct: Direct Mode
-proxy.system: System Proxy
-proxy.tun: Tun Mode
-service: Service Mode
-copy.env: Copy Env
-open.dir: Open Dir
-app.dir: App Dir
-core.dir: Core Dir
-log.dir: Log Dir
-more: More
-open.devtools: Open DevTools
-restart.clash: Restart Clash
-restart: Restart App
-quit: Quit
-current.profile: Current Profile
-profiles.switch: Switch Profile
-profiles.switch.success: Switch profile successfully
-profiles.switch.failed: Switch profile failed
+tray:
+  dashboard: Dashboard
+  mode:
+    rule: Rule Mode
+    global: Global Mode
+    direct: Direct Mode
+  proxy:
+    system: System Proxy
+    tun: Tun Mode
+  service: Service Mode
+  copy:
+    env: Copy Env
+  open:
+    dir: Open Dir
+    app:
+      dir: App Dir
+    core:
+      dir: Core Dir
+    log:
+      dir: Log Dir
+    devtools: Open DevTools
+  more: More
+  restart:
+    clash: Restart Clash
+    app: Restart App
+  quit: Quit
+  current:
+    profile: Current Profile
+  profiles:
+    switch:
+      title: Switch Profile
+      success: Switch profile successfully
+      failed: Switch profile failed
 
-# notification related
-disable.failed: Disabled Failed
-enable.failed: Enabled Failed
-install.failed: Install Failed
-service.install.run.failed: Install successfully, but Clash Verge Self Service run failed
-service.install.run.success: Clash Verge Self Service install and run successfully
-import.success: Import profile successfully
-import.failed: Import profile failed
+notice:
+  disable:
+    failed: Disabled Failed
+  enable:
+    failed: Enabled Failed
+  install:
+    failed: Install Failed
+  service:
+    install:
+      run:
+        failed: Install successfully, but Clash Verge Self Service run failed
+        success: Clash Verge Self Service install and run successfully
+  import:
+    success: Import profile successfully
+    failed: Import profile failed
 
-# dialog related
-install.service.ask: "Clash Verge Self Service not installed.\nDo you want to install and run service right now?"
-panic.info.title: Clash Verge Self Crash
-panic.info.backtrace: "stack backtrace:\n%{backtrace}"
-panic.info.display.backtrace.note: "Note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
-panic.info.content: "location: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nFor more panic information, check the log file:\n  %{log_file}"
+dialog:
+  install:
+    service:
+      ask: "Clash Verge Self Service not installed.\nDo you want to install and run service right now?"
+  panic:
+    title: Clash Verge Self Crash
+    backtrace: "stack backtrace:\n%{backtrace}"
+    displayBacktraceNote: "Note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+    content: "location: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nFor more panic information, check the log file:\n  %{log_file}"
 
-# error result related
-tun.busy: Tun Device Or Resource Busy, restart core might solve it
-tun.need.permissions: Please grant core permissions before turning on Tun mode, or install and enable service mode
-config.parse.failed: Failed to parse config to yaml file
-config.convert.failed: Failed to convert config to yaml
-runtime.config.get.failed: Failed to get runtime config
-clash.restart.failed: Clash Core Restart Failed
-
-sysproxy.update.failed: Failed to update system proxy
-sysproxy.pac.update.failed: Failed to update PAC proxy
+error:
+  tun:
+    busy: Tun Device Or Resource Busy, restart core might solve it
+    needPermissions: Please grant core permissions before turning on Tun mode, or install and enable service mode
+  config:
+    parseFailed: Failed to parse config to yaml file
+    convertFailed: Failed to convert config to yaml
+  runtime:
+    config:
+      getFailed: Failed to get runtime config
+  clash:
+    restartFailed: Clash Core Restart Failed
+  sysproxy:
+    updateFailed: Failed to update system proxy
+    pac:
+      updateFailed: Failed to update PAC proxy

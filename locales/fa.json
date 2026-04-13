@@ -1,0 +1,527 @@
+{
+  "common": {
+    "actions": {
+      "back": "بازگشت",
+      "close": "بستن",
+      "cancel": "لغو",
+      "confirm": "تأیید",
+      "auto": "خودکار",
+      "new": "جدید",
+      "edit": "ویرایش",
+      "save": "ذخیره",
+      "delete": "حذف",
+      "enable": "فعال کردن",
+      "disable": "غیرفعال کردن",
+      "add": "افزودن",
+      "apply": "اعمال",
+      "browse": "مرور کردن",
+      "clear": "پاک کردن",
+      "pause": "توقف",
+      "refresh": "بازنشانی",
+      "import": "وارد کردن",
+      "update": "به‌روزرسانی",
+      "updateAll": "به‌روزرسانی همه",
+      "upgrade": "ارتقاء",
+      "restart": "راه‌اندازی مجدد",
+      "install": "نصب",
+      "uninstall": "حذف نصب",
+      "grant": "اعطا",
+      "reGrant": "اعطای مجدد",
+      "select": "انتخاب",
+      "openUrl": "باز کردن آدرس اینترنتی",
+      "chooseFile": "انتخاب فایل",
+      "resetToDefault": "بازنشانی به پیش‌فرض",
+      "expandAll": "باز کردن همه",
+      "collapseAll": "بستن همه",
+      "exit": "خروج"
+    },
+    "status": {
+      "active": "فعال",
+      "closed": "بسته‌شده",
+      "default": "پیش‌فرض",
+      "service": {
+        "pending": "در انتظار",
+        "installed": "نصب شده",
+        "uninstall": "حذف شده",
+        "active": "فعال",
+        "unknown": "ناشناخته"
+      },
+      "enabled": "فعال",
+      "disabled": "غیرفعال",
+      "granted": "اعطا شده",
+      "notGranted": "اعطا نشده",
+      "readOnly": "فقط خواندنی",
+      "notAvailable": "در دسترس نیست",
+      "recommended": "توصیه شده",
+      "required": "الزامی"
+    },
+    "fields": {
+      "name": "نام",
+      "type": "نوع",
+      "description": "توضیحات",
+      "icon": "آیکون",
+      "location": "موقعیت",
+      "host": "میزبان",
+      "process": "فرآیند",
+      "time": "زمان",
+      "source": "منبع",
+      "destination": "مقصد",
+      "from": "از",
+      "updatedTime": "زمان به‌روزرسانی",
+      "expireTime": "زمان انقضا",
+      "usedTotal": "مصرف‌شده / کل",
+      "device": "نام دستگاه Tun",
+      "stack": "پشته Tun",
+      "language": "زبان",
+      "startPage": "صفحه شروع",
+      "startupScript": "اسکریپت راه‌اندازی"
+    },
+    "search": {
+      "filter": "فیلتر",
+      "filterConditions": "شرایط فیلتر",
+      "matchCase": "تطبیق حروف کوچک و بزرگ",
+      "matchWholeWord": "تطبیق کل کلمه",
+      "useRegularExpression": "استفاده از عبارت منظم"
+    },
+    "empty": {
+      "noConnections": "اتصالی وجود ندارد",
+      "noLogs": "لاگی وجود ندارد",
+      "noRules": "قاعده‌ای وجود ندارد",
+      "noProxies": "پروکسی‌ای وجود ندارد",
+      "directMode": "حالت مستقیم",
+      "empty": "خالی"
+    }
+  },
+  "navigation": {
+    "sidebar": {
+      "proxies": "پراکسی‌ها",
+      "profiles": "پروفایل‌ها",
+      "connections": "اتصالات",
+      "rules": "قوانین",
+      "logs": "لاگ‌ها",
+      "test": "آزمون",
+      "settings": "تنظیمات"
+    }
+  },
+  "pages": {
+    "proxies": {
+      "title": "پراکسی‌ها",
+      "groups": "گروه‌های پراکسی",
+      "provider": "تأمین‌کننده پروکسی",
+      "updateAt": "به‌روزرسانی در",
+      "modes": {
+        "rule": "قانون",
+        "global": "جهانی",
+        "direct": "مستقیم",
+        "script": "اسکریپت",
+        "merge": "ادغام",
+        "remote": "راه‌دور",
+        "local": "محلی"
+      },
+      "actions": {
+        "delayCheck": "بررسی تأخیر",
+        "delayCheckUrl": "آدرس بررسی تأخیر",
+        "delayCheckToCancelFixed": "برای لغو تثبیت، تأخیر را بررسی کنید"
+      },
+      "sort": {
+        "default": "مرتب‌سازی بر اساس پیش‌فرض",
+        "delay": "مرتب‌سازی بر اساس تأخیر",
+        "name": "مرتب‌سازی بر اساس نام"
+      },
+      "view": {
+        "basic": "پنهان کردن جزئیات پراکسی",
+        "detail": "نمایش جزئیات پراکسی"
+      }
+    },
+    "profiles": {
+      "title": "پروفایل‌ها",
+      "actions": {
+        "enhanceScripts": "اسکریپت‌های تقویتی",
+        "updateProfile": "به‌روزرسانی پروفایل",
+        "updateAllProfiles": "به‌روزرسانی همه پروفایل‌ها",
+        "viewRuntimeConfig": "مشاهده پیکربندی زمان اجرا",
+        "reactivateProfiles": "فعال‌سازی مجدد پروفایل‌ها",
+        "paste": "چسباندن",
+        "home": "خانه",
+        "editInfo": "ویرایش اطلاعات",
+        "editFile": "ویرایش فایل",
+        "openFile": "باز کردن فایل",
+        "updateProxy": "به‌روزرسانی (پراکسی)",
+        "toTop": "انتقال به ابتدا",
+        "toEnd": "انتقال به انتها"
+      },
+      "inputs": {
+        "profileUrl": "آدرس پروفایل"
+      },
+      "dialog": {
+        "createTitle": "ایجاد پروفایل",
+        "editTitle": "ویرایش پروفایل",
+        "confirmDeletion": "تأیید حذف",
+        "confirmDeletionMessage": "این عملیات قابل برگشت نیست"
+      },
+      "fields": {
+        "subscriptionUrl": "آدرس اشتراک",
+        "updateInterval": "فاصله زمانی به‌روزرسانی",
+        "useSystemProxy": "استفاده از پراکسی سیستم",
+        "useClashProxy": "استفاده از پراکسی Clash",
+        "acceptInvalidCertsDanger": "پذیرش گواهی‌نامه‌های نامعتبر (خطرناک)"
+      },
+      "runtime": {
+        "scriptConsole": "کنسول اسکریپت",
+        "console": "کنسول (اجرای فعلی)"
+      },
+      "editor": {
+        "console": "کنسول",
+        "restoreChanges": "بازگردانی تغییرات",
+        "runCheck": "اجرای بررسی{{keymap}}"
+      }
+    },
+    "connections": {
+      "title": "اتصالات",
+      "view": {
+        "table": "نمای جدولی",
+        "list": "نمای لیستی"
+      },
+      "actions": {
+        "closeAll": "بستن همه",
+        "closeConnection": "بستن اتصال"
+      },
+      "columns": {
+        "actions": "عملیات",
+        "closedTime": "زمان بسته شدن",
+        "downloadSpeed": "سرعت دانلود",
+        "uploadSpeed": "سرعت بارگذاری",
+        "totalDownloaded": "مجموع دانلود",
+        "totalUploaded": "مجموع آپلود",
+        "downloaded": "دانلود شده",
+        "uploaded": "بارگذاری شده",
+        "dlSpeed": "سرعت دانلود",
+        "ulSpeed": "سرعت بارگذاری",
+        "chains": "زنجیره‌ها",
+        "rule": "قانون",
+        "startAt": "شروع در {{time}}"
+      }
+    },
+    "rules": {
+      "title": "قوانین",
+      "provider": "مجموعه قوانین"
+    },
+    "logs": {
+      "title": "لاگ‌ها"
+    },
+    "test": {
+      "title": "آزمون",
+      "actions": {
+        "testAll": "آزمون همه"
+      },
+      "dialog": {
+        "createTitle": "ایجاد آزمون",
+        "editTitle": "ویرایش آزمون"
+      },
+      "fields": {
+        "url": "آدرس آزمون"
+      }
+    },
+    "settings": {
+      "title": "تنظیمات",
+      "system": {
+        "title": "تنظیمات سیستم",
+        "proxy": {
+          "label": "پراکسی سیستم",
+          "info": "به امکانات تنظیم پروکسی سیستم عامل دسترسی پیدا کنید. اگر فعال‌سازی ناموفق بود، پروکسی سیستم عامل را به‌صورت دستی تغییر دهید",
+          "dialogTitle": "تنظیمات پراکسی سیستم",
+          "current": "پراکسی سیستم فعلی",
+          "enableStatus": "وضعیت:",
+          "serverAddr": "آدرس سرور: ",
+          "bypassValue": "استثناهای فعلی:",
+          "guard": {
+            "label": "محافظ پراکسی سیستم",
+            "info": "برای جلوگیری از تغییر تنظیمات پراکسی سیستم توسط سایر برنامه‌ها فعال کنید",
+            "duration": "بازه محافظت"
+          },
+          "bypass": {
+            "label": "استثناهای پراکسی:",
+            "duplicate": "مورد تکراری در دورزدن پروکسی",
+            "resetDefault": "بازنشانی دورزدن پروکسی به حالت پیش‌فرض"
+          },
+          "pac": {
+            "useMode": "استفاده از حالت PAC",
+            "content": "محتوای اسکریپت PAC",
+            "url": "نشانی PAC:"
+          }
+        },
+        "autoLaunch": "راه‌اندازی خودکار",
+        "silentStart": {
+          "label": "شروع بی‌صدا",
+          "options": {
+            "bootup": "فقط هنگام بوت",
+            "global": "سراسری",
+            "off": "خاموش"
+          }
+        }
+      },
+      "clash": {
+        "title": "تنظیمات Clash",
+        "tun": {
+          "label": "حالت Tun",
+          "info": "حالت Tun نیاز به اعطای مجوزهای مربوط به هسته دارد. لطفاً قبل از استفاده، حالت سرویس را فعال کنید",
+          "serviceModeOnly": "سیستم و ترکیبی تنها می‌توانند در حالت سرویس استفاده شوند",
+          "autoRoute": "مسیر خودکار",
+          "strictRoute": "مسیر دقیق",
+          "autoDetectInterface": "تشخیص خودکار رابط",
+          "dnsHijack": "ربایش DNS",
+          "mtu": "واحد حداکثر انتقال"
+        },
+        "serviceMode": {
+          "label": "حالت سرویس",
+          "currentState": "وضعیت فعلی",
+          "info": "اطلاعات: لطفاً مطمئن شوید که سرویس Clash Verge نصب و فعال شده است",
+          "disable": "غیرفعال کردن حالت سرویس"
+        },
+        "allowLan": "اجازه LAN",
+        "networkInterfaceInfo": "اطلاعات رابط شبکه",
+        "ipv6": "IPv6",
+        "findProcessMode": {
+          "label": "حالت تطبیق فرایند",
+          "options": {
+            "always": "همیشه همه فرایندها را تطبیق بده",
+            "strict": "توسط Clash تعیین شود",
+            "off": "فرایندی تطبیق داده نشود"
+          }
+        },
+        "logLevel": "سطح لاگ",
+        "portConfig": {
+          "label": "پیکربندی پورت",
+          "randomPort": "پورت تصادفی",
+          "dialogTitle": "درگاه‌های Clash"
+        },
+        "externalController": {
+          "label": "خارجی",
+          "host": "نشانی شنود",
+          "secret": "رمز اصلی",
+          "enabled": "کنترل‌گر خارجی فعال است",
+          "disabled": "کنترل‌گر خارجی غیرفعال است",
+          "allowPrivateNetwork": "اجازه دسترسی از شبکه خصوصی",
+          "allowOrigins": "مبدأهای مجاز",
+          "duplicateAllowOrigins": "مبدأ مجاز تکراری",
+          "resetDefaultAllowOrigins": "بازنشانی مبدأهای مجاز پیش‌فرض"
+        },
+        "webUi": {
+          "label": "Web UI",
+          "replaceTemplateHint": "جایگزین کردن میزبان، پورت و رمز با %host، %port، %secret",
+          "supportPlaceholders": "پشتیبانی از %host، %port و %secret"
+        },
+        "core": {
+          "label": "هسته Clash",
+          "updateRequires": "Update core نیاز دارد"
+        },
+        "openUwpTool": "باز کردن ابزار UWP",
+        "updateGeoData": "به‌روزرسانی GeoData",
+        "unifiedDelay": {
+          "label": "تأخیر یکپارچه",
+          "info": "با فعال بودن تأخیر یکپارچه، دو بار تست تأخیر انجام می‌شود تا اختلاف ناشی از handshake و نوع گره حذف شود"
+        },
+        "flushCache": "پاک کردن کش {{cache}}",
+        "cacheFlushed": "کش {{cache}} پاک شد"
+      },
+      "verge": {
+        "title": "تنظیمات Verge",
+        "themeMode": {
+          "label": "حالت تم",
+          "options": {
+            "light": "روشن",
+            "dark": "تاریک",
+            "system": "سیستم"
+          }
+        },
+        "tray": {
+          "clickEvent": "رویداد کلیک در سینی سیستم",
+          "showMainWindow": "نمایش پنجره اصلی"
+        },
+        "env": {
+          "copyType": "کپی نوع محیط",
+          "copySuccess": "متغیرهای محیطی با موفقیت کپی شد"
+        },
+        "theme": {
+          "title": "تنظیمات تم",
+          "colors": {
+            "default": "رنگ پیش‌فرض",
+            "primary": "رنگ اصلی",
+            "secondary": "رنگ ثانویه",
+            "primaryText": "متن اصلی",
+            "secondaryText": "متن ثانویه",
+            "info": "رنگ اطلاعات",
+            "warning": "رنگ هشدار",
+            "error": "رنگ خطا",
+            "success": "رنگ موفقیت"
+          },
+          "fontFamily": "خانواده فونت",
+          "cssInjection": "تزریق CSS"
+        },
+        "layout": {
+          "title": "تنظیمات چیدمان",
+          "trafficGraph": "نمودار ترافیک",
+          "memoryUsage": "استفاده از حافظه",
+          "proxyGroupIcon": "آیکون گروه پراکسی",
+          "menuIcon": "آیکون منو",
+          "icon": {
+            "monochrome": "تک رنگ",
+            "colorful": "رنگارنگ"
+          },
+          "tray": {
+            "label": "سینی سیستم",
+            "icon": "آیکون سینی سیستم",
+            "common": "آیکون مشترک سینی سیستم",
+            "systemProxy": "آیکون سینی پراکسی سیستم",
+            "tun": "آیکون سینی Tun"
+          },
+          "splashscreen": "صفحه شروع",
+          "systemTitleBar": "نوار عنوان سیستم",
+          "keepInDock": {
+            "label": "نگه داشتن در Dock",
+            "info": "پس از بستن پنجره، آیکون برنامه در Dock باقی بماند"
+          },
+          "keepUiActive": {
+            "label": "فعال نگه داشتن رابط کاربری",
+            "info": "رابط کاربری فعال بماند تا در باز کردن مجدد نیازی به رندر دوباره نباشد"
+          }
+        },
+        "misc": {
+          "title": "متفرقه",
+          "appLogLevel": "سطح لاگ برنامه",
+          "autoCloseConnections": "بستن خودکار اتصالات",
+          "autoCheckUpdate": "بررسی خودکار به‌روزرسانی",
+          "enableBuiltinEnhanced": "فعال کردن تقویت داخلی",
+          "proxyLayoutColumn": "ستون چیدمان پراکسی",
+          "autoLogClean": {
+            "label": "پاکسازی خودکار لاگ",
+            "options": {
+              "never": "هرگز پاک نکن",
+              "sevenDays": "نگهداری به مدت 7 روز",
+              "thirtyDays": "نگهداری به مدت 30 روز",
+              "ninetyDays": "نگهداری به مدت 90 روز"
+            }
+          },
+          "defaultLatencyTest": "آزمون تأخیر پیش‌فرض",
+          "defaultLatencyTimeout": "زمان انتظار تأخیر پیش‌فرض"
+        },
+        "hotkeys": {
+          "title": "تنظیمات کلیدهای میانبر",
+          "actions": {
+            "openOrCloseDashboard": "باز/بستن داشبورد",
+            "ruleMode": "حالت قانون",
+            "globalMode": "حالت جهانی",
+            "directMode": "حالت مستقیم",
+            "toggleSystemProxy": "فعال/غیرفعال کردن پراکسی سیستم",
+            "toggleTunMode": "فعال/غیرفعال کردن حالت Tun"
+          }
+        },
+        "runtimeConfig": "پیکربندی زمان اجرا",
+        "actions": {
+          "openAppDir": "باز کردن پوشه برنامه",
+          "openCoreDir": "باز کردن پوشه هسته",
+          "openLogsDir": "باز کردن پوشه لاگ‌ها",
+          "checkForUpdates": "بررسی برای به‌روزرسانی‌ها",
+          "goToReleasePage": "رفتن به صفحه انتشار",
+          "openDevTools": "باز کردن ابزارهای توسعه‌دهنده"
+        },
+        "version": "نسخه Verge",
+        "backup": {
+          "title": "تنظیمات پشتیبان‌گیری",
+          "types": {
+            "local": "محلی",
+            "webdav": "WebDAV"
+          },
+          "invalidFileFormat": "فرمت فایل نامعتبر است",
+          "webdavTitle": "پشتیبان‌گیری WebDAV",
+          "actions": {
+            "recovery": "بازیابی",
+            "backup": "پشتیبان‌گیری"
+          },
+          "onlyProfiles": "فقط از پروفایل‌ها پشتیبان بگیر",
+          "webdav": {
+            "url": "نشانی WebDAV",
+            "username": "نام کاربری WebDAV",
+            "password": "گذرواژه WebDAV"
+          },
+          "files": "فهرست فایل‌های پشتیبان",
+          "scopes": {
+            "all": "پیکربندی + پروفایل‌ها",
+            "profiles": "پروفایل‌ها"
+          }
+        }
+      }
+    }
+  },
+  "messages": {
+    "editor": {
+      "readOnly": "نمی‌توان در ویرایشگر فقط خواندنی ویرایش کرد",
+      "regenerateTemplateContent": "بازسازی محتوای قالب",
+      "readMonacoContentFailed": "خواندن محتوای Monaco ممکن نشد"
+    },
+    "profiles": {
+      "imported": "پروفایل با موفقیت وارد شد",
+      "switched": "پروفایل تغییر کرد",
+      "reactivated": "پروفایل دوباره فعال شد",
+      "onlyYamlSupported": "فقط فایل‌های YAML پشتیبانی می‌شوند",
+      "scriptRunCheckFailed": "بررسی اجرای اسکریپت ناموفق بود، لطفاً درستی اسکریپت را بررسی کنید",
+      "scriptRunCheckSuccessful": "بررسی اجرای اسکریپت با موفقیت انجام شد",
+      "contentSaved": "محتوا با موفقیت ذخیره شد",
+      "contentUnchanged": "محتوای پروفایل تغییری نکرده است",
+      "configUnchanged": "تنظیمات پروفایل تغییری نکرده است",
+      "configUpdated": "تنظیمات پروفایل به‌روزرسانی شد",
+      "contentSaveFailed": "ذخیره محتوا ناموفق بود",
+      "saveContent": "ذخیره محتوا{{keymap}}",
+      "askSaveContentNow": "محتوا تغییر کرده است، آیا اکنون ذخیره شود؟"
+    },
+    "clash": {
+      "configUpdated": "پیکربندی Clash به‌روزرسانی شد",
+      "portModified": "پورت Clash تغییر یافت",
+      "portConflict": "{{portName}} تعارض پورت",
+      "externalControllerAddressModified": "آدرس کنترل‌کننده خارجی تغییر یافت",
+      "core": {
+        "permissionsGranted": "مجوزها با موفقیت برای هسته {{core}} اعطا شد",
+        "requireGrant": "حالت Tun اکنون فعال است؛ پیش از تغییر، مجوز هسته {{core}} را اعطا کنید",
+        "versionUpdated": "نسخه هسته به‌روزرسانی شد",
+        "restarted": "هسته Clash مجدداً راه‌اندازی شد",
+        "switched": "تغییر به هسته {{core}}"
+      },
+      "geoDataUpdated": "GeoData به‌روزرسانی شد",
+      "tun": {
+        "macosDeviceNameError": "نام دستگاه Tun در macOS باید به صورت `utun` به‌علاوه عدد باشد، مانند `utun1234`",
+        "deviceBusy": "دستگاه یا منبع Tun مشغول است. حالت Tun غیرفعال می‌شود، بعداً دوباره تلاش کنید",
+        "updateConfigFailed": "به‌روزرسانی تنظیمات Tun ناموفق بود، بعداً دوباره تلاش کنید"
+      }
+    },
+    "settings": {
+      "applied": "تنظیمات اعمال شد",
+      "serviceInstalled": "سرویس با موفقیت نصب شد",
+      "serviceUninstalled": "سرویس با موفقیت حذف نصب شد",
+      "proxyGuardDurationTooShort": "مدت زمان دیمن پراکسی نمی‌تواند کمتر از 1 ثانیه باشد",
+      "invalidBypassFormat": "فرمت عبور نامعتبر است"
+    },
+    "app": {
+      "restartToApply": "راه‌اندازی مجدد برنامه برای اعمال تغییرات",
+      "latestVersion": "در حال حاضر در آخرین نسخه",
+      "restartSoon": "برنامه به‌زودی راه‌اندازی مجدد می‌شود"
+    },
+    "rules": {
+      "updateProviderError": "به‌روزرسانی [ {{name}} ] ناموفق بود: {{errorMsg}}",
+      "readProvidersError": "خواندن مجموعه قوانین ناموفق بود، مطمئن شوید فایل‌های قوانین به‌روز شده‌اند"
+    },
+    "updater": {
+      "portableError": "نسخه پرتابل از به‌روزرسانی درون برنامه‌ای پشتیبانی نمی‌کند. لطفاً به صورت دستی دانلود و جایگزین کنید",
+      "breakingChangeError": "این نسخه یک به‌روزرسانی اساسی است و پشتیبانی از به‌روزرسانی درون برنامه را پشتیبانی نمی‌کند. لطفاً پس از حذف، دستی دانلود و نصب کنید."
+    },
+    "backup": {
+      "webdavConnectionFailed": "اتصال WebDAV ناموفق بود: {{error}}",
+      "success": "پشتیبان‌گیری با موفقیت انجام شد",
+      "failed": "پشتیبان‌گیری ناموفق بود: {{error}}",
+      "deleteSuccess": "حذف نسخه پشتیبان با موفقیت انجام شد",
+      "deleteFailed": "حذف نسخه پشتیبان ناموفق بود: {{error}}",
+      "applySuccess": "نسخه پشتیبان اعمال شد و برنامه به‌زودی راه‌اندازی مجدد می‌شود",
+      "applyFailed": "اعمال نسخه پشتیبان ناموفق بود: {{error}}",
+      "platformNoMatch": "پلتفرم سیستم مطابقت ندارد"
+    }
+  }
+}

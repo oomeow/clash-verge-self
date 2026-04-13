@@ -134,7 +134,7 @@ const ProfilePage = () => {
       const fileList = payload.paths;
       for (let file of fileList) {
         if (!file.endsWith(".yaml") && !file.endsWith(".yml")) {
-          notice("error", t("Only YAML Files Supported"));
+          notice("error", t("messages.profiles.onlyYamlSupported"));
           continue;
         }
         const filename =
@@ -224,7 +224,7 @@ const ProfilePage = () => {
 
     try {
       await importProfile(url);
-      notice("success", t("Profile Imported Successfully"));
+      notice("success", t("messages.profiles.imported"));
       setUrl("");
       setImportLoading(false);
 
@@ -254,7 +254,7 @@ const ProfilePage = () => {
       await patchProfiles({ current });
       mutateLogs();
       // setTimeout(() => activateSelected(), 2000);
-      notice("success", t("Profile Switched"), 1000);
+      notice("success", t("messages.profiles.switched"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 4000);
     } finally {
@@ -292,7 +292,7 @@ const ProfilePage = () => {
         await patchProfile(chainUid, { enable: enable });
         mutateLogs();
         mutateProfiles();
-        notice("success", t("Profile Reactivated"), 1000);
+        notice("success", t("messages.profiles.reactivated"), 1000);
       } catch (error) {
         console.error(error);
       } finally {
@@ -331,7 +331,7 @@ const ProfilePage = () => {
       setActivatingUids([profiles.current || "", ...enabledChainUids]);
       await enhanceProfiles();
       mutateLogs();
-      notice("success", t("Profile Reactivated"), 1000);
+      notice("success", t("messages.profiles.reactivated"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 3000);
     } finally {
@@ -377,13 +377,13 @@ const ProfilePage = () => {
   return (
     <BasePage
       full
-      title={t("Profiles")}
+      title={t("pages.profiles.title")}
       header={
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButton
             size="small"
             color="inherit"
-            title={t("Update All Profiles")}
+            title={t("pages.profiles.actions.updateAllProfiles")}
             onClick={() => onUpdateAll()}>
             <RefreshRounded />
           </IconButton>
@@ -391,7 +391,7 @@ const ProfilePage = () => {
           <IconButton
             size="small"
             color="inherit"
-            title={t("View Runtime Config")}
+            title={t("pages.profiles.actions.viewRuntimeConfig")}
             onClick={() => configRef.current?.open()}>
             <TextSnippetOutlined />
           </IconButton>
@@ -404,18 +404,19 @@ const ProfilePage = () => {
             variant="contained"
             color="primary"
             endIcon={<LocalFireDepartmentRounded />}
-            title={t("Reactivate Profiles")}
+            title={t("pages.profiles.actions.reactivateProfiles")}
             onClick={() => onEnhance()}>
-            <span>{t("Reactivate Profiles")}</span>
+            <span>{t("pages.profiles.actions.reactivateProfiles")}</span>
           </Button>
         </Box>
       }>
-      <div className="bg-comment space-x-2!! sticky top-0 z-10 mb-1 flex items-center px-2 pt-2 pb-1">
+      <div className="bg-comment sticky top-0 z-10 mb-1 flex items-center space-x-2! px-2 pt-2 pb-1">
         <BaseStyledTextField
           value={url}
+          sx={{ flex: 1 }}
           variant="outlined"
           onChange={(e) => setUrl(e.target.value)}
-          placeholder={t("Profile URL")}
+          placeholder={t("pages.profiles.inputs.profileUrl")}
           onKeyDown={(e) => {
             if (e.key === "Enter" && url.length > 0) {
               onImport();
@@ -429,7 +430,7 @@ const ProfilePage = () => {
                   size="small"
                   color="primary"
                   sx={{ p: 0.5 }}
-                  title={t("Paste")}
+                  title={t("pages.profiles.actions.paste")}
                   onClick={() => onCopyLink()}>
                   <ContentPasteRounded fontSize="inherit" />
                 </IconButton>
@@ -438,7 +439,7 @@ const ProfilePage = () => {
                   size="small"
                   color="primary"
                   sx={{ p: 0.5 }}
-                  title={t("Clear")}
+                  title={t("common.actions.clear")}
                   onClick={() => setUrl("")}>
                   <ClearRounded fontSize="inherit" />
                 </IconButton>
@@ -453,14 +454,14 @@ const ProfilePage = () => {
           size="small"
           sx={{ borderRadius: "6px" }}
           onClick={() => onImport()}>
-          {t("Import")}
+          {t("common.actions.import")}
         </Button>
         <Button
           variant="contained"
           size="small"
           sx={{ borderRadius: "6px" }}
           onClick={() => viewerRef.current?.create(null)}>
-          {t("New")}
+          {t("common.actions.new")}
         </Button>
       </div>
       <Box sx={{ px: "10px" }}>
@@ -552,7 +553,7 @@ const ProfilePage = () => {
                   borderColor: "rgba(255, 255, 255, 0.06)",
                 }),
               })}>
-              {t("Enhance Scripts")}
+              {t("pages.profiles.actions.enhanceScripts")}
             </Divider>
             <DndContext
               sensors={sensors}

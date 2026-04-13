@@ -57,16 +57,27 @@ const ConnectionsPage = () => {
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
 
-  const orderOpts: Record<ConnectionsOrderType, OrderFunc> = {
-    Default: (list) =>
-      list.sort(
-        (a, b) =>
-          new Date(b.start || "0").getTime()! -
-          new Date(a.start || "0").getTime()!,
-      ),
-    "Upload Speed": (list) => list.sort((a, b) => b.curUpload! - a.curUpload!),
-    "Download Speed": (list) =>
-      list.sort((a, b) => b.curDownload! - a.curDownload!),
+  const orderOpts: Record<
+    ConnectionsOrderType,
+    { labelKey: string; sort: OrderFunc }
+  > = {
+    Default: {
+      labelKey: "common.status.default",
+      sort: (list) =>
+        list.sort(
+          (a, b) =>
+            new Date(b.start || "0").getTime()! -
+            new Date(a.start || "0").getTime()!,
+        ),
+    },
+    "Upload Speed": {
+      labelKey: "pages.connections.columns.uploadSpeed",
+      sort: (list) => list.sort((a, b) => b.curUpload! - a.curUpload!),
+    },
+    "Download Speed": {
+      labelKey: "pages.connections.columns.downloadSpeed",
+      sort: (list) => list.sort((a, b) => b.curDownload! - a.curDownload!),
+    },
   };
 
   const {
@@ -81,7 +92,7 @@ const ConnectionsPage = () => {
   const closedConns = connData.closedConnections;
 
   // filter connections
-  const orderFunc = orderOpts[curOrderOpt];
+  const orderFunc = orderOpts[curOrderOpt]?.sort;
   const conns = isActiveTab ? activeConns : closedConns;
   let filterConn = conns.filter((conn) =>
     match(conn.metadata.host || conn.metadata.destinationIP || ""),
@@ -104,21 +115,25 @@ const ConnectionsPage = () => {
   return (
     <BasePage
       full
-      title={<span style={{ whiteSpace: "nowrap" }}>{t("Connections")}</span>}
+      title={
+        <span style={{ whiteSpace: "nowrap" }}>
+          {t("pages.connections.title")}
+        </span>
+      }
       contentStyle={{ height: "100%" }}
       header={
         <div className="mx-2 flex items-center overflow-hidden">
           <div className="flex w-full items-center space-x-2 p-2">
             <div className="flex w-fit items-center space-x-4">
               <div className="flex w-full items-center space-x-1">
-                <Tooltip title={t("Total Uploaded")}>
+                <Tooltip title={t("pages.connections.columns.totalUploaded")}>
                   <Upload fontSize="small" />
                 </Tooltip>
                 <span className="text-sm">{totalUpload[0]}</span>
                 <span className="text-sm">{totalUpload[1]}</span>
               </div>
               <div className="flex w-full items-center space-x-1">
-                <Tooltip title={t("Total Downloaded")}>
+                <Tooltip title={t("pages.connections.columns.totalDownloaded")}>
                   <Download fontSize="small" />
                 </Tooltip>
                 <span className="text-sm">{totalDownload[0]}</span>
@@ -128,7 +143,11 @@ const ConnectionsPage = () => {
             <IconButton
               color="inherit"
               size="small"
-              title={isTableLayout ? t("List View") : t("Table View")}
+              title={
+                isTableLayout
+                  ? t("pages.connections.view.list")
+                  : t("pages.connections.view.table")
+              }
               onClick={() =>
                 setConnectionsLayout(isTableLayout ? "list" : "table")
               }>
@@ -142,7 +161,7 @@ const ConnectionsPage = () => {
           <div>
             <Button size="small" variant="contained" onClick={onCloseAll}>
               <span style={{ whiteSpace: "nowrap" }}>
-                {t("Close All")}{" "}
+                {t("pages.connections.actions.closeAll")}{" "}
                 {isActiveTab ? filterConn.length : activeConns.length}
               </span>
             </Button>
@@ -170,7 +189,7 @@ const ConnectionsPage = () => {
                   gridApiRef.current.scroll({ top: 0 });
                 }
               }}>
-              {t("Active")} {activeConns.length}
+              {t("common.status.active")} {activeConns.length}
             </Button>
             <Button
               variant={!isActiveTab ? "contained" : "outlined"}
@@ -180,7 +199,7 @@ const ConnectionsPage = () => {
                   gridApiRef.current.scroll({ top: 0 });
                 }
               }}>
-              {t("Closed")} {closedConns.length}
+              {t("common.status.closed")} {closedConns.length}
             </Button>
           </ButtonGroup>
           {!isTableLayout && isActiveTab && (
@@ -189,9 +208,9 @@ const ConnectionsPage = () => {
               onChange={(e) =>
                 setOrderType(e.target.value as ConnectionsOrderType)
               }>
-              {Object.keys(orderOpts).map((opt) => (
+              {Object.entries(orderOpts).map(([opt, config]) => (
                 <MenuItem key={opt} value={opt}>
-                  <span style={{ fontSize: 14 }}>{t(opt)}</span>
+                  <span style={{ fontSize: 14 }}>{t(config.labelKey)}</span>
                 </MenuItem>
               ))}
             </BaseStyledSelect>
@@ -213,7 +232,7 @@ const ConnectionsPage = () => {
             boxSizing: "border-box",
           })}>
           {filterConn.length === 0 ? (
-            <BaseEmpty text={t("No Connections")} />
+            <BaseEmpty text={t("common.empty.noConnections")} />
           ) : isTableLayout ? (
             <ConnectionTable
               gridApiRef={gridApiRef}
@@ -252,7 +271,7 @@ const ConnectionsPage = () => {
             color="primary"
             onClick={() => clearClosedConnections()}>
             <DeleteForeverRounded sx={{ mr: 1 }} fontSize="small" />
-            {t("Clear")}
+            {t("common.actions.clear")}
           </Fab>
         </Zoom>
       </div>

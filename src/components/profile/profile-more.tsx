@@ -111,7 +111,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
 
   const menus = [
     {
-      label: "Enable",
+      label: "common.actions.enable",
       icon: <CheckCircle fontSize="small" />,
       handler: fnWrapper(async () => {
         setToggling(true);
@@ -120,17 +120,17 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
       }),
     },
     {
-      label: "Edit",
+      label: "common.actions.edit",
       icon: <Edit fontSize="small" />,
       handler: onEditFile,
     },
     {
-      label: "Open File",
+      label: "pages.profiles.actions.openFile",
       icon: <FileOpen fontSize="small" />,
       handler: onOpenFile,
     },
     {
-      label: "Delete",
+      label: "common.actions.delete",
       icon: <Delete fontSize="small" color="error" />,
       handler: () => {
         setAnchorEl(null);
@@ -141,7 +141,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
 
   if (selected) {
     menus.splice(0, 1, {
-      label: "Disable",
+      label: "common.actions.disable",
       icon: <Block fontSize="small" />,
       handler: fnWrapper(async () => {
         setToggling(true);
@@ -226,7 +226,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
                 size="small"
                 edge="start"
                 color="error"
-                title={t("Script Console")}
+                title={t("pages.profiles.runtime.scriptConsole")}
                 onClick={() => setLogOpen(true)}>
                 <Badge color="error" variant="dot">
                   <Terminal fontSize="medium" />
@@ -237,7 +237,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
                 size="small"
                 edge="start"
                 color="inherit"
-                title={t("Script Console")}
+                title={t("pages.profiles.runtime.scriptConsole")}
                 onClick={() => setLogOpen(true)}>
                 <StyledBadge badgeContent={logs.length} color="primary">
                   <Terminal fontSize="medium" />
@@ -282,7 +282,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
               </ListItemIcon>
               <ListItemText
                 className={cn("text-primary-main", {
-                  "text-error-main": item.label === "Delete",
+                  "text-error-main": item.label === "common.actions.delete",
                 })}>
                 {t(item.label)}
               </ListItemText>
@@ -303,8 +303,8 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         onClose={() => setFileOpen(false)}
       />
       <ConfirmViewer
-        title={t("Confirm deletion")}
-        message={t("This operation is not reversible")}
+        title={t("pages.profiles.dialog.confirmDeletion")}
+        message={t("pages.profiles.dialog.confirmDeletionMessage")}
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={async () => {

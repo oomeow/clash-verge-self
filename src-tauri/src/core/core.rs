@@ -4,7 +4,6 @@ use std::{
         Arc,
         atomic::{AtomicBool, AtomicUsize, Ordering},
     },
-    time::Duration,
 };
 
 use once_cell::sync::OnceCell;
@@ -256,7 +255,6 @@ impl CoreManager {
                     }
                     CommandEvent::Terminated(_) => {
                         tracing::info!("mihomo core terminated, check if need to restart after 1 second");
-                        tokio::time::sleep(Duration::from_secs(1)).await;
                         let core_manager = CoreManager::global();
                         let restart_core_count = core_manager.restart_core_count.load(Ordering::SeqCst);
                         if restart_core_count >= MAX_RESTART_CORE_COUNT {

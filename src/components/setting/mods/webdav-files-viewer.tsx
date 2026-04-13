@@ -90,9 +90,9 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
         setDeletingFile(file.filename);
         await deleteBackup(file.filename);
         await getAllBackupFiles();
-        notice("success", t("Delete Backup Successful"));
+        notice("success", t("messages.backup.deleteSuccess"));
       } catch (e) {
-        notice("error", t("Delete Backup Failed", { error: e }));
+        notice("error", t("messages.backup.deleteFailed", { error: e }));
       } finally {
         setDeletingFile("");
       }
@@ -104,9 +104,9 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
         await downloadBackupAndReload(file.filename);
         await sleep(1000);
         setApplyingFile("");
-        notice("success", t("Apply Backup Successful"));
+        notice("success", t("messages.backup.applySuccess"));
       } catch (e) {
-        notice("error", t("Apply Backup Failed"));
+        notice("error", t("messages.backup.applyFailed"));
         setApplyingFile("");
       }
     });
@@ -118,7 +118,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
         contentStyle={{ width: 600 }}
         title={
           <div className="flex items-center justify-between">
-            {t("Backup Files")}
+            {t("pages.settings.verge.backup.files")}
             <div>
               <FormControl>
                 <RadioGroup
@@ -137,12 +137,12 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                   <FormControlLabel
                     value="all"
                     control={<Radio />}
-                    label={t("BK_All")}
+                    label={t("pages.settings.verge.backup.scopes.all")}
                   />
                   <FormControlLabel
                     value="profiles"
                     control={<Radio />}
-                    label={t("BK_Profiles")}
+                    label={t("pages.settings.verge.backup.scopes.profiles")}
                   />
                 </RadioGroup>
               </FormControl>
@@ -150,7 +150,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
           </div>
         }
         hideOkBtn
-        cancelBtn={t("Back")}
+        cancelBtn={t("common.actions.back")}
         onClose={() => setOpen(false)}
         onCancel={() => setOpen(false)}>
         <Box>
@@ -180,8 +180,8 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                         color="primary"
                         label={
                           file.type === "profiles"
-                            ? t("BK_Profiles")
-                            : t("BK_All")
+                            ? t("pages.settings.verge.backup.scopes.profiles")
+                            : t("pages.settings.verge.backup.scopes.all")
                         }
                       />
                       <span className="ml-4 text-xs text-gray-500 dark:text-gray-400">
@@ -199,7 +199,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                     size="small"
                     loadingPosition="start"
                     startIcon={<Delete />}>
-                    {t("Delete")}
+                    {t("common.actions.delete")}
                   </Button>
                   <div>
                     <Button
@@ -211,7 +211,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                       size="small"
                       loadingPosition="start"
                       startIcon={<Check />}>
-                      {t("Apply")}
+                      {t("common.actions.apply")}
                     </Button>
                   </div>
                 </div>

@@ -39,7 +39,7 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
       setTimeout(() => {
         mutateCheckService();
       }, 2000);
-      notice("success", t("Service Installed Successfully"));
+      notice("success", t("messages.settings.serviceInstalled"));
     } catch (err: any) {
       mutateCheckService();
       notice("error", err.message || err.toString());
@@ -55,7 +55,7 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
       await uninstallService();
       mutateCheckService();
       setOpen(false);
-      notice("success", t("Service Uninstalled Successfully"));
+      notice("success", t("messages.settings.serviceUninstalled"));
     } catch (err: any) {
       mutateCheckService();
       notice("error", err.message || err.toString());
@@ -77,7 +77,7 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("Service Mode")}
+      title={t("pages.settings.clash.serviceMode.label")}
       contentStyle={{ width: 360, userSelect: "text" }}
       hideFooter
       onClose={() => setOpen(false)}>
@@ -94,13 +94,12 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
                 color: state === "active" ? "primary.main" : "text.primary",
               },
             }}>
-            {t("Current State")}: {t(state)}
+            {t("pages.settings.clash.serviceMode.currentState")}:{" "}
+            {t(`common.status.service.${state}`)}
           </Typography>
           {(state === "unknown" || state === "uninstall") && (
             <Typography mt={1} fontSize={14} color={"text.secondary"}>
-              {t(
-                "Information: Please make sure that the Clash Verge Service is installed and enabled",
-              )}
+              {t("pages.settings.clash.serviceMode.info")}
             </Typography>
           )}
         </Box>
@@ -112,19 +111,19 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
         sx={{ mt: 4, justifyContent: "flex-end" }}>
         {state === "uninstall" && enable && (
           <Button variant="contained" onClick={onDisable}>
-            {t("Disable Service Mode")}
+            {t("pages.settings.clash.serviceMode.disable")}
           </Button>
         )}
 
         {state === "uninstall" && (
           <Button variant="contained" onClick={onInstall}>
-            {t("Install")}
+            {t("common.actions.install")}
           </Button>
         )}
 
         {(state === "active" || state === "installed") && (
           <Button variant="contained" color="error" onClick={onUninstall}>
-            {t("Uninstall")}
+            {t("common.actions.uninstall")}
           </Button>
         )}
       </Stack>

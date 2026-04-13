@@ -70,7 +70,7 @@ impl Handle {
     }
 
     /// notification message on the front-end that the message will be converted according to the front-end i18n native language
-    pub fn notice_message<M: Into<String>>(status: NoticeStatus, msg: M) {
+    pub fn notice_message<S: Into<String>>(status: NoticeStatus, msg: S) {
         if let Some(window) = Self::get_window() {
             log_err!(window.emit(
                 "verge://notice-message",

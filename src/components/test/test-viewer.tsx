@@ -106,18 +106,34 @@ export const TestViewer = forwardRef<TestViewerRef, Props>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={openType === "new" ? t("Create Test") : t("Edit Test")}
+      title={
+        openType === "new"
+          ? t("pages.test.dialog.createTitle")
+          : t("pages.test.dialog.editTitle")
+      }
       contentStyle={{ width: 375 }}
-      okBtn={t("Save")}
-      cancelBtn={t("Cancel")}
+      okBtn={t("common.actions.save")}
+      cancelBtn={t("common.actions.cancel")}
       onClose={handleClose}
       onCancel={handleClose}
       onOk={handleSubmit(onSubmit)}
       loading={loading}>
       <form>
-        <TextField {...text} {...register("name")} label={t("Name")} />
-        <TextField {...text} {...register("icon")} label={t("Icon")} />
-        <TextField {...text} {...register("url")} label={t("Test URL")} />
+        <TextField
+          {...text}
+          {...register("name")}
+          label={t("common.fields.name")}
+        />
+        <TextField
+          {...text}
+          {...register("icon")}
+          label={t("common.fields.icon")}
+        />
+        <TextField
+          {...text}
+          {...register("url")}
+          label={t("pages.test.fields.url")}
+        />
       </form>
     </BaseDialog>
   );

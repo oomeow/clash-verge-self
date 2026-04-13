@@ -188,7 +188,7 @@ export const ProfileEditorViewer = (props: Props) => {
     formIns.handleSubmit(async (form) => {
       const isSame = isEqual(form, profileItem);
       if (isSame) {
-        notice("info", t("Profile Config No Change"));
+        notice("info", t("messages.profiles.configUnchanged"));
         return;
       }
       try {
@@ -217,7 +217,7 @@ export const ProfileEditorViewer = (props: Props) => {
 
         if (!form.uid) throw new Error("UID not found");
         await patchProfile(form.uid, item);
-        notice("success", t("Profile Config Updated"));
+        notice("success", t("messages.profiles.configUpdated"));
         mutate("getProfiles");
       } catch (err: any) {
         notice("error", err.message || err.toString());
@@ -260,7 +260,7 @@ export const ProfileEditorViewer = (props: Props) => {
       if (!curContentSaved) {
         const saveStatus = !!(await profileEditorRef.current?.save());
         if (!saveStatus) {
-          notice("error", t("Save Content Failed"));
+          notice("error", t("messages.profiles.contentSaveFailed"));
           return;
         }
         // 延迟 1s 后，执行订阅配置项更新操作
@@ -278,10 +278,10 @@ export const ProfileEditorViewer = (props: Props) => {
     <>
       <BaseDialog
         open={open}
-        title={title ?? t("Edit File")}
+        title={title ?? t("pages.profiles.actions.editFile")}
         full
-        cancelBtn={t("Cancel")}
-        okBtn={t("Save")}
+        cancelBtn={t("common.actions.cancel")}
+        okBtn={t("common.actions.save")}
         onClose={() => {
           setEditProfile(profileItem);
           setExpand(type !== "clash");
@@ -305,7 +305,7 @@ export const ProfileEditorViewer = (props: Props) => {
                   <span className="text-md font-bold">{profileName}</span>
                 </Marquee>
                 <Chip
-                  label={t(formType || "local")}
+                  label={t(`pages.proxies.modes.${formType || "local"}`)}
                   size="small"
                   color="primary"
                   className="mr-1 ml-2"
@@ -337,7 +337,7 @@ export const ProfileEditorViewer = (props: Props) => {
                       {...text}
                       {...field}
                       required
-                      label={t("Name")}
+                      label={t("common.fields.name")}
                     />
                   )}
                 />
@@ -345,7 +345,11 @@ export const ProfileEditorViewer = (props: Props) => {
                   name="desc"
                   control={control}
                   render={({ field }) => (
-                    <TextField {...text} {...field} label={t("Descriptions")} />
+                    <TextField
+                      {...text}
+                      {...field}
+                      label={t("common.fields.description")}
+                    />
                   )}
                 />
                 {isRemote && (
@@ -358,7 +362,7 @@ export const ProfileEditorViewer = (props: Props) => {
                           {...text}
                           {...field}
                           multiline
-                          label={t("Subscription URL")}
+                          label={t("pages.profiles.fields.subscriptionUrl")}
                         />
                       )}
                     />
@@ -382,7 +386,7 @@ export const ProfileEditorViewer = (props: Props) => {
                               .slice(0, 10);
                             field.onChange(e);
                           }}
-                          label={t("Update Interval")}
+                          label={t("pages.profiles.fields.updateInterval")}
                           slotProps={{
                             input: {
                               endAdornment: (
@@ -400,7 +404,9 @@ export const ProfileEditorViewer = (props: Props) => {
                       control={control}
                       render={({ field }) => (
                         <StyledDiv>
-                          <InputLabel>{t("Use System Proxy")}</InputLabel>
+                          <InputLabel>
+                            {t("pages.profiles.fields.useSystemProxy")}
+                          </InputLabel>
                           <SwitchLovely
                             checked={field.value}
                             {...field}
@@ -414,7 +420,9 @@ export const ProfileEditorViewer = (props: Props) => {
                       control={control}
                       render={({ field }) => (
                         <StyledDiv>
-                          <InputLabel>{t("Use Clash Proxy")}</InputLabel>
+                          <InputLabel>
+                            {t("pages.profiles.fields.useClashProxy")}
+                          </InputLabel>
                           <SwitchLovely
                             checked={field.value}
                             {...field}
@@ -429,7 +437,9 @@ export const ProfileEditorViewer = (props: Props) => {
                       render={({ field }) => (
                         <StyledDiv>
                           <InputLabel>
-                            {t("Accept Invalid Certs (Danger)")}
+                            {t(
+                              "pages.profiles.fields.acceptInvalidCertsDanger",
+                            )}
                           </InputLabel>
                           <SwitchLovely
                             checked={field.value}
@@ -450,7 +460,7 @@ export const ProfileEditorViewer = (props: Props) => {
                   variant="fullWidth"
                   className="my-2 text-sm text-gray-400"
                   flexItem>
-                  {t("Enhance Scripts")}
+                  {t("pages.profiles.actions.enhanceScripts")}
                 </Divider>
                 <div className="px-2">
                   <Button
@@ -459,7 +469,7 @@ export const ProfileEditorViewer = (props: Props) => {
                     fullWidth
                     startIcon={<Add />}
                     onClick={() => viewerRef.current?.create(profileUid)}>
-                    {t("Add")}
+                    {t("common.actions.add")}
                   </Button>
 
                   <ProfileViewer
@@ -541,9 +551,9 @@ export const ProfileEditorViewer = (props: Props) => {
           />
 
           <ConfirmViewer
-            title={t("Save Content", { keymap: "" })}
+            title={t("messages.profiles.saveContent", { keymap: "" })}
             open={saveConfirmOpen}
-            message={t("Ask Save Content Now")}
+            message={t("messages.profiles.askSaveContentNow")}
             onConfirm={() => handleConfirm()}
             onClose={() => handleCancel()}
           />

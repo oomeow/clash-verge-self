@@ -66,7 +66,7 @@ export const LayoutTraffic = () => {
   const restartClashCore = debounce(async () => {
     try {
       await restartSidecar();
-      notice("success", t(`Clash Core Restarted`), 1000);
+      notice("success", t(`messages.clash.core.restarted`), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString());
     }
@@ -105,7 +105,7 @@ export const LayoutTraffic = () => {
 
         {displayMemory && (
           <Box display="flex" alignItems="center" whiteSpace="nowrap">
-            <Tooltip title={t("Restart")}>
+            <Tooltip title={t("common.actions.restart")}>
               <IconButton
                 color="primary"
                 sx={{ p: 0 }}
@@ -117,7 +117,7 @@ export const LayoutTraffic = () => {
               </IconButton>
             </Tooltip>
             <Box
-              title={t("Memory Usage")}
+              title={t("pages.settings.verge.layout.memoryUsage")}
               display={"flex"}
               flexGrow={1}
               alignItems={"center"}>

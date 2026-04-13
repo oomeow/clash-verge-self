@@ -27,7 +27,7 @@ const SettingPage = () => {
 
   return (
     <BasePage
-      title={t("Settings")}
+      title={t("pages.settings.title")}
       contentStyle={{ height: "100%" }}
       header={
         <IconButton

@@ -41,7 +41,7 @@ export const FileInput = (props: Props) => {
         variant="outlined"
         sx={{ flex: "none" }}
         onClick={() => inputRef.current?.click()}>
-        {t("Choose File")}
+        {t("common.actions.chooseFile")}
       </Button>
 
       <input

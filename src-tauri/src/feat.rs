@@ -85,9 +85,9 @@ pub fn toggle_system_proxy() {
 pub fn toggle_service_mode() {
     let enable = Config::verge().latest().enable_service_mode.unwrap_or(false);
     let toggle_failed_msg = if enable {
-        t!("disable.failed")
+        t!("notice.disable.failed")
     } else {
-        t!("enable.failed")
+        t!("notice.enable.failed")
     };
 
     tauri::async_runtime::spawn(async move {
@@ -114,7 +114,7 @@ pub fn toggle_service_mode() {
                 tracing::error!("toggle service mode failed: {err}");
                 let status = handle::Handle::show_block_dialog(
                     "Clash Verge Service",
-                    t!("install.service.ask"),
+                    t!("dialog.install.service.ask"),
                     MessageDialogKind::Info,
                     MessageDialogButtons::OkCancel,
                 )
@@ -132,9 +132,9 @@ pub fn toggle_service_mode() {
 pub fn toggle_tun_mode() {
     let enable = Config::clash().data().get_enable_tun();
     let toggle_failed_msg = if enable {
-        t!("disable.failed")
+        t!("notice.disable.failed")
     } else {
-        t!("enable.failed")
+        t!("notice.enable.failed")
     };
 
     let mut tun = Mapping::new();
@@ -188,7 +188,7 @@ pub fn toggle_tun_mode() {
                     tracing::error!("toggle service mode failed: {err}");
                     let status = handle::Handle::show_block_dialog(
                         "Clash Verge Service",
-                        t!("install.service.ask"),
+                        t!("dialog.install.service.ask"),
                         MessageDialogKind::Info,
                         MessageDialogButtons::OkCancel,
                     )
@@ -214,7 +214,10 @@ pub fn toggle_tun_mode() {
 /// 安装并运行服务 (仅内核)
 async fn install_and_run_service() -> AppResult<()> {
     if let Err(err) = cmds::service::install_service().await {
-        handle::Handle::notify("Clash Verge Service", format!("{}, {}", t!("install.failed"), err));
+        handle::Handle::notify(
+            "Clash Verge Service",
+            format!("{}, {}", t!("notice.install.failed"), err),
+        );
         return Err(AppError::Service(format!("{err}")));
     }
     if let Err(err) = patch_verge(IVerge {
@@ -225,11 +228,11 @@ async fn install_and_run_service() -> AppResult<()> {
     {
         handle::Handle::notify(
             "Clash Verge Service",
-            format!("{}, {}", t!("service.install.run.failed"), err),
+            format!("{}, {}", t!("notice.service.install.run.failed"), err),
         );
         return Err(err);
     }
-    handle::Handle::notify("Clash Verge Service", t!("service.install.run.success"));
+    handle::Handle::notify("Clash Verge Service", t!("notice.service.install.run.success"));
     handle::Handle::refresh_verge();
     Ok(())
 }
@@ -357,16 +360,16 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
                         .clone()
                         .unwrap_or("self-mihomo".to_string());
                     if check_permissions_granted(mihomo_core)? {
-                        Err(any_err!("{}", t!("tun.busy")))
+                        Err(any_err!("{}", t!("error.tun.busy")))
                     } else {
-                        Err(any_err!("{}", t!("tun.need.permissions")))
+                        Err(any_err!("{}", t!("error.tun.needPermissions")))
                     }
                 } else {
-                    Err(any_err!("{}", t!("tun.busy")))
+                    Err(any_err!("{}", t!("error.tun.busy")))
                 }
             }
             #[cfg(not(target_os = "linux"))]
-            Err(any_err!("{}", t!("tun.busy")))
+            Err(any_err!("{}", t!("error.tun.busy")))
         } else {
             // 重新载入订阅
             if patch.get("unified-delay").is_some() {

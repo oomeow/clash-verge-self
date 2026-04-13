@@ -34,14 +34,16 @@ const SettingSystem = ({ onError }: Props) => {
   };
 
   return (
-    <SettingList title={t("System Setting")}>
+    <SettingList title={t("pages.settings.system.title")}>
       {sysproxyRef.mounted && <SysproxyViewer ref={sysproxyRef.dialogRef} />}
 
       <SettingItem
-        label={t("System Proxy")}
+        label={t("pages.settings.system.proxy.label")}
         extra={
           <>
-            <Tooltip title={t("System Proxy Info")} placement="top">
+            <Tooltip
+              title={t("pages.settings.system.proxy.info")}
+              placement="top">
               <IconButton color="inherit" size="small">
                 <InfoRounded
                   fontSize="inherit"
@@ -71,7 +73,7 @@ const SettingSystem = ({ onError }: Props) => {
         </GuardState>
       </SettingItem>
 
-      <SettingItem label={t("Auto Launch")}>
+      <SettingItem label={t("pages.settings.system.autoLaunch")}>
         <GuardState
           value={enable_auto_launch ?? false}
           valueProps="checked"
@@ -83,7 +85,7 @@ const SettingSystem = ({ onError }: Props) => {
         </GuardState>
       </SettingItem>
 
-      <SettingItem label={t("Silent Start")}>
+      <SettingItem label={t("pages.settings.system.silentStart.label")}>
         <ButtonGroup size="small" sx={{ my: "4px" }}>
           {(["bootup", "global", "off"] as const).map((mode) => (
             <Button
@@ -91,7 +93,7 @@ const SettingSystem = ({ onError }: Props) => {
               variant={mode === silent_start_mode ? "contained" : "outlined"}
               onClick={(e) => patchVerge({ silent_start_mode: mode })}
               sx={{ textTransform: "capitalize" }}>
-              {t(`silent.${mode}`)}
+              {t(`pages.settings.system.silentStart.options.${mode}`)}
             </Button>
           ))}
         </ButtonGroup>

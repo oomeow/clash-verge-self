@@ -1,0 +1,76 @@
+tray:
+  dashboard: Открыть панель
+  mode:
+    rule: Режим правил
+    global: Глобальный режим
+    direct: Прямой режим
+  proxy:
+    system: Системный прокси
+    tun: Tun-режим
+  service: Режим службы
+  copy:
+    env: Копировать переменные окружения
+  open:
+    dir: Открыть каталог
+    app:
+      dir: Каталог приложения
+    core:
+      dir: Каталог ядра
+    log:
+      dir: Каталог логов
+    devtools: Открыть инструменты разработчика
+  more: Ещё
+  restart:
+    clash: Перезапустить Clash
+    app: Перезапустить приложение
+  quit: Выход
+  current:
+    profile: Текущая подписка
+  profiles:
+    switch:
+      title: Переключить подписку
+      success: Подписка успешно переключена
+      failed: Не удалось переключить подписку
+
+notice:
+  disable:
+    failed: Не удалось отключить
+  enable:
+    failed: Не удалось включить
+  install:
+    failed: Не удалось установить
+  service:
+    install:
+      run:
+        failed: Установка завершена, но не удалось запустить службу Clash Verge Self Service
+        success: Служба Clash Verge Self Service установлена и запущена
+  import:
+    success: Файл подписки успешно импортирован
+    failed: Не удалось импортировать файл подписки
+
+dialog:
+  install:
+    service:
+      ask: "Служба Clash Verge Self Service не установлена\nУстановить и запустить службу сейчас?"
+  panic:
+    title: Сбой Clash Verge Self
+    backtrace: "Трассировка стека:\n%{backtrace}"
+    displayBacktraceNote: "Примечание: запустите с переменной окружения `RUST_BACKTRACE=1`, чтобы показать трассировку"
+    content: "Место: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nДля дополнительной информации о panic проверьте файл журнала:\n  %{log_file}"
+
+error:
+  tun:
+    busy: Устройство Tun или ресурс заняты, перезапуск ядра может помочь
+    needPermissions: Перед включением Tun-режима предоставьте ядру необходимые разрешения или установите и включите режим службы
+  config:
+    parseFailed: Не удалось разобрать конфигурацию как YAML-файл
+    convertFailed: Не удалось преобразовать конфигурацию в YAML
+  runtime:
+    config:
+      getFailed: Не удалось получить конфигурацию времени выполнения
+  clash:
+    restartFailed: Не удалось перезапустить ядро Clash
+  sysproxy:
+    updateFailed: Не удалось обновить системный прокси
+    pac:
+      updateFailed: Не удалось обновить настройки PAC-прокси

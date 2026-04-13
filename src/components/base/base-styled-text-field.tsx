@@ -12,7 +12,7 @@ export const BaseStyledTextField = styled((props: TextFieldProps) => {
       autoComplete="off"
       variant="outlined"
       spellCheck="false"
-      placeholder={t("Filter conditions")}
+      placeholder={t("common.search.filterConditions")}
       sx={{ input: { py: 0.65, px: 1.25 } }}
       {...props}
     />

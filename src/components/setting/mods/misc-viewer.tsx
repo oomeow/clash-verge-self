@@ -65,16 +65,18 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("Miscellaneous")}
+      title={t("pages.settings.verge.misc.title")}
       contentStyle={{ width: 450 }}
-      okBtn={t("Save")}
-      cancelBtn={t("Cancel")}
+      okBtn={t("common.actions.save")}
+      cancelBtn={t("common.actions.cancel")}
       onClose={() => setOpen(false)}
       onCancel={() => setOpen(false)}
       onOk={onSave}>
       <List>
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Auto Close Connections")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.autoCloseConnections")}
+          />
           <SwitchLovely
             edge="end"
             checked={values.autoCloseConnection}
@@ -85,7 +87,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Auto Check Update")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.autoCheckUpdate")}
+          />
           <SwitchLovely
             edge="end"
             checked={values.autoCheckUpdate}
@@ -96,7 +100,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Enable Builtin Enhanced")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.enableBuiltinEnhanced")}
+          />
           <SwitchLovely
             edge="end"
             checked={values.enableBuiltinEnhanced}
@@ -107,7 +113,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Proxy Layout Column")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.proxyLayoutColumn")}
+          />
           <Select
             size="small"
             sx={{ width: 135, "> div": { py: "7.5px" } }}
@@ -119,7 +127,7 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
               }));
             }}>
             <MenuItem value={6} key={6}>
-              Auto
+              {t("common.actions.auto")}
             </MenuItem>
             {[1, 2, 3, 4, 5].map((i) => (
               <MenuItem value={i} key={i}>
@@ -130,7 +138,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Auto Log Clean")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.autoLogClean.label")}
+          />
           <Select
             size="small"
             sx={{ width: 135, "> div": { py: "7.5px" } }}
@@ -142,10 +152,22 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
               }));
             }}>
             {[
-              { key: "Never Clean", value: 0 },
-              { key: "Retain 7 Days", value: 1 },
-              { key: "Retain 30 Days", value: 2 },
-              { key: "Retain 90 Days", value: 3 },
+              {
+                key: "pages.settings.verge.misc.autoLogClean.options.never",
+                value: 0,
+              },
+              {
+                key: "pages.settings.verge.misc.autoLogClean.options.sevenDays",
+                value: 1,
+              },
+              {
+                key: "pages.settings.verge.misc.autoLogClean.options.thirtyDays",
+                value: 2,
+              },
+              {
+                key: "pages.settings.verge.misc.autoLogClean.options.ninetyDays",
+                value: 3,
+              },
             ].map((i) => (
               <MenuItem key={i.value} value={i.value}>
                 {t(i.key)}
@@ -155,7 +177,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Default Latency Test")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.defaultLatencyTest")}
+          />
           <TextField
             size="small"
             autoComplete="off"
@@ -172,7 +196,9 @@ export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
         </ListItem>
 
         <ListItem sx={{ padding: "5px 2px" }}>
-          <ListItemText primary={t("Default Latency Timeout")} />
+          <ListItemText
+            primary={t("pages.settings.verge.misc.defaultLatencyTimeout")}
+          />
           <TextField
             size="small"
             type="number"

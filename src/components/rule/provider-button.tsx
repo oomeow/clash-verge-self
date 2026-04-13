@@ -98,7 +98,7 @@ export const ProviderButton = () => {
         variant="outlined"
         sx={{ textTransform: "capitalize" }}
         onClick={() => setOpen(true)}>
-        {t("Rule Provider")}
+        {t("pages.rules.provider")}
       </Button>
 
       <BaseDialog
@@ -106,14 +106,14 @@ export const ProviderButton = () => {
         title={
           <Box display="flex" justifyContent={"space-between"} gap={1}>
             <Box display={"flex"} alignItems={"center"}>
-              <Typography variant="h6">{t("Rule Provider")}</Typography>
+              <Typography variant="h6">{t("pages.rules.provider")}</Typography>
               <TypeSpan sx={{ ml: 1, fontSize: 14 }}>{entries.length}</TypeSpan>
             </Box>
             <Button
               variant="contained"
               size="small"
               onClick={async () => await updateAll()}>
-              {t("Update All")}
+              {t("common.actions.updateAll")}
             </Button>
           </Box>
         }
@@ -152,14 +152,14 @@ export const ProviderButton = () => {
                   <StyledTypeSpan>{item?.vehicleType}</StyledTypeSpan>
                   <StyledTypeSpan>{item?.behavior}</StyledTypeSpan>
                   <StyledTypeSpan>
-                    {t("Update At")} {time.fromNow()}
+                    {t("pages.proxies.updateAt")} {time.fromNow()}
                   </StyledTypeSpan>
                 </div>
                 <Divider orientation="vertical" flexItem />
                 <IconButton
                   size="small"
                   color="inherit"
-                  title={`${t("Update")}${t("Rule Provider")}`}
+                  title={`${t("common.actions.update")}${t("pages.rules.provider")}`}
                   onClick={async () => await updateOne(key)}>
                   <RefreshRounded
                     className={cn({

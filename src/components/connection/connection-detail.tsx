@@ -63,37 +63,46 @@ const InnerConnectionDetail = ({ data, active, onClose }: InnerProps) => {
     : `${metadata.destinationIP}:${metadata.destinationPort}`;
 
   const information = [
-    { label: t("Type"), value: `${metadata.type}(${metadata.network})` },
-    { label: t("Host"), value: host },
-    { label: t("Downloaded"), value: parseTraffic(data.download).join(" ") },
-    { label: t("Uploaded"), value: parseTraffic(data.upload).join(" ") },
     {
-      label: t("DL Speed"),
+      label: t("common.fields.type"),
+      value: `${metadata.type}(${metadata.network})`,
+    },
+    { label: t("common.fields.host"), value: host },
+    {
+      label: t("pages.connections.columns.downloaded"),
+      value: parseTraffic(data.download).join(" "),
+    },
+    {
+      label: t("pages.connections.columns.uploaded"),
+      value: parseTraffic(data.upload).join(" "),
+    },
+    {
+      label: t("pages.connections.columns.dlSpeed"),
       value: `${parseTraffic(data.curDownload ?? -1).join(" ")}/s`,
     },
     {
-      label: t("UL Speed"),
+      label: t("pages.connections.columns.ulSpeed"),
       value: `${parseTraffic(data.curUpload ?? -1).join(" ")}/s`,
     },
-    { label: t("Chains"), value: chains },
-    { label: t("Rule"), value: rule },
+    { label: t("pages.connections.columns.chains"), value: chains },
+    { label: t("pages.connections.columns.rule"), value: rule },
     {
-      label: t("Process"),
+      label: t("common.fields.process"),
       value: `${metadata.process}${
         metadata.processPath ? `(${metadata.processPath})` : ""
       }`,
     },
     {
-      label: t("Source"),
+      label: t("common.fields.source"),
       value: `${metadata.sourceIP}:${metadata.sourcePort}`,
     },
     {
-      label: t("Destination"),
+      label: t("common.fields.destination"),
       value: metadata.destinationIP
         ? `${metadata.destinationIP}`
         : `${metadata.remoteDestination}`,
     },
-    { label: t("Time"), value: dayjs(data.start).fromNow() },
+    { label: t("common.fields.time"), value: dayjs(data.start).fromNow() },
   ];
 
   const onDelete = useLockFn(async () => closeConnection(data.id));
@@ -113,12 +122,12 @@ const InnerConnectionDetail = ({ data, active, onClose }: InnerProps) => {
         <Box sx={{ textAlign: "right" }}>
           <Button
             variant="contained"
-            title={t("Close Connection")}
+            title={t("pages.connections.actions.closeConnection")}
             onClick={() => {
               onDelete();
               onClose?.();
             }}>
-            {t("Close Connection")}
+            {t("pages.connections.actions.closeConnection")}
           </Button>
         </Box>
       )}

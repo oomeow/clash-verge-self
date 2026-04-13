@@ -25,37 +25,37 @@ export const Route = createRootRoute({
 
 export const routes = [
   {
-    label: "Label-Proxies",
+    label: "navigation.sidebar.proxies",
     path: "/",
     icon: [<WifiRoundedIcon />, <ProxiesSvg />],
   },
   {
-    label: "Label-Profiles",
+    label: "navigation.sidebar.profiles",
     path: "/profiles",
     icon: [<DnsRoundedIcon />, <ProfilesSvg />],
   },
   {
-    label: "Label-Connections",
+    label: "navigation.sidebar.connections",
     path: "/connections",
     icon: [<LanguageRoundedIcon />, <ConnectionsSvg />],
   },
   {
-    label: "Label-Rules",
+    label: "navigation.sidebar.rules",
     path: "/rules",
     icon: [<ForkRightRoundedIcon />, <RulesSvg />],
   },
   {
-    label: "Label-Logs",
+    label: "navigation.sidebar.logs",
     path: "/logs",
     icon: [<SubjectRoundedIcon />, <LogsSvg />],
   },
   {
-    label: "Label-Test",
+    label: "navigation.sidebar.test",
     path: "/test",
     icon: [<WifiTetheringRoundedIcon />, <TestSvg />],
   },
   {
-    label: "Label-Settings",
+    label: "navigation.sidebar.settings",
     path: "/settings",
     icon: [<SettingsRoundedIcon />, <SettingsSvg />],
   },
