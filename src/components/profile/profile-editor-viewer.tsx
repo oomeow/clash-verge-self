@@ -275,9 +275,9 @@ export const ProfileEditorViewer = (props: Props) => {
   return (
     <>
       <BaseDialog
+        full
         open={open}
         title={title ?? t("pages.profiles.actions.editFile")}
-        full
         cancelBtn={t("common.actions.cancel")}
         okBtn={t("common.actions.save")}
         onClose={() => {
