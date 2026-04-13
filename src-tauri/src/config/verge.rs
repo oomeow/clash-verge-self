@@ -263,7 +263,7 @@ impl IVerge {
                 }
 
                 if let Some(language) = config.language.as_ref()
-                    && language != "zh_CN"
+                    && language == "zh"
                 {
                     config.language = Some("zh_CN".into());
                 }
