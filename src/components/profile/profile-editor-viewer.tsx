@@ -86,7 +86,6 @@ export const ProfileEditorViewer = (props: Props) => {
   const profileUid = profileItem.uid;
   const isRunningProfile = current?.uid === profileUid;
   const [editProfile, setEditProfile] = useState<IProfileItem>(profileItem);
-  const [appVersion, setAppVersion] = useState("");
   const [curContentSaved, setCurContentSaved] = useState(true);
   const profileEditorRef = useRef<ProfileEditorHandle>(null);
   // confirm saved when edit other profile
@@ -123,7 +122,6 @@ export const ProfileEditorViewer = (props: Props) => {
   useEffect(() => {
     if (!open) return;
     getVersion().then((version) => {
-      setAppVersion(version);
       if (isRemote) {
         formIns.setValue("option.user_agent", `clash-verge/${version}`);
       }
@@ -180,7 +178,7 @@ export const ProfileEditorViewer = (props: Props) => {
   });
 
   const refreshChain = async () => {
-    let chain = await getChains(profileUid);
+    const chain = await getChains(profileUid);
     setChain(chain);
   };
 
@@ -493,7 +491,7 @@ export const ProfileEditorViewer = (props: Props) => {
                       onDragEnd={(e) => handleChainDragEnd(e)}
                       onDragCancel={() => setDraggingItem(null)}>
                       <SortableContext items={chain.map((i) => i.uid)}>
-                        {chain.map((item, index) => (
+                        {chain.map((item, _index) => (
                           <DraggableItem key={item.uid} id={item.uid}>
                             <ProfileMoreMini
                               item={item}
@@ -501,7 +499,7 @@ export const ProfileEditorViewer = (props: Props) => {
                               reactivating={reactivating && item.enable}
                               selected={item.uid === editProfile.uid}
                               logs={chainLogs[item.uid]}
-                              onToggleEnableCallback={async (enabled) => {
+                              onToggleEnableCallback={async (_enabled) => {
                                 mutate("getRuntimeLogs");
                                 await refreshChain();
                               }}

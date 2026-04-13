@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import { enUS, zhCN } from "@mui/x-data-grid/locales";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { MouseEvent, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 const appWindow = getCurrentWebviewWindow();
 
 /**

@@ -64,7 +64,7 @@ export const useMihomoCoresInfo = () => {
   }, [enableGrantPermissions, clash_core, portable]);
 
   const refreshMihomoVersion = async (coresInfo: MihomoCoreInfo[]) => {
-    for (let core of MIHOMO_CORES) {
+    for (const core of MIHOMO_CORES) {
       const output = await Command.sidecar(`sidecar/${core}`, ["-v"]).execute();
       if (output.code === 0) {
         const regex = /(alpha-\w+|v\d+(?:\.\d+)*)/gm;
@@ -82,7 +82,7 @@ export const useMihomoCoresInfo = () => {
   const refreshMihomoPermissions = async (coresInfo: MihomoCoreInfo[]) => {
     if (enableGrantPermissions) {
       await refreshPermissionsGranted();
-      for (let core of MIHOMO_CORES) {
+      for (const core of MIHOMO_CORES) {
         const granted = await checkPermissionsGranted(core);
         coresInfo = coresInfo.map((c) =>
           c.core === core ? { ...c, permissionsGranted: granted } : c,

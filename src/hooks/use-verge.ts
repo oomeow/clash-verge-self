@@ -8,7 +8,7 @@ export const useVerge = () => {
     getVergeConfig,
     { suspense: true },
   );
-  const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
+  // const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
   const setLightThemeSetting = useThemeSettingsStore(
     (s) => s.setLightThemeSetting,
   );

@@ -25,7 +25,7 @@ import { exists } from "@tauri-apps/plugin-fs";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export const LayoutViewer = forwardRef<DialogRef>((props, ref) => {
+export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
   const appWindow = getCurrentWebviewWindow();
   const OS = getSystem();
   const show_title_setting = OS === "linux" || OS === "windows";

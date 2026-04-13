@@ -63,9 +63,13 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
       if (e.buttons === 1) {
         // Primary (left) button
         const appWindow = getCurrentWindow();
-        e.detail === 2
-          ? appWindow.toggleMaximize() // Maximize on double click
-          : appWindow.startDragging(); // Else start dragging
+        if (e.detail === 2) {
+          // Maximize on double click
+          appWindow.toggleMaximize();
+        } else {
+          // Else start dragging
+          appWindow.startDragging();
+        }
       }
     });
   }, [titlebarRef.current, full]);

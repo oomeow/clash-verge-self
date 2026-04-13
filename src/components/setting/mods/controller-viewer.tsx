@@ -24,7 +24,7 @@ const DEFAULT_ALLOW_ORIGINS = [
   "https://yacd.metacubex.one",
 ];
 
-export const ControllerViewer = forwardRef<DialogRef>((props, ref) => {
+export const ControllerViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const [open, setOpen] = useState(false);

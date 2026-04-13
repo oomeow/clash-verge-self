@@ -32,7 +32,6 @@ import {
 import { useTranslation } from "react-i18next";
 import { useNotice } from "../base/notifies";
 import type { IDisposable, editor } from "monaco-editor";
-import { useAsyncEffect } from "ahooks";
 
 export type ProfileEditorHandle = {
   save: () => Promise<boolean>;
@@ -64,7 +63,7 @@ export const ProfileEditor = (props: Props) => {
     save: async () => {
       try {
         return await handleSave();
-      } catch (error) {
+      } catch (ignore) {
         return false;
       }
     },
@@ -209,7 +208,7 @@ export const ProfileEditor = (props: Props) => {
       label: "check run",
       keybindings: [monaco.KeyCode.F5],
       keybindingContext: "textInputFocus && editChain",
-      run: async (ed) => {
+      run: async (_ed) => {
         await handleRunCheck(profileItem.uid);
       },
     });

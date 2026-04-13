@@ -41,7 +41,7 @@ const DEFAULT_PAC = `function FindProxyForURL(url, host) {
 
 const OS = getSystem();
 
-export const SysproxyViewer = forwardRef<DialogRef>((props, ref) => {
+export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const isWindows = getSystem() === "windows";

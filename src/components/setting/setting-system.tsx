@@ -3,7 +3,6 @@ import { useVerge } from "@/hooks/use-verge";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Settings from "@mui/icons-material/Settings";
 import { Button, ButtonGroup, IconButton, Tooltip } from "@mui/material";
-import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { GuardState } from "./mods/guard-state";
 import { SettingItem, SettingList } from "./mods/setting-comp";
@@ -91,7 +90,7 @@ const SettingSystem = ({ onError }: Props) => {
             <Button
               key={mode}
               variant={mode === silent_start_mode ? "contained" : "outlined"}
-              onClick={(e) => patchVerge({ silent_start_mode: mode })}
+              onClick={() => patchVerge({ silent_start_mode: mode })}
               sx={{ textTransform: "capitalize" }}>
               {t(`pages.settings.system.silentStart.options.${mode}`)}
             </Button>

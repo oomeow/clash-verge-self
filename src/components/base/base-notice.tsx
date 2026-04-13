@@ -103,7 +103,6 @@ interface NoticeInstance {
 
 let parent: HTMLDivElement = null!;
 
-// @ts-ignore
 export const Notice: NoticeInstance = (props) => {
   if (!parent) {
     parent = document.createElement("div");

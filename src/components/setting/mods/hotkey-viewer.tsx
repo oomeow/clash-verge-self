@@ -33,7 +33,7 @@ const HOTKEY_LABEL_KEY: Record<(typeof HOTKEY_FUNC)[number], string> = {
   toggle_tun_mode: "pages.settings.verge.hotkeys.actions.toggleTunMode",
 };
 
-export const HotkeyViewer = forwardRef<DialogRef>((props, ref) => {
+export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const [open, setOpen] = useState(false);

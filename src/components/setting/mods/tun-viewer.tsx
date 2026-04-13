@@ -18,7 +18,7 @@ import { StackModeSwitch } from "./stack-mode-switch";
 
 const OS = getSystem();
 
-export const TunViewer = forwardRef<DialogRef>((props, ref) => {
+export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const { clash, mutateClash, patchClash } = useClash();
@@ -93,12 +93,12 @@ export const TunViewer = forwardRef<DialogRef>((props, ref) => {
 
   const onSave = useLockFn(async () => {
     if (isMacos) {
-      let device = values.device;
+      const device = values.device;
       if (!device.startsWith("utun")) {
         notice("error", t("messages.clash.tun.macosDeviceNameError"), 3000);
         return;
       } else {
-        let suffix = device.slice(3);
+        const suffix = device.slice(3);
         const isNotNumber = isNaN(Number(suffix));
         console.log(suffix, isNotNumber);
         if (isNotNumber) {

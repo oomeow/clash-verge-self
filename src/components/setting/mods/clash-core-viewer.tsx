@@ -41,8 +41,7 @@ interface Props {
 
 const OS = getSystem();
 
-export const ClashCoreViewer = forwardRef<DialogRef, Props>((props, ref) => {
-  const { serviceActive } = props;
+export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const { verge, mutateVerge } = useVerge();

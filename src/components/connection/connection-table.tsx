@@ -7,7 +7,6 @@ import {
   DataGrid,
   GridActionsCellItem,
   GridColDef,
-  GridSortModel,
   GridToolbarColumnsButton,
   GridToolbarFilterButton,
 } from "@mui/x-data-grid";
@@ -223,7 +222,7 @@ export const ConnectionTable = (props: Props) => {
       onColumnWidthChange={(p) => {
         setTabColumnWidth(p.colDef.field, p.width);
       }}
-      onSortModelChange={(p, d) => {
+      onSortModelChange={(p, _d) => {
         setTabSortModel(p.map((item) => ({ ...item })));
       }}
       onRowClick={(e) => onShowDetail(e.row.connectionData)}

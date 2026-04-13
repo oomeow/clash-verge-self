@@ -59,7 +59,7 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
   const { verge } = useVerge();
 
   useEffect(() => {
-    delayManager.setUrl(groupName, testUrl || verge?.default_latency_test!);
+    delayManager.setUrl(groupName, testUrl || verge?.default_latency_test);
   }, [groupName, testUrl, verge?.default_latency_test]);
 
   const filterChange = useMemo(

@@ -15,7 +15,7 @@ export const ScrollableText = ({
   const textRef = useRef<HTMLDivElement>(null);
 
   const [loopNum, setLoopNum] = useState(1);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [, setContainerWidth] = useState(0);
   const [textWidth, setTextWidth] = useState(0);
   const [shouldScroll, setShouldScroll] = useState(false);
 

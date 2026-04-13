@@ -5,14 +5,13 @@ import { checkPortAvailable } from "@/services/cmds";
 import getSystem from "@/utils/get-system";
 import { List, ListItem, ListItemText, TextField } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { uniq } from "lodash-es";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { mutate } from "swr";
 
 const OS = getSystem();
 
-export const ClashPortViewer = forwardRef<DialogRef>((props, ref) => {
+export const ClashPortViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 

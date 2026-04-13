@@ -24,7 +24,7 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import ThemeColorSelect from "./theme-color-select";
 
-export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
+export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
@@ -119,16 +119,16 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
               <Button
                 sx={{ textTransform: "capitalize" }}
                 variant={themeMode === "light" ? "contained" : "outlined"}
-                onClick={(e) => {
-                  toggleTheme(e, "light");
+                onClick={() => {
+                  toggleTheme("light");
                 }}>
                 {t("pages.settings.verge.themeMode.options.light")}
               </Button>
               <Button
                 sx={{ textTransform: "capitalize" }}
                 variant={themeMode === "dark" ? "contained" : "outlined"}
-                onClick={(e) => {
-                  toggleTheme(e, "dark");
+                onClick={() => {
+                  toggleTheme("dark");
                 }}>
                 {t("pages.settings.verge.themeMode.options.dark")}
               </Button>
@@ -198,12 +198,4 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
 
 const Item = styled(ListItem)(() => ({
   padding: "5px 2px",
-}));
-
-const Round = styled("div")(() => ({
-  width: "24px",
-  height: "24px",
-  borderRadius: "18px",
-  display: "inline-block",
-  marginRight: "8px",
 }));

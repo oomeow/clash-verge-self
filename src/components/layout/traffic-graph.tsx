@@ -24,7 +24,7 @@ export interface TrafficRef {
 /**
  * draw the traffic graph
  */
-export const TrafficGraph = forwardRef<TrafficRef>((props, ref) => {
+export const TrafficGraph = forwardRef<TrafficRef>((_props, ref) => {
   const countRef = useRef(0);
   const styleRef = useRef(true);
   const listRef = useRef<TrafficData[]>(defaultList);
@@ -173,7 +173,11 @@ export const TrafficGraph = forwardRef<TrafficRef>((props, ref) => {
       context.globalAlpha = upLineAlpha;
       context.lineWidth = upLineWidth;
       context.strokeStyle = upLineColor;
-      lineStyle ? drawBezier(listUp, offset) : drawLine(listUp, offset);
+      if (lineStyle) {
+        drawBezier(listUp, offset);
+      } else {
+        drawLine(listUp, offset);
+      }
       context.stroke();
       context.closePath();
 
@@ -181,7 +185,11 @@ export const TrafficGraph = forwardRef<TrafficRef>((props, ref) => {
       context.globalAlpha = downLineAlpha;
       context.lineWidth = downLineWidth;
       context.strokeStyle = downLineColor;
-      lineStyle ? drawBezier(listDown, offset) : drawLine(listDown, offset);
+      if (lineStyle) {
+        drawBezier(listDown, offset);
+      } else {
+        drawLine(listDown, offset);
+      }
       context.stroke();
       context.closePath();
 

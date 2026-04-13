@@ -21,7 +21,7 @@ import MarkdownPreview from "@uiw/react-markdown-preview";
 
 const OS = getSystem();
 
-export const UpdateViewer = forwardRef<DialogRef>((props, ref) => {
+export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const themeMode = useThemeModeStore((s) => s.themeMode);
