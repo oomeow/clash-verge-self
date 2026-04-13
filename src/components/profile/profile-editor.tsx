@@ -32,6 +32,9 @@ import {
 import { useTranslation } from "react-i18next";
 import { useNotice } from "../base/notifies";
 import type { IDisposable, editor } from "monaco-editor";
+import getSystem from "@/utils/get-system";
+
+const OS = getSystem();
 
 export type ProfileEditorHandle = {
   save: () => Promise<boolean>;
@@ -412,7 +415,9 @@ export const ProfileEditor = (props: Props) => {
           </>
         )}
         <Tooltip
-          title={t("messages.profiles.saveContent", { keymap: " Ctrl+S " })}
+          title={t("messages.profiles.saveContent", {
+            keymap: OS === "macos" ? " Cmd+S" : " Ctrl+S ",
+          })}
           placement="left">
           <span>
             <IconButton

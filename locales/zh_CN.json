@@ -296,9 +296,9 @@
           "dialogTitle": "Clash 端口"
         },
         "externalController": {
-          "label": "External",
+          "label": "外部控制器",
           "host": "监听地址",
-          "secret": "Core Secret",
+          "secret": "密钥",
           "enabled": "外部控制器已启用",
           "disabled": "外部控制器已禁用",
           "allowPrivateNetwork": "允许私有网络访问",
@@ -321,8 +321,8 @@
           "label": "统一延迟",
           "info": "开启统一延迟时，会进行两次延迟测试，以消除连接握手等带来的不同类型节点的延迟差异"
         },
-        "flushCache": "Flush Fake-IP Cache",
-        "cacheFlushed": "Fake-IP Cache Flushed"
+        "flushCache": "刷新 {{cache}} 缓存",
+        "cacheFlushed": "{{cache}} 缓存已刷新"
       },
       "verge": {
         "title": "Verge 设置",
