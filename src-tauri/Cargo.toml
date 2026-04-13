@@ -19,6 +19,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri-plugin-mihomo.workspace = true
 mihomo-rule-parser.workspace = true
+process_manager.workspace = true
 tokio = { workspace = true, features = ["net", "sync", "macros"] }
 reqwest.workspace = true
 dirs.workspace = true

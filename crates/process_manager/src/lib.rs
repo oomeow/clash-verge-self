@@ -1,0 +1,537 @@
+use std::{
+    ffi::OsString,
+    path::PathBuf,
+    process::Stdio,
+    sync::{
+        Arc,
+        atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicUsize, Ordering},
+    },
+    time::Duration,
+};
+
+use parking_lot::Mutex;
+use sysinfo::{Pid, ProcessesToUpdate, Signal, System};
+use thiserror::Error;
+use tokio::{
+    fs::OpenOptions,
+    io::{AsyncBufReadExt, AsyncRead, AsyncWriteExt, BufReader},
+    process::{Child, Command},
+    task::JoinHandle,
+    time::sleep,
+};
+
+/// Errors returned by the process manager when spawning, supervising, or stopping a process fails.
+#[derive(Debug, Error)]
+pub enum Error {
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("failed to start process `{program}`: {source}")]
+    Spawn {
+        program: PathBuf,
+        #[source]
+        source: std::io::Error,
+    },
+    #[error("process `{label}` did not expose a pid")]
+    MissingPid { label: String },
+}
+
+/// Result type used by this crate.
+pub type Result<T> = std::result::Result<T, Error>;
+
+/// Restart policy for a managed child process.
+#[derive(Debug, Clone)]
+pub struct RestartPolicy {
+    /// Maximum number of automatic restart attempts after an unexpected exit.
+    pub max_restarts: usize,
+    /// Delay between restart attempts.
+    pub restart_delay: Duration,
+}
+
+impl Default for RestartPolicy {
+    fn default() -> Self {
+        Self {
+            max_restarts: 0,
+            restart_delay: Duration::from_secs(1),
+        }
+    }
+}
+
+/// Optional log file destinations for redirected child stdout and stderr.
+#[derive(Debug, Clone, Default)]
+pub struct ProcessLogConfig {
+    /// File used to persist stdout lines.
+    pub stdout_file: Option<PathBuf>,
+    /// File used to persist stderr lines.
+    pub stderr_file: Option<PathBuf>,
+    /// Whether the target file should be truncated before the first spawn.
+    pub truncate_on_start: bool,
+}
+
+/// Full process configuration used to spawn and supervise a child program.
+#[derive(Debug, Clone)]
+pub struct ProcessSpec {
+    /// Human-readable label used in logs and emitted events.
+    pub label: String,
+    /// Executable path.
+    pub program: PathBuf,
+    /// Command-line arguments.
+    pub args: Vec<OsString>,
+    /// Optional working directory.
+    pub current_dir: Option<PathBuf>,
+    /// Additional environment variables.
+    pub envs: Vec<(OsString, OsString)>,
+    /// Restart policy for unexpected exits.
+    pub restart_policy: RestartPolicy,
+    /// Output persistence configuration.
+    pub log_config: ProcessLogConfig,
+}
+
+impl ProcessSpec {
+    /// Creates a process spec with sensible defaults for optional fields.
+    pub fn new(label: impl Into<String>, program: impl Into<PathBuf>) -> Self {
+        Self {
+            label: label.into(),
+            program: program.into(),
+            args: Vec::new(),
+            current_dir: None,
+            envs: Vec::new(),
+            restart_policy: RestartPolicy::default(),
+            log_config: ProcessLogConfig::default(),
+        }
+    }
+}
+
+/// Lifecycle events emitted while the managed child is running.
+#[derive(Debug, Clone)]
+pub enum ProcessEvent {
+    Started {
+        label: String,
+        pid: u32,
+    },
+    Stdout {
+        label: String,
+        line: String,
+    },
+    Stderr {
+        label: String,
+        line: String,
+    },
+    Exited {
+        label: String,
+        pid: Option<u32>,
+        code: Option<i32>,
+        intentional: bool,
+    },
+    Restarting {
+        label: String,
+        attempt: usize,
+        delay: Duration,
+    },
+    RestartLimitReached {
+        label: String,
+        attempts: usize,
+    },
+    Error {
+        label: String,
+        message: String,
+    },
+}
+
+/// Event callback invoked for every emitted [`ProcessEvent`].
+pub type EventHandler = Arc<dyn Fn(ProcessEvent) + Send + Sync + 'static>;
+
+/// Supervises a single child process with optional restart and output handling.
+#[derive(Clone)]
+pub struct ProcessManager {
+    inner: Arc<Inner>,
+}
+
+struct Inner {
+    handler: Option<EventHandler>,
+    pid: AtomicU32,
+    running: AtomicBool,
+    stop_requested: AtomicBool,
+    restart_count: AtomicUsize,
+    generation: AtomicU64,
+    task: Mutex<Option<JoinHandle<()>>>,
+}
+
+impl std::fmt::Debug for ProcessManager {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ProcessManager")
+            .field("pid", &self.pid())
+            .field("running", &self.is_running())
+            .field("restart_count", &self.restart_count())
+            .finish()
+    }
+}
+
+impl ProcessManager {
+    /// Creates a new process manager with an optional event handler.
+    pub fn new(handler: Option<EventHandler>) -> Self {
+        Self {
+            inner: Arc::new(Inner {
+                handler,
+                pid: AtomicU32::new(0),
+                running: AtomicBool::new(false),
+                stop_requested: AtomicBool::new(false),
+                restart_count: AtomicUsize::new(0),
+                generation: AtomicU64::new(0),
+                task: Mutex::new(None),
+            }),
+        }
+    }
+
+    /// Returns the currently tracked child pid, if any.
+    pub fn pid(&self) -> Option<u32> {
+        let pid = self.inner.pid.load(Ordering::SeqCst);
+        (pid != 0).then_some(pid)
+    }
+
+    /// Returns whether the manager currently considers the child running.
+    pub fn is_running(&self) -> bool {
+        self.inner.running.load(Ordering::SeqCst)
+    }
+
+    /// Returns the number of restart attempts for the current generation.
+    pub fn restart_count(&self) -> usize {
+        self.inner.restart_count.load(Ordering::SeqCst)
+    }
+
+    /// Resets the tracked restart count to zero.
+    pub fn reset_restart_count(&self) {
+        self.inner.restart_count.store(0, Ordering::SeqCst);
+    }
+
+    /// Stops the current child if needed and starts supervising a new one.
+    pub async fn start(&self, spec: ProcessSpec) -> Result<u32> {
+        tracing::info!("start requested for process `{}`", spec.label);
+        self.stop().await?;
+
+        let generation = self.inner.generation.fetch_add(1, Ordering::SeqCst) + 1;
+        self.inner.stop_requested.store(false, Ordering::SeqCst);
+        self.inner.restart_count.store(0, Ordering::SeqCst);
+
+        let child = self.spawn_child(&spec)?;
+        let pid = child.id().ok_or_else(|| Error::MissingPid {
+            label: spec.label.clone(),
+        })?;
+
+        self.inner.pid.store(pid, Ordering::SeqCst);
+        self.inner.running.store(true, Ordering::SeqCst);
+        self.emit(ProcessEvent::Started {
+            label: spec.label.clone(),
+            pid,
+        });
+
+        let manager = self.clone();
+        let task = tokio::spawn(async move {
+            manager.supervise(generation, spec, child).await;
+        });
+        *self.inner.task.lock() = Some(task);
+
+        Ok(pid)
+    }
+
+    /// Stops the currently supervised child and waits for the supervisor task to finish.
+    pub async fn stop(&self) -> Result<()> {
+        self.inner.stop_requested.store(true, Ordering::SeqCst);
+
+        if let Some(pid) = self.pid() {
+            tracing::info!("stop requested for pid {pid}");
+            kill_pid(pid);
+        } else {
+            tracing::debug!("stop requested but no managed pid is currently tracked");
+        }
+
+        let task = self.inner.task.lock().take();
+        if let Some(task) = task {
+            tracing::debug!("waiting for process supervisor task to finish");
+            let _ = task.await;
+        }
+
+        self.inner.pid.store(0, Ordering::SeqCst);
+        self.inner.running.store(false, Ordering::SeqCst);
+        tracing::debug!("process manager stop completed");
+        Ok(())
+    }
+
+    async fn supervise(&self, generation: u64, spec: ProcessSpec, mut child: Child) {
+        let mut attempts = 0usize;
+        let mut first_spawn = true;
+
+        tracing::debug!("supervisor started for `{}` with generation {}", spec.label, generation);
+
+        loop {
+            let pid = child.id();
+            let stdout_task = tokio::spawn(pump_stream(
+                child.stdout.take(),
+                spec.label.clone(),
+                false,
+                self.inner.handler.clone(),
+                spec.log_config.stdout_file.clone(),
+                spec.log_config.truncate_on_start && first_spawn,
+            ));
+            let stderr_task = tokio::spawn(pump_stream(
+                child.stderr.take(),
+                spec.label.clone(),
+                true,
+                self.inner.handler.clone(),
+                spec.log_config.stderr_file.clone(),
+                spec.log_config.truncate_on_start && first_spawn,
+            ));
+
+            let status = child.wait().await;
+            let _ = stdout_task.await;
+            let _ = stderr_task.await;
+            first_spawn = false;
+
+            if let Err(err) = &status {
+                tracing::error!("failed to wait on process `{}`: {err}", spec.label);
+            }
+
+            let intentional = self.inner.stop_requested.load(Ordering::SeqCst)
+                || self.inner.generation.load(Ordering::SeqCst) != generation;
+            let code = status.ok().and_then(|s| s.code());
+
+            if self.inner.generation.load(Ordering::SeqCst) == generation {
+                self.inner.pid.store(0, Ordering::SeqCst);
+                self.inner.running.store(false, Ordering::SeqCst);
+            }
+
+            self.emit(ProcessEvent::Exited {
+                label: spec.label.clone(),
+                pid,
+                code,
+                intentional,
+            });
+
+            if intentional {
+                break;
+            }
+
+            if attempts >= spec.restart_policy.max_restarts {
+                self.emit(ProcessEvent::RestartLimitReached {
+                    label: spec.label.clone(),
+                    attempts,
+                });
+                break;
+            }
+
+            attempts += 1;
+            self.inner.restart_count.store(attempts, Ordering::SeqCst);
+            self.emit(ProcessEvent::Restarting {
+                label: spec.label.clone(),
+                attempt: attempts,
+                delay: spec.restart_policy.restart_delay,
+            });
+            sleep(spec.restart_policy.restart_delay).await;
+
+            if self.inner.stop_requested.load(Ordering::SeqCst)
+                || self.inner.generation.load(Ordering::SeqCst) != generation
+            {
+                break;
+            }
+
+            match self.spawn_child(&spec) {
+                Ok(new_child) => {
+                    if let Some(new_pid) = new_child.id() {
+                        self.inner.pid.store(new_pid, Ordering::SeqCst);
+                        self.inner.running.store(true, Ordering::SeqCst);
+                        self.emit(ProcessEvent::Started {
+                            label: spec.label.clone(),
+                            pid: new_pid,
+                        });
+                    }
+                    child = new_child;
+                }
+                Err(err) => {
+                    self.emit(ProcessEvent::Error {
+                        label: spec.label.clone(),
+                        message: err.to_string(),
+                    });
+                    break;
+                }
+            }
+        }
+
+        tracing::debug!(
+            "supervisor finished for `{}` with generation {}",
+            spec.label,
+            generation
+        );
+    }
+
+    fn spawn_child(&self, spec: &ProcessSpec) -> Result<Child> {
+        let mut command = Command::new(&spec.program);
+        command
+            .args(spec.args.iter())
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .kill_on_drop(false);
+
+        if let Some(current_dir) = &spec.current_dir {
+            command.current_dir(current_dir);
+        }
+        for (key, value) in &spec.envs {
+            command.env(key, value);
+        }
+
+        tracing::info!(
+            "start process `{}` with program `{}`",
+            spec.label,
+            spec.program.display()
+        );
+
+        command.spawn().map_err(|source| Error::Spawn {
+            program: spec.program.clone(),
+            source,
+        })
+    }
+
+    fn emit(&self, event: ProcessEvent) {
+        match &event {
+            ProcessEvent::Started { label, pid } => {
+                tracing::info!("process `{label}` started with pid {pid}");
+            }
+            ProcessEvent::Stdout { label, line } => {
+                tracing::info!("[{label}]: {line}");
+            }
+            ProcessEvent::Stderr { label, line } => {
+                tracing::error!("[{label}]: {line}");
+            }
+            ProcessEvent::Exited {
+                label,
+                pid,
+                code,
+                intentional,
+            } => {
+                tracing::info!(
+                    "process `{label}` exited, pid: {:?}, code: {:?}, intentional: {intentional}",
+                    pid,
+                    code
+                );
+            }
+            ProcessEvent::Restarting { label, attempt, delay } => {
+                tracing::warn!(
+                    "process `{label}` restarting, attempt {attempt}, delay {} ms",
+                    delay.as_millis()
+                );
+            }
+            ProcessEvent::RestartLimitReached { label, attempts } => {
+                tracing::error!("process `{label}` reached restart limit after {attempts} retries");
+            }
+            ProcessEvent::Error { label, message } => {
+                tracing::error!("process `{label}` error: {message}");
+            }
+        }
+
+        if let Some(handler) = &self.inner.handler {
+            handler(event);
+        }
+    }
+}
+
+async fn pump_stream(
+    stream: Option<impl AsyncRead + Unpin>,
+    label: String,
+    is_stderr: bool,
+    handler: Option<EventHandler>,
+    log_file: Option<PathBuf>,
+    truncate: bool,
+) {
+    let Some(stream) = stream else {
+        return;
+    };
+
+    let mut reader = BufReader::new(stream);
+    let mut buffer = Vec::new();
+    let mut writer = match log_file {
+        Some(path) => {
+            tracing::debug!(
+                "open {} log file for process `{}` at {}",
+                if is_stderr { "stderr" } else { "stdout" },
+                label,
+                path.display()
+            );
+            let mut options = OpenOptions::new();
+            options.create(true).write(true);
+            if truncate {
+                options.truncate(true);
+            } else {
+                options.append(true);
+            }
+            match options.open(&path).await {
+                Ok(file) => Some(file),
+                Err(err) => {
+                    tracing::error!(
+                        "failed to open output log file for process `{}` at {}: {err}",
+                        label,
+                        path.display()
+                    );
+                    None
+                }
+            }
+        }
+        None => None,
+    };
+
+    loop {
+        buffer.clear();
+        match reader.read_until(b'\n', &mut buffer).await {
+            Ok(0) => break,
+            Ok(_) => {
+                let line = String::from_utf8_lossy(&buffer)
+                    .trim_end_matches(['\r', '\n'])
+                    .to_string();
+
+                if is_stderr {
+                    tracing::error!("[{label}]: {line}");
+                } else {
+                    tracing::info!("[{label}]: {line}");
+                }
+
+                if let Some(file) = writer.as_mut() {
+                    if let Err(err) = file.write_all(line.as_bytes()).await {
+                        tracing::error!("failed to write process `{label}` output: {err}");
+                    }
+                    if let Err(err) = file.write_all(b"\n").await {
+                        tracing::error!("failed to write process `{label}` newline: {err}");
+                    }
+                }
+
+                if let Some(handler) = &handler {
+                    let event = if is_stderr {
+                        ProcessEvent::Stderr {
+                            label: label.clone(),
+                            line,
+                        }
+                    } else {
+                        ProcessEvent::Stdout {
+                            label: label.clone(),
+                            line,
+                        }
+                    };
+                    handler(event);
+                }
+            }
+            Err(err) => {
+                tracing::error!("failed to read process `{label}` output: {err}");
+                break;
+            }
+        }
+    }
+}
+
+fn kill_pid(pid: u32) {
+    tracing::debug!("send terminate signal to pid {pid}");
+    let mut system = System::new();
+    system.refresh_processes(ProcessesToUpdate::All, true);
+
+    if let Some(process) = system.process(Pid::from_u32(pid)) {
+        let _ = process.kill_with(Signal::Term).or_else(|| Some(process.kill()));
+    } else {
+        tracing::debug!("pid {pid} is no longer present when stop was requested");
+    }
+}
