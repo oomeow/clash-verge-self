@@ -98,7 +98,7 @@ export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
         notice("error", t("messages.clash.tun.macosDeviceNameError"), 3000);
         return;
       } else {
-        const suffix = device.slice(3);
+        const suffix = device.slice(4);
         const isNotNumber = isNaN(Number(suffix));
         console.log(suffix, isNotNumber);
         if (isNotNumber) {

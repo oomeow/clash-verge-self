@@ -109,10 +109,10 @@ class DelayManager {
     let total = names.length;
 
     if (total > 30) {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve, _reject) => {
         const url = this.getUrl(group);
-        try {
-          delayGroup(group, url, timeout, true).then((result) => {
+        delayGroup(group, url, timeout, true)
+          .then((result) => {
             const resultNames = Object.keys(result);
             const timeoutNames = names.filter(
               (name) => !resultNames.includes(name),
@@ -122,13 +122,13 @@ class DelayManager {
               this.setDelay(name, group, delay);
             });
             resolve(null);
+          })
+          .catch((err) => {
+            console.error(err);
+            // group delay error, which means that all proxies are timeout
+            names.forEach((name) => this.setDelay(name, group, 0));
+            resolve(null);
           });
-        } catch (err) {
-          console.error(err);
-          // group delay error, which means that all proxies are timeout
-          names.forEach((name) => this.setDelay(name, group, 0));
-          reject(err);
-        }
       });
     }
 
