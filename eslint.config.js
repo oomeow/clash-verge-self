@@ -32,6 +32,7 @@ export default defineConfig(
       "react-refresh": reactRefresh,
     },
     rules: {
+      "react-hooks/rules-of-hooks": "error",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
