@@ -577,13 +577,18 @@ async fn pump_stream(
 fn kill_pid(pid: u32) {
     tracing::debug!("send terminate signal to pid {pid}");
     let mut system = System::new();
-    system.refresh_processes(ProcessesToUpdate::All, true);
+    let pid = Pid::from_u32(pid);
 
-    if let Some(process) = system.process(Pid::from_u32(pid)) {
-        if process.kill_with(Signal::Term).is_none() {
-            process.kill();
+    if system.refresh_process(pid) {
+        if let Some(process) = system.process(pid) {
+            // Try to terminate gracefully, if not supported or fails, force kill.
+            if !process.kill_with(Signal::Term).unwrap_or(false) {
+                process.kill();
+            }
         }
     } else {
         tracing::debug!("pid {pid} is no longer present when stop was requested");
+    }
+}
     }
 }
