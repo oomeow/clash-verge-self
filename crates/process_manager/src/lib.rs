@@ -580,7 +580,9 @@ fn kill_pid(pid: u32) {
     system.refresh_processes(ProcessesToUpdate::All, true);
 
     if let Some(process) = system.process(Pid::from_u32(pid)) {
-        let _ = process.kill_with(Signal::Term).or_else(|| Some(process.kill()));
+        if process.kill_with(Signal::Term).is_none() {
+            process.kill();
+        }
     } else {
         tracing::debug!("pid {pid} is no longer present when stop was requested");
     }
