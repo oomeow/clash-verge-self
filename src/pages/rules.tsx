@@ -58,10 +58,10 @@ const RulesPage = () => {
     if (!data) return;
     getRuleProviders().then(async (ruleProviders) => {
       const res: CustomRule[] = [];
-      for (let rule of data) {
+      for (const rule of data) {
         const provider = ruleProviders.providers[rule.payload];
         if (provider) {
-          let payload = await getRuleProviderPayload(
+          const payload = await getRuleProviderPayload(
             provider.name,
             provider.behavior,
             provider.format,

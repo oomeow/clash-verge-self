@@ -13,7 +13,7 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export const MiscViewer = forwardRef<DialogRef>((props, ref) => {
+export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const { verge, patchVerge } = useVerge();

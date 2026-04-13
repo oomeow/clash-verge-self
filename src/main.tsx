@@ -53,7 +53,9 @@ document.addEventListener("keydown", (event) => {
       ["F", "G", "H", "J", "P", "Q", "R", "U"].includes(
         event.key.toUpperCase(),
       ));
-  disabledShortcuts && event.preventDefault();
+  if (disabledShortcuts) {
+    event.preventDefault();
+  }
 });
 
 // 页面关闭/刷新事件

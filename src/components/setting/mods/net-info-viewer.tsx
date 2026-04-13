@@ -4,7 +4,7 @@ import { Typography } from "@mui/material";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-export const NetInfoViewer = forwardRef<DialogRef>((props, ref) => {
+export const NetInfoViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [netInfo, setNetInfo] = useState<NetInfo[]>([]);
@@ -12,7 +12,7 @@ export const NetInfoViewer = forwardRef<DialogRef>((props, ref) => {
   useImperativeHandle(ref, () => ({
     open: async () => {
       setOpen(true);
-      let netInfo = await getNetInfo();
+      const netInfo = await getNetInfo();
       setNetInfo(netInfo);
     },
     close: () => setOpen(false),

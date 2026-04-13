@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const ThemeModeSwitch = (props: Props) => {
-  const { value, onChange } = props;
+  const { value } = props;
   const { t } = useTranslation();
   const { toggleTheme } = useCustomTheme();
 

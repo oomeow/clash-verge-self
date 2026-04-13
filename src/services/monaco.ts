@@ -102,7 +102,7 @@ export const registerPacFunctionLib = async () => {
   if (pacLibRegistered) return;
 
   const [monaco, pac] = await Promise.all([loadMonaco(), loadPacDefinition()]);
-  let disposable = monaco.typescript.javascriptDefaults.addExtraLib(
+  const disposable = monaco.typescript.javascriptDefaults.addExtraLib(
     pac,
     "pac.d.ts",
   );
@@ -115,7 +115,7 @@ export const registerPacCompletion = async () => {
   if (pacCompletionRegistered) return;
 
   const monaco = await loadMonaco();
-  let disposable = monaco.languages.registerCompletionItemProvider(
+  const disposable = monaco.languages.registerCompletionItemProvider(
     "javascript",
     {
       provideCompletionItems: (model, position) => ({
@@ -175,7 +175,7 @@ export const generateTemplate = async (props: GenerateProps) => {
 
   // 增强脚本模板生成
   return monaco.languages.registerCodeLensProvider(languageSelector, {
-    provideCodeLenses(model, token) {
+    provideCodeLenses(model, _token) {
       if (!showCondition || model.isDisposed()) {
         return null;
       }

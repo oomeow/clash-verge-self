@@ -53,7 +53,7 @@ export const ProviderButton = () => {
         }
         return pre;
       });
-    } catch (e: any) {
+    } catch (ignore) {
       if (retryCount < 0) {
         setErrorItems((pre) => {
           if (pre?.includes(key)) {

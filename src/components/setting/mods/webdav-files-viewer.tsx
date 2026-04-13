@@ -41,7 +41,7 @@ export interface WebDavFilesViewerRef extends DialogRef {
 }
 
 export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
-  (props, ref) => {
+  (_props, ref) => {
     const { t } = useTranslation();
     const { notice } = useNotice();
     const [open, setOpen] = useState(false);
@@ -105,7 +105,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
         await sleep(1000);
         setApplyingFile("");
         notice("success", t("messages.backup.applySuccess"));
-      } catch (e) {
+      } catch (ignore) {
         notice("error", t("messages.backup.applyFailed"));
         setApplyingFile("");
       }
@@ -127,7 +127,7 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
                   value={filter}
                   name="radio-buttons-group"
                   onChange={(e) => {
-                    let value = (e.target as HTMLInputElement).value;
+                    const value = (e.target as HTMLInputElement).value;
                     if (value === "profiles") {
                       setFilter("profiles");
                     } else if (value === "all") {

@@ -297,8 +297,8 @@
         },
         "externalController": {
           "label": "External Controller",
-          "host": "External Controller Host",
-          "secret": "External Controller Secret",
+          "host": "Host",
+          "secret": "Secret",
           "enabled": "External Controller Enabled",
           "disabled": "External Controller Disabled",
           "allowPrivateNetwork": "Allow Private Network",

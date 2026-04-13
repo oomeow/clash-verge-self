@@ -63,9 +63,13 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
       if (e.buttons === 1) {
         // Primary (left) button
         const appWindow = getCurrentWindow();
-        e.detail === 2
-          ? appWindow.toggleMaximize() // Maximize on double click
-          : appWindow.startDragging(); // Else start dragging
+        if (e.detail === 2) {
+          // Maximize on double click
+          appWindow.toggleMaximize();
+        } else {
+          // Else start dragging
+          appWindow.startDragging();
+        }
       }
     });
   }, [titlebarRef.current, full]);
@@ -102,6 +106,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
               "bg-comment text-primary-text inline-flex max-h-[calc(100%-100px)] w-full max-w-md flex-col rounded-sm shadow-xl",
               { "h-full max-w-[calc(100%-100px)]": fullWidth },
               { "h-full max-h-full w-full max-w-full": full },
+              { "mt-6": full && OS === "macos" },
             )}>
             <div
               ref={titlebarRef}

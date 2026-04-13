@@ -132,7 +132,7 @@ const ProfilePage = () => {
     const dragUnlisten = listen(TauriEvent.DRAG_DROP, async (event) => {
       const payload = event.payload as FileDragDropPayload;
       const fileList = payload.paths;
-      for (let file of fileList) {
+      for (const file of fileList) {
         if (!file.endsWith(".yaml") && !file.endsWith(".yml")) {
           notice("error", t("messages.profiles.onlyYamlSupported"));
           continue;
@@ -150,7 +150,7 @@ const ProfilePage = () => {
             self_proxy: false,
           },
         } as IProfileItem;
-        let data = await readTextFile(file);
+        const data = await readTextFile(file);
         await createProfile(item, data);
         await mutateProfiles();
       }
@@ -247,7 +247,7 @@ const ProfilePage = () => {
     }
   }, [url]);
 
-  const onSelect = useLockFn(async (current: string, force: boolean) => {
+  const onSelect = useLockFn(async (current: string, _force: boolean) => {
     if (current === profiles.current || activatingUids.length > 0) return;
     try {
       setActivatingUids([current, ...enabledChainUids]);

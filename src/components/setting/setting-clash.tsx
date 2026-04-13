@@ -24,7 +24,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 import { useNotice } from "../base/notifies";
@@ -306,7 +306,7 @@ const SettingClash = ({ onError }: Props) => {
                     variant={
                       mode === findProcessMode ? "contained" : "outlined"
                     }
-                    onClick={(e) => patchClash({ "find-process-mode": mode })}
+                    onClick={() => patchClash({ "find-process-mode": mode })}
                     sx={{ textTransform: "capitalize" }}>
                     {t(buttonLabelKey)}
                   </Button>

@@ -11,7 +11,7 @@ export interface ConnectionDetailRef {
 }
 
 export const ConnectionDetail = forwardRef<ConnectionDetailRef>(
-  (props, ref) => {
+  (_props, ref) => {
     const [open, setOpen] = useState(false);
     const [detail, setDetail] = useState<IConnectionsItem>();
     const [active, setActive] = useState(true);

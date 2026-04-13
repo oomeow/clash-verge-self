@@ -28,7 +28,6 @@ import {
 } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { Message } from "console-feed/lib/definitions/Component";
-import dayjs from "dayjs";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNotice } from "../base/notifies";
@@ -324,8 +323,3 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
     </Box>
   );
 });
-
-function parseExpire(expire?: number) {
-  if (!expire) return "-";
-  return dayjs(expire * 1000).format("YYYY-MM-DD");
-}

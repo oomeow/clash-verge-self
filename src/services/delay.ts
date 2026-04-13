@@ -12,8 +12,8 @@ class DelayManager {
   // 每个分组的监听
   private groupListenerMap = new Map<string, Set<() => void>>();
 
-  setUrl(group: string, url: string) {
-    this.urlMap.set(group, url);
+  setUrl(group: string, url: string | undefined) {
+    this.urlMap.set(group, url ?? "https://www.gstatic.com/generate_204");
   }
 
   getUrl(group: string) {
@@ -109,26 +109,23 @@ class DelayManager {
     let total = names.length;
 
     if (total > 30) {
-      return new Promise(async (resolve) => {
-        const url = this.getUrl(group);
-        try {
-          const result = await delayGroup(group, url, timeout, true);
-          const resultNames = Object.keys(result);
-          const timeoutNames = names.filter(
-            (name) => !resultNames.includes(name),
-          );
-          timeoutNames.forEach((name) => this.setDelay(name, group, 0));
-          Object.entries(result).forEach(([name, delay]) => {
-            this.setDelay(name, group, delay);
-          });
-          resolve(null);
-        } catch (err) {
-          console.error(err);
-          // group delay error, which means that all proxies are timeout
-          names.forEach((name) => this.setDelay(name, group, 0));
-          resolve(null);
-        }
-      });
+      const url = this.getUrl(group);
+      try {
+        const result = await delayGroup(group, url, timeout, true);
+        const resultNames = Object.keys(result);
+        const timeoutNames = names.filter(
+          (name) => !resultNames.includes(name),
+        );
+        timeoutNames.forEach((name) => this.setDelay(name, group, 0));
+        Object.entries(result).forEach(([name, delay]) => {
+          this.setDelay(name, group, delay);
+        });
+      } catch (err) {
+        console.error(err);
+        // group delay error, which means that all proxies are timeout
+        names.forEach((name) => this.setDelay(name, group, 0));
+      }
+      return null;
     }
 
     let current = 0;

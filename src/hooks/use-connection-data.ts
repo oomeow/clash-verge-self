@@ -63,7 +63,7 @@ export const useConnectionData = () => {
                     const oldActiveConns = old.activeConnections;
                     const oldClosedConns = old.closedConnections;
                     const oldActiveConnMap = new Map(
-                      oldActiveConns.map((c, i) => [c.id, c]),
+                      oldActiveConns.map((c, _i) => [c.id, c]),
                     );
 
                     const activeConnections = (data.connections || []).map(

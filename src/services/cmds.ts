@@ -148,7 +148,7 @@ export async function getRuntimeLogs() {
         try {
           const jsonData = JSON.parse(i);
           return jsonData;
-        } catch (err) {
+        } catch (ignore) {
           return i;
         }
       });
@@ -173,7 +173,7 @@ export async function getPreMergeResult(
         try {
           const jsonData = JSON.parse(i);
           return jsonData;
-        } catch (err) {
+        } catch (ignore) {
           return i;
         }
       });
@@ -199,7 +199,7 @@ export async function testMergeChain(
         try {
           const jsonData = JSON.parse(i);
           return jsonData;
-        } catch (err) {
+        } catch (ignore) {
           return i;
         }
       });
@@ -293,7 +293,7 @@ export async function checkService() {
     if (result?.code === 0) return "active";
     if (result?.code === 400) return "installed";
     return "unknown";
-  } catch (err: any) {
+  } catch (ignore) {
     return "uninstall";
   }
 }
@@ -367,8 +367,8 @@ export async function createAndUploadBackup(onlyBackupProfiles = false) {
 }
 
 export async function listBackup() {
-  let list: IWebDavFile[] = await invoke<IWebDavFile[]>("list_backup");
-  list.map((item) => {
+  const list: IWebDavFile[] = await invoke<IWebDavFile[]>("list_backup");
+  list.forEach((item) => {
     item.filename = item.href.split("/").pop() as string;
   });
   return list;

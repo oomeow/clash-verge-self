@@ -45,20 +45,19 @@ export const calcuProxies = async () => {
   }, []);
 
   if (global?.all) {
-    let globalGroups: IProxyGroupItem[] = global.all.reduce<IProxyGroupItem[]>(
-      (acc, name) => {
-        if (proxyRecord[name]?.all) {
-          acc.push({
-            ...proxyRecord[name],
-            all: proxyRecord[name].all!.map((item) => generateItem(item)),
-          });
-        }
-        return acc;
-      },
-      [],
-    );
+    const globalGroups: IProxyGroupItem[] = global.all.reduce<
+      IProxyGroupItem[]
+    >((acc, name) => {
+      if (proxyRecord[name]?.all) {
+        acc.push({
+          ...proxyRecord[name],
+          all: proxyRecord[name].all!.map((item) => generateItem(item)),
+        });
+      }
+      return acc;
+    }, []);
 
-    let globalNames = new Set(globalGroups.map((each) => each.name));
+    const globalNames = new Set(globalGroups.map((each) => each.name));
     groups = groups
       .filter((group) => {
         return !globalNames.has(group.name);
@@ -94,7 +93,7 @@ export const calcuProxyProviders = async () => {
     Object.entries(providers.providers)
       .sort()
       .filter(
-        ([key, item]) =>
+        ([_key, item]) =>
           item?.vehicleType === "HTTP" || item?.vehicleType === "File",
       ),
   );
@@ -106,7 +105,7 @@ export const calcuRuleProviders = async () => {
     Object.entries(providers.providers)
       .sort()
       .filter(
-        ([key, item]) =>
+        ([_key, item]) =>
           item?.vehicleType === "HTTP" || item?.vehicleType === "File",
       ),
   );

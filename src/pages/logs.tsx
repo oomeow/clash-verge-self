@@ -99,7 +99,7 @@ const LogPage = () => {
           <Virtuoso
             initialTopMostItemIndex={999}
             data={filterLogs}
-            itemContent={(index, item) => <LogItem value={item} />}
+            itemContent={(_index, item) => <LogItem value={item} />}
             followOutput={"smooth"}
           />
         ) : (

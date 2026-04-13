@@ -141,7 +141,8 @@ const Layout = () => {
 
   useEffect(() => {
     if (language) {
-      dayjs.locale(language === "zh" ? "zh-cn" : language);
+      const locale = language.replace("_", "-").toLowerCase();
+      dayjs.locale(locale);
       i18next.changeLanguage(language);
     }
   }, [language, visible]);
