@@ -49,7 +49,7 @@ jobs:
         with:
           node-version: "24"
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+      - uses: pnpm/action-setup@08c4be7e2e672a47d11bd04269e27e5f3e8529cb # v6
         name: Install pnpm
         with:
           run_install: false
@@ -93,7 +93,7 @@ jobs:
 
       - name: Upload artifact
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: windows
           path: |
@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload artifact
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: macos
           path: |
@@ -109,7 +109,7 @@ jobs:
 
       - name: Upload artifact
         if: matrix.os == 'ubuntu-22.04'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: linux
           path: |
