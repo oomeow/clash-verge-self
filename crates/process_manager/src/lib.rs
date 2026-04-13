@@ -532,6 +532,12 @@ async fn pump_stream(
         match reader.read_until(b'\n', &mut buffer).await {
             Ok(0) => break,
             Ok(_) => {
+                if let Some(file) = writer.as_mut()
+                    && let Err(err) = file.write_all(&buffer).await
+                {
+                    tracing::error!("failed to write process `{label}` output: {err}");
+                }
+
                 let line = String::from_utf8_lossy(&buffer)
                     .trim_end_matches(['\r', '\n'])
                     .to_string();
@@ -540,15 +546,6 @@ async fn pump_stream(
                     tracing::error!("[{label}]: {line}");
                 } else {
                     tracing::info!("[{label}]: {line}");
-                }
-
-                if let Some(file) = writer.as_mut() {
-                    if let Err(err) = file.write_all(line.as_bytes()).await {
-                        tracing::error!("failed to write process `{label}` output: {err}");
-                    }
-                    if let Err(err) = file.write_all(b"\n").await {
-                        tracing::error!("failed to write process `{label}` newline: {err}");
-                    }
                 }
 
                 if let Some(handler) = &handler {
@@ -578,17 +575,14 @@ fn kill_pid(pid: u32) {
     tracing::debug!("send terminate signal to pid {pid}");
     let mut system = System::new();
     let pid = Pid::from_u32(pid);
+    system.refresh_processes(ProcessesToUpdate::Some(&[pid]), true);
 
-    if system.refresh_process(pid) {
-        if let Some(process) = system.process(pid) {
-            // Try to terminate gracefully, if not supported or fails, force kill.
-            if !process.kill_with(Signal::Term).unwrap_or(false) {
-                process.kill();
-            }
+    if let Some(process) = system.process(pid) {
+        // Try to terminate gracefully, if not supported or fails, force kill.
+        if !process.kill_with(Signal::Term).unwrap_or(false) {
+            process.kill();
         }
     } else {
         tracing::debug!("pid {pid} is no longer present when stop was requested");
-    }
-}
     }
 }
