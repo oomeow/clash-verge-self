@@ -119,16 +119,16 @@ export const ThemeViewer = forwardRef<DialogRef>((props, ref) => {
               <Button
                 sx={{ textTransform: "capitalize" }}
                 variant={themeMode === "light" ? "contained" : "outlined"}
-                onClick={(e) => {
-                  toggleTheme(e, "light");
+                onClick={() => {
+                  toggleTheme("light");
                 }}>
                 {t("pages.settings.verge.themeMode.options.light")}
               </Button>
               <Button
                 sx={{ textTransform: "capitalize" }}
                 variant={themeMode === "dark" ? "contained" : "outlined"}
-                onClick={(e) => {
-                  toggleTheme(e, "dark");
+                onClick={() => {
+                  toggleTheme("dark");
                 }}>
                 {t("pages.settings.verge.themeMode.options.dark")}
               </Button>

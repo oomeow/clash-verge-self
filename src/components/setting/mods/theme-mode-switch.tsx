@@ -22,7 +22,7 @@ export const ThemeModeSwitch = (props: Props) => {
         <Button
           key={mode}
           variant={mode === value ? "contained" : "outlined"}
-          onClick={(e) => toggleTheme(e, mode)}
+          onClick={() => toggleTheme(mode)}
           sx={{ textTransform: "capitalize" }}>
           {t(`pages.settings.verge.themeMode.options.${mode}`)}
         </Button>

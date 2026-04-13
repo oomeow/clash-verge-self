@@ -51,7 +51,7 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
           exit={{ x: 20, opacity: 0 }}
           transition={{ duration: 0.5 }}
           className="absolute top-0 right-2 z-10 h-7.5 w-7.5 cursor-pointer border-none bg-transparent"
-          onClick={(e) => toggleTheme(e, isDark ? "light" : "dark")}>
+          onClick={() => toggleTheme(isDark ? "light" : "dark")}>
           {isDark ? (
             <DarkMode
               fontSize="inherit"
