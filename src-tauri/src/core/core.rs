@@ -9,7 +9,7 @@ use std::{
 };
 
 use once_cell::sync::OnceCell;
-use process_supervisor::{ProcessEvent, ProcessLogConfig, ProcessManager, ProcessSpec, RestartPolicy};
+use process_supervisor::{ProcessEvent, ProcessLogConfig, ProcessSpec, ProcessSupervisor, RestartPolicy};
 use serde_yaml::Mapping;
 use tauri::utils::platform::current_exe;
 use tauri_plugin_shell::ShellExt;
@@ -31,7 +31,7 @@ const CLASH_CORES: [&str; 2] = ["self-mihomo", "self-mihomo-alpha"];
 #[derive(Debug)]
 pub struct CoreManager {
     /// managed clash sidecar process
-    sidecar: ProcessManager,
+    sidecar: ProcessSupervisor,
 
     /// true if clash core is running in service mode
     use_service_mode: AtomicBool,
@@ -42,7 +42,7 @@ impl CoreManager {
         static CORE_MANAGER: OnceCell<CoreManager> = OnceCell::new();
 
         CORE_MANAGER.get_or_init(|| CoreManager {
-            sidecar: ProcessManager::new(Some(Arc::new(Self::handle_sidecar_event))),
+            sidecar: ProcessSupervisor::new(Some(Arc::new(Self::handle_sidecar_event))),
             use_service_mode: AtomicBool::new(false),
         })
     }

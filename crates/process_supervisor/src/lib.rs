@@ -20,7 +20,7 @@ use tokio::{
     time::sleep,
 };
 
-/// Errors returned by the process manager when spawning, supervising, or stopping a process fails.
+/// Errors returned by the process supervisor when spawning, supervising, or stopping a process fails.
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("I/O error: {0}")]
@@ -140,7 +140,7 @@ pub type EventHandler = Arc<dyn Fn(ProcessEvent) + Send + Sync + 'static>;
 
 /// Supervises a single child process with optional restart and output handling.
 #[derive(Clone)]
-pub struct ProcessManager {
+pub struct ProcessSupervisor {
     inner: Arc<Inner>,
 }
 
@@ -161,9 +161,9 @@ struct Inner {
     task: Mutex<Option<JoinHandle<()>>>,
 }
 
-impl std::fmt::Debug for ProcessManager {
+impl std::fmt::Debug for ProcessSupervisor {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ProcessManager")
+        f.debug_struct("ProcessSupervisor")
             .field("pid", &self.pid())
             .field("running", &self.is_running())
             .field("restart_count", &self.restart_count())
@@ -171,8 +171,8 @@ impl std::fmt::Debug for ProcessManager {
     }
 }
 
-impl ProcessManager {
-    /// Creates a new process manager with an optional event handler.
+impl ProcessSupervisor {
+    /// Creates a new process supervisor with an optional event handler.
     pub fn new(handler: Option<EventHandler>) -> Self {
         Self {
             inner: Arc::new(Inner {
@@ -229,9 +229,9 @@ impl ProcessManager {
             pid,
         });
 
-        let manager = self.clone();
+        let supervisor = self.clone();
         let task = tokio::spawn(async move {
-            manager.supervise(generation, spec, child).await;
+            supervisor.supervise(generation, spec, child).await;
         });
         *self.inner.task.lock() = Some(task);
 
@@ -259,7 +259,7 @@ impl ProcessManager {
 
         self.inner.pid.store(0, Ordering::SeqCst);
         self.inner.running.store(false, Ordering::SeqCst);
-        tracing::debug!("process manager stop completed");
+        tracing::debug!("process supervisor stop completed");
         Ok(())
     }
 
