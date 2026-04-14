@@ -123,9 +123,8 @@ impl CoreManager {
 
         if !self.try_run_core_by_service(&config_path).await? {
             self.prepare_sidecar_mode()?;
+            self.sidecar.start(self.build_sidecar_spec(&config_path)?).await?;
         }
-
-        self.sidecar.start(self.build_sidecar_spec(&config_path)?).await?;
 
         Ok(())
     }

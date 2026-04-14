@@ -254,7 +254,9 @@ impl ProcessManager {
         let task = self.inner.task.lock().take();
         if let Some(task) = task {
             tracing::debug!("waiting for process supervisor task to finish");
-            let _ = task.await;
+            if let Err(err) = task.await {
+                tracing::error!("supervisor task failed: {err}");
+            }
         }
 
         self.inner.pid.store(0, Ordering::SeqCst);
@@ -302,8 +304,12 @@ impl ProcessManager {
             ));
 
             let status = child.wait().await;
-            let _ = stdout_task.await;
-            let _ = stderr_task.await;
+            if let Err(err) = stdout_task.await {
+                tracing::error!("stdout pump task failed: {err}");
+            }
+            if let Err(err) = stderr_task.await {
+                tracing::error!("stderr pump task failed: {err}");
+            }
             first_spawn = false;
 
             if self.finish_child_exit(generation, &spec.label, pid, status) {
@@ -315,9 +321,6 @@ impl ProcessManager {
                     let Some(new_child) = new_child else {
                         break;
                     };
-                    if let Some(new_pid) = new_child.id() {
-                        self.mark_child_started(&spec.label, new_pid);
-                    }
                     child = new_child;
                 }
                 Err(err) => {
@@ -396,9 +399,10 @@ impl ProcessManager {
         }
 
         let child = self.spawn_child(spec)?;
-        if let Some(pid) = child.id() {
-            self.mark_child_started(&spec.label, pid);
-        }
+        let pid = child.id().ok_or_else(|| Error::MissingPid {
+            label: spec.label.clone(),
+        })?;
+        self.mark_child_started(&spec.label, pid);
 
         Ok(Some(child))
     }

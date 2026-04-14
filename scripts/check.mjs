@@ -125,7 +125,6 @@ async function fetchWithTimeout(resource, options = {}) {
     }
     return response;
   } catch (error) {
-    console.log(error);
     if (error.name === "AbortError") {
       throw new Error(`fetch timeout: ${timeout}ms`);
     } else {
