@@ -120,12 +120,15 @@ async function fetchWithTimeout(resource, options = {}) {
       ...options,
       signal: controller.signal,
     });
+    if (!response.ok) {
+      throw new Error(`fetch error! status: ${response.status}`);
+    }
     return response;
   } catch (error) {
     if (error.name === "AbortError") {
       throw new Error(`fetch timeout: ${timeout}ms`);
     } else {
-      throw new Error("fetch error: ", error);
+      throw new Error(error);
     }
   } finally {
     clearTimeout(id);

@@ -1,19 +1,18 @@
 use std::{
+    ffi::OsString,
     path::PathBuf,
     sync::{
         Arc,
-        atomic::{AtomicBool, AtomicUsize, Ordering},
+        atomic::{AtomicBool, Ordering},
     },
+    time::Duration,
 };
 
 use once_cell::sync::OnceCell;
-use parking_lot::Mutex;
+use process_supervisor::{ProcessEvent, ProcessLogConfig, ProcessSpec, ProcessSupervisor, RestartPolicy};
 use serde_yaml::Mapping;
-use sysinfo::System;
-use tauri_plugin_shell::{
-    ShellExt,
-    process::{CommandChild, CommandEvent},
-};
+use tauri::utils::platform::current_exe;
+use tauri_plugin_shell::ShellExt;
 
 use super::verge_log::VergeLog;
 use crate::{
@@ -26,19 +25,16 @@ use crate::{
 };
 
 const MAX_RESTART_CORE_COUNT: usize = 5;
+const CORE_RESTART_INTERVAL: Duration = Duration::from_secs(1);
+const CLASH_CORES: [&str; 2] = ["self-mihomo", "self-mihomo-alpha"];
 
 #[derive(Debug)]
 pub struct CoreManager {
-    /// clash sidecar process
-    sidecar: Arc<Mutex<Option<CommandChild>>>,
+    /// managed clash sidecar process
+    sidecar: ProcessSupervisor,
 
     /// true if clash core is running in service mode
     use_service_mode: AtomicBool,
-
-    /// true if clash core needs to be restarted when it is terminated
-    need_restart_core: AtomicBool,
-
-    restart_core_count: AtomicUsize,
 }
 
 impl CoreManager {
@@ -46,10 +42,8 @@ impl CoreManager {
         static CORE_MANAGER: OnceCell<CoreManager> = OnceCell::new();
 
         CORE_MANAGER.get_or_init(|| CoreManager {
-            sidecar: Arc::new(Mutex::new(None)),
+            sidecar: ProcessSupervisor::new(Some(Arc::new(Self::handle_sidecar_event))),
             use_service_mode: AtomicBool::new(false),
-            need_restart_core: AtomicBool::new(true),
-            restart_core_count: AtomicUsize::new(0),
         })
     }
 
@@ -64,12 +58,11 @@ impl CoreManager {
                 ("redir-port".into(), 0.into()),
                 ("tproxy-port".into(), 0.into()),
             ]);
-            // patch config
             Config::clash().latest_mut().patch_config(port_mapping.clone());
             log_err!(Config::clash().latest().save_config());
             Config::runtime().latest_mut().patch_config(port_mapping);
         }
-        // 启动 clash
+
         tauri::async_runtime::spawn(async move {
             log_err!(Self::global().run_core().await);
         });
@@ -82,18 +75,12 @@ impl CoreManager {
         let config_path = Config::generate_file(generate_config_type)?;
         let config_path = dirs::path_to_str(&config_path)?;
 
-        let clash_core = Config::verge()
-            .latest()
-            .clash_core
-            .clone()
-            .unwrap_or("self-mihomo".to_string());
-
         let app_dir = dirs::app_home_dir()?;
         let app_dir = dirs::path_to_str(&app_dir)?;
         let app_handle = handle::Handle::app_handle();
         let output = app_handle
             .shell()
-            .sidecar(clash_core)?
+            .sidecar(Self::clash_core_name())?
             .args(["-t", "-d", app_dir, "-f", config_path])
             .output()
             .await?;
@@ -101,10 +88,7 @@ impl CoreManager {
         if !output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout).to_string();
             let error = utils::help::parse_check_output(&stdout);
-            let error = match !error.is_empty() {
-                true => error,
-                false => &stdout,
-            };
+            let error = if !error.is_empty() { error } else { &stdout };
             return Err(any_err!("{error}"));
         }
 
@@ -112,33 +96,21 @@ impl CoreManager {
     }
 
     pub fn reset_state(&self) {
-        self.need_restart_core.store(true, Ordering::SeqCst);
-        self.restart_core_count.store(0, Ordering::SeqCst);
+        self.sidecar.reset_restart_count();
     }
 
     /// 启动核心
     pub async fn run_core(&self) -> AppResult<()> {
         tracing::info!("run core");
-        // clear logs
         Logger::global().clear_logs();
 
         let config_path = Config::generate_file(ConfigType::Run)?;
 
-        let disable_tun = Mapping::from_iter([(
-            "tun".into(),
-            Mapping::from_iter([("enable".into(), false.into())]).into(),
-        )]);
-
-        if self.sidecar.lock().is_some() {
-            self.need_restart_core.store(false, Ordering::SeqCst);
-            // 关闭 tun 模式
+        if self.sidecar.is_running() {
             tracing::info!("temporarily disable tun mode");
-            // 如果此时内核启动后却无法进行通信时，忽略此错误，继续执行重启内核的操作
-            log_err!(handle::Handle::mihomo().await.patch_base_config(&disable_tun).await);
-            if let Some(sidecar) = self.sidecar.lock().take() {
-                tracing::info!("kill mihomo sidecar");
-                sidecar.kill()?;
-            }
+            self.disable_tun().await;
+            tracing::info!("stop existing mihomo sidecar before restart");
+            self.sidecar.stop().await?;
         }
 
         if self.use_service_mode.load(Ordering::SeqCst) {
@@ -146,165 +118,13 @@ impl CoreManager {
             log_err!(service::stop_core_by_service().await);
         }
 
-        // 服务模式
         let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or_default();
         self.use_service_mode.store(enable_service_mode, Ordering::SeqCst);
 
-        let mut system = System::new();
-        system.refresh_all();
-        let procs = system.processes_by_name("self-mihomo".as_ref());
-        for proc in procs {
-            tracing::debug!("kill all clash process");
-            proc.kill();
+        if !self.try_run_core_by_service(&config_path).await? {
+            self.prepare_sidecar_mode()?;
+            self.sidecar.start(self.build_sidecar_spec(&config_path)?).await?;
         }
-
-        if enable_service_mode {
-            // 服务模式启动失败就直接运行 sidecar
-            tracing::debug!("try to run core in service mode");
-            let verge_log = VergeLog::global();
-            let log_path = match verge_log.get_service_log_file() {
-                Some(log_path) => {
-                    tracing::info!("service log file: {log_path}");
-                    log_path
-                }
-                None => {
-                    tracing::info!("creating service log file");
-                    let log_path = verge_log.create_service_log_file()?;
-                    tracing::info!("service log file: {log_path}");
-                    log_path
-                }
-            };
-
-            let res = service::run_core_by_service(&config_path, &PathBuf::from(log_path)).await;
-            match res {
-                Ok(_) => {
-                    tracing::info!("run core by service successfully");
-                    return Ok(());
-                }
-                Err(err) => {
-                    // 修改这个值，免得stop出错
-                    self.use_service_mode.store(false, Ordering::SeqCst);
-                    tracing::error!("failed to run core by service, {err}");
-                }
-            }
-        } else {
-            VergeLog::global().reset_service_log_file();
-            let is_linux_portable = cfg!(target_os = "linux") && dirs::is_portable_version();
-            // note: ** linux portable can enable tun mode without enable service mode, so don't patch config file to disable tun **
-            if !is_linux_portable {
-                tracing::info!(
-                    "not linux portable version and run with sidecar mode, patch config to disable tun mode"
-                );
-                // tun is disable by default on sidecar mode, if service mode is disable, patch the config to disable tun mode
-                Config::clash().latest_mut().patch_and_merge_config(disable_tun.clone());
-                Config::clash().latest().save_config()?;
-                Config::runtime().latest_mut().patch_config(disable_tun);
-                Config::generate_file(ConfigType::Run)?;
-                // emit refresh clash event and update tray menu
-                handle::Handle::refresh_clash();
-                handle::Handle::update_systray_part()?;
-            }
-        }
-
-        let app_dir = dirs::app_home_dir()?;
-        let app_dir = dirs::path_to_str(&app_dir)?;
-        let clash_core = Config::verge()
-            .latest()
-            .clash_core
-            .clone()
-            .unwrap_or("self-mihomo".to_string());
-
-        let config_path = dirs::path_to_str(&config_path)?;
-        let args = vec![
-            "-d",
-            app_dir,
-            "-f",
-            config_path,
-            if cfg!(unix) { "-ext-ctl-unix" } else { "-ext-ctl-pipe" },
-            MIHOMO_SOCKET_PATH,
-        ];
-
-        let app_handle = handle::Handle::app_handle();
-        let cmd = app_handle.shell().sidecar(clash_core)?;
-        self.need_restart_core.store(true, Ordering::SeqCst);
-        let (mut rx, cmd_child) = cmd.args(args).spawn()?;
-        {
-            let mut sidecar = self.sidecar.lock();
-            if let Some(sidecar) = sidecar.take() {
-                tracing::info!("kill mihomo sidecar");
-                sidecar.kill()?;
-            }
-            *sidecar = Some(cmd_child);
-        }
-        tauri::async_runtime::spawn(async move {
-            while let Some(event) = rx.recv().await {
-                match event {
-                    CommandEvent::Stdout(line) => {
-                        let line = String::from_utf8(line).unwrap_or_default();
-                        tracing::info!("[mihomo]: {line}");
-                        Logger::global().append_log(line);
-                    }
-                    CommandEvent::Stderr(err) => {
-                        let err = String::from_utf8(err).unwrap_or_default();
-                        tracing::error!("[mihomo]: {err}");
-                        Logger::global().append_log(err);
-                    }
-                    CommandEvent::Error(err) => {
-                        tracing::error!("[mihomo]: {err}");
-                        Logger::global().append_log(err);
-                    }
-                    CommandEvent::Terminated(_) => {
-                        tracing::info!("mihomo core terminated, check if need to restart after 1 second");
-                        let core_manager = CoreManager::global();
-                        let restart_core_count = core_manager.restart_core_count.load(Ordering::SeqCst);
-                        if restart_core_count >= MAX_RESTART_CORE_COUNT {
-                            core_manager.need_restart_core.store(false, Ordering::SeqCst);
-                            tracing::error!("recover clash core count exceeded, skip");
-                            handle::Handle::notice_message(
-                                handle::NoticeStatus::Error,
-                                "Failed to run mihomo core, please check mihomo log to find problem",
-                            );
-                        } else {
-                            tracing::info!("mihomo core terminated, restart core count: {restart_core_count}");
-                            let _ = core_manager.recover_core();
-                        }
-                        break;
-                    }
-                    _ => {}
-                }
-            }
-        });
-
-        Ok(())
-    }
-
-    /// 重启内核
-    pub fn recover_core(&self) -> AppResult<()> {
-        let is_service_mode = self.use_service_mode.load(Ordering::SeqCst);
-        let need_restart_core = self.need_restart_core.load(Ordering::SeqCst);
-
-        tracing::info!("core terminated, need to restart it? [{need_restart_core}]");
-        // 服务模式 / 切换内核 不进行恢复
-        if is_service_mode || !need_restart_core {
-            return Ok(());
-        }
-        // 清空原来的 sidecar 值
-        if let Some(sidecar) = self.sidecar.lock().take() {
-            tracing::info!("kill mihomo sidecar");
-            sidecar.kill()?;
-        }
-        tauri::async_runtime::spawn(async move {
-            if need_restart_core {
-                // 重新启动 core
-                let core_manager = CoreManager::global();
-                tracing::info!("recover clash core");
-                core_manager.restart_core_count.fetch_add(1, Ordering::SeqCst);
-                if let Err(err) = core_manager.run_core().await {
-                    tracing::error!("failed to recover clash core, {err}");
-                    let _ = CoreManager::global().recover_core();
-                }
-            }
-        });
 
         Ok(())
     }
@@ -312,15 +132,7 @@ impl CoreManager {
     /// 停止核心运行
     pub async fn stop_core(&self) -> AppResult<()> {
         tracing::info!("stop core");
-        self.need_restart_core.store(false, Ordering::SeqCst);
-        // 关闭tun模式
-        let disable_tun = Mapping::from_iter([(
-            "tun".into(),
-            Mapping::from_iter([("enable".into(), false.into())]).into(),
-        )]);
-
-        tracing::info!("disable tun mode");
-        let _ = handle::Handle::mihomo().await.patch_base_config(&disable_tun).await;
+        self.disable_tun().await;
 
         if self.use_service_mode.load(Ordering::SeqCst) {
             tracing::info!("stop the core by service");
@@ -328,21 +140,8 @@ impl CoreManager {
             return Ok(());
         }
 
-        let mut sidecar = self.sidecar.lock();
-        if let Some(sidecar) = sidecar.take() {
-            tracing::info!("kill mihomo sidecar");
-            sidecar.kill()?;
-        }
+        self.sidecar.stop().await?;
 
-        // kill all clash process
-        tracing::info!("kill all mihomo process");
-        let mut system = System::new();
-        system.refresh_all();
-        let procs = system.processes_by_name("self-mihomo".as_ref());
-        for proc in procs {
-            tracing::debug!("kill {}", proc.name().display());
-            proc.kill();
-        }
         #[cfg(unix)]
         {
             tracing::debug!("remove mihomo socket file [{MIHOMO_SOCKET_PATH}]");
@@ -355,10 +154,7 @@ impl CoreManager {
 
     /// 切换核心
     pub async fn change_core(&self, clash_core: Option<String>) -> AppResult<()> {
-        self.need_restart_core.store(false, Ordering::SeqCst);
-
         let clash_core = clash_core.ok_or(AppError::InvalidValue("clash core is null".to_string()))?;
-        const CLASH_CORES: [&str; 2] = ["self-mihomo", "self-mihomo-alpha"];
         if !CLASH_CORES.contains(&clash_core.as_str()) {
             return Err(AppError::InvalidValue(format!(
                 "invalid clash core name \"{clash_core}\""
@@ -390,16 +186,131 @@ impl CoreManager {
     pub async fn update_config(&self) -> AppResult<()> {
         tracing::info!("try to update clash config");
 
-        // 更新订阅
         tracing::info!("generate enhanced config");
         Config::generate()?;
 
-        // 检查订阅是否正常
         tracing::info!("check config");
         self.check_config(ConfigType::RuntimeCheck).await?;
 
-        // 重启核心
         tracing::info!("finished update config, need to restart core");
         self.run_core().await
+    }
+
+    fn build_sidecar_spec(&self, config_path: &PathBuf) -> AppResult<ProcessSpec> {
+        let app_dir = dirs::app_home_dir()?;
+        let clash_core = Self::clash_core_name();
+        let exe_name = format!("{clash_core}{}", std::env::consts::EXE_SUFFIX);
+        let program = current_exe()?.with_file_name(exe_name);
+        let config_path = dirs::path_to_str(config_path)?;
+        let app_dir = dirs::path_to_str(&app_dir)?;
+        let log_file = VergeLog::global().get_log_file().map(PathBuf::from);
+
+        let mut spec = ProcessSpec::new("mihomo", program);
+        spec.args = vec![
+            OsString::from("-d"),
+            OsString::from(app_dir),
+            OsString::from("-f"),
+            OsString::from(config_path),
+            OsString::from(if cfg!(unix) { "-ext-ctl-unix" } else { "-ext-ctl-pipe" }),
+            OsString::from(MIHOMO_SOCKET_PATH),
+        ];
+        spec.restart_policy = RestartPolicy {
+            max_restarts: MAX_RESTART_CORE_COUNT,
+            restart_delay: CORE_RESTART_INTERVAL,
+        };
+        spec.log_config = ProcessLogConfig {
+            log_file,
+            truncate_on_start: false,
+        };
+        Ok(spec)
+    }
+
+    fn handle_sidecar_event(event: ProcessEvent) {
+        match event {
+            ProcessEvent::Stdout { line, .. } | ProcessEvent::Stderr { line, .. } => {
+                Logger::global().append_log(line);
+            }
+            ProcessEvent::RestartLimitReached { attempts, .. } => {
+                tracing::error!("recover clash core count exceeded, skip");
+                Logger::global().append_log(format!("mihomo core restart limit reached after {attempts} retries"));
+                handle::Handle::notice_message(
+                    handle::NoticeStatus::Error,
+                    "Failed to run mihomo core, please check mihomo log to find problem",
+                );
+            }
+            ProcessEvent::Error { message, .. } => {
+                Logger::global().append_log(message);
+            }
+            _ => {}
+        }
+    }
+
+    fn clash_core_name() -> String {
+        if let Some(core) = Config::verge().latest().clash_core.as_deref()
+            && CLASH_CORES.contains(&core)
+        {
+            return core.to_string();
+        }
+        CLASH_CORES[0].to_string()
+    }
+
+    fn disable_tun_mapping() -> Mapping {
+        Mapping::from_iter([(
+            "tun".into(),
+            Mapping::from_iter([("enable".into(), false.into())]).into(),
+        )])
+    }
+
+    async fn disable_tun(&self) {
+        tracing::info!("disable tun mode");
+        let disable_tun = Self::disable_tun_mapping();
+        let _ = handle::Handle::mihomo().await.patch_base_config(&disable_tun).await;
+    }
+
+    async fn try_run_core_by_service(&self, config_path: &PathBuf) -> AppResult<bool> {
+        if !self.use_service_mode.load(Ordering::SeqCst) {
+            return Ok(false);
+        }
+
+        tracing::debug!("try to run core in service mode");
+        let verge_log = VergeLog::global();
+        let log_path = match verge_log.get_service_log_file() {
+            Some(log_path) => log_path,
+            None => {
+                tracing::info!("creating service log file");
+                verge_log.create_service_log_file()?
+            }
+        };
+        tracing::info!("service log file: {log_path}");
+
+        match service::run_core_by_service(config_path, &PathBuf::from(log_path)).await {
+            Ok(_) => {
+                tracing::info!("run core by service successfully");
+                Ok(true)
+            }
+            Err(err) => {
+                self.use_service_mode.store(false, Ordering::SeqCst);
+                tracing::error!("failed to run core by service, {err}");
+                Ok(false)
+            }
+        }
+    }
+
+    fn prepare_sidecar_mode(&self) -> AppResult<()> {
+        VergeLog::global().reset_service_log_file();
+
+        if cfg!(target_os = "linux") && dirs::is_portable_version() {
+            return Ok(());
+        }
+
+        tracing::info!("run with sidecar mode, patch config to disable tun mode");
+        let disable_tun = Self::disable_tun_mapping();
+        Config::clash().latest_mut().patch_and_merge_config(disable_tun.clone());
+        Config::clash().latest().save_config()?;
+        Config::runtime().latest_mut().patch_config(disable_tun);
+        Config::generate_file(ConfigType::Run)?;
+        handle::Handle::refresh_clash();
+        handle::Handle::update_systray_part()?;
+        Ok(())
     }
 }
