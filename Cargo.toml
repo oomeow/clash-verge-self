@@ -1,5 +1,5 @@
 [workspace]
-members = ["src-tauri", "crates/mihomo-rule-parser", "crates/mihomo-config", "crates/tauri-plugin-mihomo", "crates/process_manager"]
+members = ["src-tauri", "crates/mihomo-rule-parser", "crates/mihomo-config", "crates/tauri-plugin-mihomo", "crates/process_supervisor"]
 default-members = ["src-tauri"]
 resolver = "2"
 
@@ -11,7 +11,7 @@ edition = "2024"
 mihomo-rule-parser = { path = "crates/mihomo-rule-parser" }
 mihomo-config = { path = "crates/mihomo-config" }
 tauri-plugin-mihomo = { path = "crates/tauri-plugin-mihomo" }
-process_manager = { path = "crates/process_manager" }
+process_supervisor = { path = "crates/process_supervisor" }
 
 thiserror = "2"
 reqwest = { version = "0.13", features = ["query", "json"] }

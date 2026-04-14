@@ -1032,7 +1032,7 @@ dependencies = [
  "openssl",
  "parking_lot",
  "percent-encoding",
- "process_manager",
+ "process_supervisor",
  "reqwest",
  "reqwest_dav",
  "rfd 0.17.2",
@@ -5012,7 +5012,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "process_manager"
+name = "process_supervisor"
 version = "0.1.0"
 dependencies = [
  "parking_lot",

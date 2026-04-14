@@ -9,7 +9,7 @@ use std::{
 };
 
 use once_cell::sync::OnceCell;
-use process_manager::{ProcessEvent, ProcessLogConfig, ProcessManager, ProcessSpec, RestartPolicy};
+use process_supervisor::{ProcessEvent, ProcessLogConfig, ProcessManager, ProcessSpec, RestartPolicy};
 use serde_yaml::Mapping;
 use tauri::utils::platform::current_exe;
 use tauri_plugin_shell::ShellExt;

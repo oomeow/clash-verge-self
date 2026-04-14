@@ -38,7 +38,7 @@ pub enum AppError {
     #[error("task join error: {0}")]
     TaskJoin(#[from] tokio::task::JoinError),
     #[error("process manager error: {0}")]
-    ProcessManager(#[from] process_manager::Error),
+    ProcessSupervisor(#[from] process_supervisor::Error),
 
     // tauri
     #[error("tauri shell error: {0}")]

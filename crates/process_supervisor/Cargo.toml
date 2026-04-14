@@ -1,5 +1,6 @@
 [package]
-name = "process_manager"
+name = "process_supervisor"
+description = "A process supervisor library for Rust"
 version = "0.1.0"
 edition.workspace = true
 publish.workspace = true
