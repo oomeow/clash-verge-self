@@ -57,7 +57,7 @@ tauri-plugin-updater = "2"
 
 warp = { version = "0.4", features = ["server"] }
 dunce = "1.0"
-nanoid = "0.4"
+nanoid = "0.5"
 chrono = {version = "0.4", features = ["serde"] }
 sysinfo = "0.38"
 boa_engine = "0.21"
