@@ -65,7 +65,7 @@ export const useCustomTheme = () => {
     const setting = normalizeThemeSetting(mode, themeSettings[mode]);
     const isDark = mode === "dark";
 
-    const muiDataGridLocale = language === "zh" ? zhCN : enUS;
+    const muiDataGridLocale = language === "zh_CN" ? zhCN : enUS;
     const rootElement = document.getElementById("root");
 
     const defaultThemeObj: CustomThemeOptions = {
