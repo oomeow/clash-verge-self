@@ -10,7 +10,7 @@ use crate::{
     core::{service, sysopt},
     enhance,
     error::{AppError, AppResult},
-    utils::{dirs, help},
+    utils::help,
 };
 
 pub const RUNTIME_CONFIG: &str = "clash-verge-self.yaml";
@@ -56,7 +56,7 @@ impl Config {
         crate::log_err!(Self::generate());
         if let Err(err) = Self::generate_file(ConfigType::Run) {
             tracing::error!("{err}");
-            let runtime_path = dirs::app_home_dir()?.join(RUNTIME_CONFIG);
+            let runtime_path = cvs_dirs::app_home_dir()?.join(RUNTIME_CONFIG);
             // 如果不存在就将默认的clash文件拿过来
             if !runtime_path.exists() {
                 help::save_yaml(
@@ -72,7 +72,7 @@ impl Config {
     /// 将订阅丢到对应的文件中
     pub fn generate_file(config_type: ConfigType) -> AppResult<PathBuf> {
         let path = match config_type {
-            ConfigType::Run => dirs::app_home_dir()?.join(RUNTIME_CONFIG),
+            ConfigType::Run => cvs_dirs::app_home_dir()?.join(RUNTIME_CONFIG),
             ConfigType::RuntimeCheck => temp_dir().join(CHECK_CONFIG),
             ConfigType::MappingCheck(_) => temp_dir().join(CHECK_CONFIG),
         };

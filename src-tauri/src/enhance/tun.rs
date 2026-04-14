@@ -35,10 +35,8 @@ pub fn use_tun(mut config: Mapping, enable: bool) -> Mapping {
         {
             use std::process::Command;
 
-            use crate::utils::dirs;
-
             tracing::info!("try to set system dns");
-            let resource_dir = dirs::app_resources_dir().unwrap();
+            let resource_dir = cvs_dirs::app_resources_dir().unwrap();
             let script = resource_dir.join("set_dns.sh");
             match Command::new("bash").args([script]).current_dir(resource_dir).status() {
                 Ok(status) => {
@@ -60,10 +58,8 @@ pub fn use_tun(mut config: Mapping, enable: bool) -> Mapping {
         {
             use std::process::Command;
 
-            use crate::utils::dirs;
-
             tracing::info!("try to unset system dns");
-            let resource_dir = dirs::app_resources_dir().unwrap();
+            let resource_dir = cvs_dirs::app_resources_dir().unwrap();
             let script = resource_dir.join("unset_dns.sh");
             match Command::new("bash").args([script]).current_dir(resource_dir).status() {
                 Ok(status) => {

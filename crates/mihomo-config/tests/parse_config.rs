@@ -3,12 +3,11 @@ use std::{
     io::{Read, Write},
 };
 
-use anyhow::Result;
 use mihomo_config::config::raw_config::RawConfig;
 use serde_yaml::Value;
 
 #[test]
-fn test_parse_config() -> Result<()> {
+fn test_parse_config() -> Result<(), Box<dyn std::error::Error>> {
     let file = current_dir()?.join("tests/example.yaml");
     let mut file = std::fs::File::open(file)?;
     let mut config = String::new();

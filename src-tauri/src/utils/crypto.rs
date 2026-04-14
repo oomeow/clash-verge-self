@@ -31,14 +31,14 @@ pub fn get_public_key() -> Option<RsaPublicKey> {
 }
 
 pub fn load_keys() -> AppResult<()> {
-    let private_key_path = crate::utils::dirs::app_resources_dir()?.join(PRI_KEY_PEM_FILE);
+    let private_key_path = crate::utils::cvs_dirs::app_resources_dir()?.join(PRI_KEY_PEM_FILE);
     let mut pri_key_file = std::fs::File::open(private_key_path)?;
     let mut private_key_content = String::new();
     pri_key_file.read_to_string(&mut private_key_content)?;
     let private_key = RsaPrivateKey::from_pkcs1_pem(&private_key_content)?;
     *PRIVATE_KEY.write() = Some(private_key);
 
-    let public_key_path = crate::utils::dirs::app_resources_dir()?.join(PUB_KEY_PEM_FILE);
+    let public_key_path = crate::utils::cvs_dirs::app_resources_dir()?.join(PUB_KEY_PEM_FILE);
     let mut pub_key_file = std::fs::File::open(public_key_path)?;
     let mut public_key_content = String::new();
     pub_key_file.read_to_string(&mut public_key_content)?;

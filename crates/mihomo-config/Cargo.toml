@@ -2,6 +2,7 @@
 name = "mihomo-config"
 version = "0.1.0"
 edition.workspace = true
+publish.workspace = true
 
 [lib]
 name = "mihomo_config"
@@ -11,5 +12,4 @@ serde.workspace = true
 serde_json.workspace = true
 serde_yaml.workspace = true
 
-anyhow = "1.0.102"
 indexmap = { version = "2.11.1", features = ["serde"] }

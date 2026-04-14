@@ -3,8 +3,8 @@ use tracing::level_filters::LevelFilter;
 
 use crate::{
     config::DEFAULT_PAC,
-    error::AppResult,
-    utils::{dirs, help},
+    error::{AppError, AppResult},
+    utils::help,
 };
 
 /// ### `verge.yaml` schema
@@ -210,7 +210,10 @@ pub struct IVergeTheme {
 
 impl IVerge {
     pub fn new() -> Self {
-        match dirs::verge_path().and_then(|path| help::read_yaml::<IVerge>(&path)) {
+        match cvs_dirs::verge_path()
+            .map_err(AppError::from)
+            .and_then(|path| help::read_yaml::<IVerge>(&path))
+        {
             Ok(mut config) => {
                 // 对旧字段的兼容处理
                 // 将 system_proxy_bypass 设置到对应的平台，后续将移除 system_proxy_bypass
@@ -319,7 +322,7 @@ impl IVerge {
 
     /// Save IVerge App Config
     pub fn save_file(&self) -> AppResult<()> {
-        help::save_yaml(&dirs::verge_path()?, &self, Some("# Clash Verge Config"))
+        help::save_yaml(&cvs_dirs::verge_path()?, &self, Some("# Clash Verge Config"))
     }
 
     /// patch verge config
@@ -399,7 +402,10 @@ impl IVerge {
         #[cfg(feature = "verge-dev")]
         const SERVER_PORT: u16 = 11235;
 
-        match dirs::verge_path().and_then(|path| help::read_yaml::<IVerge>(&path)) {
+        match cvs_dirs::verge_path()
+            .map_err(AppError::from)
+            .and_then(|path| help::read_yaml::<IVerge>(&path))
+        {
             Ok(config) => config.app_singleton_port.unwrap_or(SERVER_PORT),
             Err(_) => SERVER_PORT, // 这里就不log错误了
         }

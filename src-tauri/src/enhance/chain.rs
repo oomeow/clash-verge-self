@@ -7,7 +7,7 @@ use super::{LogMessage, use_merge, use_script};
 use crate::{
     config::{PrfItem, ProfileType},
     error::{AppError, AppResult},
-    utils::{dirs, help},
+    utils::help,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,7 +52,7 @@ impl From<PrfItem> for Option<ChainItem> {
         let itype = item.itype.as_ref()?;
         let file = item.file.clone()?;
         let uid = item.uid.clone().unwrap_or_default();
-        let path = dirs::app_profiles_dir().ok()?.join(&file);
+        let path = cvs_dirs::app_profiles_dir().ok()?.join(&file);
         let enable = item.enable.unwrap_or_default();
         let parent = item.parent.clone();
 
@@ -88,7 +88,7 @@ impl From<PrfItem> for Option<ChainItem> {
 
 impl ChainItem {
     pub fn execute(&self, config: Mapping) -> AppResult<ChainExcResult> {
-        let path = dirs::app_profiles_dir()?.join(&self.file);
+        let path = cvs_dirs::app_profiles_dir()?.join(&self.file);
         if !path.exists() {
             return Err(AppError::Io(io::Error::new(
                 io::ErrorKind::NotFound,
@@ -127,7 +127,7 @@ fn test_serde() -> AppResult<()> {
     let name = "test".to_string();
     let desc = "这是一个测试用例".to_string();
     let file = "m6AlCCwRNplH.yaml".to_string();
-    // let path = dirs::app_profiles_dir()?.join(&file);
+    // let path = cvs_dirs::app_profiles_dir()?.join(&file);
     let chain = ChainItem {
         uid,
         name,

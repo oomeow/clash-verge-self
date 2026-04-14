@@ -1,5 +1,5 @@
 // pub mod crypto;
-pub mod dirs;
+// pub mod dirs;
 pub mod help;
 pub mod init;
 pub mod resolve;

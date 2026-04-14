@@ -21,10 +21,8 @@ pub fn grant_permissions(core: String) -> AppResult<()> {
 
     use tauri::utils::platform::current_exe;
 
-    use crate::utils::dirs;
-
     let path = current_exe()?.with_file_name(&core);
-    let path = dirs::path_to_str(&path)?;
+    let path = cvs_dirs::path_to_str(&path)?;
 
     tracing::debug!("grant permissions, core path: {path}");
 
@@ -72,7 +70,7 @@ pub fn check_permissions_granted(core: String) -> AppResult<bool> {
     use crate::utils::dirs;
 
     let path = current_exe()?.with_file_name(&core);
-    let path = dirs::path_to_str(&path)?;
+    let path = cvs_dirs::path_to_str(&path)?;
 
     tracing::debug!("check permissions granted, core path: {path}");
 

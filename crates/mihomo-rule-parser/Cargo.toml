@@ -1,9 +1,10 @@
 [package]
 name = "mihomo-rule-parser"
 version = "0.1.0"
-edition.workspace = true
 authors = ["oomeow"]
 description = "Mihomo Rule Parser"
+edition.workspace = true
+publish.workspace = true
 
 [lib]
 name = "mihomo_rule_parser"

@@ -12,7 +12,7 @@ use crate::{
     core::handle,
     enhance::chain::ScopeType,
     error::{AppError, AppResult},
-    utils::{dirs, help, tmpl},
+    utils::{help, tmpl},
 };
 
 #[derive(Debug, Default, Clone, Deserialize, Serialize)]
@@ -431,7 +431,7 @@ impl PrfItem {
     pub fn read_file(&self) -> AppResult<String> {
         match self.file {
             Some(ref file) => {
-                let path = dirs::app_profiles_dir()?.join(file);
+                let path = cvs_dirs::app_profiles_dir()?.join(file);
                 let data = fs::read_to_string(path)?;
                 Ok(data)
             }
@@ -443,7 +443,7 @@ impl PrfItem {
     pub fn save_file(&self, data: String) -> AppResult<()> {
         match self.file {
             Some(ref file) => {
-                let path = dirs::app_profiles_dir()?.join(file);
+                let path = cvs_dirs::app_profiles_dir()?.join(file);
                 fs::write(path, data.as_bytes())?;
                 Ok(())
             }
@@ -455,7 +455,7 @@ impl PrfItem {
         match self.file {
             Some(ref file) => {
                 tracing::debug!("delete profile [{:?}({:?})]", self.name, self.uid);
-                let path = dirs::app_profiles_dir()?.join(file);
+                let path = cvs_dirs::app_profiles_dir()?.join(file);
                 fs::remove_file(path)?;
                 Ok(())
             }

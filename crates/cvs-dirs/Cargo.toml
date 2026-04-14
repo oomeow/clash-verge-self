@@ -1,0 +1,17 @@
+[package]
+name = "cvs-dirs"
+version = "0.1.0"
+description = "the dirs for clash verge self"
+edition.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+verge-dev = []
+
+[dependencies]
+thiserror.workspace = true
+dirs.workspace = true
+
+chrono = "0.4.44"
+dunce = "1.0.5"

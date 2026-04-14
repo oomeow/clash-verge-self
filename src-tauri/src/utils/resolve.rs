@@ -9,10 +9,7 @@ use crate::{
     core::{verge_log::VergeLog, *},
     error::AppResult,
     log_err, shutdown, trace_err,
-    utils::{
-        dirs::{self, APP_ID},
-        init, server,
-    },
+    utils::{init, server},
 };
 
 /// handle something when start app
@@ -47,7 +44,7 @@ pub async fn resolve_setup() {
     shutdown::register();
 
     // 用于应用备份后重启
-    let exists_archive_file = dirs::backup_archive_file().is_ok_and(|file| file.exists());
+    let exists_archive_file = cvs_dirs::backup_archive_file().is_ok_and(|file| file.exists());
     if exists_archive_file {
         create_window();
     }
@@ -95,7 +92,7 @@ pub fn setup_panic_hook() {
         tracing::error!("panicked at {}:\n{}\n{}", location, payload, backtrace);
         let limit_backtrace = backtrace.lines().take(10).collect::<Vec<_>>().join("\n");
         let log_file = VergeLog::global().get_log_file().unwrap_or_default();
-        let log_file = log_file.split(APP_ID).last().unwrap_or_default();
+        let log_file = log_file.split(cvs_dirs::APP_ID).last().unwrap_or_default();
         let content = t!(
             "dialog.panic.content",
             location = location,

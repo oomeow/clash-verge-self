@@ -1021,6 +1021,7 @@ dependencies = [
  "boa_engine",
  "chrono",
  "clash-verge-self-service",
+ "cvs-dirs",
  "deelevate",
  "delay_timer",
  "dirs 6.0.0",
@@ -1392,6 +1393,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
+]
+
+[[package]]
+name = "cvs-dirs"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "dirs 6.0.0",
+ "dunce",
+ "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -3694,7 +3705,6 @@ dependencies = [
 name = "mihomo-config"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "indexmap 2.14.0",
  "serde",
  "serde_json",

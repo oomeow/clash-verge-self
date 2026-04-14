@@ -7,7 +7,6 @@ use crate::{
     MIHOMO_SOCKET_PATH, any_err,
     config::Config,
     error::{AppError, AppResult},
-    utils::dirs,
 };
 
 /// Install the Clash Verge Service
@@ -20,13 +19,13 @@ pub async fn install_service() -> AppResult<()> {
     use deelevate::{PrivilegeLevel, Token};
     use runas::Command as RunasCommand;
 
-    let install_path = dirs::service_path()?;
+    let install_path = cvs_dirs::service_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", install_path.display());
     if !install_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = cvs_dirs::app_logs_dir()?.join("service");
     let token = Token::with_current_process()?;
     let level = token.privilege_level()?;
 
@@ -61,13 +60,13 @@ pub async fn install_service() -> AppResult<()> {
 pub async fn install_service() -> AppResult<()> {
     use users::get_effective_uid;
 
-    let installer_path = dirs::service_path()?;
+    let installer_path = cvs_dirs::service_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", installer_path.display());
     if !installer_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = cvs_dirs::app_logs_dir()?.join("service");
     tracing::debug!("log dir: {}", log_dir.display());
 
     let elevator = crate::utils::unix_helper::linux_elevator();
@@ -106,13 +105,13 @@ pub async fn install_service() -> AppResult<()> {
 
 #[cfg(target_os = "macos")]
 pub async fn install_service() -> AppResult<()> {
-    let installer_path = dirs::service_path()?;
+    let installer_path = cvs_dirs::service_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", installer_path.display());
     if !installer_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = cvs_dirs::app_logs_dir()?.join("service");
     let shell = installer_path.to_string_lossy().replace(" ", "\\\\ ");
     let log_dir = log_dir.to_string_lossy().replace(" ", "\\\\ ");
     let command = format!(
@@ -140,13 +139,13 @@ pub async fn uninstall_service() -> AppResult<()> {
     use deelevate::{PrivilegeLevel, Token};
     use runas::Command as RunasCommand;
 
-    let uninstall_path = dirs::service_path()?;
+    let uninstall_path = cvs_dirs::service_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", uninstall_path.display());
     if !uninstall_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = cvs_dirs::app_logs_dir()?.join("service");
     let token = Token::with_current_process()?;
     let level = token.privilege_level()?;
 
@@ -179,13 +178,13 @@ pub async fn uninstall_service() -> AppResult<()> {
 pub async fn uninstall_service() -> AppResult<()> {
     use users::get_effective_uid;
 
-    let uninstaller_path = dirs::service_path()?;
+    let uninstaller_path = cvs_dirs::service_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", uninstaller_path.display());
     if !uninstaller_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = cvs_dirs::app_logs_dir()?.join("service");
     let elevator = crate::utils::unix_helper::linux_elevator();
     let status = match get_effective_uid() {
         0 => StdCommand::new(uninstaller_path)
@@ -219,13 +218,13 @@ pub async fn uninstall_service() -> AppResult<()> {
 
 #[cfg(target_os = "macos")]
 pub async fn uninstall_service() -> AppResult<()> {
-    let uninstaller_path = dirs::service_path()?;
+    let uninstaller_path = cvs_dirs::service_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", uninstaller_path.display());
     if !uninstaller_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = cvs_dirs::app_logs_dir()?.join("service");
     let shell = uninstaller_path.to_string_lossy().replace(" ", "\\\\ ");
     let log_dir = log_dir.to_string_lossy().replace(" ", "\\\\ ");
     let command = format!(
@@ -290,12 +289,12 @@ pub(super) async fn run_core_by_service(config_file: &PathBuf, log_path: &PathBu
     let exe_ext = std::env::consts::EXE_SUFFIX;
     let clash_bin = format!("{clash_core}{exe_ext}");
     let bin_path = current_exe()?.with_file_name(clash_bin);
-    let bin_path = dirs::path_to_str(&bin_path)?;
+    let bin_path = cvs_dirs::path_to_str(&bin_path)?;
 
-    let config_dir = dirs::app_home_dir()?;
-    let config_dir = dirs::path_to_str(&config_dir)?;
-    let config_file = dirs::path_to_str(config_file)?;
-    let log_path = dirs::path_to_str(log_path)?;
+    let config_dir = cvs_dirs::app_home_dir()?;
+    let config_dir = cvs_dirs::path_to_str(&config_dir)?;
+    let config_file = cvs_dirs::path_to_str(config_file)?;
+    let log_path = cvs_dirs::path_to_str(log_path)?;
 
     let body = StartBody {
         core_type: Some(clash_core),

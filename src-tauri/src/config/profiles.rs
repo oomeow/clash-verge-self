@@ -11,7 +11,7 @@ use crate::{
     enhance::chain::{ChainItem, ScopeType},
     error::{AppError, AppResult},
     log_err,
-    utils::{dirs, help},
+    utils::help,
 };
 
 /// Define the `profiles.yaml` schema
@@ -37,7 +37,10 @@ macro_rules! patch {
 
 impl IProfiles {
     pub fn new() -> Self {
-        match dirs::profiles_path().and_then(|path| help::read_yaml::<Self>(&path)) {
+        match cvs_dirs::profiles_path()
+            .map_err(AppError::from)
+            .and_then(|path| help::read_yaml::<Self>(&path))
+        {
             Ok(mut profiles) => {
                 if profiles.items.is_none() {
                     profiles.items = Some(vec![]);
@@ -81,7 +84,7 @@ impl IProfiles {
                 }
                 // This is old bug since 2.0.0 ~ 2.1.4 version
                 // delete invalid files in profiles dir
-                if let Ok(dir) = dirs::app_profiles_dir()
+                if let Ok(dir) = cvs_dirs::app_profiles_dir()
                     && let Ok(dir) = std::fs::read_dir(dir)
                 {
                     for entry in dir.flatten() {
@@ -102,7 +105,7 @@ impl IProfiles {
             Err(err) => {
                 tracing::error!("{err}");
                 // delete all files in profiles dir
-                if let Ok(dir) = dirs::app_profiles_dir()
+                if let Ok(dir) = cvs_dirs::app_profiles_dir()
                     && let Ok(dir) = std::fs::read_dir(dir)
                 {
                     tracing::debug!("clear all files in profiles dir");
@@ -123,7 +126,11 @@ impl IProfiles {
     }
 
     pub fn save_file(&self) -> AppResult<()> {
-        help::save_yaml(&dirs::profiles_path()?, self, Some("# Profiles Config for Clash Verge"))
+        help::save_yaml(
+            &cvs_dirs::profiles_path()?,
+            self,
+            Some("# Profiles Config for Clash Verge"),
+        )
     }
 
     /// 只修改 current、global chain
@@ -217,7 +224,7 @@ impl IProfiles {
             if let Some(file_data) = item.file_data.take()
                 && let Some(file) = item.file.as_ref()
             {
-                let path = dirs::app_profiles_dir()?.join(file);
+                let path = cvs_dirs::app_profiles_dir()?.join(file);
                 fs::File::create(path)?.write_all(file_data.as_bytes())?;
             }
 
@@ -332,7 +339,7 @@ impl IProfiles {
                         let file = file.unwrap_or(item.file.take().unwrap_or(format!("{uid}.yaml")));
                         // the file must exists
                         each.file = Some(file.clone());
-                        let path = dirs::app_profiles_dir()?.join(&file);
+                        let path = cvs_dirs::app_profiles_dir()?.join(&file);
                         fs::File::create(path)?.write_all(file_data.as_bytes())?;
                     }
 
@@ -462,7 +469,7 @@ impl IProfiles {
             && let Some(item) = items.iter().find(|&i| i.uid == Some(profile_uid.to_string()))
             && let Some(file) = item.file.as_ref()
         {
-            let file_path = dirs::app_profiles_dir().ok()?.join(file);
+            let file_path = cvs_dirs::app_profiles_dir().ok()?.join(file);
             let mapping = help::read_merge_mapping(&file_path).ok()?;
             Some(mapping)
         } else {

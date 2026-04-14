@@ -15,7 +15,6 @@ use crate::{
     config::{Config, ConfigType, EnableFilter, ProfileType},
     core::CoreManager,
     error::{AppError, AppResult},
-    utils::dirs,
 };
 
 type ResultLog = Vec<LogMessage>;
@@ -61,13 +60,13 @@ pub fn generate_rule_providers(mut config: Mapping) -> Mapping {
         // add path
         if let Some(path) = val_map.get(&path_key) {
             let path = path.as_str().unwrap();
-            let absolute_path = dirs::app_home_dir().unwrap().join(path);
+            let absolute_path = cvs_dirs::app_home_dir().unwrap().join(path);
             absolute_path_map.insert(name.into(), absolute_path);
         } else {
             // no path value, set default path
             let format_val = rp_format.as_ref().map_or("yaml", |v| v.as_str().unwrap_or("yaml"));
             let path = format!("./rules/{name}.{format_val}");
-            let absolute_path = dirs::app_home_dir().unwrap().join(path.trim_start_matches("./"));
+            let absolute_path = cvs_dirs::app_home_dir().unwrap().join(path.trim_start_matches("./"));
             val_map.insert(path_key, path.into());
             absolute_path_map.insert(name.into(), absolute_path);
         }

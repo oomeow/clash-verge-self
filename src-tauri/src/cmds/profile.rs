@@ -5,7 +5,7 @@ use crate::{
     enhance::chain::{ChainItem, ScopeType},
     error::{AppError, AppResult},
     feat, log_err,
-    utils::{dirs, help, tmpl},
+    utils::{help, tmpl},
 };
 
 #[tauri::command]
@@ -169,7 +169,7 @@ pub fn view_profile(app_handle: tauri::AppHandle, index: String) -> AppResult<()
         .file
         .as_ref()
         .ok_or(AppError::InvalidValue("the file field is null".to_string()))?;
-    let path = dirs::app_profiles_dir()?.join(file);
+    let path = cvs_dirs::app_profiles_dir()?.join(file);
     if !path.exists() {
         return Err(any_err!("profile [{}] not found", path.display()));
     }

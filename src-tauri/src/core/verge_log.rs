@@ -21,7 +21,6 @@ use crate::{
     config::Config,
     error::{AppError, AppResult},
     log_err,
-    utils::dirs::{self},
 };
 
 #[derive(Debug, Default)]
@@ -50,7 +49,7 @@ impl VergeLog {
     }
 
     pub fn create_service_log_file(&self) -> AppResult<String> {
-        let service_log_file = dirs::service_log_file()?;
+        let service_log_file = cvs_dirs::service_log_file()?;
         let service_log_file = service_log_file.to_string_lossy().to_string();
         *self.service_log_file.lock() = Some(service_log_file.clone());
         Ok(service_log_file)
@@ -78,7 +77,7 @@ impl VergeLog {
             .with_filter(exclude_filter.clone());
 
         // 输出到日志文件
-        let log_dir = dirs::app_logs_dir()?;
+        let log_dir = cvs_dirs::app_logs_dir()?;
         let local_time = Local::now().format("%Y-%m-%d-%H%M").to_string();
         let log_file_name = format!("{local_time}.log");
         let file_appender = rolling::never(log_dir, log_file_name);
@@ -115,7 +114,7 @@ impl VergeLog {
     }
 
     pub fn delete_log() -> AppResult<()> {
-        let log_dir = dirs::app_logs_dir()?;
+        let log_dir = cvs_dirs::app_logs_dir()?;
         if !log_dir.exists() {
             return Ok(());
         }

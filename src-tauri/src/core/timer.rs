@@ -16,7 +16,6 @@ use crate::{
     config::Config,
     error::{AppError, AppResult},
     feat, log_err,
-    utils::dirs,
 };
 
 type TaskId = u64;
@@ -105,7 +104,7 @@ impl Timer {
     }
 
     fn activate_selected_task(&self) -> AppResult<()> {
-        if !dirs::backup_archive_file()?.exists() {
+        if !cvs_dirs::backup_archive_file()?.exists() {
             return Ok(());
         }
 
@@ -147,7 +146,7 @@ impl Timer {
                             }
                         }
 
-                        if let Ok(archive_file) = dirs::backup_archive_file()
+                        if let Ok(archive_file) = cvs_dirs::backup_archive_file()
                             && archive_file.exists()
                         {
                             log_err!(std::fs::remove_file(archive_file), "failed to remove archive file");
@@ -168,7 +167,7 @@ impl Timer {
 
         tauri::async_runtime::spawn(async move {
             loop {
-                let archive_file = dirs::backup_archive_file();
+                let archive_file = cvs_dirs::backup_archive_file();
                 if let Ok(archive_file) = archive_file
                     && !archive_file.exists()
                 {

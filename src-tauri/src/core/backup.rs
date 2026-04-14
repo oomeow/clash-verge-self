@@ -19,7 +19,6 @@ use crate::{
     config::Config,
     error::{AppError, AppResult},
     trace_err,
-    utils::dirs,
 };
 
 // new backup dir
@@ -41,7 +40,7 @@ pub fn create_backup(local_save: bool, only_backup_profiles: bool) -> AppResult<
     );
 
     let zip_path = if local_save {
-        dirs::backup_dir()?.join(&zip_file_name)
+        cvs_dirs::backup_dir()?.join(&zip_file_name)
     } else {
         temp_dir().join(&zip_file_name)
     };
@@ -64,7 +63,7 @@ pub fn create_backup(local_save: bool, only_backup_profiles: bool) -> AppResult<
 
     // Add profile files
     zip.add_directory("profiles/", SimpleFileOptions::default())?;
-    let profile_dir = dirs::app_profiles_dir()?;
+    let profile_dir = cvs_dirs::app_profiles_dir()?;
     for entry in fs::read_dir(&profile_dir)? {
         let entry = entry?;
         let path = entry.path();
@@ -76,11 +75,11 @@ pub fn create_backup(local_save: bool, only_backup_profiles: bool) -> AppResult<
 
     // Add additional files if not only backing up profiles
     if !only_backup_profiles {
-        add_file_to_zip(&mut zip, &dirs::clash_path()?, dirs::CLASH_CONFIG, options)?;
-        add_file_to_zip(&mut zip, &dirs::verge_path()?, dirs::VERGE_CONFIG, options)?;
+        add_file_to_zip(&mut zip, &cvs_dirs::clash_path()?, cvs_dirs::CLASH_CONFIG, options)?;
+        add_file_to_zip(&mut zip, &cvs_dirs::verge_path()?, cvs_dirs::VERGE_CONFIG, options)?;
     }
 
-    add_file_to_zip(&mut zip, &dirs::profiles_path()?, dirs::PROFILE_YAML, options)?;
+    add_file_to_zip(&mut zip, &cvs_dirs::profiles_path()?, cvs_dirs::PROFILE_YAML, options)?;
     zip.finish()?;
 
     Ok((zip_file_name, zip_path))

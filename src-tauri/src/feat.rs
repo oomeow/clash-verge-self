@@ -18,7 +18,7 @@ use crate::{
     core::*,
     error::{AppError, AppResult},
     log_err,
-    utils::{dirs, help, resolve},
+    utils::{help, resolve},
 };
 
 /// 打开面板
@@ -143,7 +143,7 @@ pub fn toggle_tun_mode() {
     tun.insert("tun".into(), tun_val.into());
 
     tauri::async_runtime::spawn(async move {
-        if cfg!(target_os = "linux") && dirs::is_portable_version() {
+        if cfg!(target_os = "linux") && cvs_dirs::is_portable() {
             match patch_clash(tun).await {
                 Ok(_) => tracing::info!("change tun mode to {}", !enable),
                 Err(err) => {
@@ -353,7 +353,8 @@ pub async fn patch_clash(patch: Mapping) -> AppResult<()> {
             {
                 use crate::core::manager::check_permissions_granted;
 
-                if dirs::is_portable_version() && !Config::verge().latest().enable_service_mode.unwrap_or_default() {
+                if cvs_dirs::is_portable_version() && !Config::verge().latest().enable_service_mode.unwrap_or_default()
+                {
                     let mihomo_core = Config::verge()
                         .latest()
                         .clash_core

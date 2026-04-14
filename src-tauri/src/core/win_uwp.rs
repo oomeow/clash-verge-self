@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub async fn invoke_uwptools() -> AppResult<()> {
-    let resource_dir = dirs::app_resources_dir()?;
+    let resource_dir = cvs_dirs::app_resources_dir()?;
     let tool_path = resource_dir.join("enableLoopback.exe");
 
     if !tool_path.exists() {

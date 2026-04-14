@@ -12,7 +12,7 @@ use crate::{
     core::{CoreManager, handle, sysopt, tray::Tray},
     error::{AppError, AppResult},
     feat,
-    utils::{self, dirs, help, resolve},
+    utils::{self, help, resolve},
 };
 
 #[derive(Serialize, Debug)]
@@ -24,7 +24,7 @@ pub struct NetInfo {
 
 #[tauri::command]
 pub fn is_portable_version() -> AppResult<bool> {
-    Ok(dirs::is_portable_version())
+    Ok(cvs_dirs::is_portable())
 }
 
 #[tauri::command]
@@ -104,13 +104,13 @@ pub fn get_auto_proxy() -> AppResult<Mapping> {
 
 #[tauri::command]
 pub fn get_app_dir() -> AppResult<String> {
-    let app_home_dir = dirs::app_home_dir()?.to_string_lossy().to_string();
+    let app_home_dir = cvs_dirs::app_home_dir()?.to_string_lossy().to_string();
     Ok(app_home_dir)
 }
 
 #[tauri::command]
 pub fn open_app_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
-    let app_dir = dirs::app_home_dir()?;
+    let app_dir = cvs_dirs::app_home_dir()?;
     app_handle.opener().open_path(app_dir.to_string_lossy(), None::<&str>)?;
     Ok(())
 }
@@ -127,7 +127,7 @@ pub fn open_core_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
 
 #[tauri::command]
 pub fn open_logs_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
-    let log_dir = dirs::app_logs_dir()?;
+    let log_dir = cvs_dirs::app_logs_dir()?;
     app_handle.opener().open_path(log_dir.to_string_lossy(), None::<&str>)?;
     Ok(())
 }
@@ -168,7 +168,7 @@ pub fn copy_clash_env() -> AppResult<()> {
 
 #[tauri::command]
 pub async fn download_icon_cache(url: String, name: String) -> AppResult<String> {
-    let icon_cache_dir = dirs::app_home_dir()?.join("icons").join("cache");
+    let icon_cache_dir = cvs_dirs::app_home_dir()?.join("icons").join("cache");
     let icon_path = icon_cache_dir.join(name);
     if !icon_cache_dir.exists() {
         let _ = std::fs::create_dir_all(&icon_cache_dir);
@@ -187,7 +187,7 @@ pub async fn download_icon_cache(url: String, name: String) -> AppResult<String>
 #[tauri::command]
 pub fn copy_icon_file(path: String, name: String) -> AppResult<String> {
     let file_path = std::path::Path::new(&path);
-    let icon_dir = dirs::app_home_dir()?.join("icons");
+    let icon_dir = cvs_dirs::app_home_dir()?.join("icons");
     if !icon_dir.exists() {
         let _ = std::fs::create_dir_all(&icon_dir);
     }

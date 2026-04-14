@@ -7,7 +7,6 @@ use crate::{
     config::Config,
     core::backup::{self, WebDav},
     error::AppResult,
-    utils::dirs,
 };
 
 #[tauri::command]
@@ -20,7 +19,7 @@ pub async fn create_local_backup(only_backup_profiles: bool) -> AppResult<(Strin
 pub async fn apply_local_backup(app_handle: tauri::AppHandle, file_path: String) -> AppResult<()> {
     let file = fs::File::open(file_path)?;
     let mut zip: zip::ZipArchive<fs::File> = zip::ZipArchive::new(file)?;
-    zip.extract(dirs::app_home_dir()?)?;
+    zip.extract(cvs_dirs::app_home_dir()?)?;
     Config::reload().await?;
     cmds::common::restart_app(app_handle).await;
     Ok(())
@@ -45,12 +44,12 @@ pub async fn list_backup() -> AppResult<Vec<ListFile>> {
 
 #[tauri::command]
 pub async fn download_backup_and_reload(app_handle: tauri::AppHandle, file_name: String) -> AppResult<()> {
-    let backup_archive = dirs::backup_archive_file()?;
+    let backup_archive = cvs_dirs::backup_archive_file()?;
     WebDav::download_file(&file_name, &backup_archive).await?;
     let file = fs::File::open(backup_archive)?;
     // extract zip file
     let mut zip = zip::ZipArchive::new(file)?;
-    zip.extract(dirs::app_home_dir()?)?;
+    zip.extract(cvs_dirs::app_home_dir()?)?;
     Config::reload().await?;
     cmds::common::restart_app(app_handle).await;
     Ok(())

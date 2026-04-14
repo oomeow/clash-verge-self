@@ -21,7 +21,7 @@ use crate::{
     core::{handle, logger::Logger, service},
     error::{AppError, AppResult},
     log_err, utils,
-    utils::{dirs, help::find_unused_port},
+    utils::help::find_unused_port,
 };
 
 const MAX_RESTART_CORE_COUNT: usize = 5;
@@ -73,10 +73,10 @@ impl CoreManager {
     /// 检查订阅是否正确
     pub async fn check_config(&self, generate_config_type: ConfigType) -> AppResult<()> {
         let config_path = Config::generate_file(generate_config_type)?;
-        let config_path = dirs::path_to_str(&config_path)?;
+        let config_path = cvs_dirs::path_to_str(&config_path)?;
 
-        let app_dir = dirs::app_home_dir()?;
-        let app_dir = dirs::path_to_str(&app_dir)?;
+        let app_dir = cvs_dirs::app_home_dir()?;
+        let app_dir = cvs_dirs::path_to_str(&app_dir)?;
         let app_handle = handle::Handle::app_handle();
         let output = app_handle
             .shell()
@@ -197,12 +197,12 @@ impl CoreManager {
     }
 
     fn build_sidecar_spec(&self, config_path: &PathBuf) -> AppResult<ProcessSpec> {
-        let app_dir = dirs::app_home_dir()?;
+        let app_dir = cvs_dirs::app_home_dir()?;
         let clash_core = Self::clash_core_name();
         let exe_name = format!("{clash_core}{}", std::env::consts::EXE_SUFFIX);
         let program = current_exe()?.with_file_name(exe_name);
-        let config_path = dirs::path_to_str(config_path)?;
-        let app_dir = dirs::path_to_str(&app_dir)?;
+        let config_path = cvs_dirs::path_to_str(config_path)?;
+        let app_dir = cvs_dirs::path_to_str(&app_dir)?;
         let log_file = VergeLog::global().get_log_file().map(PathBuf::from);
 
         let mut spec = ProcessSpec::new("mihomo", program);
@@ -299,7 +299,7 @@ impl CoreManager {
     fn prepare_sidecar_mode(&self) -> AppResult<()> {
         VergeLog::global().reset_service_log_file();
 
-        if cfg!(target_os = "linux") && dirs::is_portable_version() {
+        if cfg!(target_os = "linux") && cvs_dirs::is_portable() {
             return Ok(());
         }
 

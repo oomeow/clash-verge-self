@@ -12,7 +12,7 @@ use crate::{
     config::{Config, IProfiles},
     error::{AppError, AppResult},
     feat, log_err,
-    utils::{dirs, resolve},
+    utils::resolve,
 };
 
 pub const TRAY_ID: &str = "verge_self_tray";
@@ -25,7 +25,7 @@ impl Tray {
         let verge = verge.latest();
         let clash = Config::clash();
         let clash = clash.latest();
-        let icon_dir_path = dirs::app_home_dir()?.join("icons");
+        let icon_dir_path = cvs_dirs::app_home_dir()?.join("icons");
         let sysproxy_enabled = verge.enable_system_proxy.unwrap_or(false);
         let tun_enabled = clash.get_enable_tun();
         #[cfg(target_os = "macos")]

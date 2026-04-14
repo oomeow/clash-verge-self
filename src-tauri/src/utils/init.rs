@@ -8,69 +8,48 @@ use crate::{
     core::handle,
     error::{AppError, AppResult},
     trace_err,
-    utils::{dirs, help},
+    utils::help,
 };
 
 /// Initialize all the config files
 /// before tauri setup
 pub fn init_dirs_and_config() -> AppResult<()> {
     // init dirs
-    dirs::app_home_dir().and_then(|app_dir| {
-        if !app_dir.exists() {
-            std::fs::create_dir_all(&app_dir)?;
-        }
-        Ok(())
-    })?;
+    let app_dir = cvs_dirs::app_home_dir()?;
+    if !app_dir.exists() {
+        std::fs::create_dir_all(&app_dir)?;
+    }
 
-    dirs::app_profiles_dir().and_then(|profiles_dir| {
-        if !profiles_dir.exists() {
-            std::fs::create_dir_all(&profiles_dir)?;
-        }
-        Ok(())
-    })?;
+    let profiles_dir = cvs_dirs::app_profiles_dir()?;
+    if !profiles_dir.exists() {
+        std::fs::create_dir_all(&profiles_dir)?;
+    }
 
-    dirs::app_logs_dir().and_then(|logs_dir| {
-        if !logs_dir.exists() {
-            std::fs::create_dir_all(&logs_dir)?;
-        }
-        Ok(())
-    })?;
+    let logs_dir = cvs_dirs::app_logs_dir()?;
+    if !logs_dir.exists() {
+        std::fs::create_dir_all(&logs_dir)?;
+    }
 
-    dirs::app_service_logs_dir().and_then(|service_logs_dir| {
-        if !service_logs_dir.exists() {
-            std::fs::create_dir_all(&service_logs_dir)?;
-        }
-        Ok(())
-    })?;
-
-    dirs::backup_dir().and_then(|backup_dir| {
-        if !backup_dir.exists() {
-            std::fs::create_dir_all(&backup_dir)?;
-        }
-        Ok(())
-    })?;
+    let service_logs_dir = cvs_dirs::app_service_logs_dir()?;
+    if !service_logs_dir.exists() {
+        std::fs::create_dir_all(&service_logs_dir)?;
+    }
 
     // init yaml config
-    dirs::clash_path().and_then(|path| {
-        if !path.exists() {
-            help::save_yaml(&path, &IClashConfig::default().0, Some("# Clash Verge"))?;
-        }
-        Ok(())
-    })?;
+    let clash_path = cvs_dirs::clash_path()?;
+    if !clash_path.exists() {
+        help::save_yaml(&clash_path, &IClashConfig::default().0, Some("# Clash Verge"))?;
+    }
 
-    dirs::verge_path().and_then(|path| {
-        if !path.exists() {
-            help::save_yaml(&path, &IVerge::template(), Some("# Clash Verge"))?;
-        }
-        Ok(())
-    })?;
+    let verge_path = cvs_dirs::verge_path()?;
+    if !verge_path.exists() {
+        help::save_yaml(&verge_path, &IVerge::template(), Some("# Clash Verge"))?;
+    }
 
-    dirs::profiles_path().and_then(|path| {
-        if !path.exists() {
-            help::save_yaml(&path, &IProfiles::template(), Some("# Clash Verge"))?;
-        }
-        Ok(())
-    })?;
+    let profiles_path = cvs_dirs::profiles_path()?;
+    if !profiles_path.exists() {
+        help::save_yaml(&profiles_path, &IProfiles::template(), Some("# Clash Verge"))?;
+    }
 
     Ok(())
 }
@@ -78,13 +57,13 @@ pub fn init_dirs_and_config() -> AppResult<()> {
 /// initialize app resources
 /// after tauri setup
 pub fn init_resources() -> AppResult<()> {
-    let app_dir = dirs::app_home_dir().and_then(|app_dir| {
+    let app_dir = cvs_dirs::app_home_dir().and_then(|app_dir| {
         if !app_dir.exists() {
             std::fs::create_dir_all(&app_dir)?;
         }
         Ok(app_dir)
     })?;
-    let res_dir = dirs::app_resources_dir().and_then(|res_dir| {
+    let res_dir = cvs_dirs::app_resources_dir().and_then(|res_dir| {
         if !res_dir.exists() {
             std::fs::create_dir_all(&res_dir)?;
         }
