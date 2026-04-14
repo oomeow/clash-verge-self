@@ -139,6 +139,11 @@ pub enum ProcessEvent {
 /// Event callback invoked for every emitted [`ProcessEvent`].
 pub type EventHandler = Arc<dyn Fn(ProcessEvent) + Send + Sync + 'static>;
 
+struct LogSink {
+    sender: Option<mpsc::Sender<Vec<u8>>>,
+    task: Option<JoinHandle<()>>,
+}
+
 /// Supervises a single child process with optional restart and output handling.
 #[derive(Clone)]
 pub struct ProcessSupervisor {
@@ -285,7 +290,7 @@ impl ProcessSupervisor {
 
         loop {
             let pid = child.id();
-            let (log_sender, log_writer_task) = spawn_log_writer(
+            let mut log_sink = LogSink::new(
                 &spec.label,
                 spec.log_config.log_file.as_ref(),
                 spec.log_config.truncate_on_start && first_spawn,
@@ -296,14 +301,14 @@ impl ProcessSupervisor {
                 spec.label.clone(),
                 false,
                 self.inner.handler.clone(),
-                log_sender.clone(),
+                log_sink.sender(),
             ));
             let stderr_task = tokio::spawn(pump_stream(
                 child.stderr.take(),
                 spec.label.clone(),
                 true,
                 self.inner.handler.clone(),
-                log_sender.clone(),
+                log_sink.sender(),
             ));
 
             let status = child.wait().await;
@@ -313,12 +318,7 @@ impl ProcessSupervisor {
             if let Err(err) = stderr_task.await {
                 tracing::error!("stderr pump task failed: {err}");
             }
-            drop(log_sender);
-            if let Some(log_writer_task) = log_writer_task
-                && let Err(err) = log_writer_task.await
-            {
-                tracing::error!("log writer task failed: {err}");
-            }
+            log_sink.shutdown().await;
             first_spawn = false;
 
             if self.finish_child_exit(generation, &spec.label, pid, status) {
@@ -555,53 +555,73 @@ async fn pump_stream(
     }
 }
 
-async fn spawn_log_writer(
-    label: &str,
-    log_file: Option<&PathBuf>,
-    truncate: bool,
-) -> (Option<mpsc::Sender<Vec<u8>>>, Option<JoinHandle<()>>) {
-    let Some(path) = log_file else {
-        return (None, None);
-    };
+impl LogSink {
+    async fn new(label: &str, log_file: Option<&PathBuf>, truncate: bool) -> Self {
+        let Some(path) = log_file else {
+            return Self {
+                sender: None,
+                task: None,
+            };
+        };
 
-    tracing::debug!("open process log file for `{label}` at {}", path.display());
+        tracing::debug!("open process log file for `{label}` at {}", path.display());
 
-    let mut options = OpenOptions::new();
-    options.create(true).write(true);
-    if truncate {
-        options.truncate(true);
-    } else {
-        options.append(true);
+        let mut options = OpenOptions::new();
+        options.create(true).write(true);
+        if truncate {
+            options.truncate(true);
+        } else {
+            options.append(true);
+        }
+
+        let file = match options.open(path).await {
+            Ok(file) => file,
+            Err(err) => {
+                tracing::error!(
+                    "failed to open output log file for process `{label}` at {}: {err}",
+                    path.display()
+                );
+                return Self {
+                    sender: None,
+                    task: None,
+                };
+            }
+        };
+
+        let (sender, mut receiver) = mpsc::channel::<Vec<u8>>(256);
+        let label = label.to_string();
+        let task = tokio::spawn(async move {
+            let mut file = file;
+            while let Some(chunk) = receiver.recv().await {
+                if let Err(err) = file.write_all(&chunk).await {
+                    tracing::error!("failed to write process `{label}` output: {err}");
+                    break;
+                }
+            }
+
+            if let Err(err) = file.flush().await {
+                tracing::error!("failed to flush process `{label}` log file: {err}");
+            }
+        });
+
+        Self {
+            sender: Some(sender),
+            task: Some(task),
+        }
     }
 
-    let file = match options.open(path).await {
-        Ok(file) => file,
-        Err(err) => {
-            tracing::error!(
-                "failed to open output log file for process `{label}` at {}: {err}",
-                path.display()
-            );
-            return (None, None);
-        }
-    };
+    fn sender(&self) -> Option<mpsc::Sender<Vec<u8>>> {
+        self.sender.clone()
+    }
 
-    let (sender, mut receiver) = mpsc::channel::<Vec<u8>>(256);
-    let label = label.to_string();
-    let task = tokio::spawn(async move {
-        let mut file = file;
-        while let Some(chunk) = receiver.recv().await {
-            if let Err(err) = file.write_all(&chunk).await {
-                tracing::error!("failed to write process `{label}` output: {err}");
-                break;
-            }
+    async fn shutdown(&mut self) {
+        self.sender.take();
+        if let Some(task) = self.task.take()
+            && let Err(err) = task.await
+        {
+            tracing::error!("log writer task failed: {err}");
         }
-
-        if let Err(err) = file.flush().await {
-            tracing::error!("failed to flush process `{label}` log file: {err}");
-        }
-    });
-
-    (Some(sender), Some(task))
+    }
 }
 
 fn kill_pid(pid: u32) {
