@@ -219,8 +219,7 @@ impl CoreManager {
             restart_delay: CORE_RESTART_INTERVAL,
         };
         spec.log_config = ProcessLogConfig {
-            stdout_file: log_file.clone(),
-            stderr_file: log_file,
+            log_file,
             truncate_on_start: false,
         };
         Ok(spec)

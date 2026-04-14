@@ -59,10 +59,8 @@ impl Default for RestartPolicy {
 /// Optional log file destinations for redirected child stdout and stderr.
 #[derive(Debug, Clone, Default)]
 pub struct ProcessLogConfig {
-    /// File used to persist stdout lines.
-    pub stdout_file: Option<PathBuf>,
-    /// File used to persist stderr lines.
-    pub stderr_file: Option<PathBuf>,
+    /// File used to persist stdout and stderr lines.
+    pub log_file: Option<PathBuf>,
     /// Whether the target file should be truncated before the first spawn.
     pub truncate_on_start: bool,
 }
@@ -291,7 +289,7 @@ impl ProcessManager {
                 spec.label.clone(),
                 false,
                 self.inner.handler.clone(),
-                spec.log_config.stdout_file.clone(),
+                spec.log_config.log_file.clone(),
                 spec.log_config.truncate_on_start && first_spawn,
             ));
             let stderr_task = tokio::spawn(pump_stream(
@@ -299,7 +297,7 @@ impl ProcessManager {
                 spec.label.clone(),
                 true,
                 self.inner.handler.clone(),
-                spec.log_config.stderr_file.clone(),
+                spec.log_config.log_file.clone(),
                 spec.log_config.truncate_on_start && first_spawn,
             ));
 
