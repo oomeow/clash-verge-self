@@ -16,6 +16,7 @@ use tokio::{
     fs::OpenOptions,
     io::{AsyncBufReadExt, AsyncRead, AsyncWriteExt, BufReader},
     process::{Child, Command},
+    sync::mpsc,
     task::JoinHandle,
     time::sleep,
 };
@@ -284,21 +285,25 @@ impl ProcessSupervisor {
 
         loop {
             let pid = child.id();
+            let (log_sender, log_writer_task) = spawn_log_writer(
+                &spec.label,
+                spec.log_config.log_file.as_ref(),
+                spec.log_config.truncate_on_start && first_spawn,
+            )
+            .await;
             let stdout_task = tokio::spawn(pump_stream(
                 child.stdout.take(),
                 spec.label.clone(),
                 false,
                 self.inner.handler.clone(),
-                spec.log_config.log_file.clone(),
-                spec.log_config.truncate_on_start && first_spawn,
+                log_sender.clone(),
             ));
             let stderr_task = tokio::spawn(pump_stream(
                 child.stderr.take(),
                 spec.label.clone(),
                 true,
                 self.inner.handler.clone(),
-                spec.log_config.log_file.clone(),
-                spec.log_config.truncate_on_start && first_spawn,
+                log_sender.clone(),
             ));
 
             let status = child.wait().await;
@@ -307,6 +312,12 @@ impl ProcessSupervisor {
             }
             if let Err(err) = stderr_task.await {
                 tracing::error!("stderr pump task failed: {err}");
+            }
+            drop(log_sender);
+            if let Some(log_writer_task) = log_writer_task
+                && let Err(err) = log_writer_task.await
+            {
+                tracing::error!("log writer task failed: {err}");
             }
             first_spawn = false;
 
@@ -490,8 +501,7 @@ async fn pump_stream(
     label: String,
     is_stderr: bool,
     handler: Option<EventHandler>,
-    log_file: Option<PathBuf>,
-    truncate: bool,
+    log_sender: Option<mpsc::Sender<Vec<u8>>>,
 ) {
     let Some(stream) = stream else {
         return;
@@ -499,45 +509,17 @@ async fn pump_stream(
 
     let mut reader = BufReader::new(stream);
     let mut buffer = Vec::new();
-    let mut writer = match log_file {
-        Some(path) => {
-            tracing::debug!(
-                "open {} log file for process `{}` at {}",
-                if is_stderr { "stderr" } else { "stdout" },
-                label,
-                path.display()
-            );
-            let mut options = OpenOptions::new();
-            options.create(true).write(true);
-            if truncate {
-                options.truncate(true);
-            } else {
-                options.append(true);
-            }
-            match options.open(&path).await {
-                Ok(file) => Some(file),
-                Err(err) => {
-                    tracing::error!(
-                        "failed to open output log file for process `{}` at {}: {err}",
-                        label,
-                        path.display()
-                    );
-                    None
-                }
-            }
-        }
-        None => None,
-    };
 
     loop {
         buffer.clear();
         match reader.read_until(b'\n', &mut buffer).await {
             Ok(0) => break,
             Ok(_) => {
-                if let Some(file) = writer.as_mut()
-                    && let Err(err) = file.write_all(&buffer).await
+                if let Some(log_sender) = &log_sender
+                    && let Err(err) = log_sender.send(buffer.clone()).await
                 {
-                    tracing::error!("failed to write process `{label}` output: {err}");
+                    tracing::error!("failed to queue process `{label}` output for log writing: {err}");
+                    break;
                 }
 
                 let line = String::from_utf8_lossy(&buffer)
@@ -571,6 +553,55 @@ async fn pump_stream(
             }
         }
     }
+}
+
+async fn spawn_log_writer(
+    label: &str,
+    log_file: Option<&PathBuf>,
+    truncate: bool,
+) -> (Option<mpsc::Sender<Vec<u8>>>, Option<JoinHandle<()>>) {
+    let Some(path) = log_file else {
+        return (None, None);
+    };
+
+    tracing::debug!("open process log file for `{label}` at {}", path.display());
+
+    let mut options = OpenOptions::new();
+    options.create(true).write(true);
+    if truncate {
+        options.truncate(true);
+    } else {
+        options.append(true);
+    }
+
+    let file = match options.open(path).await {
+        Ok(file) => file,
+        Err(err) => {
+            tracing::error!(
+                "failed to open output log file for process `{label}` at {}: {err}",
+                path.display()
+            );
+            return (None, None);
+        }
+    };
+
+    let (sender, mut receiver) = mpsc::channel::<Vec<u8>>(256);
+    let label = label.to_string();
+    let task = tokio::spawn(async move {
+        let mut file = file;
+        while let Some(chunk) = receiver.recv().await {
+            if let Err(err) = file.write_all(&chunk).await {
+                tracing::error!("failed to write process `{label}` output: {err}");
+                break;
+            }
+        }
+
+        if let Err(err) = file.flush().await {
+            tracing::error!("failed to flush process `{label}` log file: {err}");
+        }
+    });
+
+    (Some(sender), Some(task))
 }
 
 fn kill_pid(pid: u32) {
