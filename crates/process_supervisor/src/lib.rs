@@ -39,6 +39,9 @@ pub enum Error {
 /// Result type used by this crate.
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 /// Restart policy for a managed child process.
 #[derive(Debug, Clone)]
 pub struct RestartPolicy {
@@ -433,6 +436,9 @@ impl ProcessSupervisor {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .kill_on_drop(false);
+
+        #[cfg(windows)]
+        command.creation_flags(CREATE_NO_WINDOW);
 
         if let Some(current_dir) = &spec.current_dir {
             command.current_dir(current_dir);
