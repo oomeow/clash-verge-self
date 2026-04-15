@@ -76,8 +76,7 @@ rfd = { version = "0.17", default-features = false, features = [
   "common-controls-v6",
 ] }
 # connect clash verge service by ipc
-# clash-verge-self-service = { git = "https://github.com/oomeow/clash-verge-self-service", branch = "main" }
-clash-verge-self-service = { git = "https://github.com/oomeow/clash-verge-self-service", branch = "refactor/run_core" }
+clash-verge-self-service = { git = "https://github.com/oomeow/clash-verge-self-service" }
 # clash-verge-self-service = { path = "../../clash-verge-self-service" }
 network-interface = "2.0.1"
 

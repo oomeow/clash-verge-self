@@ -1074,14 +1074,14 @@ dependencies = [
 [[package]]
 name = "clash-verge-self-service"
 version = "1.1.2"
-source = "git+https://github.com/oomeow/clash-verge-self-service?branch=refactor%2Frun_core#383ba958597527fd04d6ac6c63bc564f5418760b"
+source = "git+https://github.com/oomeow/clash-verge-self-service#dc09d6daa8226b69b829dcc567fa2874e9984e8a"
 dependencies = [
  "anyhow",
  "bytes",
  "chacha20poly1305",
  "chrono",
  "clap",
- "clash-verge-self-utils 0.1.0 (git+https://github.com/oomeow/clash-verge-self?branch=fix%2Fservice_run_core)",
+ "clash-verge-self-utils 0.1.0 (git+https://github.com/oomeow/clash-verge-self)",
  "futures",
  "hkdf",
  "log",
@@ -1089,7 +1089,7 @@ dependencies = [
  "once_cell",
  "openssl",
  "parking_lot",
- "process_supervisor 0.1.0 (git+https://github.com/oomeow/clash-verge-self?branch=fix%2Fservice_run_core)",
+ "process_supervisor 0.1.0 (git+https://github.com/oomeow/clash-verge-self)",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1110,7 +1110,7 @@ dependencies = [
 [[package]]
 name = "clash-verge-self-utils"
 version = "0.1.0"
-source = "git+https://github.com/oomeow/clash-verge-self?branch=fix%2Fservice_run_core#9ed734ebb741df897003d5994da4eda0e3dd686b"
+source = "git+https://github.com/oomeow/clash-verge-self#0f03d2f435085986ce77a7fa391cdbc5636ef079"
 dependencies = [
  "anyhow",
  "logfmt",
@@ -5049,7 +5049,7 @@ dependencies = [
 [[package]]
 name = "process_supervisor"
 version = "0.1.0"
-source = "git+https://github.com/oomeow/clash-verge-self?branch=fix%2Fservice_run_core#9ed734ebb741df897003d5994da4eda0e3dd686b"
+source = "git+https://github.com/oomeow/clash-verge-self#0f03d2f435085986ce77a7fa391cdbc5636ef079"
 dependencies = [
  "parking_lot",
  "sysinfo",
