@@ -20,7 +20,7 @@ pub async fn install_service() -> AppResult<()> {
     use deelevate::{PrivilegeLevel, Token};
     use runas::Command as RunasCommand;
 
-    let install_path = dirs::service_path()?;
+    let install_path = dirs::service_bin_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", install_path.display());
     if !install_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
@@ -61,7 +61,7 @@ pub async fn install_service() -> AppResult<()> {
 pub async fn install_service() -> AppResult<()> {
     use users::get_effective_uid;
 
-    let installer_path = dirs::service_path()?;
+    let installer_path = dirs::service_bin_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", installer_path.display());
     if !installer_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
@@ -106,7 +106,7 @@ pub async fn install_service() -> AppResult<()> {
 
 #[cfg(target_os = "macos")]
 pub async fn install_service() -> AppResult<()> {
-    let installer_path = dirs::service_path()?;
+    let installer_path = dirs::service_bin_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", installer_path.display());
     if !installer_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
@@ -140,7 +140,7 @@ pub async fn uninstall_service() -> AppResult<()> {
     use deelevate::{PrivilegeLevel, Token};
     use runas::Command as RunasCommand;
 
-    let uninstall_path = dirs::service_path()?;
+    let uninstall_path = dirs::service_bin_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", uninstall_path.display());
     if !uninstall_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
@@ -179,7 +179,7 @@ pub async fn uninstall_service() -> AppResult<()> {
 pub async fn uninstall_service() -> AppResult<()> {
     use users::get_effective_uid;
 
-    let uninstaller_path = dirs::service_path()?;
+    let uninstaller_path = dirs::service_bin_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", uninstaller_path.display());
     if !uninstaller_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
@@ -219,7 +219,7 @@ pub async fn uninstall_service() -> AppResult<()> {
 
 #[cfg(target_os = "macos")]
 pub async fn uninstall_service() -> AppResult<()> {
-    let uninstaller_path = dirs::service_path()?;
+    let uninstaller_path = dirs::service_bin_path()?;
     tracing::debug!("clash-verge-self-service file path: {}", uninstaller_path.display());
     if !uninstaller_path.exists() {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));

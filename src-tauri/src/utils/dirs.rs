@@ -83,10 +83,6 @@ pub fn app_logs_dir() -> AppResult<PathBuf> {
     Ok(app_home_dir()?.join("logs"))
 }
 
-pub fn app_service_logs_dir() -> AppResult<PathBuf> {
-    Ok(app_logs_dir()?.join("service"))
-}
-
 pub fn clash_logs_dir() -> AppResult<PathBuf> {
     Ok(app_logs_dir()?.join("clash"))
 }
@@ -103,7 +99,7 @@ pub fn profiles_path() -> AppResult<PathBuf> {
     Ok(app_home_dir()?.join(PROFILE_YAML))
 }
 
-pub fn service_path() -> AppResult<PathBuf> {
+pub fn service_bin_path() -> AppResult<PathBuf> {
     let exe_ext = std::env::consts::EXE_SUFFIX;
     let service_bin = format!("clash-verge-self-service{}", exe_ext);
     Ok(app_resources_dir()?.join(service_bin))

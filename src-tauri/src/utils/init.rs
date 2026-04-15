@@ -20,7 +20,6 @@ pub fn init_dirs_and_config() -> AppResult<()> {
         dirs::app_profiles_dir(),
         dirs::app_logs_dir(),
         dirs::clash_logs_dir(),
-        dirs::app_service_logs_dir(),
         dirs::backup_dir(),
     ];
     for dir in init_dirs {
