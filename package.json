@@ -77,7 +77,7 @@
     "@eslint/js": "9.39.4",
     "@tailwindcss/vite": "4.2.2",
     "@tanstack/router-cli": "1.166.30",
-    "@tanstack/router-plugin": "1.167.17",
+    "@tanstack/router-plugin": "1.167.18",
     "@tauri-apps/cli": "2.10.1",
     "@types/cli-color": "2.0.6",
     "@types/fs-extra": "11.0.4",
