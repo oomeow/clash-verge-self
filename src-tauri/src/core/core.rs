@@ -8,6 +8,7 @@ use std::{
     time::Duration,
 };
 
+use clash_verge_self_utils::format_mihomo_log_line;
 use once_cell::sync::OnceCell;
 use process_supervisor::{ProcessEvent, ProcessLogConfig, ProcessSpec, ProcessSupervisor, RestartPolicy};
 use serde_yaml::Mapping;
@@ -203,7 +204,9 @@ impl CoreManager {
         let program = current_exe()?.with_file_name(exe_name);
         let config_path = dirs::path_to_str(config_path)?;
         let app_dir = dirs::path_to_str(&app_dir)?;
+        // TODO:
         // let log_file = VergeLog::global().get_log_file().map(PathBuf::from);
+        let log_file = dirs::clash_logs_dir()?.join(dirs::generate_log_file());
 
         let mut spec = ProcessSpec::new("mihomo", program);
         spec.args = vec![
@@ -219,9 +222,9 @@ impl CoreManager {
             restart_delay: CORE_RESTART_INTERVAL,
         };
         spec.log_config = ProcessLogConfig {
-            log_file: Some(dirs::clash_logs_dir()?.join(dirs::generate_log_file())),
+            log_file: Some(log_file),
             truncate_on_start: false,
-            line_format: Some(Arc::new(Self::format_sidecar_log_line)),
+            line_format: Some(Arc::new(format_mihomo_log_line)),
         };
         Ok(spec)
     }
@@ -232,9 +235,8 @@ impl CoreManager {
                 tracing::info!("[{label}]: {line}");
                 Logger::global().append_log(line);
             }
-            ProcessEvent::RestartLimitReached { attempts, .. } => {
+            ProcessEvent::RestartLimitReached { .. } => {
                 tracing::error!("recover clash core count exceeded, skip");
-                Logger::global().append_log(format!("mihomo core restart limit reached after {attempts} retries"));
                 handle::Handle::notice_message(
                     handle::NoticeStatus::Error,
                     "Failed to run mihomo core, please check mihomo log to find problem",
@@ -242,10 +244,6 @@ impl CoreManager {
             }
             _ => {}
         }
-    }
-
-    fn format_sidecar_log_line(line: &str) -> String {
-        format!("{} {}", chrono::Local::now(), line)
     }
 
     fn clash_core_name() -> String {

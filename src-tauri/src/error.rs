@@ -74,6 +74,12 @@ impl Serialize for AppError {
     }
 }
 
+impl From<anyhow::Error> for AppError {
+    fn from(value: anyhow::Error) -> Self {
+        AppError::Any(value.to_string())
+    }
+}
+
 impl From<delay_timer::error::TaskError> for AppError {
     fn from(value: delay_timer::error::TaskError) -> Self {
         AppError::DelayTimer(value.to_string())

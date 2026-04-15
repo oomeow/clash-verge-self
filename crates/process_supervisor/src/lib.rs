@@ -550,6 +550,12 @@ async fn pump_stream(
                     .trim_end_matches(['\r', '\n'])
                     .to_string();
 
+                if is_stderr {
+                    tracing::error!("[{label}]: {line}");
+                } else {
+                    tracing::info!("[{label}]: {line}");
+                }
+
                 if let Some(handler) = &handler {
                     let event = if is_stderr {
                         ProcessEvent::Stderr {

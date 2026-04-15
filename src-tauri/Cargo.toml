@@ -20,6 +20,8 @@ tauri-build = { version = "2", features = [] }
 tauri-plugin-mihomo.workspace = true
 mihomo-rule-parser.workspace = true
 process_supervisor.workspace = true
+clash-verge-self-utils.workspace = true
+
 tokio = { workspace = true, features = ["net", "sync", "macros"] }
 reqwest.workspace = true
 dirs.workspace = true
@@ -29,6 +31,7 @@ serde_yaml.workspace = true
 once_cell.workspace = true
 parking_lot.workspace = true
 thiserror.workspace = true
+anyhow.workspace = true
 # log
 tracing.workspace = true
 tracing-subscriber.workspace = true

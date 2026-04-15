@@ -123,20 +123,6 @@ pub fn generate_log_file() -> String {
     log_file
 }
 
-/// create log files in advance to prevent the owner user from being root and unable to clean up and delete files
-pub fn service_log_file() -> AppResult<PathBuf> {
-    let log_dir = app_service_logs_dir()?;
-    let log_file = log_dir.join(generate_log_file());
-    if !log_file.exists() {
-        std::fs::File::create(&log_file)?;
-    }
-    Ok(log_file)
-}
-
 pub fn path_to_str(path: &PathBuf) -> AppResult<&str> {
-    let path_str = path
-        .as_os_str()
-        .to_str()
-        .ok_or(any_err!("failed to get path from {:?}", path))?;
-    Ok(path_str)
+    Ok(clash_verge_self_utils::path_to_str(path)?)
 }

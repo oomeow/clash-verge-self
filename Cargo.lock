@@ -1017,10 +1017,12 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 name = "clash-verge-self"
 version = "2.3.0"
 dependencies = [
+ "anyhow",
  "auto-launch",
  "boa_engine",
  "chrono",
  "clash-verge-self-service",
+ "clash-verge-self-utils",
  "deelevate",
  "delay_timer",
  "dirs 6.0.0",
@@ -1097,6 +1099,14 @@ dependencies = [
  "tokio",
  "windows-service",
  "x25519-dalek",
+]
+
+[[package]]
+name = "clash-verge-self-utils"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "logfmt",
 ]
 
 [[package]]
@@ -3566,6 +3576,12 @@ dependencies = [
  "unicode-segmentation",
  "winapi",
 ]
+
+[[package]]
+name = "logfmt"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "879777f0cc6f3646a044de60e4ab98c75617e3f9580f7a2032e6ad7ea0cd3054"
 
 [[package]]
 name = "lru"

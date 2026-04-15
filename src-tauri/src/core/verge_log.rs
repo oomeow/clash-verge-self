@@ -50,8 +50,10 @@ impl VergeLog {
     }
 
     pub fn create_service_log_file(&self) -> AppResult<String> {
-        let service_log_file = dirs::service_log_file()?;
-        let service_log_file = service_log_file.to_string_lossy().to_string();
+        let service_log_file = dirs::clash_logs_dir()?
+            .join(dirs::generate_log_file())
+            .to_string_lossy()
+            .to_string();
         *self.service_log_file.lock() = Some(service_log_file.clone());
         Ok(service_log_file)
     }
