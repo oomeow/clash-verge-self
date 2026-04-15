@@ -12,9 +12,8 @@ pub struct Logger {
 impl Logger {
     pub fn global() -> &'static Logger {
         static LOGGER: OnceCell<Logger> = OnceCell::new();
-
         LOGGER.get_or_init(|| Logger {
-            logs: Arc::new(RwLock::new(VecDeque::with_capacity(LOGS_QUEUE_LEN + 10))),
+            logs: Arc::new(RwLock::new(VecDeque::with_capacity(LOGS_QUEUE_LEN))),
         })
     }
 
@@ -24,7 +23,7 @@ impl Logger {
 
     pub fn append_log(&self, text: String) {
         let mut logs = self.logs.write();
-        if logs.len() > LOGS_QUEUE_LEN {
+        if logs.len() >= LOGS_QUEUE_LEN {
             logs.pop_front();
         }
         logs.push_back(text);

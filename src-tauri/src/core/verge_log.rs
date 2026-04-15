@@ -50,8 +50,10 @@ impl VergeLog {
     }
 
     pub fn create_service_log_file(&self) -> AppResult<String> {
-        let service_log_file = dirs::service_log_file()?;
-        let service_log_file = service_log_file.to_string_lossy().to_string();
+        let service_log_file = dirs::clash_logs_dir()?
+            .join(dirs::generate_log_file())
+            .to_string_lossy()
+            .to_string();
         *self.service_log_file.lock() = Some(service_log_file.clone());
         Ok(service_log_file)
     }
@@ -156,19 +158,25 @@ impl VergeLog {
             let file_name = file.file_name();
             let file_name = file_name.to_str().unwrap_or_default();
 
-            if file_name.ends_with(".log") && !file_name.contains("clash-verge-self-service") {
+            if file_name.ends_with(".log") {
                 let now = Local::now();
-                let created_time = parse_time_str(&file_name[0..file_name.len() - 4])?;
-                let file_time = Local
-                    .from_local_datetime(&created_time)
-                    .single()
-                    .ok_or(AppError::InvalidValue("invalid local datetime".to_string()))?;
+                match parse_time_str(&file_name[0..file_name.len() - 4]) {
+                    Ok(created_time) => {
+                        let file_time = Local
+                            .from_local_datetime(&created_time)
+                            .single()
+                            .ok_or(AppError::InvalidValue("invalid local datetime".to_string()))?;
 
-                let duration = now.signed_duration_since(file_time);
-                if duration.num_days() > day {
-                    let file_path = file.path();
-                    log_err!(fs::remove_file(file_path), "delete file failed");
-                    tracing::info!("delete log file: {file_name}");
+                        let duration = now.signed_duration_since(file_time);
+                        if duration.num_days() > day {
+                            let file_path = file.path();
+                            log_err!(fs::remove_file(file_path), "delete file failed");
+                            tracing::info!("delete log file: {file_name}");
+                        }
+                    }
+                    Err(e) => {
+                        tracing::warn!("ignore log file [{file_name}], {e}");
+                    }
                 }
             }
             Ok(())

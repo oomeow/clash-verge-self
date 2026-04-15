@@ -50,8 +50,7 @@ pub fn init_dirs_and_config() -> AppResult<()> {
     Ok(())
 }
 
-/// initialize app resources
-/// after tauri setup
+/// initialize app resources after tauri setup
 pub fn init_resources() -> AppResult<()> {
     let app_dir = dirs::app_home_dir().and_then(|app_dir| {
         if !app_dir.exists() {

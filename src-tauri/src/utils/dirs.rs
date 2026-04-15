@@ -117,26 +117,12 @@ pub fn backup_archive_file() -> AppResult<PathBuf> {
     Ok(app_home_dir()?.join("archive.zip"))
 }
 
-pub fn service_log_file() -> AppResult<PathBuf> {
-    use chrono::Local;
-
-    let log_dir = app_service_logs_dir()?;
-    let local_time = Local::now().format("%Y-%m-%d-%H%M").to_string();
+pub fn generate_log_file() -> String {
+    let local_time = chrono::Local::now().format("%Y-%m-%d-%H%M").to_string();
     let log_file = format!("{local_time}.log");
-    let log_file = log_dir.join(log_file);
-    if !log_dir.exists() {
-        std::fs::create_dir_all(&log_dir)?;
-    }
-    if !log_file.exists() {
-        std::fs::File::create(&log_file)?;
-    }
-    Ok(log_file)
+    log_file
 }
 
 pub fn path_to_str(path: &PathBuf) -> AppResult<&str> {
-    let path_str = path
-        .as_os_str()
-        .to_str()
-        .ok_or(any_err!("failed to get path from {:?}", path))?;
-    Ok(path_str)
+    Ok(clash_verge_self_utils::path_to_str(path)?)
 }

@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, env::current_exe, path::PathBuf, process::Command as StdCommand};
 
-use clash_verge_self_service::model::{ClashStatus, JsonResponse, SocketCommand, StartBody};
+use clash_verge_self_service::model::{ClashRunInfo, JsonResponse, SocketCommand, StartBody};
 use serde::de::DeserializeOwned;
 
 use crate::{
@@ -26,7 +26,7 @@ pub async fn install_service() -> AppResult<()> {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = dirs::app_logs_dir()?;
     let token = Token::with_current_process()?;
     let level = token.privilege_level()?;
 
@@ -67,7 +67,7 @@ pub async fn install_service() -> AppResult<()> {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = dirs::app_logs_dir()?;
     tracing::debug!("log dir: {}", log_dir.display());
 
     let elevator = crate::utils::unix_helper::linux_elevator();
@@ -112,7 +112,7 @@ pub async fn install_service() -> AppResult<()> {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = dirs::app_logs_dir()?;
     let shell = installer_path.to_string_lossy().replace(" ", "\\\\ ");
     let log_dir = log_dir.to_string_lossy().replace(" ", "\\\\ ");
     let command = format!(
@@ -146,7 +146,7 @@ pub async fn uninstall_service() -> AppResult<()> {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = dirs::app_logs_dir()?;
     let token = Token::with_current_process()?;
     let level = token.privilege_level()?;
 
@@ -185,7 +185,7 @@ pub async fn uninstall_service() -> AppResult<()> {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = dirs::app_logs_dir()?;
     let elevator = crate::utils::unix_helper::linux_elevator();
     let status = match get_effective_uid() {
         0 => StdCommand::new(uninstaller_path)
@@ -225,7 +225,7 @@ pub async fn uninstall_service() -> AppResult<()> {
         return Err(AppError::Service("clash-verge-self-service file not found".to_string()));
     }
 
-    let log_dir = dirs::app_logs_dir()?.join("service");
+    let log_dir = dirs::app_logs_dir()?;
     let shell = uninstaller_path.to_string_lossy().replace(" ", "\\\\ ");
     let log_dir = log_dir.to_string_lossy().replace(" ", "\\\\ ");
     let command = format!(
@@ -263,8 +263,8 @@ async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> AppResult<Json
 }
 
 /// check the windows service status
-pub async fn check_service() -> AppResult<JsonResponse<ClashStatus>> {
-    match send_command::<ClashStatus>(SocketCommand::GetClash).await {
+pub async fn check_service() -> AppResult<JsonResponse<ClashRunInfo>> {
+    match send_command::<ClashRunInfo>(SocketCommand::GetClash).await {
         Ok(res) => {
             tracing::info!("connect to service success");
             Ok(res)

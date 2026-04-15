@@ -36,7 +36,6 @@ pub enum Error {
     MissingPid { label: String },
 }
 
-/// Result type used by this crate.
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[cfg(windows)]
@@ -60,13 +59,27 @@ impl Default for RestartPolicy {
     }
 }
 
+/// Type alias for a line format function used to format log lines before writing.
+pub type LineFormatter = Arc<dyn Fn(&str) -> String + Send + Sync + 'static>;
+
 /// Optional log file destinations for redirected child stdout and stderr.
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Default)]
 pub struct ProcessLogConfig {
     /// File used to persist stdout and stderr lines.
     pub log_file: Option<PathBuf>,
     /// Whether the target file should be truncated before the first spawn.
     pub truncate_on_start: bool,
+    /// Optional line format function to apply to log lines before writing.
+    pub line_formatter: Option<LineFormatter>,
+}
+
+impl std::fmt::Debug for ProcessLogConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ProcessLogConfig")
+            .field("log_file", &self.log_file)
+            .field("truncate_on_start", &self.truncate_on_start)
+            .finish()
+    }
 }
 
 /// Full process configuration used to spawn and supervise a child program.
@@ -301,6 +314,7 @@ impl ProcessSupervisor {
                 &spec.label,
                 spec.log_config.log_file.as_ref(),
                 spec.log_config.truncate_on_start && first_spawn,
+                spec.log_config.line_formatter.clone(),
             )
             .await;
             let stdout_task = tokio::spawn(pump_stream(
@@ -536,6 +550,12 @@ async fn pump_stream(
                     .trim_end_matches(['\r', '\n'])
                     .to_string();
 
+                if is_stderr {
+                    tracing::error!("[{label}]: {line}");
+                } else {
+                    tracing::info!("[{label}]: {line}");
+                }
+
                 if let Some(handler) = &handler {
                     let event = if is_stderr {
                         ProcessEvent::Stderr {
@@ -560,7 +580,12 @@ async fn pump_stream(
 }
 
 impl LogSink {
-    async fn new(label: &str, log_file: Option<&PathBuf>, truncate: bool) -> Self {
+    async fn new(
+        label: &str,
+        log_file: Option<&PathBuf>,
+        truncate: bool,
+        line_formatter: Option<LineFormatter>,
+    ) -> Self {
         let Some(path) = log_file else {
             return Self {
                 sender: None,
@@ -597,7 +622,15 @@ impl LogSink {
         let task = tokio::spawn(async move {
             let mut file = file;
             while let Some(chunk) = receiver.recv().await {
-                if let Err(err) = file.write_all(&chunk).await {
+                let write_result = if let Some(line_formatter) = line_formatter.as_ref() {
+                    let line = String::from_utf8_lossy(&chunk);
+                    let new_line = line_formatter(&line);
+                    file.write_all(new_line.as_bytes()).await
+                } else {
+                    file.write_all(&chunk).await
+                };
+
+                if let Err(err) = write_result {
                     tracing::error!("failed to write process `{label}` output: {err}");
                     break;
                 }

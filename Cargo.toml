@@ -1,5 +1,5 @@
 [workspace]
-members = ["src-tauri", "crates/mihomo-rule-parser", "crates/mihomo-config", "crates/tauri-plugin-mihomo", "crates/process_supervisor"]
+members = ["src-tauri", "crates/mihomo-rule-parser", "crates/mihomo-config", "crates/tauri-plugin-mihomo", "crates/process_supervisor", "crates/clash-verge-self-utils"]
 default-members = ["src-tauri"]
 resolver = "2"
 
@@ -12,19 +12,21 @@ mihomo-rule-parser = { path = "crates/mihomo-rule-parser" }
 mihomo-config = { path = "crates/mihomo-config" }
 tauri-plugin-mihomo = { path = "crates/tauri-plugin-mihomo" }
 process_supervisor = { path = "crates/process_supervisor" }
+clash-verge-self-utils = { path = "crates/clash-verge-self-utils" }
 
+anyhow = "1"
 thiserror = "2"
 reqwest = { version = "0.13", features = ["query", "json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"
 dirs = "6.0"
-tokio = "1.40"
+tokio = { version = "1.40", default-features = false }
 once_cell = "1.19"
 parking_lot = "0.12"
 # log
 tracing = "0.1"
-tracing-subscriber = { version = "0.3.19", features = ["local-time"] }
+tracing-subscriber = { version = "0.3", features = ["local-time"] }
 tracing-appender = "0.2"
 time = { version = "0.3", features = ["macros", "parsing"] }
 

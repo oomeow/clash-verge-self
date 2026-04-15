@@ -126,7 +126,7 @@ version = "1.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -137,7 +137,7 @@ checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
 dependencies = [
  "anstyle",
  "once_cell_polyfill",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1017,10 +1017,12 @@ checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
 name = "clash-verge-self"
 version = "2.3.0"
 dependencies = [
+ "anyhow",
  "auto-launch",
  "boa_engine",
  "chrono",
  "clash-verge-self-service",
+ "clash-verge-self-utils 0.1.0",
  "deelevate",
  "delay_timer",
  "dirs 6.0.0",
@@ -1032,7 +1034,7 @@ dependencies = [
  "openssl",
  "parking_lot",
  "percent-encoding",
- "process_supervisor",
+ "process_supervisor 0.1.0",
  "reqwest",
  "reqwest_dav",
  "rfd 0.17.2",
@@ -1072,13 +1074,14 @@ dependencies = [
 [[package]]
 name = "clash-verge-self-service"
 version = "1.1.2"
-source = "git+https://github.com/oomeow/clash-verge-self-service?branch=main#5cbb7865ab19589e567649b40d0dd2a1ac919264"
+source = "git+https://github.com/oomeow/clash-verge-self-service?branch=refactor%2Frun_core#383ba958597527fd04d6ac6c63bc564f5418760b"
 dependencies = [
  "anyhow",
  "bytes",
  "chacha20poly1305",
  "chrono",
  "clap",
+ "clash-verge-self-utils 0.1.0 (git+https://github.com/oomeow/clash-verge-self?branch=fix%2Fservice_run_core)",
  "futures",
  "hkdf",
  "log",
@@ -1086,16 +1089,31 @@ dependencies = [
  "once_cell",
  "openssl",
  "parking_lot",
- "regex",
+ "process_supervisor 0.1.0 (git+https://github.com/oomeow/clash-verge-self?branch=fix%2Fservice_run_core)",
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "shared_child",
- "sysinfo",
  "tipsy",
  "tokio",
  "windows-service",
  "x25519-dalek",
+]
+
+[[package]]
+name = "clash-verge-self-utils"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "logfmt",
+]
+
+[[package]]
+name = "clash-verge-self-utils"
+version = "0.1.0"
+source = "git+https://github.com/oomeow/clash-verge-self?branch=fix%2Fservice_run_core#9ed734ebb741df897003d5994da4eda0e3dd686b"
+dependencies = [
+ "anyhow",
+ "logfmt",
 ]
 
 [[package]]
@@ -1639,7 +1657,7 @@ dependencies = [
  "libc",
  "option-ext",
  "redox_users 0.5.2",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -1877,7 +1895,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -2949,7 +2967,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.62.2",
+ "windows-core 0.61.2",
 ]
 
 [[package]]
@@ -3567,6 +3585,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "logfmt"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "879777f0cc6f3646a044de60e4ab98c75617e3f9580f7a2032e6ad7ea0cd3054"
+
+[[package]]
 name = "lru"
 version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3953,7 +3977,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -4407,7 +4431,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.45.0",
 ]
 
 [[package]]
@@ -5023,6 +5047,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "process_supervisor"
+version = "0.1.0"
+source = "git+https://github.com/oomeow/clash-verge-self?branch=fix%2Fservice_run_core#9ed734ebb741df897003d5994da4eda0e3dd686b"
+dependencies = [
+ "parking_lot",
+ "sysinfo",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "pxfm"
 version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5628,7 +5664,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -5686,7 +5722,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -6330,7 +6366,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3a766e1110788c36f4fa1c2b71b387a7815aa65f88ce0229841826633d93723e"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -7103,7 +7139,7 @@ dependencies = [
  "getrandom 0.4.2",
  "once_cell",
  "rustix 1.1.4",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -7774,7 +7810,7 @@ checksum = "f2f6fb2847f6742cd76af783a2a2c49e9375d0a111c7bef6f71cd9e738c72d6e"
 dependencies = [
  "memoffset 0.9.1",
  "tempfile",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -8426,7 +8462,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -9095,7 +9131,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d6f32a0ff4a9f6f01231eb2059cc85479330739333e0e58cadf03b6af2cca10"
 dependencies = [
  "cfg-if",
- "windows-sys 0.61.2",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]

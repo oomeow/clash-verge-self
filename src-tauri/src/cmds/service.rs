@@ -1,9 +1,9 @@
-use clash_verge_self_service::model::{ClashStatus, JsonResponse};
+use clash_verge_self_service::model::{ClashRunInfo, JsonResponse};
 
 use crate::{core::service, error::AppResult};
 
 #[tauri::command]
-pub async fn check_service() -> AppResult<JsonResponse<ClashStatus>> {
+pub async fn check_service() -> AppResult<JsonResponse<ClashRunInfo>> {
     service::check_service().await
 }
 
