@@ -227,7 +227,8 @@ impl CoreManager {
 
     fn handle_sidecar_event(event: ProcessEvent) {
         match event {
-            ProcessEvent::Stdout { line, .. } | ProcessEvent::Stderr { line, .. } => {
+            ProcessEvent::Stdout { label, line, .. } | ProcessEvent::Stderr { label, line, .. } => {
+                tracing::info!("[{label}]: {line}");
                 Logger::global().append_log(line);
             }
             ProcessEvent::RestartLimitReached { attempts, .. } => {
@@ -237,9 +238,6 @@ impl CoreManager {
                     handle::NoticeStatus::Error,
                     "Failed to run mihomo core, please check mihomo log to find problem",
                 );
-            }
-            ProcessEvent::Error { message, .. } => {
-                Logger::global().append_log(message);
             }
             _ => {}
         }

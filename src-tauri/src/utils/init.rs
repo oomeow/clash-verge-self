@@ -15,62 +15,37 @@ use crate::{
 /// before tauri setup
 pub fn init_dirs_and_config() -> AppResult<()> {
     // init dirs
-    dirs::app_home_dir().and_then(|app_dir| {
-        if !app_dir.exists() {
-            std::fs::create_dir_all(&app_dir)?;
+    let init_dirs = [
+        dirs::app_home_dir(),
+        dirs::app_profiles_dir(),
+        dirs::app_logs_dir(),
+        dirs::clash_logs_dir(),
+        dirs::app_service_logs_dir(),
+        dirs::backup_dir(),
+    ];
+    for dir in init_dirs {
+        let dir = dir?;
+        if !dir.exists() {
+            std::fs::create_dir_all(&dir)?;
         }
-        Ok(())
-    })?;
-
-    dirs::app_profiles_dir().and_then(|profiles_dir| {
-        if !profiles_dir.exists() {
-            std::fs::create_dir_all(&profiles_dir)?;
-        }
-        Ok(())
-    })?;
-
-    dirs::app_logs_dir().and_then(|logs_dir| {
-        if !logs_dir.exists() {
-            std::fs::create_dir_all(&logs_dir)?;
-        }
-        Ok(())
-    })?;
-
-    dirs::app_service_logs_dir().and_then(|service_logs_dir| {
-        if !service_logs_dir.exists() {
-            std::fs::create_dir_all(&service_logs_dir)?;
-        }
-        Ok(())
-    })?;
-
-    dirs::backup_dir().and_then(|backup_dir| {
-        if !backup_dir.exists() {
-            std::fs::create_dir_all(&backup_dir)?;
-        }
-        Ok(())
-    })?;
+    }
 
     // init yaml config
-    dirs::clash_path().and_then(|path| {
-        if !path.exists() {
-            help::save_yaml(&path, &IClashConfig::default().0, Some("# Clash Verge"))?;
-        }
-        Ok(())
-    })?;
+    let clash_path = dirs::clash_path()?;
+    let prefix = Some("# Clash Verge");
+    if !clash_path.exists() {
+        help::save_yaml(&clash_path, &IClashConfig::default().0, prefix)?;
+    }
 
-    dirs::verge_path().and_then(|path| {
-        if !path.exists() {
-            help::save_yaml(&path, &IVerge::template(), Some("# Clash Verge"))?;
-        }
-        Ok(())
-    })?;
+    let verge_path = dirs::verge_path()?;
+    if !verge_path.exists() {
+        help::save_yaml(&verge_path, &IVerge::template(), prefix)?;
+    }
 
-    dirs::profiles_path().and_then(|path| {
-        if !path.exists() {
-            help::save_yaml(&path, &IProfiles::template(), Some("# Clash Verge"))?;
-        }
-        Ok(())
-    })?;
+    let profiles_path = dirs::profiles_path()?;
+    if !profiles_path.exists() {
+        help::save_yaml(&profiles_path, &IProfiles::template(), prefix)?;
+    }
 
     Ok(())
 }

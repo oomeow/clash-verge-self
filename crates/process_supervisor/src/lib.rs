@@ -291,6 +291,10 @@ impl ProcessSupervisor {
 
         tracing::debug!("supervisor started for `{}` with generation {}", spec.label, generation);
 
+        if let Some(log_file) = &spec.log_config.log_file {
+            tracing::debug!("log file for `{}`: {}", spec.label, log_file.display());
+        }
+
         loop {
             let pid = child.id();
             let mut log_sink = LogSink::new(
@@ -531,12 +535,6 @@ async fn pump_stream(
                 let line = String::from_utf8_lossy(&buffer)
                     .trim_end_matches(['\r', '\n'])
                     .to_string();
-
-                if is_stderr {
-                    tracing::error!("[{label}]: {line}");
-                } else {
-                    tracing::info!("[{label}]: {line}");
-                }
 
                 if let Some(handler) = &handler {
                     let event = if is_stderr {
