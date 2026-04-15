@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, env::current_exe, path::PathBuf, process::Command as StdCommand};
 
-use clash_verge_self_service::model::{ClashStatus, JsonResponse, SocketCommand, StartBody};
+use clash_verge_self_service::model::{ClashInfo, JsonResponse, SocketCommand, StartBody};
 use serde::de::DeserializeOwned;
 
 use crate::{
@@ -263,8 +263,8 @@ async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> AppResult<Json
 }
 
 /// check the windows service status
-pub async fn check_service() -> AppResult<JsonResponse<ClashStatus>> {
-    match send_command::<ClashStatus>(SocketCommand::GetClash).await {
+pub async fn check_service() -> AppResult<JsonResponse<ClashInfo>> {
+    match send_command::<ClashInfo>(SocketCommand::GetClash).await {
         Ok(res) => {
             tracing::info!("connect to service success");
             Ok(res)

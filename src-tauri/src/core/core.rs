@@ -203,7 +203,7 @@ impl CoreManager {
         let program = current_exe()?.with_file_name(exe_name);
         let config_path = dirs::path_to_str(config_path)?;
         let app_dir = dirs::path_to_str(&app_dir)?;
-        let log_file = VergeLog::global().get_log_file().map(PathBuf::from);
+        // let log_file = VergeLog::global().get_log_file().map(PathBuf::from);
 
         let mut spec = ProcessSpec::new("mihomo", program);
         spec.args = vec![
@@ -219,8 +219,9 @@ impl CoreManager {
             restart_delay: CORE_RESTART_INTERVAL,
         };
         spec.log_config = ProcessLogConfig {
-            log_file,
+            log_file: Some(dirs::clash_logs_dir()?.join(dirs::generate_log_file())),
             truncate_on_start: false,
+            line_format: Some(Arc::new(Self::format_sidecar_log_line)),
         };
         Ok(spec)
     }
@@ -241,6 +242,10 @@ impl CoreManager {
             }
             _ => {}
         }
+    }
+
+    fn format_sidecar_log_line(line: &str) -> String {
+        format!("{} {}", chrono::Local::now(), line)
     }
 
     fn clash_core_name() -> String {

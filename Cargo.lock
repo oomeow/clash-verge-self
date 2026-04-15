@@ -1032,7 +1032,7 @@ dependencies = [
  "openssl",
  "parking_lot",
  "percent-encoding",
- "process_supervisor",
+ "process_supervisor 0.1.0",
  "reqwest",
  "reqwest_dav",
  "rfd 0.17.2",
@@ -1072,7 +1072,7 @@ dependencies = [
 [[package]]
 name = "clash-verge-self-service"
 version = "1.1.2"
-source = "git+https://github.com/oomeow/clash-verge-self-service?branch=main#5cbb7865ab19589e567649b40d0dd2a1ac919264"
+source = "git+https://github.com/oomeow/clash-verge-self-service?branch=refactor%2Frun_core#6c16557aefe71a0fdcff80e26b7a3204d77ee816"
 dependencies = [
  "anyhow",
  "bytes",
@@ -1086,6 +1086,7 @@ dependencies = [
  "once_cell",
  "openssl",
  "parking_lot",
+ "process_supervisor 0.1.0 (git+https://github.com/oomeow/clash-verge-self)",
  "regex",
  "serde",
  "serde_json",
@@ -5014,6 +5015,18 @@ dependencies = [
 [[package]]
 name = "process_supervisor"
 version = "0.1.0"
+dependencies = [
+ "parking_lot",
+ "sysinfo",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "process_supervisor"
+version = "0.1.0"
+source = "git+https://github.com/oomeow/clash-verge-self#44acc20efbf2b29fe81f9d244c274a2846a82e87"
 dependencies = [
  "parking_lot",
  "sysinfo",
