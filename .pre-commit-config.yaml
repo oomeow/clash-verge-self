@@ -1,5 +1,4 @@
 fail_fast: true
-# default_install_hook_types: [pre-push]
 
 repos:
   - repo: builtin
@@ -13,7 +12,7 @@ repos:
       - id: end-of-file-fixer
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.44.0
+    rev: v1.45.1
     hooks:
       - id: typos
 
@@ -38,7 +37,7 @@ repos:
         entry: cargo +nightly fmt --
         language: system
         types: [rust]
-        pass_filenames: false # This makes it a lot faster
+        pass_filenames: false
 
       - id: cargo-clippy
         name: cargo clippy
