@@ -224,7 +224,7 @@ impl CoreManager {
         spec.log_config = ProcessLogConfig {
             log_file: Some(log_file),
             truncate_on_start: false,
-            line_format: Some(Arc::new(format_mihomo_log_line)),
+            line_formatter: Some(Arc::new(format_mihomo_log_line)),
         };
         Ok(spec)
     }
