@@ -113,10 +113,7 @@ export const HotkeyInput = (props: Props) => {
           onKeyDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
-
             const key = parseHotkey(e);
-            if (key === "UNIDENTIFIED") return;
-
             changeRef.current = [...new Set([...changeRef.current, key])];
             setKeys(changeRef.current);
           }}

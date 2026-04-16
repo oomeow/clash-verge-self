@@ -1,9 +1,5 @@
 import { KeyboardEvent } from "react";
 
-import getSystem from "./get-system";
-
-const OS = getSystem();
-
 const CODE_MAP: Record<string, string> = {
   BACKQUOTE: "`",
   BACKSLASH: "\\",
@@ -38,11 +34,7 @@ export const parseHotkey = (keyEvent: KeyboardEvent) => {
     case "CONTROL":
       return "CTRL";
     case "ALT":
-      if (OS === "macos") {
-        return "OPTION";
-      } else {
-        return "ALT";
-      }
+      return "OPTION";
     case "META":
       return "CMD";
     case "SPACE":
