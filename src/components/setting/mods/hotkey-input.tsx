@@ -1,7 +1,39 @@
 import { parseHotkey } from "@/utils/parse-hotkey";
+import getSystem from "@/utils/get-system";
 import DeleteRounded from "@mui/icons-material/DeleteRounded";
 import { alpha, Box, IconButton, styled } from "@mui/material";
 import { useRef, useState } from "react";
+
+const OS = getSystem();
+
+const HOTKEY_LABELS: Record<string, string> = {
+  BACKSPACE: OS === "macos" ? "⌫" : "Backspace",
+  CAPSLOCK: OS === "macos" ? "⇪" : "Caps Lock",
+  CMD:
+    OS === "macos"
+      ? "⌘"
+      : OS === "windows"
+        ? "Win"
+        : OS === "linux"
+          ? "Super"
+          : "Meta",
+  CTRL: OS === "macos" ? "⌃" : "Ctrl",
+  DELETE: OS === "macos" ? "⌦" : "Del",
+  DOWN: OS === "macos" ? "↓" : "Down",
+  ENTER: OS === "macos" ? "↵" : "Enter",
+  ESCAPE: "Esc",
+  LEFT: OS === "macos" ? "←" : "Left",
+  OPTION: OS === "macos" ? "⌥" : "Alt",
+  PAGEUP: "Page Up",
+  PAGEDOWN: "Page Down",
+  RIGHT: OS === "macos" ? "→" : "Right",
+  SHIFT: OS === "macos" ? "⇧" : "Shift",
+  SPACE: "Space",
+  TAB: OS === "macos" ? "⇥" : "Tab",
+  UP: OS === "macos" ? "↑" : "Up",
+};
+
+const formatHotkeyKey = (key: string) => HOTKEY_LABELS[key] ?? key;
 
 const KeyWrapper = styled("div")(({ theme }) => ({
   position: "relative",
@@ -24,6 +56,7 @@ const KeyWrapper = styled("div")(({ theme }) => ({
     display: "flex",
     alignItems: "center",
     flexWrap: "wrap",
+    gap: 4,
     width: "100%",
     height: "100%",
     minHeight: 36,
@@ -37,14 +70,21 @@ const KeyWrapper = styled("div")(({ theme }) => ({
     },
   },
   ".item": {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
     color: theme.palette.text.primary,
     height: "24px",
+    minWidth: "24px",
     fontSize: "14px",
+    lineHeight: 1,
     borderRadius: "2px",
-    padding: "2px 4px",
-    margin: "2px 0",
-    marginRight: "6px",
+    padding: "2px 6px",
     backgroundColor: "var(--background-color-alpha)",
+    fontFamily:
+      OS === "macos"
+        ? "-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+        : "system-ui, sans-serif",
   },
 }));
 
@@ -71,11 +111,11 @@ export const HotkeyInput = (props: Props) => {
             }
           }}
           onKeyDown={(e) => {
-            const evt = e.nativeEvent;
             e.preventDefault();
             e.stopPropagation();
 
-            const key = parseHotkey(evt.key);
+            const evt = e.nativeEvent;
+            const key = parseHotkey(evt.code);
             if (key === "UNIDENTIFIED") return;
 
             changeRef.current = [...new Set([...changeRef.current, key])];
@@ -86,7 +126,7 @@ export const HotkeyInput = (props: Props) => {
         <div className="list">
           {keys.map((key) => (
             <div key={key} className="item">
-              {key}
+              {formatHotkeyKey(key)}
             </div>
           ))}
         </div>

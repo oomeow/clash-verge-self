@@ -1,48 +1,42 @@
-const KEY_MAP: Record<string, string> = {
-  '"': "'",
-  ":": ";",
-  "?": "/",
-  ">": ".",
-  "<": ",",
-  "{": "[",
-  "}": "]",
-  "|": "\\",
-  "!": "1",
-  "@": "2",
-  "#": "3",
-  $: "4",
-  "%": "5",
-  "^": "6",
-  "&": "7",
-  "*": "8",
-  "(": "9",
-  ")": "0",
-  "~": "`",
+const CODE_MAP: Record<string, string> = {
+  BACKQUOTE: "`",
+  BACKSLASH: "\\",
+  BRACKETLEFT: "[",
+  BRACKETRIGHT: "]",
+  COMMA: ",",
+  EQUAL: "=",
+  MINUS: "-",
+  PERIOD: ".",
+  QUOTE: "'",
+  SEMICOLON: ";",
+  SLASH: "/",
 };
 
-export const parseHotkey = (key: string) => {
-  let temp = key.toUpperCase();
+export const parseHotkey = (keyCode: string) => {
+  let key = keyCode.toUpperCase();
 
-  if (temp.startsWith("ARROW")) {
-    temp = temp.slice(5);
-  } else if (temp.startsWith("DIGIT")) {
-    temp = temp.slice(5);
-  } else if (temp.startsWith("KEY")) {
-    temp = temp.slice(3);
-  } else if (temp.endsWith("LEFT")) {
-    temp = temp.slice(0, -4);
-  } else if (temp.endsWith("RIGHT")) {
-    temp = temp.slice(0, -5);
+  if (key.startsWith("KEY")) {
+    key = key.slice(3);
+  } else if (key.startsWith("DIGIT")) {
+    key = key.slice(5);
+  } else if (key.startsWith("ARROW")) {
+    key = key.slice(5);
+  } else if (key.endsWith("LEFT")) {
+    key = key.slice(0, -4);
+  } else if (key.endsWith("RIGHT")) {
+    key = key.slice(0, -5);
   }
 
-  switch (temp) {
+  switch (key) {
     case "CONTROL":
       return "CTRL";
+    case "ALT":
+      return "OPTION";
     case "META":
       return "CMD";
-    case " ":
+    case "SPACE":
       return "SPACE";
     default:
-      return KEY_MAP[temp] || temp;
+      return CODE_MAP[key] || key;
   }
 };
