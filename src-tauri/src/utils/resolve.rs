@@ -17,12 +17,18 @@ use crate::{
 
 /// handle something when start app
 pub async fn resolve_setup() {
+    tracing::trace!("init dirs and config");
+    log_err!(init::init_dirs_and_config());
+    tracing::trace!("init language");
+    let language = Config::verge().latest().language.clone().unwrap_or("zh_CN".to_string());
+    rust_i18n::set_locale(&language);
+
     tracing::trace!("init system tray");
     log_err!(tray::Tray::init());
+    tracing::trace!("delete old log file");
+    log_err!(VergeLog::delete_log());
     tracing::trace!("init resources");
     log_err!(init::init_resources());
-    tracing::trace!("init scheme");
-    log_err!(init::init_scheme());
     tracing::trace!("init startup script");
     log_err!(init::startup_script().await);
     tracing::trace!("init config");
@@ -53,15 +59,8 @@ pub async fn resolve_setup() {
     }
 
     let argvs = std::env::args().collect::<Vec<String>>();
-    if let [_, second, ..] = argvs.as_slice() {
-        if second.as_str() == "--hidden" {
-            tracing::debug!("silent start app at boot-up");
-        } else if second.starts_with("clash:") {
-            if !is_silent_start() {
-                create_window();
-            }
-            resolve_scheme(second.to_owned()).await;
-        }
+    if argvs.iter().any(|arg| arg == "--hidden") {
+        tracing::debug!("silent start app at boot-up");
     } else {
         if !is_silent_start() {
             create_window();
@@ -292,6 +291,19 @@ pub async fn resolve_scheme(param: String) {
     } else {
         handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
         tracing::error!("failed to parse url: {}", url);
+    }
+}
+
+pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
+    for url in urls {
+        if !url.starts_with("clash:") {
+            tracing::debug!("ignored unsupported deep link: {url}");
+            continue;
+        }
+
+        tauri::async_runtime::spawn(async move {
+            resolve_scheme(url).await;
+        });
     }
 }
 
