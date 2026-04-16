@@ -171,7 +171,7 @@ dependencies = [
  "objc2-foundation",
  "parking_lot",
  "percent-encoding",
- "windows-sys 0.60.2",
+ "windows-sys 0.52.0",
  "wl-clipboard-rs",
  "x11rb",
 ]
@@ -5190,7 +5190,7 @@ dependencies = [
  "once_cell",
  "socket2 0.6.3",
  "tracing",
- "windows-sys 0.60.2",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -7477,9 +7477,9 @@ dependencies = [
 
 [[package]]
 name = "tokio"
-version = "1.52.0"
+version = "1.52.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a91135f59b1cbf38c91e73cf3386fca9bb77915c45ce2771460c9d92f0f3d776"
+checksum = "b67dee974fe86fd92cc45b7a95fdd2f99a36a6d7b0d431a231178d3d670bbcc6"
 dependencies = [
  "bytes",
  "libc",
