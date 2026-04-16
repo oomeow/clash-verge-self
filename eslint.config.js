@@ -12,7 +12,6 @@ export default defineConfig(
       "dist",
       "src-tauri/frontend/dist",
       "src/routeTree.gen.ts",
-      "crates/**",
     ],
   },
   {
