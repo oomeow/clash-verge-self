@@ -17,15 +17,9 @@ use crate::{
 
 /// handle something when start app
 pub async fn resolve_setup() {
-    tracing::trace!("init dirs and config");
-    log_err!(init::init_dirs_and_config());
-    tracing::trace!("init language");
-    let language = Config::verge().latest().language.clone().unwrap_or("zh_CN".to_string());
-    rust_i18n::set_locale(&language);
-
     tracing::trace!("init system tray");
     log_err!(tray::Tray::init());
-    tracing::trace!("delete old log file");
+    tracing::trace!("delete old log files");
     log_err!(VergeLog::delete_log());
     tracing::trace!("init resources");
     log_err!(init::init_resources());
@@ -295,16 +289,16 @@ pub async fn resolve_scheme(param: String) {
 }
 
 pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
-    for url in urls {
-        if !url.starts_with("clash:") {
-            tracing::debug!("ignored unsupported deep link: {url}");
-            continue;
-        }
-
-        tauri::async_runtime::spawn(async move {
+    let urls: Vec<String> = urls.into_iter().collect();
+    tauri::async_runtime::spawn(async move {
+        for url in urls {
+            if !url.starts_with("clash:") {
+                tracing::debug!("ignored unsupported deep link: {url}");
+                continue;
+            }
             resolve_scheme(url).await;
-        });
-    }
+        }
+    });
 }
 
 pub fn handle_window_close(api: CloseRequestApi, app_handle: &AppHandle) {

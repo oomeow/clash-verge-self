@@ -21,7 +21,12 @@ use tauri::{AppHandle, Manager};
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_mihomo::models::Protocol;
 
-use crate::{config::Config, core::handle, error::AppResult, utils::resolve};
+use crate::{
+    config::Config,
+    core::handle,
+    error::AppResult,
+    utils::{init, resolve},
+};
 
 rust_i18n::i18n!("locales", fallback = "en");
 
@@ -48,6 +53,9 @@ pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\self-mihomo-dev";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> AppResult<()> {
+    // panic hook
+    resolve::setup_panic_hook();
+
     #[cfg(target_os = "linux")]
     {
         if utils::unix_helper::is_rendered_by_nvidia_only() {
@@ -61,6 +69,10 @@ pub fn run() -> AppResult<()> {
             *X11_RENDER.write() = true;
         }
     }
+
+    init::init_dirs_and_config()?;
+    let language = Config::verge().latest().language.clone().unwrap_or("zh_CN".to_string());
+    rust_i18n::set_locale(&language);
 
     // 初始化日志
     let _g = VergeLog::global().init()?;
@@ -86,9 +98,6 @@ pub fn run() -> AppResult<()> {
                 .build(),
         )
         .setup(|app| {
-            // panic hook
-            resolve::setup_panic_hook();
-
             let app_handle = app.handle();
             APP_HANDLE
                 .set(app_handle.clone())
