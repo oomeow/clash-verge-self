@@ -1,5 +1,3 @@
-import { KeyboardEvent } from "react";
-
 const CODE_MAP: Record<string, string> = {
   BACKQUOTE: "`",
   BACKSLASH: "\\",
@@ -14,9 +12,8 @@ const CODE_MAP: Record<string, string> = {
   SLASH: "/",
 };
 
-export const parseHotkey = (keyEvent: KeyboardEvent) => {
-  const nativeEvent = keyEvent.nativeEvent;
-  let key = nativeEvent.code.toUpperCase();
+export const parseHotkey = (keyCode: string) => {
+  let key = keyCode.toUpperCase();
 
   if (key.startsWith("KEY")) {
     key = key.slice(3);
