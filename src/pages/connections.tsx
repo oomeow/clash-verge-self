@@ -50,8 +50,7 @@ const ConnectionsPage = () => {
   );
   const curOrderOpt = useConnectionsStore((s) => s.curOrderOpt);
   const setOrderType = useConnectionsStore((s) => s.setOrderType);
-  const tabName = useConnectionsStore((s) => s.tabName);
-  const setTabName = useConnectionsStore((s) => s.setTabName);
+  const [tabName, setTabName] = useState("active");
   const gridApiRef = useGridApiRef();
 
   const isTableLayout = connLayout === "table";

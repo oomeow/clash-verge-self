@@ -14,7 +14,7 @@ export type ConnectionsOrderType =
 type ConnectionsState = {
   layout: ConnectionsLayout;
   curOrderOpt: ConnectionsOrderType;
-  tabName: ConnectionsTabName;
+  // tabName: ConnectionsTabName;
   tabSortModel: GridSortItem[];
   tabColumnsWidths: Record<string, number>;
 };
@@ -22,7 +22,7 @@ type ConnectionsState = {
 type ConnectionsActions = {
   setConnectionsLayout: (layout: ConnectionsLayout) => void;
   setOrderType: (orderType: ConnectionsOrderType) => void;
-  setTabName: (tabName: ConnectionsTabName) => void;
+  // setTabName: (tabName: ConnectionsTabName) => void;
   setTabSortModel: (sortModel: GridSortItem[]) => void;
   setTabColumnWidth: (tabColumn: string, width: number) => void;
 };
@@ -34,12 +34,12 @@ export const useConnectionsStore = create<
     (set) => ({
       layout: "table",
       curOrderOpt: "Default",
-      tabName: "active",
+      // tabName: "active",
       tabSortModel: [],
       tabColumnsWidths: {},
       setConnectionsLayout: (layout) => set({ layout }),
       setOrderType: (orderType) => set({ curOrderOpt: orderType }),
-      setTabName: (tabName) => set({ tabName }),
+      // setTabName: (tabName) => set({ tabName }),
       setTabSortModel: (tabSortModel) => set({ tabSortModel }),
       setTabColumnWidth: (tabColumn, width) =>
         set((state) => ({
