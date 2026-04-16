@@ -16,3 +16,8 @@ archbuild/local_build/*
 !archbuild/local_build/clash-verge-self.install
 !archbuild/local_build/build.sh
 .gitnexus
+
+# codex plan files
+findings.md
+progress.md
+task_plan.md
