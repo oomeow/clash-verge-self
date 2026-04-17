@@ -121,9 +121,8 @@ pub fn run() -> AppResult<()> {
                 is_exiting: AtomicBool::new(false),
             });
 
-            tauri::async_runtime::block_on(async {
-                resolve::resolve_setup().await;
-            });
+            resolve::priority_initialization();
+            resolve::async_initialization();
 
             Ok(())
         })

@@ -15,34 +15,15 @@ use crate::{
     },
 };
 
-/// handle something when start app
-pub async fn resolve_setup() {
+pub fn priority_initialization() {
     tracing::trace!("init system tray");
     log_err!(tray::Tray::init());
     tracing::trace!("init resources");
     log_err!(init::init_resources());
-    tracing::trace!("init scheme");
-    log_err!(init::init_scheme());
-    tracing::trace!("init startup script");
-    log_err!(init::startup_script().await);
     tracing::trace!("init config");
     log_err!(Config::init_config());
     tracing::trace!("launch core");
     log_err!(CoreManager::global().init());
-    tracing::trace!("launch embed server");
-    server::embed_server().await;
-    tracing::trace!("init autolaunch");
-    log_err!(sysopt::Sysopt::global().init_launch());
-    tracing::trace!("init system proxy");
-    log_err!(sysopt::Sysopt::global().init_sysproxy());
-    tracing::trace!("update system tray");
-    log_err!(handle::Handle::update_systray_part());
-    tracing::trace!("init hotkey");
-    log_err!(hotkey::Hotkey::global().init());
-    tracing::trace!("init webdav config");
-    log_err!(backup::WebDav::global().init());
-    tracing::trace!("init timer");
-    log_err!(timer::Timer::global().init());
     tracing::trace!("register os shutdown handler");
     shutdown::register();
 
@@ -60,13 +41,39 @@ pub async fn resolve_setup() {
             if !is_silent_start() {
                 create_window();
             }
-            resolve_scheme(second.to_owned()).await;
+            let second = second.to_owned();
+            tauri::async_runtime::spawn(async move {
+                resolve_scheme(second).await;
+            });
         }
     } else {
         if !is_silent_start() {
             create_window();
         }
     }
+}
+
+pub fn async_initialization() {
+    tauri::async_runtime::spawn(async {
+        tracing::trace!("init scheme");
+        log_err!(init::init_scheme());
+        tracing::trace!("init startup script");
+        log_err!(init::startup_script().await);
+        tracing::trace!("launch embed server");
+        server::embed_server().await;
+        tracing::trace!("init autolaunch");
+        log_err!(sysopt::Sysopt::global().init_launch());
+        tracing::trace!("init system proxy");
+        log_err!(sysopt::Sysopt::global().init_sysproxy());
+        tracing::trace!("update system tray");
+        log_err!(handle::Handle::update_systray_part());
+        tracing::trace!("init hotkey");
+        log_err!(hotkey::Hotkey::global().init());
+        tracing::trace!("init timer");
+        log_err!(timer::Timer::global().init());
+        tracing::trace!("init webdav config");
+        log_err!(backup::WebDav::global().init().await);
+    });
 }
 
 pub fn setup_panic_hook() {
