@@ -69,10 +69,10 @@ pub fn async_initialization() {
         log_err!(handle::Handle::update_systray_part());
         tracing::trace!("init hotkey");
         log_err!(hotkey::Hotkey::global().init());
-        tracing::trace!("init webdav config");
-        log_err!(backup::WebDav::global().init());
         tracing::trace!("init timer");
         log_err!(timer::Timer::global().init());
+        tracing::trace!("init webdav config");
+        log_err!(backup::WebDav::global().init().await);
     });
 }
 
