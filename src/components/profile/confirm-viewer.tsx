@@ -1,12 +1,5 @@
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from "@mui/material";
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
+import { BaseDialog } from "../base";
 
 interface Props {
   open: boolean;
@@ -19,28 +12,18 @@ interface Props {
 export const ConfirmViewer = (props: Props) => {
   const { open, title, message, onClose, onConfirm } = props;
 
-  const { t } = useTranslation();
-
   useEffect(() => {
     if (!open) return;
   }, [open]);
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
-
-      <DialogContent sx={{ pb: 1, userSelect: "text" }}>
-        {message}
-      </DialogContent>
-
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined">
-          {t("common.actions.cancel")}
-        </Button>
-        <Button onClick={onConfirm} variant="contained">
-          {t("common.actions.confirm")}
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <BaseDialog
+      open={open}
+      onClose={onClose}
+      onOk={onConfirm}
+      onCancel={onClose}
+      title={title}>
+      {message}
+    </BaseDialog>
   );
 };
