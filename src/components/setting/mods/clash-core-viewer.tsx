@@ -247,3 +247,5 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
     </BaseDialog>
   );
 });
+
+export default ClashCoreViewer;

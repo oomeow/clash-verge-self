@@ -199,3 +199,5 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
 const Item = styled(ListItem)(() => ({
   padding: "5px 2px",
 }));
+
+export default ThemeViewer;

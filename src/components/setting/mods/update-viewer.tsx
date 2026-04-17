@@ -146,3 +146,5 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
     </BaseDialog>
   );
 });
+
+export default UpdateViewer;

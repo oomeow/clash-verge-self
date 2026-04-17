@@ -130,3 +130,5 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
     </BaseDialog>
   );
 });
+
+export default ServiceViewer;

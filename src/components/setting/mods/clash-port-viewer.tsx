@@ -260,3 +260,5 @@ export const ClashPortViewer = forwardRef<DialogRef>((_props, ref) => {
     </BaseDialog>
   );
 });
+
+export default ClashPortViewer;

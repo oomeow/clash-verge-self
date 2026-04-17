@@ -3,11 +3,11 @@ import { useVerge } from "@/hooks/use-verge";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Settings from "@mui/icons-material/Settings";
 import { Button, ButtonGroup, IconButton, Tooltip } from "@mui/material";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { GuardState } from "./mods/guard-state";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { SysproxyViewer } from "./mods/sysproxy-viewer";
-import { useLazyDialogRef } from "./use-lazy-dialog-ref";
 
 interface Props {
   onError?: (err: Error) => void;
@@ -18,7 +18,7 @@ const SettingSystem = ({ onError }: Props) => {
 
   const { verge, mutateVerge, patchVerge } = useVerge();
 
-  const sysproxyRef = useLazyDialogRef<DialogRef>();
+  const sysproxyRef = useRef<DialogRef>(null);
 
   const {
     enable_auto_launch,
@@ -34,7 +34,7 @@ const SettingSystem = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("pages.settings.system.title")}>
-      {sysproxyRef.mounted && <SysproxyViewer ref={sysproxyRef.dialogRef} />}
+      <SysproxyViewer ref={sysproxyRef} />
 
       <SettingItem
         label={t("pages.settings.system.proxy.label")}
@@ -53,7 +53,7 @@ const SettingSystem = ({ onError }: Props) => {
             <IconButton
               color="inherit"
               size="small"
-              onClick={() => sysproxyRef.open()}>
+              onClick={() => sysproxyRef.current?.open()}>
               <Settings
                 fontSize="inherit"
                 style={{ cursor: "pointer", opacity: 0.75 }}

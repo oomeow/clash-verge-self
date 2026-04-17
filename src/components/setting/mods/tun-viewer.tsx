@@ -240,3 +240,5 @@ export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
     </BaseDialog>
   );
 });
+
+export default TunViewer;
