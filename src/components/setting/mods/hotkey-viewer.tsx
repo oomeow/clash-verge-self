@@ -109,3 +109,5 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
     </BaseDialog>
   );
 });
+
+export default HotkeyViewer;

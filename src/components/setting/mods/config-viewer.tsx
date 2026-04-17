@@ -40,3 +40,5 @@ export const ConfigViewer = forwardRef<DialogRef>((_, ref) => {
     />
   );
 });
+
+export default ConfigViewer;

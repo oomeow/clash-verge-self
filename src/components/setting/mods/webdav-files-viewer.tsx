@@ -235,3 +235,5 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
     );
   },
 );
+
+export default WebDavFilesViewer;

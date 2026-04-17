@@ -1,6 +1,5 @@
 import { DialogRef } from "@/components/base";
-import {
-  WebDavFilesViewer,
+import WebDavFilesViewer, {
   WebDavFilesViewerRef,
 } from "@/components/setting/mods/webdav-files-viewer";
 import { useVerge } from "@/hooks/use-verge";
@@ -45,20 +44,19 @@ import {
 import { version } from "@root/package.json";
 import { open } from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNotice } from "../base/notifies";
-import { ConfigViewer } from "./mods/config-viewer";
 import { GuardState } from "./mods/guard-state";
-import { HotkeyViewer } from "./mods/hotkey-viewer";
-import { LayoutViewer } from "./mods/layout-viewer";
-import { MiscViewer } from "./mods/misc-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { ThemeModeSwitch } from "./mods/theme-mode-switch";
-import { ThemeViewer } from "./mods/theme-viewer";
-import { useLazyDialogRef } from "./use-lazy-dialog-ref";
-import { UpdateViewer } from "./mods/update-viewer";
+import ThemeViewer from "./mods/theme-viewer";
+import ConfigViewer from "./mods/config-viewer";
+import HotkeyViewer from "./mods/hotkey-viewer";
+import MiscViewer from "./mods/misc-viewer";
+import LayoutViewer from "./mods/layout-viewer";
+import UpdateViewer from "./mods/update-viewer";
 
 interface Props {
   onError?: (err: Error) => void;
@@ -83,13 +81,14 @@ const SettingVerge = ({ onError }: Props) => {
     webdav_username,
     webdav_password,
   } = verge;
-  const configRef = useLazyDialogRef<DialogRef>();
-  const hotkeyRef = useLazyDialogRef<DialogRef>();
-  const miscRef = useLazyDialogRef<DialogRef>();
-  const themeRef = useLazyDialogRef<DialogRef>();
-  const layoutRef = useLazyDialogRef<DialogRef>();
-  const updateRef = useLazyDialogRef<DialogRef>();
-  const webDavRef = useLazyDialogRef<WebDavFilesViewerRef>();
+
+  const configRef = useRef<DialogRef>(null);
+  const hotkeyRef = useRef<DialogRef>(null);
+  const miscRef = useRef<DialogRef>(null);
+  const themeRef = useRef<DialogRef>(null);
+  const layoutRef = useRef<DialogRef>(null);
+  const updateRef = useRef<DialogRef>(null);
+  const webDavRef = useRef<WebDavFilesViewerRef>(null);
 
   const onChangeData = (patch: Partial<IVergeConfig>) => {
     mutateVerge({ ...verge, ...patch }, false);
@@ -101,7 +100,7 @@ const SettingVerge = ({ onError }: Props) => {
       if (!info) {
         notice("success", t("messages.app.latestVersion"));
       } else {
-        updateRef.open();
+        updateRef.current?.open();
       }
     } catch (err: any) {
       notice("error", err.message || err.toString());
@@ -145,13 +144,8 @@ const SettingVerge = ({ onError }: Props) => {
         await updateWebDavInfo(data.url, data.username, data.password);
       } else {
         setLoadingBackupFiles(true);
-        await new Promise<void>((resolve) => {
-          webDavRef.withDialog(async (ref) => {
-            await ref.getAllBackupFiles();
-            ref.open();
-            resolve();
-          });
-        });
+        await webDavRef.current?.getAllBackupFiles();
+        webDavRef.current?.open();
       }
     } catch (e: any) {
       notice(
@@ -202,13 +196,13 @@ const SettingVerge = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("pages.settings.verge.title")}>
-      {themeRef.mounted && <ThemeViewer ref={themeRef.dialogRef} />}
-      {configRef.mounted && <ConfigViewer ref={configRef.dialogRef} />}
-      {hotkeyRef.mounted && <HotkeyViewer ref={hotkeyRef.dialogRef} />}
-      {miscRef.mounted && <MiscViewer ref={miscRef.dialogRef} />}
-      {layoutRef.mounted && <LayoutViewer ref={layoutRef.dialogRef} />}
-      {updateRef.mounted && <UpdateViewer ref={updateRef.dialogRef} />}
-      {webDavRef.mounted && <WebDavFilesViewer ref={webDavRef.dialogRef} />}
+      <ThemeViewer ref={themeRef} />
+      <ConfigViewer ref={configRef} />
+      <HotkeyViewer ref={hotkeyRef} />
+      <MiscViewer ref={miscRef} />
+      <LayoutViewer ref={layoutRef} />
+      <UpdateViewer ref={updateRef} />
+      <WebDavFilesViewer ref={webDavRef} />
 
       <SettingItem label={t("pages.settings.verge.misc.appLogLevel")}>
         <GuardState
@@ -372,19 +366,19 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => themeRef.open()}
+        onClick={() => themeRef.current?.open()}
         label={t("pages.settings.verge.theme.title")}
       />
 
       <SettingItem
         openMoreSettings
-        onClick={() => layoutRef.open()}
+        onClick={() => layoutRef.current?.open()}
         label={t("pages.settings.verge.layout.title")}
       />
 
       <SettingItem
         openMoreSettings
-        onClick={() => miscRef.open()}
+        onClick={() => miscRef.current?.open()}
         label={t("pages.settings.verge.misc.title")}
       />
 
@@ -572,12 +566,12 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => hotkeyRef.open()}
+        onClick={() => hotkeyRef.current?.open()}
         label={t("pages.settings.verge.hotkeys.title")}
       />
 
       <SettingItem
-        onClick={() => configRef.open()}
+        onClick={() => configRef.current?.open()}
         label={t("pages.settings.verge.runtimeConfig")}
       />
 

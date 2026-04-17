@@ -134,3 +134,5 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
     </BaseDialog>
   );
 });
+
+export default WebUIViewer;

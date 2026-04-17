@@ -252,3 +252,5 @@ export const ControllerViewer = forwardRef<DialogRef>((_props, ref) => {
     </BaseDialog>
   );
 });
+
+export default ControllerViewer;

@@ -221,3 +221,5 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
     </BaseDialog>
   );
 });
+
+export default MiscViewer;

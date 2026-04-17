@@ -1,6 +1,4 @@
 import { DialogRef, SwitchLovely } from "@/components/base";
-import { ServiceViewer } from "@/components/setting/mods/service-viewer";
-import { TunViewer } from "@/components/setting/mods/tun-viewer";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";
@@ -24,18 +22,19 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 import { useNotice } from "../base/notifies";
-import { ClashCoreViewer } from "./mods/clash-core-viewer";
-import { ClashPortViewer } from "./mods/clash-port-viewer";
-import { ControllerViewer } from "./mods/controller-viewer";
 import { GuardState } from "./mods/guard-state";
-import { NetInfoViewer } from "./mods/net-info-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
-import { useLazyDialogRef } from "./use-lazy-dialog-ref";
-import { WebUIViewer } from "./mods/web-ui-viewer";
+import TunViewer from "./mods/tun-viewer";
+import WebUIViewer from "./mods/web-ui-viewer";
+import ClashPortViewer from "./mods/clash-port-viewer";
+import ControllerViewer from "./mods/controller-viewer";
+import ClashCoreViewer from "./mods/clash-core-viewer";
+import ServiceViewer from "./mods/service-viewer";
+import NetInfoViewer from "./mods/net-info-viewer";
 
 const OS = getSystem();
 
@@ -80,13 +79,13 @@ const SettingClash = ({ onError }: Props) => {
     !(isLinuxPortable && permissionsGranted) && serviceStatus !== "active";
   const setLogLevel = useClashLogStore((s) => s.setLogLevel);
 
-  const webRef = useLazyDialogRef<DialogRef>();
-  const portRef = useLazyDialogRef<DialogRef>();
-  const ctrlRef = useLazyDialogRef<DialogRef>();
-  const coreRef = useLazyDialogRef<DialogRef>();
-  const tunRef = useLazyDialogRef<DialogRef>();
-  const serviceRef = useLazyDialogRef<DialogRef>();
-  const netInfoRef = useLazyDialogRef<DialogRef>();
+  const webRef = useRef<DialogRef>(null);
+  const portRef = useRef<DialogRef>(null);
+  const ctrlRef = useRef<DialogRef>(null);
+  const coreRef = useRef<DialogRef>(null);
+  const tunRef = useRef<DialogRef>(null);
+  const serviceRef = useRef<DialogRef>(null);
+  const netInfoRef = useRef<DialogRef>(null);
 
   useEffect(() => {
     if (!verge) return;
@@ -134,23 +133,16 @@ const SettingClash = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("pages.settings.clash.title")}>
-      {tunRef.mounted && <TunViewer ref={tunRef.dialogRef} />}
-      {webRef.mounted && <WebUIViewer ref={webRef.dialogRef} />}
-      {portRef.mounted && <ClashPortViewer ref={portRef.dialogRef} />}
-      {ctrlRef.mounted && <ControllerViewer ref={ctrlRef.dialogRef} />}
-      {coreRef.mounted && (
-        <ClashCoreViewer
-          ref={coreRef.dialogRef}
-          serviceActive={serviceStatus === "active"}
-        />
-      )}
-      {serviceRef.mounted && (
-        <ServiceViewer
-          ref={serviceRef.dialogRef}
-          enable={!!enable_service_mode}
-        />
-      )}
-      {netInfoRef.mounted && <NetInfoViewer ref={netInfoRef.dialogRef} />}
+      <TunViewer ref={tunRef} />
+      <WebUIViewer ref={webRef} />
+      <ClashPortViewer ref={portRef} />
+      <ControllerViewer ref={ctrlRef} />
+      <ClashCoreViewer
+        ref={coreRef}
+        serviceActive={serviceStatus === "active"}
+      />
+      <ServiceViewer ref={serviceRef} enable={!!enable_service_mode} />
+      <NetInfoViewer ref={netInfoRef} />
 
       <SettingItem
         disabled={disableTunSetting}
@@ -169,7 +161,7 @@ const SettingClash = ({ onError }: Props) => {
               <IconButton
                 color="inherit"
                 size="small"
-                onClick={() => tunRef.open()}>
+                onClick={() => tunRef.current?.open()}>
                 <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
               </IconButton>
             )}
@@ -192,7 +184,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => serviceRef.open()}>
+            onClick={() => serviceRef.current?.open()}>
             <PrivacyTipRounded
               color={
                 serviceStatus === "active" || serviceStatus === "installed"
@@ -253,7 +245,7 @@ const SettingClash = ({ onError }: Props) => {
               color="inherit"
               size="small"
               onClick={() => {
-                netInfoRef.open();
+                netInfoRef.current?.open();
               }}>
               <Lan fontSize="inherit" sx={{ opacity: 0.75 }} />
             </IconButton>
@@ -364,7 +356,7 @@ const SettingClash = ({ onError }: Props) => {
           value={clash?.["mixed-port"] ?? 7890}
           sx={{ width: 100, input: { py: "7.5px", cursor: "pointer" } }}
           onClick={(e) => {
-            portRef.open();
+            portRef.current?.open();
             (e.target as any).blur();
           }}
         />
@@ -376,7 +368,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => ctrlRef.open()}>
+            onClick={() => ctrlRef.current?.open()}>
             <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
           </IconButton>
         }>
@@ -392,7 +384,7 @@ const SettingClash = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => webRef.open()}
+        onClick={() => webRef.current?.open()}
         label={t("pages.settings.clash.webUi.label")}
       />
 
@@ -402,7 +394,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => coreRef.open()}>
+            onClick={() => coreRef.current?.open()}>
             <Settings
               fontSize="inherit"
               style={{ cursor: "pointer", opacity: 0.75 }}
