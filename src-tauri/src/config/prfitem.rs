@@ -306,7 +306,10 @@ impl PrfItem {
         // parse the Content-Disposition
         let filename = match header.get("Content-Disposition") {
             Some(value) => {
-                let filename = format!("{value:?}");
+                let filename = value
+                    .to_str()
+                    .map_err(|e| any_err!("parse filename error: {e}"))?
+                    .to_string();
                 let filename = filename.trim_matches('"');
                 match help::parse_str::<String>(filename, "filename*") {
                     Some(filename) => {
