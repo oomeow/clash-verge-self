@@ -11,8 +11,7 @@ use crate::{
     utils::{dirs, help},
 };
 
-/// Initialize all the config files
-/// before tauri setup
+/// Initialize all the config files before tauri setup
 pub fn init_dirs_and_config() -> AppResult<()> {
     // init dirs
     let init_dirs = [
@@ -35,12 +34,10 @@ pub fn init_dirs_and_config() -> AppResult<()> {
     if !clash_path.exists() {
         help::save_yaml(&clash_path, &IClashConfig::default().0, prefix)?;
     }
-
     let verge_path = dirs::verge_path()?;
     if !verge_path.exists() {
         help::save_yaml(&verge_path, &IVerge::template(), prefix)?;
     }
-
     let profiles_path = dirs::profiles_path()?;
     if !profiles_path.exists() {
         help::save_yaml(&profiles_path, &IProfiles::template(), prefix)?;
@@ -147,7 +144,7 @@ pub fn init_scheme() -> AppResult<()> {
     Ok(())
 }
 
-pub async fn startup_script() -> AppResult<()> {
+pub fn startup_script() -> AppResult<()> {
     let verge = Config::verge();
     let verge = verge.latest();
     let path = verge.startup_script.as_deref().unwrap_or_default();
@@ -176,7 +173,9 @@ pub async fn startup_script() -> AppResult<()> {
         if let Some(dir) = current_dir {
             cmd = cmd.current_dir(dir);
         }
-        trace_err!(cmd.args([path]).output().await, "run startup script failed");
+        tauri::async_runtime::block_on(async move {
+            trace_err!(cmd.args([path]).output().await, "run startup script failed");
+        });
     }
     Ok(())
 }

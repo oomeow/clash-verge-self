@@ -99,7 +99,7 @@ impl WebDav {
         })
     }
 
-    pub fn init(&'static self) -> AppResult<()> {
+    pub fn init(&self) -> AppResult<()> {
         tauri::async_runtime::spawn(async {
             let (url, username, password) = {
                 let verge = Config::verge();
@@ -112,7 +112,7 @@ impl WebDav {
             };
             if let (Some(url), Some(username), Some(password)) = (url, username, password) {
                 trace_err!(
-                    self.update_webdav_info(url, username, password).await,
+                    Self::global().update_webdav_info(url, username, password).await,
                     "failed to update webdav info"
                 );
             } else {
