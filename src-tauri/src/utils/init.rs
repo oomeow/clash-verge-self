@@ -144,10 +144,12 @@ pub fn init_scheme() -> AppResult<()> {
     Ok(())
 }
 
-pub fn startup_script() -> AppResult<()> {
-    let verge = Config::verge();
-    let verge = verge.latest();
-    let path = verge.startup_script.as_deref().unwrap_or_default();
+pub async fn startup_script() -> AppResult<()> {
+    let path = {
+        let verge = Config::verge();
+        let verge = verge.latest();
+        verge.startup_script.clone().unwrap_or_default()
+    };
 
     if !path.is_empty() {
         let mut shell = "";
@@ -163,19 +165,17 @@ pub fn startup_script() -> AppResult<()> {
         if shell.is_empty() {
             return Err(any_err!("unsupported script: {path}"));
         }
-        let current_dir = PathBuf::from(path);
-        if !current_dir.exists() {
+        let script_path = PathBuf::from(&path);
+        if !script_path.exists() {
             return Err(any_err!("script not found: {path}"));
         }
-        let current_dir = current_dir.parent();
+        let current_dir = script_path.parent().map(PathBuf::from);
         let app_handle = handle::Handle::app_handle();
         let mut cmd = app_handle.shell().command(shell);
         if let Some(dir) = current_dir {
             cmd = cmd.current_dir(dir);
         }
-        tauri::async_runtime::block_on(async move {
-            trace_err!(cmd.args([path]).output().await, "run startup script failed");
-        });
+        trace_err!(cmd.args([path]).output().await, "run startup script failed");
     }
     Ok(())
 }

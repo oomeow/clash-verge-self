@@ -41,8 +41,9 @@ pub fn priority_initialization() {
             if !is_silent_start() {
                 create_window();
             }
-            tauri::async_runtime::block_on(async {
-                resolve_scheme(second.to_owned()).await;
+            let second = second.to_owned();
+            tauri::async_runtime::spawn(async move {
+                resolve_scheme(second).await;
             });
         }
     } else {
@@ -57,7 +58,7 @@ pub fn async_initialization() {
         tracing::trace!("init scheme");
         log_err!(init::init_scheme());
         tracing::trace!("init startup script");
-        log_err!(init::startup_script());
+        log_err!(init::startup_script().await);
         tracing::trace!("launch embed server");
         server::embed_server().await;
         tracing::trace!("init autolaunch");
