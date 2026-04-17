@@ -414,9 +414,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
 function parseUrl(url?: string) {
   if (!url) return "";
-  const regex = /https?:\/\/(.+?)\//;
-  const result = url.match(regex);
-  return result ? result[1] : "local file";
+  return new URL(url).hostname;
 }
 
 function parseExpire(expire?: number) {
