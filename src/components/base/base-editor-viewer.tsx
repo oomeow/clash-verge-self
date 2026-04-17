@@ -8,19 +8,13 @@ import {
   registerPacFunctionLib,
 } from "@/services/monaco";
 import { useThemeModeStore } from "@/stores";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from "@mui/material";
 import { useLockFn } from "ahooks";
 import { nanoid } from "nanoid";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNotice } from "./notifies";
 import type { IDisposable, editor } from "monaco-editor";
+import { BaseDialog } from "./base-dialog";
 
 interface Props {
   title?: string | ReactNode;
@@ -62,7 +56,7 @@ export const EditorViewer = (props: Props) => {
       configureYaml();
     });
 
-    if (!open || !monaco) return;
+    if (!monaco) return;
 
     const fetchContent = Promise.resolve(property);
     let pacFunLib: IDisposable | undefined = undefined;
@@ -118,13 +112,11 @@ export const EditorViewer = (props: Props) => {
       monaco.editor.EditorOption.minimap,
     );
     if (!minimap.enabled && size.width >= 1000) {
-      console.log("show mini map");
       instanceRef.current.updateOptions({
         minimap: { enabled: true },
       });
     }
     if (minimap.enabled && size.width < 1000) {
-      console.log("disable mini map");
       instanceRef.current.updateOptions({
         minimap: { enabled: false },
       });
@@ -145,26 +137,18 @@ export const EditorViewer = (props: Props) => {
   });
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xl" fullWidth>
-      <DialogTitle>{title ?? t("pages.profiles.actions.editFile")}</DialogTitle>
-
-      <DialogContent
-        sx={{
-          height: `${size.height - 200}px`,
-          pb: 1,
-          userSelect: "text",
-        }}>
+    <BaseDialog
+      fullWidth
+      open={open}
+      onClose={onClose}
+      onOk={onSave}
+      onCancel={onClose}
+      title={title ?? t("pages.profiles.actions.editFile")}>
+      <div
+        className="w-full overflow-hidden select-text"
+        style={{ height: `${size.height - 200}px` }}>
         <div className="h-full w-full overflow-hidden" ref={editorDomRef} />
-      </DialogContent>
-
-      <DialogActions>
-        <Button onClick={onClose} variant="outlined">
-          {t("common.actions.cancel")}
-        </Button>
-        <Button onClick={onSave} variant="contained">
-          {t("common.actions.save")}
-        </Button>
-      </DialogActions>
-    </Dialog>
+      </div>
+    </BaseDialog>
   );
 };

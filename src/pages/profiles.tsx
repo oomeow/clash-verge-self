@@ -57,6 +57,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import useSWR, { mutate } from "swr";
+
 const FlexDecorationItems = memo(function FlexDecoratorItems() {
   return [...Array(20)].map((_, index) => (
     <i key={index} className="mx-1.25 my-0 flex h-0 w-65 grow"></i>
