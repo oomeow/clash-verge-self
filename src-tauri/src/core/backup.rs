@@ -111,7 +111,7 @@ impl WebDav {
         };
         if let (Some(url), Some(username), Some(password)) = (url, username, password) {
             trace_err!(
-                Self::global().update_webdav_info(url, username, password).await,
+                self.update_webdav_info(url, username, password).await,
                 "failed to update webdav info"
             );
         } else {
