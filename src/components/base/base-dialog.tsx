@@ -86,8 +86,8 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
           onClick={onClose}
           className={cn(
             "fixed inset-0 z-50 flex h-dvh items-center justify-center",
-            { "bg-black/50": !full },
             {
+              "bg-black/50": !full,
               "rounded-md border-2 border-solid border-(--divider-color)":
                 OS === "linux" && !enable_system_title_bar,
             },
@@ -104,13 +104,16 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
             }}
             className={cn(
               "bg-comment text-primary-text inline-flex max-h-[calc(100%-100px)] w-full max-w-md flex-col rounded-sm shadow-xl",
-              { "h-full max-w-[calc(100%-100px)]": fullWidth },
-              { "h-full max-h-full w-full max-w-full": full },
-              { "mt-6": full && OS === "macos" },
+              {
+                "h-full max-w-[calc(100%-100px)]": fullWidth,
+                "h-full max-h-full w-full max-w-full": full,
+              },
             )}>
             <div
               ref={titlebarRef}
-              className="w-full px-6 py-4 text-xl font-bold">
+              className={cn("w-full px-6 py-4 text-xl font-bold", {
+                "pt-6": full && OS === "macos",
+              })}>
               {title}
             </div>
 
