@@ -11,8 +11,7 @@ use crate::{
     utils::{dirs, help},
 };
 
-/// Initialize all the config files
-/// before tauri setup
+/// Initialize all the config files before tauri setup
 pub fn init_dirs_and_config() -> AppResult<()> {
     // init dirs
     let init_dirs = [
@@ -35,12 +34,10 @@ pub fn init_dirs_and_config() -> AppResult<()> {
     if !clash_path.exists() {
         help::save_yaml(&clash_path, &IClashConfig::default().0, prefix)?;
     }
-
     let verge_path = dirs::verge_path()?;
     if !verge_path.exists() {
         help::save_yaml(&verge_path, &IVerge::template(), prefix)?;
     }
-
     let profiles_path = dirs::profiles_path()?;
     if !profiles_path.exists() {
         help::save_yaml(&profiles_path, &IProfiles::template(), prefix)?;
@@ -105,9 +102,11 @@ pub fn init_resources() -> AppResult<()> {
 }
 
 pub async fn startup_script() -> AppResult<()> {
-    let verge = Config::verge();
-    let verge = verge.latest();
-    let path = verge.startup_script.as_deref().unwrap_or_default();
+    let path = {
+        let verge = Config::verge();
+        let verge = verge.latest();
+        verge.startup_script.clone().unwrap_or_default()
+    };
 
     if !path.is_empty() {
         let mut shell = "";
@@ -123,11 +122,11 @@ pub async fn startup_script() -> AppResult<()> {
         if shell.is_empty() {
             return Err(any_err!("unsupported script: {path}"));
         }
-        let current_dir = PathBuf::from(path);
-        if !current_dir.exists() {
+        let script_path = PathBuf::from(&path);
+        if !script_path.exists() {
             return Err(any_err!("script not found: {path}"));
         }
-        let current_dir = current_dir.parent();
+        let current_dir = script_path.parent();
         let app_handle = handle::Handle::app_handle();
         let mut cmd = app_handle.shell().command(shell);
         if let Some(dir) = current_dir {

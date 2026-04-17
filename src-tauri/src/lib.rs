@@ -122,9 +122,8 @@ pub fn run() -> AppResult<()> {
                 is_exiting: AtomicBool::new(false),
             });
 
-            tauri::async_runtime::block_on(async {
-                resolve::resolve_setup().await;
-            });
+            resolve::priority_initialization();
+            resolve::async_initialization();
 
             if let Some(urls) = app.deep_link().get_current()? {
                 resolve::resolve_deep_links(urls.into_iter().map(|url| url.to_string()));
