@@ -81,7 +81,7 @@ importers:
         version: 1.11.20
       i18next:
         specifier: ^26.0.0
-        version: 26.0.4(typescript@6.0.2)
+        version: 26.0.5(typescript@6.0.2)
       lodash-es:
         specifier: ^4.18.1
         version: 4.18.1
@@ -114,7 +114,7 @@ importers:
         version: 7.72.1(react@19.2.5)
       react-i18next:
         specifier: ^17.0.2
-        version: 17.0.3(i18next@26.0.4(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2)
+        version: 17.0.3(i18next@26.0.5(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2)
       react-spinners:
         specifier: ^0.17.0
         version: 0.17.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -4445,10 +4445,10 @@ packages:
       }
     engines: { node: ">= 20" }
 
-  i18next@26.0.4:
+  i18next@26.0.5:
     resolution:
       {
-        integrity: sha512-gXF7U9bfioXPLv7mw8Qt2nfO7vij5MyINvPgVv99pX3fL1Y01pw2mKBFrlYpRxRCl2wz3ISenj6VsMJT2isfuA==,
+        integrity: sha512-9uHb4T27TdV36phJXcbpnRPt5yzAfqHXVrdASvmHZyPuZJtrLythd+GyXhiaHV5LlpuuskbAqhwPjmfTbKbi8w==,
       }
     peerDependencies:
       typescript: ^5 || ^6
@@ -9492,7 +9492,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  i18next@26.0.4(typescript@6.0.2):
+  i18next@26.0.5(typescript@6.0.2):
     dependencies:
       "@babel/runtime": 7.29.2
     optionalDependencies:
@@ -10295,11 +10295,11 @@ snapshots:
     dependencies:
       react: 19.2.5
 
-  react-i18next@17.0.3(i18next@26.0.4(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2):
+  react-i18next@17.0.3(i18next@26.0.5(typescript@6.0.2))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.2):
     dependencies:
       "@babel/runtime": 7.29.2
       html-parse-stringify: 3.0.1
-      i18next: 26.0.4(typescript@6.0.2)
+      i18next: 26.0.5(typescript@6.0.2)
       react: 19.2.5
       use-sync-external-store: 1.6.0(react@19.2.5)
     optionalDependencies:
