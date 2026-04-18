@@ -32,6 +32,8 @@ pub fn get_embed_server_port() -> u16 {
 
 /// The embed server is used to serve PAC content.
 pub async fn embed_server() {
+    let port = get_embed_server_port();
+    tracing::info!("embed server listening on port {port}");
     let (shutdown_tx, shutdown_rx) = oneshot::channel();
     SHUTDOWN_SENDER
         .set(Mutex::new(Some(shutdown_tx)))
@@ -51,7 +53,7 @@ pub async fn embed_server() {
 
     tauri::async_runtime::spawn(async move {
         warp::serve(pac)
-            .bind(([127, 0, 0, 1], get_embed_server_port()))
+            .bind(([127, 0, 0, 1], port))
             .await
             .graceful(async {
                 shutdown_rx.await.ok();
