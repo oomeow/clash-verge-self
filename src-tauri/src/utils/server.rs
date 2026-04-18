@@ -7,13 +7,24 @@ use warp::Filter;
 
 use crate::{
     config::{Config, DEFAULT_PAC},
-    utils::help::find_unused_port,
+    utils::help::{find_unused_port, local_port_available},
 };
 
 // 关闭 embedded server 的信号发送端
 static SHUTDOWN_SENDER: OnceCell<Mutex<Option<oneshot::Sender<()>>>> = OnceCell::new();
 
-static EMBED_SERVER_PORT: LazyLock<u16> = LazyLock::new(|| find_unused_port().unwrap_or(33355));
+static EMBED_SERVER_PORT: LazyLock<u16> = LazyLock::new(|| {
+    #[cfg(not(feature = "verge-dev"))]
+    const SERVER_PORT: u16 = 33355;
+    #[cfg(feature = "verge-dev")]
+    const SERVER_PORT: u16 = 11235;
+
+    if local_port_available(SERVER_PORT) {
+        SERVER_PORT
+    } else {
+        find_unused_port().expect("failed to find unused port for embedded server")
+    }
+});
 
 pub fn get_embed_server_port() -> u16 {
     *EMBED_SERVER_PORT
