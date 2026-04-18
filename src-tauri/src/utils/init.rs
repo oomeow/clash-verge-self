@@ -101,49 +101,6 @@ pub fn init_resources() -> AppResult<()> {
     Ok(())
 }
 
-/// initialize url scheme
-#[cfg(target_os = "windows")]
-pub fn init_scheme() -> AppResult<()> {
-    use tauri::utils::platform::current_exe;
-    use winreg::{RegKey, enums::*};
-
-    let app_exe = current_exe()?;
-    let app_exe = dunce::canonicalize(app_exe)?;
-    let app_exe = app_exe.to_string_lossy().into_owned();
-
-    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let (clash, _) = hkcu.create_subkey("Software\\Classes\\Clash")?;
-    clash.set_value("", &"Clash Verge")?;
-    clash.set_value("URL Protocol", &"Clash Verge URL Scheme Protocol")?;
-    let (default_icon, _) = hkcu.create_subkey("Software\\Classes\\Clash\\DefaultIcon")?;
-    default_icon.set_value("", &app_exe)?;
-    let (command, _) = hkcu.create_subkey("Software\\Classes\\Clash\\Shell\\Open\\Command")?;
-    command.set_value("", &format!("{app_exe} \"%1\""))?;
-
-    Ok(())
-}
-#[cfg(target_os = "linux")]
-pub fn init_scheme() -> AppResult<()> {
-    let output = std::process::Command::new("xdg-mime")
-        .arg("default")
-        .arg("clash-verge-self.desktop")
-        .arg("x-scheme-handler/clash")
-        .output()?;
-    if !output.status.success() {
-        use crate::{any_err, error::AppError};
-
-        return Err(any_err!(
-            "failed to set clash scheme, {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
-    }
-    Ok(())
-}
-#[cfg(target_os = "macos")]
-pub fn init_scheme() -> AppResult<()> {
-    Ok(())
-}
-
 pub async fn startup_script() -> AppResult<()> {
     let path = {
         let verge = Config::verge();

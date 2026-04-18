@@ -3,7 +3,7 @@
   "productName": "Clash Verge Self",
   "mainBinaryName": "Clash Verge Self",
   "version": "2.3.0",
-  "identifier": "io.github.oomeow.clash-verge-self",
+  "identifier": "io.github.oomeow.clash-verge-self-dev",
   "app": {
     "security": {
       "assetProtocol": {
@@ -127,7 +127,7 @@
       }
     },
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY5REVGQ0Q1MUQ2NDhCNjYKUldSbWkyUWQxZnplK1N3aUUxbzM0TXd3NVlqbE1obXdSaVZHQ3JSTjgwUzJaZjQ1L0FFQWk0a0sK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERGMkQyMTQ4Q0E1QUU3MDAKUldRQTUxcktTQ0V0MzV4V25ncGY1MVNBSVMvQXJ2aHpTMmlqQmxZSEdPclNKVGtmNU5lei9jRSsK",
       "endpoints": [
         "https://ghproxy.fangkuai.fun/https://github.com/oomeow/clash-verge-self/releases/download/updater/update-proxy.json",
         "https://github.com/oomeow/clash-verge-self/releases/download/updater/update.json"

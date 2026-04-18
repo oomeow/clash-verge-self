@@ -3,7 +3,7 @@
   "productName": "Clash Verge Self",
   "mainBinaryName": "Clash Verge Self",
   "version": "2.3.0",
-  "identifier": "io.github.oomeow.clash-verge-self",
+  "identifier": "io.github.oomeow.clash-verge-self-dev",
   "app": {
     "security": {
       "assetProtocol": {

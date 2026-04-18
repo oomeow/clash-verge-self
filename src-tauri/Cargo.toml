@@ -53,10 +53,12 @@ tauri-plugin-clipboard-manager = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-opener = "2"
+tauri-plugin-deep-link = "2"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-updater = "2"
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
 warp = { version = "0.4", features = ["server"] }
 dunce = "1.0"
@@ -83,7 +85,6 @@ network-interface = "2.0.1"
 [target.'cfg(windows)'.dependencies]
 runas = "=1.2"
 deelevate = "0.2"
-winreg = "0.56"
 windows-sys = { version = "0.61", features = [
   "Win32_Foundation",
   "Win32_UI_WindowsAndMessaging",

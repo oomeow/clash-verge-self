@@ -12,3 +12,5 @@ check-file = false
 # crates/mihomo-config/src/config/raw_config.rs - L654
 [default.extend-words]
 certifactes = "certifactes"
+# StrCpy
+Cpy = "Cpy"

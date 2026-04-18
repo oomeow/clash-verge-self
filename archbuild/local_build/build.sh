@@ -37,7 +37,7 @@ readonly ARCH_BUNDLE_NAME
 # ask for deb build
 read -p "rebuild deb package? (y/n): " rebuild
 if [[ "$rebuild" =~ ^[Yy]$ || -z $rebuild ]]; then
-  pnpm build -c $PROJECT_ROOT_DIR/src-tauri/tauri.linux.conf.local.json -b deb
+  pnpm build -c $PROJECT_ROOT_DIR/src-tauri/tauri.linux.conf-local.json -b deb
   cp "${DEB_PATH}" . || exit 1
 else
   if [[ -f "./${DEB_FILE}" ]]; then

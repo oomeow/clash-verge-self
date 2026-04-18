@@ -21,6 +21,7 @@
 
 !macro NSIS_HOOK_POSTUNINSTALL
   !insertmacro RemoveAutoStartReg
+  !insertmacro RemoveOldScheme
 !macroend
 
 ; ----------------------- 自定义方法 -----------------------
@@ -154,4 +155,9 @@
     DeleteRegValue HKCU "$R0" "Clash Verge Self"
     DeleteRegValue HKCU "$R1" "Clash Verge Self"
   ${EndIf}
+!macroend
+
+; === 删除整个 URL Scheme 注册表树 ===
+!macro RemoveOldScheme
+  DeleteRegKey HKCU "Software\Classes\Clash"
 !macroend

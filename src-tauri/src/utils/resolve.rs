@@ -27,25 +27,10 @@ pub fn priority_initialization() {
     tracing::trace!("register os shutdown handler");
     shutdown::register();
 
-    // 用于应用备份后重启
     let exists_archive_file = dirs::backup_archive_file().is_ok_and(|file| file.exists());
     if exists_archive_file {
+        // 应用备份后重启直接显示窗口
         create_window();
-    }
-
-    let argvs = std::env::args().collect::<Vec<String>>();
-    if let [_, second, ..] = argvs.as_slice() {
-        if second.as_str() == "--hidden" {
-            tracing::debug!("silent start app at boot-up");
-        } else if second.starts_with("clash:") {
-            if !is_silent_start() {
-                create_window();
-            }
-            let second = second.to_owned();
-            tauri::async_runtime::spawn(async move {
-                resolve_scheme(second).await;
-            });
-        }
     } else {
         if !is_silent_start() {
             create_window();
@@ -55,10 +40,10 @@ pub fn priority_initialization() {
 
 pub fn async_initialization() {
     tauri::async_runtime::spawn(async {
-        tracing::trace!("init scheme");
-        log_err!(init::init_scheme());
         tracing::trace!("init startup script");
         log_err!(init::startup_script().await);
+        tracing::trace!("delete old log files");
+        log_err!(VergeLog::delete_log());
         tracing::trace!("launch embed server");
         server::embed_server().await;
         tracing::trace!("init autolaunch");
@@ -300,6 +285,19 @@ pub async fn resolve_scheme(param: String) {
         handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
         tracing::error!("failed to parse url: {}", url);
     }
+}
+
+pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
+    let urls: Vec<String> = urls.into_iter().collect();
+    tauri::async_runtime::spawn(async move {
+        for url in urls {
+            if !url.starts_with("clash:") {
+                tracing::debug!("ignored unsupported deep link: {url}");
+                continue;
+            }
+            resolve_scheme(url).await;
+        }
+    });
 }
 
 pub fn handle_window_close(api: CloseRequestApi, app_handle: &AppHandle) {

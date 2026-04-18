@@ -18,13 +18,14 @@ use once_cell::sync::OnceCell;
 #[cfg(target_os = "linux")]
 use parking_lot::RwLock;
 use tauri::{AppHandle, Manager};
+use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_mihomo::models::Protocol;
 
 use crate::{
     config::Config,
     core::handle,
     error::AppResult,
-    utils::{init, resolve, server},
+    utils::{init, resolve},
 };
 
 rust_i18n::i18n!("locales", fallback = "en");
@@ -52,12 +53,6 @@ pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\self-mihomo-dev";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> AppResult<()> {
-    // 单例检测
-    if server::check_singleton().is_err() {
-        tracing::info!("app exists");
-        return Ok(());
-    }
-
     #[cfg(target_os = "linux")]
     {
         if utils::unix_helper::is_rendered_by_nvidia_only() {
@@ -72,20 +67,20 @@ pub fn run() -> AppResult<()> {
         }
     }
 
-    // 初始化目录
     init::init_dirs_and_config()?;
-
     let language = Config::verge().latest().language.clone().unwrap_or("zh_CN".to_string());
     rust_i18n::set_locale(&language);
 
     // 初始化日志
     let _g = VergeLog::global().init()?;
+
+    // panic hook
     resolve::setup_panic_hook();
 
-    // delete old log file
-    VergeLog::delete_log()?;
-
     let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {
+            resolve::create_window();
+        }))
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
@@ -95,6 +90,7 @@ pub fn run() -> AppResult<()> {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(
             tauri_plugin_mihomo::Builder::new()
                 .protocol(Protocol::LocalSocket)
@@ -106,6 +102,13 @@ pub fn run() -> AppResult<()> {
             APP_HANDLE
                 .set(app_handle.clone())
                 .expect("failed to set global app handle");
+
+            #[cfg(any(target_os = "windows", target_os = "linux"))]
+            {
+                if let Err(e) = app.deep_link().register_all() {
+                    tracing::error!("failed to register deep link: {e}");
+                }
+            }
 
             #[cfg(target_os = "macos")]
             {
@@ -123,6 +126,16 @@ pub fn run() -> AppResult<()> {
 
             resolve::priority_initialization();
             resolve::async_initialization();
+
+            if let Some(urls) = app.deep_link().get_current()? {
+                tracing::debug!("handle current deep link: {:?}", urls);
+                resolve::resolve_deep_links(urls.into_iter().map(|url| url.to_string()));
+            }
+            app.deep_link().on_open_url(|event| {
+                let urls = event.urls();
+                tracing::debug!("handle deep link on open url: {:?}", urls);
+                resolve::resolve_deep_links(urls.iter().map(|url| url.to_string()));
+            });
 
             Ok(())
         })
