@@ -231,8 +231,7 @@ impl CoreManager {
 
     fn handle_sidecar_event(event: ProcessEvent) {
         match event {
-            ProcessEvent::Stdout { label, line, .. } | ProcessEvent::Stderr { label, line, .. } => {
-                tracing::info!("[{label}]: {line}");
+            ProcessEvent::Stdout { line, .. } | ProcessEvent::Stderr { line, .. } => {
                 Logger::global().append_log(line);
             }
             ProcessEvent::RestartLimitReached { .. } => {
