@@ -27,25 +27,10 @@ pub fn priority_initialization() {
     tracing::trace!("register os shutdown handler");
     shutdown::register();
 
-    // 用于应用备份后重启
     let exists_archive_file = dirs::backup_archive_file().is_ok_and(|file| file.exists());
     if exists_archive_file {
+        // 应用备份后重启直接显示窗口
         create_window();
-    }
-
-    let argvs = std::env::args().collect::<Vec<String>>();
-    if let [_, second, ..] = argvs.as_slice() {
-        if second.as_str() == "--hidden" {
-            tracing::debug!("silent start app at boot-up");
-        } else if second.starts_with("clash:") {
-            if !is_silent_start() {
-                create_window();
-            }
-            let second = second.to_owned();
-            tauri::async_runtime::spawn(async move {
-                resolve_scheme(second).await;
-            });
-        }
     } else {
         if !is_silent_start() {
             create_window();
