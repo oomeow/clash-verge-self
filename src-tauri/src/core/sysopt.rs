@@ -14,9 +14,10 @@ use sysproxy::{Autoproxy, Sysproxy};
 
 use crate::{
     any_err,
-    config::{Config, IVerge, SilentStartMode},
+    config::{Config, SilentStartMode},
     error::{AppError, AppResult},
     log_err,
+    utils::server::get_embed_server_port,
 };
 
 pub struct Sysopt {
@@ -93,7 +94,7 @@ impl Sysopt {
     /// init the sysproxy
     pub fn init_sysproxy(&self) -> AppResult<()> {
         let port = Config::clash().latest().get_mixed_port();
-        let pac_port = IVerge::get_singleton_port();
+        let pac_port = get_embed_server_port();
 
         let enable = Config::verge().latest().enable_system_proxy.unwrap_or_default();
         let pac = Config::verge().latest().proxy_auto_config.unwrap_or_default();
@@ -174,7 +175,7 @@ impl Sysopt {
 
         tracing::info!("update system proxy");
         let port = Config::clash().latest().get_mixed_port();
-        let pac_port = IVerge::get_singleton_port();
+        let pac_port = get_embed_server_port();
 
         let mut sysproxy = cur_sysproxy.take().unwrap();
         let sysproxy_ = sysproxy.clone();
@@ -395,7 +396,7 @@ impl Sysopt {
                 tracing::debug!("try to guard the system proxy");
 
                 let port = Config::clash().latest().get_mixed_port();
-                let pac_port = IVerge::get_singleton_port();
+                let pac_port = get_embed_server_port();
                 let pac = Config::verge().latest().proxy_auto_config.unwrap_or_default();
                 if pac {
                     let autoproxy = Autoproxy {

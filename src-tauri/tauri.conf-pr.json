@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/refs/heads/dev/crates/tauri-schema-generator/schemas/config.schema.json",
   "productName": "Clash Verge Self",
   "mainBinaryName": "Clash Verge Self",
   "version": "2.3.0",
@@ -28,6 +29,7 @@
     "windows": []
   },
   "bundle": {
+    "license": "GPL-3.0-only",
     "licenseFile": "../LICENSE",
     "active": true,
     "longDescription": "A Mihomo GUI based on tauri.",
@@ -55,17 +57,68 @@
     "copyright": "GNU General Public License v3.0",
     "category": "Utility",
     "shortDescription": "A Mihomo GUI based on tauri.",
-    "createUpdaterArtifacts": false
+    "createUpdaterArtifacts": false,
+    "targets": ["app", "dmg", "nsis", "deb", "rpm"],
+    "macOS": {
+      "dmg": {
+        "appPosition": {
+          "x": 180,
+          "y": 170
+        },
+        "applicationFolderPosition": {
+          "x": 480,
+          "y": 170
+        },
+        "windowSize": {
+          "height": 400,
+          "width": 660
+        }
+      },
+      "files": {},
+      "hardenedRuntime": true,
+      "minimumSystemVersion": "10.13"
+    },
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "webviewInstallMode": {
+        "type": "embedBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "displayLanguageSelector": true,
+        "installerIcon": "icons/icon.ico",
+        "languages": ["SimpChinese", "English"],
+        "installMode": "perMachine",
+        "template": "./template/installer.nsi",
+        "installerHooks": "./template/installer-hooks.nsh"
+      }
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false,
+        "files": {}
+      },
+      "deb": {
+        "files": {},
+        "depends": ["openssl"],
+        "desktopTemplate": "./template/clash-verge-self.desktop"
+      },
+      "rpm": {
+        "epoch": 0,
+        "files": {},
+        "release": "1",
+        "depends": ["openssl"],
+        "desktopTemplate": "./template/clash-verge-self.desktop"
+      }
+    }
   },
   "build": {
     "beforeBuildCommand": "pnpm run web:build",
     "frontendDist": "./frontend/dist",
     "beforeDevCommand": "pnpm run web:dev",
-    "devUrl": "http://localhost:3000/",
-    "additionalWatchFolders": [
-      "../crates/mihomo-rule-parser/src",
-      "../crates/tauri-plugin-mihomo/src"
-    ]
+    "devUrl": "http://localhost:3000/"
   },
   "plugins": {
     "deep-link": {

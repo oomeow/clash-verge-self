@@ -78,15 +78,9 @@ jobs:
           cd src-tauri
           cargo clippy
 
-      # bundle build
-      - name: Overwrite Tauri config
-        if: steps.changes.outputs.bundle == 'true'
-        run: |
-          cp ./src-tauri/tauri.conf.pr.json ./src-tauri/tauri.conf.json
-
       - name: Build Tauri
         if: steps.changes.outputs.bundle == 'true'
-        run: pnpm build
+        run: pnpm build -c ./src-tauri/tauri.conf-pr.json
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}

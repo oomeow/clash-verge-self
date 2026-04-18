@@ -53,9 +53,6 @@ pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\self-mihomo-dev";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() -> AppResult<()> {
-    // panic hook
-    resolve::setup_panic_hook();
-
     #[cfg(target_os = "linux")]
     {
         if utils::unix_helper::is_rendered_by_nvidia_only() {
@@ -77,8 +74,12 @@ pub fn run() -> AppResult<()> {
     // 初始化日志
     let _g = VergeLog::global().init()?;
 
+    // panic hook
+    resolve::setup_panic_hook();
+
     let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            println!("identifier: {}", app.config().identifier);
             resolve::create_window();
         }))
         .plugin(tauri_plugin_shell::init())

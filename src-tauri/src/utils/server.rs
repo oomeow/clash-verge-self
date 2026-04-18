@@ -1,12 +1,23 @@
+use std::sync::LazyLock;
+
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 use tokio::sync::oneshot;
 use warp::Filter;
 
-use crate::config::{Config, DEFAULT_PAC, IVerge};
+use crate::{
+    config::{Config, DEFAULT_PAC},
+    utils::help::find_unused_port,
+};
 
 // 关闭 embedded server 的信号发送端
 static SHUTDOWN_SENDER: OnceCell<Mutex<Option<oneshot::Sender<()>>>> = OnceCell::new();
+
+static EMBED_SERVER_PORT: LazyLock<u16> = LazyLock::new(|| find_unused_port().unwrap());
+
+pub fn get_embed_server_port() -> u16 {
+    *EMBED_SERVER_PORT
+}
 
 /// The embed server is used to serve PAC content.
 pub async fn embed_server() {
@@ -14,7 +25,6 @@ pub async fn embed_server() {
     SHUTDOWN_SENDER
         .set(Mutex::new(Some(shutdown_tx)))
         .expect("failed to set shutdown signal for embedded server");
-    let port = IVerge::get_singleton_port();
 
     let pac = warp::path!("commands" / "pac").map(move || {
         let verge = Config::verge();
@@ -30,7 +40,7 @@ pub async fn embed_server() {
 
     tauri::async_runtime::spawn(async move {
         warp::serve(pac)
-            .bind(([127, 0, 0, 1], port))
+            .bind(([127, 0, 0, 1], get_embed_server_port()))
             .await
             .graceful(async {
                 shutdown_rx.await.ok();
