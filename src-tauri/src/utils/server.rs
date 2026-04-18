@@ -13,7 +13,7 @@ use crate::{
 // 关闭 embedded server 的信号发送端
 static SHUTDOWN_SENDER: OnceCell<Mutex<Option<oneshot::Sender<()>>>> = OnceCell::new();
 
-static EMBED_SERVER_PORT: LazyLock<u16> = LazyLock::new(|| find_unused_port().unwrap());
+static EMBED_SERVER_PORT: LazyLock<u16> = LazyLock::new(|| find_unused_port().unwrap_or(33355));
 
 pub fn get_embed_server_port() -> u16 {
     *EMBED_SERVER_PORT
