@@ -3,6 +3,7 @@ use std::io;
 use network_interface::NetworkInterfaceConfig;
 use serde::Serialize;
 use serde_yaml::Mapping;
+use specta::Type;
 use sysproxy::{Autoproxy, Sysproxy};
 use tauri::Manager;
 use tauri_plugin_opener::OpenerExt;
@@ -15,7 +16,7 @@ use crate::{
     utils::{self, dirs, help, resolve},
 };
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Debug, Type)]
 pub struct NetInfo {
     name: String,
     ipv4: Option<String>,
@@ -23,23 +24,27 @@ pub struct NetInfo {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn is_portable_version() -> AppResult<bool> {
     Ok(dirs::is_portable_version())
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn check_port_available(port: u16) -> AppResult<bool> {
     Ok(help::local_port_available(port))
 }
 
 /// restart the sidecar
 #[tauri::command]
+#[specta::specta]
 pub async fn restart_sidecar() -> AppResult<()> {
     CoreManager::global().reset_state();
     CoreManager::global().run_core().await
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn grant_permissions(_core: String) -> AppResult<()> {
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     {
@@ -52,6 +57,7 @@ pub fn grant_permissions(_core: String) -> AppResult<()> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn check_permissions_granted(_core: String) -> AppResult<bool> {
     #[cfg(target_os = "linux")]
     {
@@ -64,6 +70,7 @@ pub fn check_permissions_granted(_core: String) -> AppResult<bool> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn refresh_permissions_granted() -> AppResult<()> {
     #[cfg(target_os = "linux")]
     {
@@ -77,6 +84,7 @@ pub fn refresh_permissions_granted() -> AppResult<()> {
 
 /// get the system proxy
 #[tauri::command]
+#[specta::specta]
 pub fn get_sys_proxy() -> AppResult<Mapping> {
     let current = Sysproxy::get_system_proxy()?;
     let mut map = Mapping::new();
@@ -87,12 +95,14 @@ pub fn get_sys_proxy() -> AppResult<Mapping> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_default_bypass() -> AppResult<String> {
     Ok(sysopt::get_default_bypass())
 }
 
 /// get the system proxy
 #[tauri::command]
+#[specta::specta]
 pub fn get_auto_proxy() -> AppResult<Mapping> {
     let current = Autoproxy::get_auto_proxy()?;
     let res = Mapping::from_iter([
@@ -103,12 +113,14 @@ pub fn get_auto_proxy() -> AppResult<Mapping> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_app_dir() -> AppResult<String> {
     let app_home_dir = dirs::app_home_dir()?.to_string_lossy().to_string();
     Ok(app_home_dir)
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn open_app_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
     let app_dir = dirs::app_home_dir()?;
     app_handle.opener().open_path(app_dir.to_string_lossy(), None::<&str>)?;
@@ -116,6 +128,7 @@ pub fn open_app_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn open_core_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
     let core_dir = tauri::utils::platform::current_exe()?;
     let core_dir = core_dir.parent().ok_or(any_err!("failed to get core dir"))?;
@@ -126,6 +139,7 @@ pub fn open_core_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn open_logs_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
     let log_dir = dirs::app_logs_dir()?;
     app_handle.opener().open_path(log_dir.to_string_lossy(), None::<&str>)?;
@@ -133,12 +147,14 @@ pub fn open_logs_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn open_web_url(app_handle: tauri::AppHandle, url: String) -> AppResult<()> {
     app_handle.opener().open_url(url, None::<&str>)?;
     Ok(())
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn invoke_uwp_tool() -> AppResult<()> {
     #[cfg(target_os = "windows")]
     {
@@ -149,6 +165,7 @@ pub async fn invoke_uwp_tool() -> AppResult<()> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn open_devtools(app_handle: tauri::AppHandle) -> AppResult<()> {
     if let Some(window) = app_handle.get_webview_window("main") {
         if !window.is_devtools_open() {
@@ -161,12 +178,14 @@ pub fn open_devtools(app_handle: tauri::AppHandle) -> AppResult<()> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn copy_clash_env() -> AppResult<()> {
     feat::copy_clash_env(handle::Handle::app_handle());
     Ok(())
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn download_icon_cache(url: String, name: String) -> AppResult<String> {
     let icon_cache_dir = dirs::app_home_dir()?.join("icons").join("cache");
     let icon_path = icon_cache_dir.join(name);
@@ -185,6 +204,7 @@ pub async fn download_icon_cache(url: String, name: String) -> AppResult<String>
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn copy_icon_file(path: String, name: String) -> AppResult<String> {
     let file_path = std::path::Path::new(&path);
     let icon_dir = dirs::app_home_dir()?.join("icons");
@@ -210,16 +230,19 @@ pub fn copy_icon_file(path: String, name: String) -> AppResult<String> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn set_tray_visible(app_handle: tauri::AppHandle, visible: bool) -> AppResult<()> {
     Tray::set_tray_visible(&app_handle, visible)
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn is_wayland() -> AppResult<bool> {
     Ok(utils::unix_helper::is_wayland())
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_net_info() -> AppResult<Vec<NetInfo>> {
     let mut net_list = Vec::new();
     let network_interfaces = network_interface::NetworkInterface::show()?;
@@ -242,6 +265,7 @@ pub fn get_net_info() -> AppResult<Vec<NetInfo>> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn restart_app(app_handle: tauri::AppHandle) {
     utils::server::shutdown_embedded_server();
     let _ = resolve::save_window_size_position(&app_handle);
@@ -264,6 +288,7 @@ pub async fn restart_app(app_handle: tauri::AppHandle) {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn exit_app(app_handle: tauri::AppHandle) {
     utils::server::shutdown_embedded_server();
     let _ = resolve::save_window_size_position(&app_handle);

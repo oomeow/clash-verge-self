@@ -8,6 +8,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use serde_yaml::{Mapping, Value};
+use specta::Type;
 
 use self::{chain::*, field::*, merge::*, script::*, tun::*};
 use crate::{
@@ -20,7 +21,7 @@ use crate::{
 
 type ResultLog = Vec<LogMessage>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct LogMessage {
     method: String,
     data: Vec<String>,

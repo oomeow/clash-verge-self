@@ -1,4 +1,5 @@
 use serde::Serialize;
+use specta::{DataType, Generics, Type, TypeCollection};
 use thiserror::Error;
 
 pub type AppResult<T> = std::result::Result<T, AppError>;
@@ -71,6 +72,12 @@ impl Serialize for AppError {
         S: serde::Serializer,
     {
         serializer.serialize_str(self.to_string().as_ref())
+    }
+}
+
+impl Type for AppError {
+    fn inline(type_map: &mut TypeCollection, generics: Generics) -> DataType {
+        String::inline(type_map, generics)
     }
 }
 

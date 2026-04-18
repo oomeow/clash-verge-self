@@ -4,7 +4,6 @@
 //! - timer 定时器
 //! - cmds 页面调用
 //!
-use clash_verge_self_service::model::JsonResponse;
 use rust_i18n::t;
 use serde_yaml::{Mapping, Value};
 use tauri::AppHandle;
@@ -92,7 +91,10 @@ pub fn toggle_service_mode() {
 
     tauri::async_runtime::spawn(async move {
         match cmds::service::check_service().await {
-            Ok(JsonResponse { code: 400, .. } | JsonResponse { code: 0, .. }) => {
+            Ok(
+                cmds::service::ServiceJsonResponse { code: 400, .. }
+                | cmds::service::ServiceJsonResponse { code: 0, .. },
+            ) => {
                 let patch = IVerge {
                     enable_service_mode: Some(!enable),
                     ..IVerge::default()
@@ -153,7 +155,7 @@ pub fn toggle_tun_mode() {
             }
         } else {
             match cmds::service::check_service().await {
-                Ok(JsonResponse { code: 0, .. }) => match patch_clash(tun).await {
+                Ok(cmds::service::ServiceJsonResponse { code: 0, .. }) => match patch_clash(tun).await {
                     Ok(_) => {
                         tracing::info!("change tun mode to {}", !enable)
                     }
@@ -161,7 +163,7 @@ pub fn toggle_tun_mode() {
                         tracing::error!("toggle tun mode failed: {err}")
                     }
                 },
-                Ok(JsonResponse { code: 400, .. }) => {
+                Ok(cmds::service::ServiceJsonResponse { code: 400, .. }) => {
                     // service installed but no enable, need to patch verge to enable service mode
                     if let Err(err) = patch_verge(IVerge {
                         enable_service_mode: Some(true),

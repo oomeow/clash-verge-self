@@ -6,6 +6,7 @@ use std::{
 use nanoid::nanoid;
 use serde::{Deserialize, Serialize};
 use serde_yaml::{Mapping, Value};
+use specta::Type;
 
 use crate::{
     error::AppResult,
@@ -329,7 +330,7 @@ impl IClashConfig {
     }
 }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Type)]
 pub struct ClashInfo {
     /// clash core mode
     pub mode: String,
@@ -348,7 +349,7 @@ pub struct ClashInfo {
     pub cors: Cors,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Type)]
 pub struct Cors {
     allow_private_network: bool,
     allow_origins: Vec<String>,

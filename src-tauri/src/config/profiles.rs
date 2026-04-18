@@ -2,6 +2,7 @@ use std::{collections::HashMap, fs, io::Write, path::PathBuf, time::Duration};
 
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
+use specta::Type;
 
 use super::{EnableFilter, PrfItem};
 use crate::{
@@ -15,7 +16,7 @@ use crate::{
 };
 
 /// Define the `profiles.yaml` schema
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize, Type)]
 pub struct IProfiles {
     /// same as PrfConfig.current
     pub current: Option<String>,

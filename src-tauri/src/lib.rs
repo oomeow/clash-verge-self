@@ -17,8 +17,11 @@ use std::sync::atomic::AtomicBool;
 use once_cell::sync::OnceCell;
 #[cfg(target_os = "linux")]
 use parking_lot::RwLock;
+#[cfg(debug_assertions)]
+use specta_typescript::Typescript;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_mihomo::models::Protocol;
+use tauri_specta::{Builder, collect_commands};
 
 use crate::{
     config::Config,
@@ -85,48 +88,9 @@ pub fn run() -> AppResult<()> {
     // delete old log file
     VergeLog::delete_log()?;
 
-    let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
-        .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_clipboard_manager::init())
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_opener::init())
-        .plugin(
-            tauri_plugin_mihomo::Builder::new()
-                .protocol(Protocol::LocalSocket)
-                .socket_path(MIHOMO_SOCKET_PATH)
-                .build(),
-        )
-        .setup(|app| {
-            let app_handle = app.handle();
-            APP_HANDLE
-                .set(app_handle.clone())
-                .expect("failed to set global app handle");
-
-            #[cfg(target_os = "macos")]
-            {
-                if resolve::is_silent_start() {
-                    let dock_visible: bool = Config::verge().latest().keep_in_dock.unwrap_or(true);
-                    resolve::apply_tray_policy(app_handle, dock_visible);
-                }
-            }
-
-            let version = app_handle.package_info().version.to_string();
-            app_handle.manage(AppState {
-                app_version: version,
-                is_exiting: AtomicBool::new(false),
-            });
-
-            resolve::priority_initialization();
-            resolve::async_initialization();
-
-            Ok(())
-        })
-        .invoke_handler(tauri::generate_handler![
+    let specta_builder = Builder::<tauri::Wry>::new()
+        // Then register them (separated by a comma)
+        .commands(collect_commands![
             // common
             cmds::common::get_sys_proxy,
             cmds::common::get_default_bypass,
@@ -196,6 +160,60 @@ pub fn run() -> AppResult<()> {
             cmds::backup::download_backup_and_reload,
             cmds::backup::delete_backup,
         ]);
+
+    #[cfg(debug_assertions)] // <- Only export on non-release builds
+    specta_builder
+        .export(
+            Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
+            "../src/bindings.ts",
+        )
+        .expect("Failed to export typescript bindings");
+
+    let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(
+            tauri_plugin_mihomo::Builder::new()
+                .protocol(Protocol::LocalSocket)
+                .socket_path(MIHOMO_SOCKET_PATH)
+                .build(),
+        )
+        .invoke_handler(specta_builder.invoke_handler())
+        .setup(move |app| {
+            // This is also required if you want to use events
+            specta_builder.mount_events(app);
+
+            let app_handle = app.handle();
+            APP_HANDLE
+                .set(app_handle.clone())
+                .expect("failed to set global app handle");
+
+            #[cfg(target_os = "macos")]
+            {
+                if resolve::is_silent_start() {
+                    let dock_visible: bool = Config::verge().latest().keep_in_dock.unwrap_or(true);
+                    resolve::apply_tray_policy(app_handle, dock_visible);
+                }
+            }
+
+            let version = app_handle.package_info().version.to_string();
+            app_handle.manage(AppState {
+                app_version: version,
+                is_exiting: AtomicBool::new(false),
+            });
+
+            resolve::priority_initialization();
+            resolve::async_initialization();
+
+            Ok(())
+        });
 
     let app = builder
         .build(tauri::generate_context!())

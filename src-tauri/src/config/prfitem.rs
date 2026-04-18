@@ -3,6 +3,7 @@ use std::{collections::HashMap, fs, path::PathBuf, time::Duration};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
+use specta::Type;
 use sysproxy::Sysproxy;
 use tauri::Manager;
 
@@ -15,7 +16,7 @@ use crate::{
     utils::{dirs, help, tmpl},
 };
 
-#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize, Type)]
 pub struct PrfItem {
     pub uid: Option<String>,
 
@@ -87,7 +88,7 @@ pub struct PrfItem {
     // =========== remote profile ===========
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq, Type)]
 #[serde(rename_all = "lowercase")]
 pub enum ProfileType {
     #[default]
@@ -104,13 +105,13 @@ pub enum EnableFilter {
     Disable,
 }
 
-#[derive(Debug, Default, Clone, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize, Type)]
 pub struct PrfSelected {
     pub name: Option<String>,
     pub now: Option<String>,
 }
 
-#[derive(Debug, Default, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Default, Clone, Copy, Deserialize, Serialize, Type)]
 pub struct PrfExtra {
     pub upload: u64,
     pub download: u64,
@@ -118,7 +119,7 @@ pub struct PrfExtra {
     pub expire: u64,
 }
 
-#[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Deserialize, Serialize, PartialEq, Eq, Type)]
 pub struct PrfOption {
     /// for `remote` profile's http request
     /// see issue #13

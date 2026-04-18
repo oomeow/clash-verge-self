@@ -2,6 +2,7 @@ use std::{collections::HashMap, fs, io};
 
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
+use specta::Type;
 
 use super::{LogMessage, use_merge, use_script};
 use crate::{
@@ -10,7 +11,7 @@ use crate::{
     utils::{dirs, help},
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(rename_all = "lowercase")]
 pub struct ChainItem {
     pub uid: String,
@@ -24,14 +25,14 @@ pub struct ChainItem {
     pub scope: ScopeType,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(rename_all = "lowercase")]
 pub enum ChainType {
     Merge,
     Script,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, Type)]
 #[serde(rename_all = "lowercase")]
 pub enum ScopeType {
     #[default]

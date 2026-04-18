@@ -4,6 +4,7 @@ use mihomo_rule_parser::{RuleBehavior, RuleFormat, RulePayload};
 use rust_i18n::t;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
+use specta::Type;
 
 use crate::{
     any_err,
@@ -14,23 +15,26 @@ use crate::{
     feat,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct CmdMergeResult {
     config: String,
     logs: HashMap<String, Vec<LogMessage>>,
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_clash_info() -> AppResult<ClashInfo> {
     Ok(Config::clash().latest().get_client_info())
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_runtime_config() -> AppResult<Option<Mapping>> {
     Ok(Config::runtime().latest().config.clone())
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_runtime_yaml() -> AppResult<String> {
     let runtime = Config::runtime();
     let runtime = runtime.latest();
@@ -41,11 +45,13 @@ pub fn get_runtime_yaml() -> AppResult<String> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_runtime_logs() -> AppResult<HashMap<String, Vec<LogMessage>>> {
     Ok(Config::runtime().latest().chain_logs.clone())
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_pre_merge_result(parent_uid: Option<String>, modified_uid: String) -> AppResult<CmdMergeResult> {
     let MergeResult { config, logs } = enhance::get_pre_merge_result(parent_uid, modified_uid)?;
     let config = serde_yaml::to_string(&config)?;
@@ -53,6 +59,7 @@ pub fn get_pre_merge_result(parent_uid: Option<String>, modified_uid: String) ->
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn test_merge_chain(
     profile_uid: Option<String>,
     modified_uid: String,
@@ -64,16 +71,19 @@ pub async fn test_merge_chain(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn patch_clash_config(payload: Mapping) -> AppResult<()> {
     feat::patch_clash(payload).await
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn change_clash_core(clash_core: Option<String>) -> AppResult<()> {
     CoreManager::global().change_core(clash_core).await
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn get_clash_logs() -> AppResult<VecDeque<String>> {
     let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or_default();
     let logs = if enable_service_mode {
@@ -86,6 +96,7 @@ pub async fn get_clash_logs() -> AppResult<VecDeque<String>> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn get_rule_provider_payload(
     provider_name: String,
     behavior: RuleBehavior,

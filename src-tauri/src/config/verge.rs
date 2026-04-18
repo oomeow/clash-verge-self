@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use specta::Type;
 use tracing::level_filters::LevelFilter;
 
 use crate::{
@@ -8,7 +9,7 @@ use crate::{
 };
 
 /// ### `verge.yaml` schema
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize, Type)]
 pub struct IVerge {
     /// app listening port for app singleton
     pub app_singleton_port: Option<u16>,
@@ -175,7 +176,7 @@ pub struct IVerge {
     pub enable_external_controller: Option<bool>,
 }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize, Type)]
 #[serde(rename_all = "lowercase")]
 pub enum SilentStartMode {
     Bootup,
@@ -184,7 +185,7 @@ pub enum SilentStartMode {
     Off,
 }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize, Type)]
 pub struct IVergeTestItem {
     pub uid: Option<String>,
     pub name: Option<String>,
@@ -192,7 +193,7 @@ pub struct IVergeTestItem {
     pub url: Option<String>,
 }
 
-#[derive(Default, Debug, Clone, Deserialize, Serialize)]
+#[derive(Default, Debug, Clone, Deserialize, Serialize, Type)]
 pub struct IVergeTheme {
     pub primary_color: Option<String>,
     pub secondary_color: Option<String>,

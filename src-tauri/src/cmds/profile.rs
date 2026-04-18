@@ -9,11 +9,13 @@ use crate::{
 };
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_profiles() -> AppResult<IProfiles> {
     Ok(Config::profiles().data().clone())
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_profile(uid: String) -> AppResult<PrfItem> {
     Ok(Config::profiles()
         .data()
@@ -23,6 +25,7 @@ pub fn get_profile(uid: String) -> AppResult<PrfItem> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_chains(profile_uid: Option<String>) -> AppResult<Vec<ChainItem>> {
     Ok(Config::profiles()
         .data()
@@ -30,6 +33,7 @@ pub fn get_chains(profile_uid: Option<String>) -> AppResult<Vec<ChainItem>> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn get_template(scope: String, language: String) -> AppResult<String> {
     match (scope.as_str(), language.as_str()) {
         ("merge", "yaml") => Ok(tmpl::ITEM_MERGE.into()),
@@ -40,6 +44,7 @@ pub fn get_template(scope: String, language: String) -> AppResult<String> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn enhance_profiles() -> AppResult<()> {
     CoreManager::global().update_config().await?;
     handle::Handle::refresh_clash();
@@ -47,6 +52,7 @@ pub async fn enhance_profiles() -> AppResult<()> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn import_profile(url: String, option: Option<PrfOption>) -> AppResult<()> {
     let item = PrfItem::from_url(&url, None, None, option).await?;
     let restart_core = Config::profiles().data_mut().append_item(item)?;
@@ -58,12 +64,14 @@ pub async fn import_profile(url: String, option: Option<PrfOption>) -> AppResult
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn reorder_profile(active_id: String, over_id: String) -> AppResult<()> {
     Config::profiles().data_mut().reorder(active_id, over_id)?;
     handle::Handle::update_systray_part()
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn create_profile(item: PrfItem, file_data: Option<String>) -> AppResult<()> {
     let item = PrfItem::from(item, file_data).await?;
     let restart_core = Config::profiles().data_mut().append_item(item)?;
@@ -76,12 +84,14 @@ pub async fn create_profile(item: PrfItem, file_data: Option<String>) -> AppResu
 
 // 同步更新订阅
 #[tauri::command]
+#[specta::specta]
 pub async fn update_profile(uid: String, option: Option<PrfOption>) -> AppResult<()> {
     feat::update_profile(&uid, option).await?;
     handle::Handle::update_systray_part()
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn delete_profile(uid: String) -> AppResult<()> {
     let restart_core = Config::profiles().data_mut().delete_item(uid)?;
     // the running profile is deleted, update the core config
@@ -94,6 +104,7 @@ pub async fn delete_profile(uid: String) -> AppResult<()> {
 
 /// 修改整个 profiles
 #[tauri::command]
+#[specta::specta]
 pub async fn patch_profiles_config(profiles: IProfiles) -> AppResult<()> {
     let switch_current = profiles.current.is_some();
     Config::profiles().draft().patch_config(profiles)?;
@@ -123,6 +134,7 @@ pub async fn patch_profiles_config(profiles: IProfiles) -> AppResult<()> {
 
 /// 修改某个 profile item
 #[tauri::command]
+#[specta::specta]
 pub async fn patch_profile(uid: String, profile: PrfItem) -> AppResult<()> {
     let old = Config::profiles()
         .latest()
@@ -160,6 +172,7 @@ pub async fn patch_profile(uid: String, profile: PrfItem) -> AppResult<()> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn view_profile(app_handle: tauri::AppHandle, index: String) -> AppResult<()> {
     let profiles = Config::profiles();
     let profiles = profiles.latest();
@@ -177,6 +190,7 @@ pub fn view_profile(app_handle: tauri::AppHandle, index: String) -> AppResult<()
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn read_profile_file(index: String) -> AppResult<String> {
     let profiles = Config::profiles();
     let profiles = profiles.latest();
@@ -188,6 +202,7 @@ pub fn read_profile_file(index: String) -> AppResult<String> {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn save_profile_file(uid: String, file_data: Option<String>) -> AppResult<()> {
     if let Some(file_data) = file_data {
         let profiles = Config::profiles();

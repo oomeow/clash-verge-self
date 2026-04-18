@@ -12,6 +12,11 @@ name = "mihomo_rule_parser"
 serde.workspace = true
 serde_yaml.workspace = true
 thiserror.workspace = true
+specta = { version = "2.0.0-rc", features = ["derive"], optional = true }
 
 byteorder = "1.5"
 zstd = "0.13"
+
+[features]
+default = []
+specta = ["dep:specta"]

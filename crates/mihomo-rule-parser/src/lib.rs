@@ -17,9 +17,11 @@ mod ipcidr;
 mod utils;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 pub enum RuleBehavior {
     Domain,
     #[serde(rename = "IPCIDR")]
+    #[cfg_attr(feature = "specta", specta(rename = "IPCIDR"))]
     IpCidr,
     Classical,
 }
@@ -48,12 +50,16 @@ impl TryFrom<String> for RuleBehavior {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 pub enum RuleFormat {
     #[serde(rename = "YamlRule")]
+    #[cfg_attr(feature = "specta", specta(rename = "YamlRule"))]
     Yaml,
     #[serde(rename = "TextRule")]
+    #[cfg_attr(feature = "specta", specta(rename = "TextRule"))]
     Text,
     #[serde(rename = "MrsRule")]
+    #[cfg_attr(feature = "specta", specta(rename = "MrsRule"))]
     Mrs,
 }
 
@@ -81,6 +87,7 @@ impl TryFrom<String> for RuleFormat {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "specta", derive(specta::Type))]
 pub struct RulePayload {
     pub count: i64,
     pub rules: Vec<String>,
