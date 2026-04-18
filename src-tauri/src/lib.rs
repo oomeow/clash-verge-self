@@ -78,8 +78,7 @@ pub fn run() -> AppResult<()> {
     resolve::setup_panic_hook();
 
     let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
-            println!("identifier: {}", app.config().identifier);
+        .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {
             resolve::create_window();
         }))
         .plugin(tauri_plugin_shell::init())
@@ -106,7 +105,9 @@ pub fn run() -> AppResult<()> {
 
             #[cfg(any(target_os = "windows", target_os = "linux"))]
             {
-                app.deep_link().register_all()?;
+                if let Err(e) = app.deep_link().register_all() {
+                    tracing::error!("failed to register deep link: {e}");
+                }
             }
 
             #[cfg(target_os = "macos")]
