@@ -18,8 +18,6 @@ use crate::{
 pub fn priority_initialization() {
     tracing::trace!("init system tray");
     log_err!(tray::Tray::init());
-    tracing::trace!("delete old log files");
-    log_err!(VergeLog::delete_log());
     tracing::trace!("init resources");
     log_err!(init::init_resources());
     tracing::trace!("init config");
@@ -59,6 +57,8 @@ pub fn async_initialization() {
     tauri::async_runtime::spawn(async {
         tracing::trace!("init startup script");
         log_err!(init::startup_script().await);
+        tracing::trace!("delete old log files");
+        log_err!(VergeLog::delete_log());
         tracing::trace!("launch embed server");
         server::embed_server().await;
         tracing::trace!("init autolaunch");
