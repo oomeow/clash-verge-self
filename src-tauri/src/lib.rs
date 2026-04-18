@@ -127,10 +127,13 @@ pub fn run() -> AppResult<()> {
             resolve::async_initialization();
 
             if let Some(urls) = app.deep_link().get_current()? {
+                tracing::debug!("handle current deep link: {:?}", urls);
                 resolve::resolve_deep_links(urls.into_iter().map(|url| url.to_string()));
             }
             app.deep_link().on_open_url(|event| {
-                resolve::resolve_deep_links(event.urls().iter().map(|url| url.to_string()));
+                let urls = event.urls();
+                tracing::debug!("handle deep link on open url: {:?}", urls);
+                resolve::resolve_deep_links(urls.iter().map(|url| url.to_string()));
             });
 
             Ok(())
