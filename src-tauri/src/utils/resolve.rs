@@ -22,11 +22,6 @@ pub fn priority_initialization() {
     log_err!(VergeLog::delete_log());
     tracing::trace!("init resources");
     log_err!(init::init_resources());
-<<<<<<< HEAD
-    tracing::trace!("init startup script");
-    log_err!(init::startup_script().await);
-=======
->>>>>>> 5e415ca0 (refactor(app): split initialization into priority and async phases (#1883))
     tracing::trace!("init config");
     log_err!(Config::init_config());
     tracing::trace!("launch core");
@@ -41,10 +36,6 @@ pub fn priority_initialization() {
     }
 
     let argvs = std::env::args().collect::<Vec<String>>();
-<<<<<<< HEAD
-    if argvs.iter().any(|arg| arg == "--hidden") {
-        tracing::debug!("silent start app at boot-up");
-=======
     if let [_, second, ..] = argvs.as_slice() {
         if second.as_str() == "--hidden" {
             tracing::debug!("silent start app at boot-up");
@@ -57,7 +48,6 @@ pub fn priority_initialization() {
                 resolve_scheme(second).await;
             });
         }
->>>>>>> 5e415ca0 (refactor(app): split initialization into priority and async phases (#1883))
     } else {
         if !is_silent_start() {
             create_window();
@@ -67,8 +57,6 @@ pub fn priority_initialization() {
 
 pub fn async_initialization() {
     tauri::async_runtime::spawn(async {
-        tracing::trace!("init scheme");
-        log_err!(init::init_scheme());
         tracing::trace!("init startup script");
         log_err!(init::startup_script().await);
         tracing::trace!("launch embed server");
