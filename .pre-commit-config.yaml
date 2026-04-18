@@ -24,7 +24,9 @@ repos:
         entry: "pnpm lint"
         language: "node"
         files:
-          glob: ["src/**/*.{js,mjs,ts,tsx}", "vite.config.ts"]
+          glob:
+            - src/**/*.{js,mjs,ts,tsx}
+            - vite.config.ts
 
       - id: "pretty staged"
         name: "pretty staged"
