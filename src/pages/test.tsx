@@ -33,8 +33,6 @@ const FlexDecorationItems = memo(function FlexDecorationItems() {
 const TestPage = () => {
   const { t } = useTranslation();
   const verge = useVergeStore((s) => s.verge)!;
-  const refreshVerge = useVergeStore((s) => s.refreshVerge);
-  const setVerge = useVergeStore((s) => s.setVerge);
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -75,7 +73,7 @@ const TestPage = () => {
 
   const [overItemWidth, setOverItemWidth] = useState(180);
 
-  const onTestListItemChange = (
+  const onTestListItemChange = async (
     uid: string,
     patch?: Partial<IVergeTestItem>,
   ) => {
@@ -86,16 +84,13 @@ const TestPage = () => {
         }
         return x;
       });
-      setVerge({ ...verge, test_list: newList });
-    } else {
-      refreshVerge();
+      await patchVerge({ test_list: newList });
     }
   };
 
-  const onDeleteTestListItem = (uid: string) => {
+  const onDeleteTestListItem = async (uid: string) => {
     const newList = testList.filter((x) => x.uid !== uid);
-    patchVerge({ test_list: newList });
-    setVerge({ ...verge, test_list: newList });
+    await patchVerge({ test_list: newList });
   };
 
   const getIndex = (id: UniqueIdentifier | undefined) => {
@@ -120,7 +115,6 @@ const TestPage = () => {
           overIndex,
         );
         setSortableTestList(newTestList);
-        setVerge({ ...verge, test_list: newTestList });
         await patchVerge({ test_list: newTestList });
       }
     }
@@ -194,7 +188,7 @@ const TestPage = () => {
                       isDragging={draggingTestItem?.uid === item.uid}
                       itemData={item}
                       onEdit={() => viewerRef.current?.edit(item)}
-                      onDelete={onDeleteTestListItem}
+                      onDelete={async (uid) => await onDeleteTestListItem(uid)}
                     />
                   </DraggableItem>
                 ))}
@@ -214,7 +208,7 @@ const TestPage = () => {
                   id={draggingTestItem.uid}
                   itemData={draggingTestItem}
                   onEdit={() => viewerRef.current?.edit(draggingTestItem)}
-                  onDelete={onDeleteTestListItem}
+                  onDelete={async (uid) => await onDeleteTestListItem(uid)}
                 />
               ) : null}
             </DragOverlay>,
@@ -222,7 +216,10 @@ const TestPage = () => {
           )}
         </DndContext>
       </Box>
-      <TestViewer ref={viewerRef} onChange={onTestListItemChange} />
+      <TestViewer
+        ref={viewerRef}
+        onChange={async (uid, value) => await onTestListItemChange(uid, value)}
+      />
     </BasePage>
   );
 };

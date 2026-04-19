@@ -17,7 +17,6 @@ const SettingSystem = ({ onError }: Props) => {
   const { t } = useTranslation();
 
   const verge = useVergeStore((s) => s.verge)!;
-  const setVerge = useVergeStore((s) => s.setVerge);
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const sysproxyRef = useRef<DialogRef>(null);
@@ -31,7 +30,7 @@ const SettingSystem = ({ onError }: Props) => {
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    setVerge({ ...verge, ...patch });
+    patchVerge(patch);
   };
 
   return (

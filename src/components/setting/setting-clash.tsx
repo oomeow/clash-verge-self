@@ -56,7 +56,6 @@ const SettingClash = ({ onError }: Props) => {
   } = clash ?? {};
 
   const verge = useVergeStore((s) => s.verge)!;
-  const setVerge = useVergeStore((s) => s.setVerge);
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const {
     clash_core = "self-mihomo",
@@ -96,7 +95,7 @@ const SettingClash = ({ onError }: Props) => {
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    setVerge({ ...verge, ...patch });
+    patchVerge(patch);
   };
   const onUpdateGeo = async () => {
     try {

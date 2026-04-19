@@ -9,7 +9,6 @@ type VergeState = {
 };
 
 type VergeActions = {
-  setVerge: (verge: IVergeConfig | undefined) => void;
   refreshVerge: () => Promise<IVergeConfig | undefined>;
   patchVerge: (value: Partial<IVergeConfig>) => Promise<void>;
 };
@@ -30,18 +29,13 @@ const applyVerge = (verge: IVergeConfig | undefined) => {
 };
 
 let refreshVergePromise: Promise<IVergeConfig | undefined> | null = null;
+let initializeVergeStorePromise: Promise<IVergeConfig | undefined> | null =
+  null;
 
 export const useVergeStore = create<VergeState & VergeActions>()(
   persist(
     (set, get) => ({
       verge: undefined,
-
-      setVerge: (verge) => {
-        if (isEqual(get().verge, verge)) {
-          return;
-        }
-        set(applyVerge(verge));
-      },
 
       refreshVerge: async () => {
         if (refreshVergePromise) {
@@ -88,3 +82,21 @@ export const useVergeStore = create<VergeState & VergeActions>()(
     },
   ),
 );
+
+const initializeVergeStore = async () => {
+  if (initializeVergeStorePromise) {
+    return initializeVergeStorePromise;
+  }
+
+  initializeVergeStorePromise = (async () => {
+    const verge = await getVergeConfig();
+    if (!isEqual(useVergeStore.getState().verge, verge)) {
+      useVergeStore.setState(applyVerge(verge));
+    }
+    return verge;
+  })();
+
+  return initializeVergeStorePromise;
+};
+
+void initializeVergeStore();

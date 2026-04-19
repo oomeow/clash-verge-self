@@ -64,10 +64,6 @@ const Layout = () => {
   keepUIActive = enable_keep_ui_active || false;
 
   useEffect(() => {
-    refreshVerge();
-  }, [refreshVerge]);
-
-  useEffect(() => {
     visitedPathsRef.current.add(pathname);
   }, [pathname]);
 
