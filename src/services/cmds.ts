@@ -234,6 +234,10 @@ export async function patchVergeConfig(payload: IVergeConfig) {
   return invoke<void>("patch_verge_config", { payload });
 }
 
+export async function dispatchHotkeyAction(func: string) {
+  return invoke<void>("dispatch_hotkey_action", { func });
+}
+
 export async function getSystemProxy() {
   return invoke<SysProxy>("get_sys_proxy");
 }

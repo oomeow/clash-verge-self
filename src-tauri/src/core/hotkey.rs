@@ -5,6 +5,7 @@ use parking_lot::Mutex;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 use crate::{
+    cmds,
     config::Config,
     core::handle,
     error::{AppError, AppResult},
@@ -58,13 +59,17 @@ impl Hotkey {
         if manager.is_registered(hotkey) {
             manager.unregister(hotkey)?;
         }
-        let f = match func.trim() {
-            "open_or_close_dashboard" => || feat::open_or_close_dashboard(),
-            "clash_mode_rule" => || feat::change_clash_mode("rule".into()),
-            "clash_mode_global" => || feat::change_clash_mode("global".into()),
-            "clash_mode_direct" => || feat::change_clash_mode("direct".into()),
-            "toggle_system_proxy" => || feat::toggle_system_proxy(),
-            "toggle_tun_mode" => || feat::toggle_tun_mode(),
+        let f: Box<dyn Fn() + Send + Sync + 'static> = match func.trim() {
+            "open_or_close_dashboard" => Box::new(feat::open_or_close_dashboard),
+            "clash_mode_rule" => Box::new(|| feat::change_clash_mode("rule".into())),
+            "clash_mode_global" => Box::new(|| feat::change_clash_mode("global".into())),
+            "clash_mode_direct" => Box::new(|| feat::change_clash_mode("direct".into())),
+            "toggle_system_proxy" => Box::new(feat::toggle_system_proxy),
+            "toggle_tun_mode" => Box::new(feat::toggle_tun_mode),
+            "exit_app" => {
+                let app_handle = app_handle.clone();
+                Box::new(move || cmds::common::exit_app(app_handle.clone()))
+            }
             _ => {
                 return Err(AppError::InvalidValue(format!("invalid function \"{func}\"")));
             }

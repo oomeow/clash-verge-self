@@ -121,6 +121,10 @@ pub struct IVerge {
     /// format: {func},{key}
     pub hotkeys: Option<Vec<String>>,
 
+    /// app hotkey map
+    /// format: {func},{key}
+    pub app_hotkeys: Option<Vec<String>>,
+
     /// 切换代理时自动关闭连接
     pub auto_close_connection: Option<bool>,
 
@@ -371,6 +375,7 @@ impl IVerge {
         patch!(web_ui_list);
         patch!(clash_core);
         patch!(hotkeys);
+        patch!(app_hotkeys);
 
         patch!(auto_close_connection);
         patch!(auto_check_update);

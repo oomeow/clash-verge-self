@@ -1,8 +1,9 @@
+import { normalizeKeyList } from "@/hooks/use-app-hotkeys";
 import { parseHotkey } from "@/utils/parse-hotkey";
 import getSystem from "@/utils/get-system";
 import DeleteRounded from "@mui/icons-material/DeleteRounded";
 import { alpha, Box, IconButton, styled } from "@mui/material";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const OS = getSystem();
 
@@ -91,13 +92,19 @@ const KeyWrapper = styled("div")(({ theme }) => ({
 interface Props {
   value: string[];
   onChange: (value: string[]) => void;
+  onDelete?: () => void;
 }
 
 export const HotkeyInput = (props: Props) => {
-  const { value, onChange } = props;
+  const { value, onChange, onDelete } = props;
 
   const changeRef = useRef<string[]>([]);
   const [keys, setKeys] = useState(value);
+
+  useEffect(() => {
+    changeRef.current = [];
+    setKeys(normalizeKeyList(value));
+  }, [value]);
 
   return (
     <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -118,7 +125,7 @@ export const HotkeyInput = (props: Props) => {
             const key = parseHotkey(evt.code);
             if (key === "UNIDENTIFIED") return;
 
-            changeRef.current = [...new Set([...changeRef.current, key])];
+            changeRef.current = normalizeKeyList([...changeRef.current, key]);
             setKeys(changeRef.current);
           }}
         />
@@ -137,8 +144,12 @@ export const HotkeyInput = (props: Props) => {
         title="Delete"
         color="inherit"
         onClick={() => {
-          onChange([]);
+          changeRef.current = [];
           setKeys([]);
+          onDelete?.();
+          if (!onDelete) {
+            onChange([]);
+          }
         }}>
         <DeleteRounded fontSize="inherit" />
       </IconButton>

@@ -6,6 +6,7 @@ import {
   useCustomTheme,
   useSyncThemeSettings,
 } from "@/components/layout/use-custom-theme";
+import { useAppHotkeys } from "@/hooks/use-app-hotkeys";
 import { usePortable } from "@/hooks/use-portable";
 import { useVerge } from "@/hooks/use-verge";
 import { useVisibility } from "@/hooks/use-visibility";
@@ -47,7 +48,14 @@ const Layout = () => {
   const { theme } = useCustomTheme();
   const visible = useVisibility();
   const { verge } = useVerge();
-  const { language, enable_system_title_bar, enable_keep_ui_active } = verge;
+  const {
+    language,
+    enable_system_title_bar,
+    enable_keep_ui_active,
+    app_hotkeys,
+    hotkeys,
+  } = verge;
+  useAppHotkeys(app_hotkeys, hotkeys);
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
