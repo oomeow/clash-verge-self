@@ -1,5 +1,5 @@
 import { BaseDialog } from "@/components/base";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { TextField } from "@mui/material";
 import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
@@ -23,7 +23,8 @@ export const TestViewer = forwardRef<TestViewerRef, Props>((props, ref) => {
   const [open, setOpen] = useState(false);
   const [openType, setOpenType] = useState<"new" | "edit">("new");
   const [loading, setLoading] = useState(false);
-  const { verge, patchVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const testList = verge?.test_list ?? [];
   const { setValue, register, handleSubmit, reset } = useForm<IVergeTestItem>({
     defaultValues: {

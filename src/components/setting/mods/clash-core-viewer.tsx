@@ -4,7 +4,7 @@ import { useNotice } from "@/components/base/notifies";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   changeClashCore,
   grantPermissions,
@@ -44,7 +44,8 @@ const OS = getSystem();
 export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const { verge, mutateVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const refreshVerge = useVergeStore((s) => s.refreshVerge);
   const { clash_core = "self-mihomo" } = verge;
   const { clash } = useClash();
   const { tun } = clash ?? {};
@@ -82,7 +83,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       setChangingCore(core);
       closeAllConnections();
       await changeClashCore(core);
-      mutateVerge();
+      refreshVerge();
       await MihomoWebSocket.cleanupAll();
       setTimeout(() => {
         mutate("getClashConfig");

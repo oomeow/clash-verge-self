@@ -1,5 +1,5 @@
 import { useProfiles } from "@/hooks/use-profiles";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { downloadIconCache } from "@/services/cmds";
 import {
   createScopedHeadStateActions,
@@ -105,7 +105,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
   const { profiles } = useProfiles();
   const current = profiles?.current || "";
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
   const headStateActions = useMemo(
     () => createScopedHeadStateActions({ current, groupName: group.name }),
     [current, group.name],

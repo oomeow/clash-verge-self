@@ -3,7 +3,7 @@ import {
   DEFAULT_STATE,
   useProxyHeadStateStore,
 } from "@/stores/proxyHeadStateStore";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { calcuProxies } from "@/services/api";
 import { useEffect, useMemo } from "react";
@@ -31,7 +31,7 @@ export const useRenderList = (mode: string) => {
 
   const { profiles } = useProfiles();
   const current = profiles?.current || "";
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
   const { size } = useWindowSize();
   const headStates = useProxyHeadStateStore((state) =>
     current

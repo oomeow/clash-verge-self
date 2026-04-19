@@ -2,7 +2,7 @@ import { DialogRef } from "@/components/base";
 import WebDavFilesViewer, {
   WebDavFilesViewerRef,
 } from "@/components/setting/mods/webdav-files-viewer";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { routes } from "@/routes/__root";
 import {
   applyLocalBackup,
@@ -68,7 +68,9 @@ const SettingVerge = ({ onError }: Props) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
-  const { verge, patchVerge, mutateVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const patchVerge = useVergeStore((s) => s.patchVerge);
+  const setVerge = useVergeStore((s) => s.setVerge);
   const {
     app_log_level,
     theme_mode,
@@ -91,7 +93,7 @@ const SettingVerge = ({ onError }: Props) => {
   const webDavRef = useRef<WebDavFilesViewerRef>(null);
 
   const onChangeData = (patch: Partial<IVergeConfig>) => {
-    mutateVerge({ ...verge, ...patch }, false);
+    setVerge({ ...verge, ...patch });
   };
 
   const onCheckUpdate = async () => {

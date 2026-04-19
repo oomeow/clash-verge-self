@@ -1,5 +1,5 @@
 import { DialogRef, SwitchLovely } from "@/components/base";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Settings from "@mui/icons-material/Settings";
 import { Button, ButtonGroup, IconButton, Tooltip } from "@mui/material";
@@ -16,7 +16,9 @@ interface Props {
 const SettingSystem = ({ onError }: Props) => {
   const { t } = useTranslation();
 
-  const { verge, mutateVerge, patchVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const setVerge = useVergeStore((s) => s.setVerge);
+  const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const sysproxyRef = useRef<DialogRef>(null);
 
@@ -29,7 +31,7 @@ const SettingSystem = ({ onError }: Props) => {
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    mutateVerge({ ...verge, ...patch }, false);
+    setVerge({ ...verge, ...patch });
   };
 
   return (

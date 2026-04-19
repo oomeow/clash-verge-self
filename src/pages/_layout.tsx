@@ -8,9 +8,9 @@ import {
 } from "@/components/layout/use-custom-theme";
 import { useAppHotkeys } from "@/hooks/use-app-hotkeys";
 import { usePortable } from "@/hooks/use-portable";
-import { useVerge } from "@/hooks/use-verge";
 import { useVisibility } from "@/hooks/use-visibility";
 import LoadingPage from "@/pages/loading";
+import { useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import { Paper, ThemeProvider } from "@mui/material";
@@ -47,20 +47,25 @@ const Layout = () => {
   useSyncThemeSettings();
   const { theme } = useCustomTheme();
   const visible = useVisibility();
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge);
+  const refreshVerge = useVergeStore((s) => s.refreshVerge);
   const {
     language,
     enable_system_title_bar,
     enable_keep_ui_active,
     app_hotkeys,
     hotkeys,
-  } = verge;
+  } = verge ?? {};
   useAppHotkeys(app_hotkeys, hotkeys);
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
 
   keepUIActive = enable_keep_ui_active || false;
+
+  useEffect(() => {
+    refreshVerge();
+  }, [refreshVerge]);
 
   useEffect(() => {
     visitedPathsRef.current.add(pathname);
@@ -104,7 +109,7 @@ const Layout = () => {
 
     // update the verge config
     const unlistenRefreshVerge = listen("verge://refresh-verge-config", () => {
-      mutate("getVergeConfig");
+      refreshVerge();
     });
 
     // 设置提示监听
@@ -170,6 +175,10 @@ const Layout = () => {
 
     return () => globalThis.clearTimeout(timeoutId);
   }, [pathname, pendingPath]);
+
+  if (!verge) {
+    return <LoadingPage />;
+  }
 
   return (
     <SWRConfig

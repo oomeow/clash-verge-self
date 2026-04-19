@@ -4,6 +4,7 @@ export {
   useThemeModeStore,
   useThemeSettingsStore,
 } from "./themeStore";
+export { useVergeStore } from "./vergeStore";
 export { useClashLogStore } from "./clashLogStore";
 export { useConnectionsStore } from "./connectionsStore";
 export { useLoadingCacheStore } from "./loadingCacheStore";

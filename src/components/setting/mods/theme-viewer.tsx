@@ -1,7 +1,7 @@
 import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   defaultThemeSettings,
   useThemeModeStore,
@@ -29,7 +29,8 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
   const { notice } = useNotice();
 
   const [open, setOpen] = useState(false);
-  const { verge, patchVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const { light_theme_setting, dark_theme_setting } = verge || {};
   const { toggleTheme } = useCustomTheme();
   const themeMode = useThemeModeStore((s) => s.themeMode);

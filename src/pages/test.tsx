@@ -1,7 +1,7 @@
 import { BasePage, DraggableItem } from "@/components/base";
 import { TestItem } from "@/components/test/test-item";
 import { TestViewer, TestViewerRef } from "@/components/test/test-viewer";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   DndContext,
   DragEndEvent,
@@ -32,7 +32,10 @@ const FlexDecorationItems = memo(function FlexDecorationItems() {
 
 const TestPage = () => {
   const { t } = useTranslation();
-  const { verge, mutateVerge, patchVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const refreshVerge = useVergeStore((s) => s.refreshVerge);
+  const setVerge = useVergeStore((s) => s.setVerge);
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
   );
@@ -83,16 +86,16 @@ const TestPage = () => {
         }
         return x;
       });
-      mutateVerge({ ...verge, test_list: newList }, false);
+      setVerge({ ...verge, test_list: newList });
     } else {
-      mutateVerge();
+      refreshVerge();
     }
   };
 
   const onDeleteTestListItem = (uid: string) => {
     const newList = testList.filter((x) => x.uid !== uid);
     patchVerge({ test_list: newList });
-    mutateVerge({ ...verge, test_list: newList }, false);
+    setVerge({ ...verge, test_list: newList });
   };
 
   const getIndex = (id: UniqueIdentifier | undefined) => {
@@ -117,7 +120,7 @@ const TestPage = () => {
           overIndex,
         );
         setSortableTestList(newTestList);
-        await mutateVerge({ ...verge, test_list: newTestList }, false);
+        setVerge({ ...verge, test_list: newTestList });
         await patchVerge({ test_list: newTestList });
       }
     }

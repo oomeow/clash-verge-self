@@ -1,7 +1,7 @@
 import { BaseDialog, BaseEmpty, DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { openWebUrl } from "@/services/cmds";
 import { Box, Button, Typography } from "@mui/material";
 import { useLockFn } from "ahooks";
@@ -14,7 +14,9 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
   const { notice } = useNotice();
 
   const { clashInfo } = useClashInfo();
-  const { verge, patchVerge, mutateVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const patchVerge = useVergeStore((s) => s.patchVerge);
+  const setVerge = useVergeStore((s) => s.setVerge);
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -31,21 +33,21 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
 
   const handleAdd = useLockFn(async (value: string) => {
     const newList = [...webUIList, value];
-    mutateVerge((old) => (old ? { ...old, web_ui_list: newList } : old), false);
+    setVerge(verge ? { ...verge, web_ui_list: newList } : verge);
     await patchVerge({ web_ui_list: newList });
   });
 
   const handleChange = useLockFn(async (index: number, value?: string) => {
     const newList = [...webUIList];
     newList[index] = value ?? "";
-    mutateVerge((old) => (old ? { ...old, web_ui_list: newList } : old), false);
+    setVerge(verge ? { ...verge, web_ui_list: newList } : verge);
     await patchVerge({ web_ui_list: newList });
   });
 
   const handleDelete = useLockFn(async (index: number) => {
     const newList = [...webUIList];
     newList.splice(index, 1);
-    mutateVerge((old) => (old ? { ...old, web_ui_list: newList } : old), false);
+    setVerge(verge ? { ...verge, web_ui_list: newList } : verge);
     await patchVerge({ web_ui_list: newList });
   });
 

@@ -1,4 +1,4 @@
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import {
   alpha,
@@ -30,7 +30,7 @@ export const LayoutItem = (props: Props) => {
     onNavigate,
     onMouseEnter,
   } = props;
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
   const matchRoute = useMatchRoute();
   const match = !!matchRoute({ to });
   const { menu_icon } = verge ?? {};

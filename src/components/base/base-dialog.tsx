@@ -1,4 +1,4 @@
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import { Button } from "@mui/material";
@@ -53,7 +53,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
     onCancel,
     onClose,
   } = props;
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
   const { enable_system_title_bar } = verge;
   const titlebarRef = useRef<HTMLDivElement | null>(null);
 

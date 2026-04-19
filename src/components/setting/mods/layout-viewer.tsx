@@ -1,7 +1,7 @@
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { GuardState } from "@/components/setting/mods/guard-state";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { copyIconFile, getAppDir } from "@/services/cmds";
 import getSystem from "@/utils/get-system";
 import InfoRounded from "@mui/icons-material/InfoRounded";
@@ -32,7 +32,9 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
 
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const { verge, patchVerge, mutateVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const patchVerge = useVergeStore((s) => s.patchVerge);
+  const setVerge = useVergeStore((s) => s.setVerge);
 
   const [open, setOpen] = useState(false);
   const [commonIcon, setCommonIcon] = useState("");
@@ -80,7 +82,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
     notice("error", err.message || err.toString());
   };
   const onChangeData = (patch: Partial<IVergeConfig>) => {
-    mutateVerge({ ...verge, ...patch }, false);
+    setVerge({ ...verge, ...patch });
   };
 
   return (

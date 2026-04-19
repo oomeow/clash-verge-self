@@ -1,5 +1,5 @@
 import { BaseLoading } from "@/components/base";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import delayManager from "@/services/delay";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { alpha, Box, ListItemButton, styled, Typography } from "@mui/material";
@@ -53,7 +53,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
     delayVersion,
     onClick,
   } = props;
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
   const timeout = verge?.default_latency_timeout || 5000;
   const delay = delayManager.getDelayFix(proxy, groupName);
 

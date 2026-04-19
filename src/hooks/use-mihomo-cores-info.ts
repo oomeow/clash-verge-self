@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import useSWR from "swr";
 import { usePortable } from "./use-portable";
 import { useService } from "./use-service";
-import { useVerge } from "./use-verge";
+import { useVergeStore } from "@/stores";
 
 type MihomoCoreInfo = {
   name: string;
@@ -37,9 +37,7 @@ const OS = getSystem();
 
 export const useMihomoCoresInfo = () => {
   const { serviceStatus } = useService();
-  const {
-    verge: { clash_core = "self-mihomo" },
-  } = useVerge();
+  const clash_core = useVergeStore((s) => s.verge?.clash_core ?? "self-mihomo");
   const serviceUnavailable =
     serviceStatus === "uninstall" || serviceStatus === "unknown";
 

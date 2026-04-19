@@ -1,4 +1,4 @@
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   normalizeThemeSetting,
   useThemeModeStore,
@@ -38,7 +38,8 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
   };
 
 export const useCustomTheme = () => {
-  const { verge, patchVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge);
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const { theme_mode, language } = verge ?? {};
   const mode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);
@@ -225,7 +226,7 @@ const isSameThemeSetting = (
 ) => JSON.stringify(left ?? {}) === JSON.stringify(right ?? {});
 
 export const useSyncThemeSettings = () => {
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge);
   const { light_theme_setting, dark_theme_setting } = verge ?? {};
 
   useEffect(() => {

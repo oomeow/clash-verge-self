@@ -3,7 +3,7 @@ import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";
 import { useService } from "@/hooks/use-service";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { invoke_uwp_tool } from "@/services/cmds";
 import { useClashLogStore } from "@/stores";
 import getSystem from "@/utils/get-system";
@@ -55,7 +55,9 @@ const SettingClash = ({ onError }: Props) => {
     tun,
   } = clash ?? {};
 
-  const { verge, mutateVerge, patchVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const setVerge = useVergeStore((s) => s.setVerge);
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const {
     clash_core = "self-mihomo",
     enable_random_port,
@@ -94,7 +96,7 @@ const SettingClash = ({ onError }: Props) => {
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    mutateVerge({ ...verge, ...patch }, false);
+    setVerge({ ...verge, ...patch });
   };
   const onUpdateGeo = async () => {
     try {

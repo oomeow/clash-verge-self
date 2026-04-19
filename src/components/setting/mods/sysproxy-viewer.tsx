@@ -6,7 +6,7 @@ import {
   SwitchLovely,
 } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   getAutotemProxy,
   getDefaultBypass,
@@ -49,7 +49,8 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
 
   const [open, setOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
-  const { verge, patchVerge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const [bypass, setBypass] = useState<string[]>([]);
   const [bypassInput, setBypassInput] = useState("");
 

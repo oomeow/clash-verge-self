@@ -2,7 +2,7 @@ import { useConnectionData } from "@/hooks/use-connection-data";
 import { useLogData } from "@/hooks/use-log-data";
 import { useMemoryData } from "@/hooks/use-memory-data";
 import { useTrafficData } from "@/hooks/use-traffic-data";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { useVisibility } from "@/hooks/use-visibility";
 import { restartSidecar } from "@/services/cmds";
 import parseTraffic from "@/utils/parse-traffic";
@@ -18,7 +18,7 @@ import { TrafficGraph, type TrafficRef } from "./traffic-graph";
 
 // setup the traffic
 export const LayoutTraffic = () => {
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
   const { notice } = useNotice();
 
   // whether hide traffic graph

@@ -1,7 +1,7 @@
 import { ProxyGroupSidebar } from "@/components/proxy/proxy-group-sidebar";
 import { ProxyRender } from "@/components/proxy/proxy-render";
 import { useProfiles } from "@/hooks/use-profiles";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import LoadingPage from "@/pages/loading";
 import delayManager from "@/services/delay";
 import { cn } from "@/utils";
@@ -31,7 +31,7 @@ export const ProxyGroups = (props: Props) => {
   const isRuleMode = mode === "rule";
 
   const { renderList, onProxies } = useRenderList(mode);
-  const { verge } = useVerge();
+  const verge = useVergeStore((s) => s.verge)!;
   const { current, patchCurrent } = useProfiles();
   const timeout = verge.default_latency_timeout || 5000;
 
