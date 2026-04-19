@@ -5,6 +5,7 @@ use parking_lot::Mutex;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 use crate::{
+    cmds,
     config::Config,
     core::handle,
     error::{AppError, AppResult},
@@ -13,6 +14,47 @@ use crate::{
 
 pub struct Hotkey {
     current: Arc<Mutex<Vec<String>>>, // 保存当前的热键设置
+}
+
+enum HotkeyAction {
+    OpenOrCloseDashboard,
+    ClashModeRule,
+    ClashModeGlobal,
+    ClashModeDirect,
+    ToggleSystemProxy,
+    ToggleTunMode,
+    ExitApp,
+}
+
+impl TryFrom<&str> for HotkeyAction {
+    type Error = AppError;
+
+    fn try_from(func: &str) -> Result<Self, Self::Error> {
+        match func.trim() {
+            "open_or_close_dashboard" => Ok(Self::OpenOrCloseDashboard),
+            "clash_mode_rule" => Ok(Self::ClashModeRule),
+            "clash_mode_global" => Ok(Self::ClashModeGlobal),
+            "clash_mode_direct" => Ok(Self::ClashModeDirect),
+            "toggle_system_proxy" => Ok(Self::ToggleSystemProxy),
+            "toggle_tun_mode" => Ok(Self::ToggleTunMode),
+            "exit_app" => Ok(Self::ExitApp),
+            _ => Err(AppError::InvalidValue(format!("invalid function \"{func}\""))),
+        }
+    }
+}
+
+pub fn dispatch_action(app_handle: &tauri::AppHandle, func: &str) -> AppResult<()> {
+    match HotkeyAction::try_from(func)? {
+        HotkeyAction::OpenOrCloseDashboard => feat::open_or_close_dashboard(),
+        HotkeyAction::ClashModeRule => feat::change_clash_mode("rule".into()),
+        HotkeyAction::ClashModeGlobal => feat::change_clash_mode("global".into()),
+        HotkeyAction::ClashModeDirect => feat::change_clash_mode("direct".into()),
+        HotkeyAction::ToggleSystemProxy => feat::toggle_system_proxy(),
+        HotkeyAction::ToggleTunMode => feat::toggle_tun_mode(),
+        HotkeyAction::ExitApp => cmds::common::exit_app(app_handle.clone()),
+    }
+
+    Ok(())
 }
 
 impl Hotkey {
@@ -58,25 +100,17 @@ impl Hotkey {
         if manager.is_registered(hotkey) {
             manager.unregister(hotkey)?;
         }
-        let f = match func.trim() {
-            "open_or_close_dashboard" => || feat::open_or_close_dashboard(),
-            "clash_mode_rule" => || feat::change_clash_mode("rule".into()),
-            "clash_mode_global" => || feat::change_clash_mode("global".into()),
-            "clash_mode_direct" => || feat::change_clash_mode("direct".into()),
-            "toggle_system_proxy" => || feat::toggle_system_proxy(),
-            "toggle_tun_mode" => || feat::toggle_tun_mode(),
-            _ => {
-                return Err(AppError::InvalidValue(format!("invalid function \"{func}\"")));
-            }
-        };
 
-        manager.on_shortcut(hotkey, move |_app, hotkey, event| {
+        HotkeyAction::try_from(func)?;
+        let func = func.trim().to_string();
+        tracing::info!("register hotkey {hotkey} {func}");
+
+        manager.on_shortcut(hotkey, move |app, hotkey, event| {
             if let ShortcutState::Pressed = event.state {
                 tracing::info!("hotkey [{}] pressed", hotkey);
-                f();
+                log_err!(dispatch_action(app, &func));
             }
         })?;
-        tracing::info!("register hotkey {hotkey} {func}");
         Ok(())
     }
 

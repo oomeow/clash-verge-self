@@ -179,6 +179,7 @@ pub fn run() -> AppResult<()> {
             // verge
             cmds::verge::get_verge_config,
             cmds::verge::patch_verge_config,
+            cmds::verge::dispatch_hotkey_action,
             cmds::verge::test_delay,
             // profile
             cmds::profile::get_profiles,

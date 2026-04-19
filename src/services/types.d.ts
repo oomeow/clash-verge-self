@@ -263,6 +263,7 @@ interface IVergeConfig {
   linux_bypass?: string;
   web_ui_list?: string[];
   hotkeys?: string[];
+  app_hotkeys?: string[];
   // not a verge config, only use it to set the current theme of app
   theme_setting?: {
     primary_color?: string;

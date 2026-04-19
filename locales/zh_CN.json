@@ -407,13 +407,20 @@
         },
         "hotkeys": {
           "title": "热键设置",
+          "global": "全局",
+          "app": "应用内",
+          "restore": "恢复设置",
+          "clear": "清空全部",
+          "conflict": "已存在该快捷键",
+          "invalid": "快捷键不能只包含修饰键",
           "actions": {
             "openOrCloseDashboard": "打开/关闭面板",
             "ruleMode": "规则模式",
             "globalMode": "全局模式",
             "directMode": "直连模式",
             "toggleSystemProxy": "打开/关闭系统代理",
-            "toggleTunMode": "打开/关闭 Tun 模式"
+            "toggleTunMode": "打开/关闭 Tun 模式",
+            "exitApp": "退出应用"
           }
         },
         "runtimeConfig": "当前配置",

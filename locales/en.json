@@ -407,13 +407,20 @@
         },
         "hotkeys": {
           "title": "Hotkey Setting",
+          "global": "Global",
+          "app": "In-app",
+          "restore": "Restore Settings",
+          "clear": "Clear All",
+          "conflict": "This hotkey already exists",
+          "invalid": "Hotkeys cannot contain only modifier keys",
           "actions": {
             "openOrCloseDashboard": "Open/Close Dashboard",
             "ruleMode": "Rule Mode",
             "globalMode": "Global Mode",
             "directMode": "Direct Mode",
             "toggleSystemProxy": "Enable/Disable System Proxy",
-            "toggleTunMode": "Enable/Disable Tun Mode"
+            "toggleTunMode": "Enable/Disable Tun Mode",
+            "exitApp": "Exit App"
           }
         },
         "runtimeConfig": "Runtime Config",

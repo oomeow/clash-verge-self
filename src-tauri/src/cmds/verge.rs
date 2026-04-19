@@ -1,5 +1,6 @@
 use crate::{
     config::{Config, IVerge},
+    core::hotkey,
     error::AppResult,
     feat,
 };
@@ -12,6 +13,11 @@ pub fn get_verge_config() -> AppResult<IVerge> {
 #[tauri::command]
 pub async fn patch_verge_config(payload: IVerge) -> AppResult<()> {
     feat::patch_verge(payload).await
+}
+
+#[tauri::command]
+pub fn dispatch_hotkey_action(app_handle: tauri::AppHandle, func: String) -> AppResult<()> {
+    hotkey::dispatch_action(&app_handle, &func)
 }
 
 #[tauri::command]
