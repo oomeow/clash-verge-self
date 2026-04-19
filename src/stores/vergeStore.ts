@@ -5,7 +5,7 @@ import { persist } from "zustand/middleware";
 import { useThemeSettingsStore } from "./themeStore";
 
 type VergeState = {
-  verge: IVergeConfig | undefined;
+  verge: IVergeConfig;
 };
 
 type VergeActions = {
@@ -35,8 +35,7 @@ let initializeVergeStorePromise: Promise<IVergeConfig | undefined> | null =
 export const useVergeStore = create<VergeState & VergeActions>()(
   persist(
     (set, get) => ({
-      verge: undefined,
-
+      verge: {},
       refreshVerge: async () => {
         if (refreshVergePromise) {
           return refreshVergePromise;

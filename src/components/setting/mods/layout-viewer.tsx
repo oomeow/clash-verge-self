@@ -34,7 +34,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
   const { notice } = useNotice();
   const verge = useVergeStore((s) => s.verge)!;
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const setVerge = useVergeStore((s) => s.setVerge);
 
   const [open, setOpen] = useState(false);
   const [commonIcon, setCommonIcon] = useState("");
@@ -81,9 +80,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
   const onError = (err: any) => {
     notice("error", err.message || err.toString());
   };
-  const onChangeData = (patch: Partial<IVergeConfig>) => {
-    setVerge({ ...verge, ...patch });
-  };
 
   return (
     <BaseDialog
@@ -108,7 +104,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               valueProps="checked"
               onCatch={onError}
               onFormat={onSwitchFormat}
-              onChange={(e) => onChangeData({ enable_system_title_bar: e })}
               onGuard={async (e) => {
                 await patchVerge({ enable_system_title_bar: e });
                 await appWindow.setDecorations(e);
@@ -144,7 +139,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               valueProps="checked"
               onCatch={onError}
               onFormat={onSwitchFormat}
-              onChange={(e) => onChangeData({ keep_in_dock: e })}
               onGuard={(e) => patchVerge({ keep_in_dock: e })}>
               <SwitchLovely edge="end" />
             </GuardState>
@@ -176,7 +170,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             valueProps="checked"
             onCatch={onError}
             onFormat={onSwitchFormat}
-            onChange={(e) => onChangeData({ enable_keep_ui_active: e })}
             onGuard={(e) => patchVerge({ enable_keep_ui_active: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
@@ -190,7 +183,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             valueProps="checked"
             onCatch={onError}
             onFormat={onSwitchFormat}
-            onChange={(e) => onChangeData({ traffic_graph: e })}
             onGuard={(e) => patchVerge({ traffic_graph: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
@@ -205,7 +197,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             valueProps="checked"
             onCatch={onError}
             onFormat={onSwitchFormat}
-            onChange={(e) => onChangeData({ enable_memory_usage: e })}
             onGuard={(e) => patchVerge({ enable_memory_usage: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
@@ -220,7 +211,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             valueProps="checked"
             onCatch={onError}
             onFormat={onSwitchFormat}
-            onChange={(e) => onChangeData({ enable_group_icon: e })}
             onGuard={(e) => patchVerge({ enable_group_icon: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
@@ -232,7 +222,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             value={verge?.menu_icon ?? "monochrome"}
             onCatch={onError}
             onFormat={(e: any) => e.target.value}
-            onChange={(e) => onChangeData({ menu_icon: e })}
             onGuard={(e) => patchVerge({ menu_icon: e })}>
             <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
               <MenuItem value="monochrome">
@@ -253,7 +242,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             valueProps="checked"
             onCatch={onError}
             onFormat={onSwitchFormat}
-            onChange={(e) => onChangeData({ enable_tray: e })}
             onGuard={(e) => patchVerge({ enable_tray: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
@@ -268,7 +256,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               value={verge?.tray_icon ?? "monochrome"}
               onCatch={onError}
               onFormat={(e: any) => e.target.value}
-              onChange={(e) => onChangeData({ tray_icon: e })}
               onGuard={(e) => patchVerge({ tray_icon: e })}>
               <Select
                 size="small"
@@ -291,7 +278,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           <GuardState
             value={verge?.common_tray_icon}
             onCatch={onError}
-            onChange={(e) => onChangeData({ common_tray_icon: e })}
             onGuard={(e) => patchVerge({ common_tray_icon: e })}>
             <Button
               variant="outlined"
@@ -304,7 +290,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               }
               onClick={async () => {
                 if (verge?.common_tray_icon) {
-                  onChangeData({ common_tray_icon: false });
                   patchVerge({ common_tray_icon: false });
                 } else {
                   const path = await openDialog({
@@ -320,7 +305,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
                   if (path?.length) {
                     await copyIconFile(`${path}`, "common");
                     await initIconPath();
-                    onChangeData({ common_tray_icon: true });
                     patchVerge({ common_tray_icon: true });
                   }
                 }
@@ -339,7 +323,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           <GuardState
             value={verge?.sysproxy_tray_icon}
             onCatch={onError}
-            onChange={(e) => onChangeData({ sysproxy_tray_icon: e })}
             onGuard={(e) => patchVerge({ sysproxy_tray_icon: e })}>
             <Button
               variant="outlined"
@@ -352,7 +335,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               }
               onClick={async () => {
                 if (verge?.sysproxy_tray_icon) {
-                  onChangeData({ sysproxy_tray_icon: false });
                   patchVerge({ sysproxy_tray_icon: false });
                 } else {
                   const path = await openDialog({
@@ -368,7 +350,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
                   if (path?.length) {
                     await copyIconFile(`${path}`, "sysproxy");
                     await initIconPath();
-                    onChangeData({ sysproxy_tray_icon: true });
                     patchVerge({ sysproxy_tray_icon: true });
                   }
                 }
@@ -385,7 +366,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           <GuardState
             value={verge?.tun_tray_icon}
             onCatch={onError}
-            onChange={(e) => onChangeData({ tun_tray_icon: e })}
             onGuard={(e) => patchVerge({ tun_tray_icon: e })}>
             <Button
               variant="outlined"
@@ -396,7 +376,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               }
               onClick={async () => {
                 if (verge?.tun_tray_icon) {
-                  onChangeData({ tun_tray_icon: false });
                   patchVerge({ tun_tray_icon: false });
                 } else {
                   const path = await openDialog({
@@ -412,7 +391,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
                   if (path?.length) {
                     await copyIconFile(`${path}`, "tun");
                     await initIconPath();
-                    onChangeData({ tun_tray_icon: true });
                     patchVerge({ tun_tray_icon: true });
                   }
                 }

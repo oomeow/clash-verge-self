@@ -55,7 +55,7 @@ const Layout = () => {
     enable_keep_ui_active,
     app_hotkeys,
     hotkeys,
-  } = verge ?? {};
+  } = verge;
   useAppHotkeys(app_hotkeys, hotkeys);
   const pathname = useRouterState({
     select: (state) => state.location.pathname,

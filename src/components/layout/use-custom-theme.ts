@@ -40,7 +40,7 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
 export const useCustomTheme = () => {
   const verge = useVergeStore((s) => s.verge);
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const { theme_mode, language } = verge ?? {};
+  const { theme_mode, language } = verge;
   const mode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);
   const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
@@ -227,7 +227,7 @@ const isSameThemeSetting = (
 
 export const useSyncThemeSettings = () => {
   const verge = useVergeStore((s) => s.verge);
-  const { light_theme_setting, dark_theme_setting } = verge ?? {};
+  const { light_theme_setting, dark_theme_setting } = verge;
 
   useEffect(() => {
     if (!light_theme_setting || !dark_theme_setting) return;

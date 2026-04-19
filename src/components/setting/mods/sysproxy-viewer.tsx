@@ -64,7 +64,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
     enable_proxy_guard,
     bypass: verge_bypass,
     proxy_guard_duration,
-  } = verge ?? {};
+  } = verge;
 
   const [value, setValue] = useState({
     guard: enable_proxy_guard,

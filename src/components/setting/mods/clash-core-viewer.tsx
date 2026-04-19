@@ -44,7 +44,8 @@ const OS = getSystem();
 export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const verge = useVergeStore((s) => s.verge)!;
+  const verge = useVergeStore((s) => s.verge);
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const { clash_core = "self-mihomo" } = verge;
   const { clash } = useClash();
   const { tun } = clash ?? {};
@@ -82,6 +83,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       setChangingCore(core);
       closeAllConnections();
       await changeClashCore(core);
+      patchVerge({ clash_core: core });
       await MihomoWebSocket.cleanupAll();
       setTimeout(() => {
         mutate("getClashConfig");

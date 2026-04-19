@@ -70,7 +70,6 @@ const SettingVerge = ({ onError }: Props) => {
 
   const verge = useVergeStore((s) => s.verge)!;
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const setVerge = useVergeStore((s) => s.setVerge);
   const {
     app_log_level,
     theme_mode,
@@ -91,10 +90,6 @@ const SettingVerge = ({ onError }: Props) => {
   const layoutRef = useRef<DialogRef>(null);
   const updateRef = useRef<DialogRef>(null);
   const webDavRef = useRef<WebDavFilesViewerRef>(null);
-
-  const onChangeData = (patch: Partial<IVergeConfig>) => {
-    setVerge({ ...verge, ...patch });
-  };
 
   const onCheckUpdate = async () => {
     try {
@@ -211,7 +206,6 @@ const SettingVerge = ({ onError }: Props) => {
           value={app_log_level ?? "info"}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ app_log_level: e })}
           onGuard={(e) => patchVerge({ app_log_level: e })}>
           <Select size="small" sx={{ width: 110, "> div": { py: "7.5px" } }}>
             {["trace", "debug", "info", "warn", "error", "silent"].map((i) => (
@@ -228,7 +222,6 @@ const SettingVerge = ({ onError }: Props) => {
           value={language ?? "en"}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ language: e })}
           onGuard={(e) => patchVerge({ language: e })}>
           <Select size="small" sx={{ width: 110, "> div": { py: "7.5px" } }}>
             <MenuItem value="zh_CN">中文</MenuItem>
@@ -243,7 +236,6 @@ const SettingVerge = ({ onError }: Props) => {
         <GuardState
           value={theme_mode}
           onCatch={onError}
-          onChange={(e) => onChangeData({ theme_mode: e })}
           onGuard={(e) => patchVerge({ theme_mode: e })}>
           <ThemeModeSwitch />
         </GuardState>
@@ -255,8 +247,7 @@ const SettingVerge = ({ onError }: Props) => {
             value={tray_event ?? "main_window"}
             onCatch={onError}
             onFormat={(e: any) => e.target.value}
-            onChange={(e) => onChangeData({ tray_event: e })}
-            onGuard={(e) => patchVerge({ tray_event: e })}>
+            onChange={(e) => patchVerge({ tray_event: e })}>
             <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
               <MenuItem value="main_window">
                 {t("pages.settings.verge.tray.showMainWindow")}
@@ -290,7 +281,6 @@ const SettingVerge = ({ onError }: Props) => {
           value={env_type ?? (OS === "windows" ? "powershell" : "bash")}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ env_type: e })}
           onGuard={(e) => patchVerge({ env_type: e })}>
           <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
             <MenuItem value="bash">Bash</MenuItem>
@@ -306,7 +296,6 @@ const SettingVerge = ({ onError }: Props) => {
           value={start_page ?? "/"}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ start_page: e })}
           onGuard={(e) => patchVerge({ start_page: e })}>
           <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
             {routes.map((route) => {
@@ -325,7 +314,6 @@ const SettingVerge = ({ onError }: Props) => {
           value={startup_script ?? ""}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ startup_script: e })}
           onGuard={(e) => patchVerge({ startup_script: e })}>
           <Input
             value={startup_script}
@@ -346,8 +334,7 @@ const SettingVerge = ({ onError }: Props) => {
                       ],
                     });
                     if (path?.length) {
-                      onChangeData({ startup_script: `${path}` });
-                      patchVerge({ startup_script: `${path}` });
+                      await patchVerge({ startup_script: `${path}` });
                     }
                   }}>
                   {t("common.actions.browse")}
@@ -355,8 +342,7 @@ const SettingVerge = ({ onError }: Props) => {
                 {startup_script && (
                   <Button
                     onClick={async () => {
-                      onChangeData({ startup_script: "" });
-                      patchVerge({ startup_script: "" });
+                      await patchVerge({ startup_script: "" });
                     }}>
                     {t("common.actions.clear")}
                   </Button>

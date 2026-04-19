@@ -33,7 +33,7 @@ export const LayoutItem = (props: Props) => {
   const verge = useVergeStore((s) => s.verge)!;
   const matchRoute = useMatchRoute();
   const match = !!matchRoute({ to });
-  const { menu_icon } = verge ?? {};
+  const { menu_icon } = verge;
   const navigate = useNavigate();
   const enableMenuIcon = menu_icon && menu_icon !== "disable";
 

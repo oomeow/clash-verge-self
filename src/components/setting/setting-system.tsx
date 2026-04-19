@@ -29,9 +29,6 @@ const SettingSystem = ({ onError }: Props) => {
   } = verge;
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
-  const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    patchVerge(patch);
-  };
 
   return (
     <SettingList title={t("pages.settings.system.title")}>
@@ -67,7 +64,6 @@ const SettingSystem = ({ onError }: Props) => {
           valueProps="checked"
           onCatch={onError}
           onFormat={onSwitchFormat}
-          onChange={(e) => onChangeVerge({ enable_system_proxy: e })}
           onGuard={(e) => patchVerge({ enable_system_proxy: e })}>
           <SwitchLovely edge="end" />
         </GuardState>
@@ -79,7 +75,6 @@ const SettingSystem = ({ onError }: Props) => {
           valueProps="checked"
           onCatch={onError}
           onFormat={onSwitchFormat}
-          onChange={(e) => onChangeVerge({ enable_auto_launch: e })}
           onGuard={(e) => patchVerge({ enable_auto_launch: e })}>
           <SwitchLovely edge="end" />
         </GuardState>
