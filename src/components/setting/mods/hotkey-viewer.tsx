@@ -1,15 +1,10 @@
 import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { normalizeKeyList, normalizeKeys } from "@/hooks/use-app-hotkeys";
-import { useVerge } from "@/hooks/use-verge";
-import { styled, Typography } from "@mui/material";
-import { useLockFn } from "ahooks";
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { normalizeKeyList } from "@/hooks/use-app-hotkeys";
+import { useHotkeySettings } from "@/hooks/use-hotkey-settings";
+import { Button, styled, Typography } from "@mui/material";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { HotkeyInput } from "./hotkey-input";
-
-type HotkeyScope = "global" | "app";
-type HotkeyMap = Record<string, string[]>;
+import { formatHotkeyKey, HotkeyInput } from "./hotkey-input";
 
 const ItemWrapper = styled("div")`
   display: grid;
@@ -22,6 +17,82 @@ const ItemWrapper = styled("div")`
 const HeaderWrapper = styled(ItemWrapper)`
   margin-bottom: 12px;
 `;
+
+const ActionWrapper = styled("div")`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+`;
+
+const PreviousHotkeyActions = styled("div")`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  flex: 1;
+  min-width: 0;
+`;
+
+const ActionButtons = styled("div")`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const PreviousHotkeyChip = styled("div")(({ theme }) => ({
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  minHeight: 22,
+  maxWidth: "100%",
+  padding: "2px 4px 2px 8px",
+  borderRadius: 11,
+  color: theme.palette.primary.contrastText,
+  backgroundColor: theme.palette.primary.main,
+  fontSize: 11,
+  lineHeight: 1.2,
+  cursor: "pointer",
+  transition: theme.transitions.create(["filter"], {
+    duration: theme.transitions.duration.shortest,
+  }),
+  "&:hover": {
+    filter: "brightness(1.08)",
+  },
+}));
+
+const PreviousHotkeyKey = styled("span")(({ theme }) => ({
+  display: "inline-flex",
+  alignItems: "center",
+  minHeight: 18,
+  padding: "1px 5px",
+  borderRadius: 9,
+  fontSize: 10,
+  fontWeight: 600,
+  lineHeight: 1,
+  whiteSpace: "nowrap",
+  color: theme.palette.primary.main,
+  backgroundColor: theme.palette.primary.contrastText,
+}));
+
+const PreviousHotkeyScope = styled("span")(({ theme }) => ({
+  display: "inline-flex",
+  alignItems: "center",
+  minHeight: 18,
+  padding: "1px 5px",
+  borderRadius: 9,
+  fontSize: 10,
+  fontWeight: 600,
+  lineHeight: 1,
+  whiteSpace: "nowrap",
+  color: theme.palette.common.white,
+  '&[data-scope="global"]': {
+    backgroundColor: theme.palette.warning.main,
+  },
+  '&[data-scope="app"]': {
+    backgroundColor: theme.palette.success.main,
+  },
+}));
 
 const HOTKEY_FUNC = [
   "open_or_close_dashboard",
@@ -44,248 +115,87 @@ const HOTKEY_LABEL_KEY: Record<(typeof HOTKEY_FUNC)[number], string> = {
   exit_app: "pages.settings.verge.hotkeys.actions.exitApp",
 };
 
-const parseHotkeyMap = (hotkeys?: string[]) => {
-  const map: HotkeyMap = {};
-
-  hotkeys?.forEach((text) => {
-    const [func, key] = text.split(",").map((e) => e.trim());
-
-    if (!func || !key) return;
-
-    map[func] = key
-      .split("+")
-      .map((e) => e.trim())
-      .map((k) => (k === "PLUS" ? "+" : k));
-    map[func] = normalizeKeyList(map[func]);
-  });
-
-  return map;
-};
-
-const serializeHotkeyMap = (map: HotkeyMap) =>
-  Object.entries(map)
-    .map(([func, keys]) => {
-      if (!func || !keys?.length) return "";
-
-      const key = normalizeKeyList(keys)
-        .map((k) => (k === "+" ? "PLUS" : k))
-        .join("+");
-
-      if (!key) return "";
-      return `${func},${key}`;
-    })
-    .filter(Boolean);
-
-const removeHotkeyFunc = (hotkeys: string[] | undefined, targetFunc: string) =>
-  hotkeys?.filter((text) => {
-    const [func] = text.split(",").map((e) => e.trim());
-    return func !== targetFunc;
-  }) ?? [];
-
-const normalizeHotkeyTexts = (hotkeys: string[] | undefined) =>
-  serializeHotkeyMap(parseHotkeyMap(hotkeys)).sort();
-
-const isSameHotkeys = (
-  left: string[] | undefined,
-  right: string[] | undefined,
-) => {
-  const leftHotkeys = normalizeHotkeyTexts(left);
-  const rightHotkeys = normalizeHotkeyTexts(right);
-
-  return (
-    leftHotkeys.length === rightHotkeys.length &&
-    leftHotkeys.every((hotkey, index) => hotkey === rightHotkeys[index])
-  );
-};
+const formatHotkeyKeys = (keys: string[]) =>
+  normalizeKeyList(keys).map(formatHotkeyKey).join(" + ");
 
 export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
-  const { notice } = useNotice();
   const [open, setOpen] = useState(false);
-
-  const { verge, patchVerge } = useVerge();
-
-  const [globalHotkeyMap, setGlobalHotkeyMap] = useState<HotkeyMap>({});
-  const [appHotkeyMap, setAppHotkeyMap] = useState<HotkeyMap>({});
-  const initialHotkeysRef = useRef<{
-    global: string[];
-    app: string[];
-  }>({ global: [], app: [] });
-  const activeGlobalHotkeysRef = useRef<string[]>([]);
-  const activeAppHotkeysRef = useRef<string[]>([]);
+  const {
+    globalHotkeyMap,
+    appHotkeyMap,
+    hasHotkeys,
+    hasHotkeyChanges,
+    restoreHotkeyItems,
+    openHotkeySettings,
+    applyRestoreHotkey,
+    clearHotkeys,
+    restoreHotkeys,
+    updateHotkey,
+  } = useHotkeySettings(HOTKEY_FUNC);
 
   useImperativeHandle(ref, () => ({
     open: () => {
-      const globalHotkeys = verge?.hotkeys ?? [];
-      const appHotkeys = verge?.app_hotkeys ?? [];
-
-      initialHotkeysRef.current = {
-        global: globalHotkeys,
-        app: appHotkeys,
-      };
-      activeGlobalHotkeysRef.current = globalHotkeys;
-      activeAppHotkeysRef.current = appHotkeys;
-
+      openHotkeySettings();
       setOpen(true);
-      setGlobalHotkeyMap(parseHotkeyMap(globalHotkeys));
-      setAppHotkeyMap(parseHotkeyMap(appHotkeys));
     },
-    close: () => onCancel(),
+    close: () => setOpen(false),
   }));
-
-  const updateHotkey = (scope: HotkeyScope, func: string, keys: string[]) => {
-    const id = keys.length ? normalizeKeys(keys) : "";
-    const clearConflicts = (map: HotkeyMap) => {
-      const next = { ...map };
-      Object.entries(next).forEach(([currentFunc, currentKeys]) => {
-        if (currentFunc !== func && normalizeKeys(currentKeys) === id) {
-          delete next[currentFunc];
-        }
-      });
-      return next;
-    };
-    const updateCurrent = (map: HotkeyMap) => {
-      const next = id ? clearConflicts(map) : { ...map };
-      if (keys.length) {
-        next[func] = keys;
-      } else {
-        delete next[func];
-      }
-      return next;
-    };
-    const clearPeer = (map: HotkeyMap) => {
-      const next = id ? clearConflicts(map) : { ...map };
-      delete next[func];
-      return next;
-    };
-
-    if (scope === "global") {
-      setGlobalHotkeyMap(updateCurrent);
-      setAppHotkeyMap(clearPeer);
-    } else {
-      setAppHotkeyMap(updateCurrent);
-      setGlobalHotkeyMap(clearPeer);
-    }
-  };
-
-  const deleteHotkey = async (scope: HotkeyScope, func: string) => {
-    updateHotkey(scope, func, []);
-
-    try {
-      if (scope === "app") {
-        const appHotkeys = removeHotkeyFunc(activeAppHotkeysRef.current, func);
-        if (isSameHotkeys(activeAppHotkeysRef.current, appHotkeys)) {
-          return;
-        }
-
-        activeAppHotkeysRef.current = appHotkeys;
-        await patchVerge({
-          app_hotkeys: appHotkeys,
-        });
-      } else {
-        const hotkeys = removeHotkeyFunc(activeGlobalHotkeysRef.current, func);
-        if (isSameHotkeys(activeGlobalHotkeysRef.current, hotkeys)) {
-          return;
-        }
-
-        activeGlobalHotkeysRef.current = hotkeys;
-        await patchVerge({
-          hotkeys,
-        });
-      }
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
-    }
-  };
-
-  const validateHotkeys = () => {
-    const used = new Map<string, HotkeyScope>();
-
-    for (const [scope, map] of [
-      ["global", globalHotkeyMap],
-      ["app", appHotkeyMap],
-    ] as const) {
-      for (const keys of Object.values(map)) {
-        if (!keys?.length) continue;
-
-        const id = normalizeKeys(keys);
-        const peerScope = used.get(id);
-        if (peerScope) {
-          notice("error", t("pages.settings.verge.hotkeys.conflict"));
-          return false;
-        }
-
-        used.set(id, scope);
-      }
-    }
-
-    return true;
-  };
-
-  const onSave = useLockFn(async () => {
-    if (!validateHotkeys()) return;
-
-    try {
-      const hotkeys = serializeHotkeyMap(globalHotkeyMap);
-      const appHotkeys = serializeHotkeyMap(appHotkeyMap);
-      const patch: Partial<IVergeConfig> = {};
-
-      if (!isSameHotkeys(activeGlobalHotkeysRef.current, hotkeys)) {
-        patch.hotkeys = hotkeys;
-      }
-      if (!isSameHotkeys(activeAppHotkeysRef.current, appHotkeys)) {
-        patch.app_hotkeys = appHotkeys;
-      }
-
-      if (patch.hotkeys || patch.app_hotkeys) {
-        await patchVerge(patch);
-      }
-
-      activeGlobalHotkeysRef.current = hotkeys;
-      activeAppHotkeysRef.current = appHotkeys;
-      setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
-    }
-  });
-
-  const onCancel = useLockFn(async () => {
-    const { global, app } = initialHotkeysRef.current;
-
-    try {
-      const patch: Partial<IVergeConfig> = {};
-
-      if (!isSameHotkeys(activeGlobalHotkeysRef.current, global)) {
-        patch.hotkeys = global;
-      }
-      if (!isSameHotkeys(activeAppHotkeysRef.current, app)) {
-        patch.app_hotkeys = app;
-      }
-
-      if (patch.hotkeys || patch.app_hotkeys) {
-        await patchVerge(patch);
-      }
-
-      activeGlobalHotkeysRef.current = global;
-      activeAppHotkeysRef.current = app;
-      setGlobalHotkeyMap(parseHotkeyMap(global));
-      setAppHotkeyMap(parseHotkeyMap(app));
-      setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
-    }
-  });
 
   return (
     <BaseDialog
       open={open}
       title={t("pages.settings.verge.hotkeys.title")}
-      okBtn={t("common.actions.save")}
-      cancelBtn={t("common.actions.cancel")}
-      onClose={onCancel}
-      onCancel={onCancel}
-      onOk={onSave}
+      hideFooter
+      onClose={() => setOpen(false)}
       contentStyle={{ maxWidth: 640 }}>
+      {(hasHotkeyChanges || hasHotkeys) && (
+        <ActionWrapper>
+          {hasHotkeyChanges ? (
+            <PreviousHotkeyActions>
+              {restoreHotkeyItems.map((item) => (
+                <PreviousHotkeyChip
+                  key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => applyRestoreHotkey(item)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      applyRestoreHotkey(item);
+                    }
+                  }}>
+                  <PreviousHotkeyScope data-scope={item.scope}>
+                    {t(`pages.settings.verge.hotkeys.${item.scope}`)}
+                  </PreviousHotkeyScope>
+                  <span>{t(HOTKEY_LABEL_KEY[item.func])}</span>
+                  <PreviousHotkeyKey>
+                    {formatHotkeyKeys(item.keys)}
+                  </PreviousHotkeyKey>
+                </PreviousHotkeyChip>
+              ))}
+            </PreviousHotkeyActions>
+          ) : (
+            <span />
+          )}
+          <ActionButtons>
+            {hasHotkeyChanges && (
+              <Button variant="outlined" size="small" onClick={restoreHotkeys}>
+                {t("pages.settings.verge.hotkeys.restore")}
+              </Button>
+            )}
+            {hasHotkeys && (
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                onClick={clearHotkeys}>
+                {t("pages.settings.verge.hotkeys.clear")}
+              </Button>
+            )}
+          </ActionButtons>
+        </ActionWrapper>
+      )}
       <HeaderWrapper>
         <span />
         <Typography variant="body2" color="text.secondary">
@@ -301,12 +211,12 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
           <HotkeyInput
             value={globalHotkeyMap[func] ?? []}
             onChange={(v) => updateHotkey("global", func, v)}
-            onDelete={() => deleteHotkey("global", func)}
+            onDelete={() => updateHotkey("global", func, [])}
           />
           <HotkeyInput
             value={appHotkeyMap[func] ?? []}
             onChange={(v) => updateHotkey("app", func, v)}
-            onDelete={() => deleteHotkey("app", func)}
+            onDelete={() => updateHotkey("app", func, [])}
           />
         </ItemWrapper>
       ))}

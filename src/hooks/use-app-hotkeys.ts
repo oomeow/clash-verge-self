@@ -2,7 +2,7 @@ import { dispatchHotkeyAction } from "@/services/cmds";
 import { parseHotkey } from "@/utils/parse-hotkey";
 import { useEffect, useMemo, useRef } from "react";
 
-const MODIFIER_KEYS = new Set(["CMD", "CTRL", "OPTION", "SHIFT"]);
+export const MODIFIER_KEYS = new Set(["CMD", "CTRL", "OPTION", "SHIFT"]);
 const HOTKEY_TOKEN_ORDER = ["CMD", "CTRL", "OPTION", "SHIFT"];
 
 const parseHotkeyText = (text: string) => {

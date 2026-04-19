@@ -409,7 +409,10 @@
           "title": "热键设置",
           "global": "全局",
           "app": "应用内",
-          "conflict": "同一个快捷键不能重复使用，也不能同时设置为全局和应用内快捷键",
+          "restore": "恢复设置",
+          "clear": "清空全部",
+          "conflict": "已存在该快捷键",
+          "invalid": "快捷键不能只包含修饰键",
           "actions": {
             "openOrCloseDashboard": "打开/关闭面板",
             "ruleMode": "规则模式",

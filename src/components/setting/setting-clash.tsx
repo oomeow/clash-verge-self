@@ -88,9 +88,9 @@ const SettingClash = ({ onError }: Props) => {
   const netInfoRef = useRef<DialogRef>(null);
 
   useEffect(() => {
-    if (!verge) return;
+    if (verge.enable_service_mode === undefined) return;
     mutateCheckService();
-  }, [verge]);
+  }, [verge.enable_service_mode]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onChangeVerge = (patch: Partial<IVergeConfig>) => {

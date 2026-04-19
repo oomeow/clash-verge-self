@@ -409,7 +409,10 @@
           "title": "Hotkey Setting",
           "global": "Global",
           "app": "In-app",
-          "conflict": "The same hotkey cannot be reused or be both global and in-app",
+          "restore": "Restore Settings",
+          "clear": "Clear All",
+          "conflict": "This hotkey already exists",
+          "invalid": "Hotkeys cannot contain only modifier keys",
           "actions": {
             "openOrCloseDashboard": "Open/Close Dashboard",
             "ruleMode": "Rule Mode",

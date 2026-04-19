@@ -1,9 +1,11 @@
-import { normalizeKeyList } from "@/hooks/use-app-hotkeys";
+import { useNotice } from "@/components/base/notifies";
+import { MODIFIER_KEYS, normalizeKeyList } from "@/hooks/use-app-hotkeys";
 import { parseHotkey } from "@/utils/parse-hotkey";
 import getSystem from "@/utils/get-system";
 import DeleteRounded from "@mui/icons-material/DeleteRounded";
 import { alpha, Box, IconButton, styled } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 const OS = getSystem();
 
@@ -34,7 +36,7 @@ const HOTKEY_LABELS: Record<string, string> = {
   UP: OS === "macos" ? "↑" : "Up",
 };
 
-const formatHotkeyKey = (key: string) => HOTKEY_LABELS[key] ?? key;
+export const formatHotkeyKey = (key: string) => HOTKEY_LABELS[key] ?? key;
 
 const KeyWrapper = styled("div")(({ theme }) => ({
   position: "relative",
@@ -97,6 +99,8 @@ interface Props {
 
 export const HotkeyInput = (props: Props) => {
   const { value, onChange, onDelete } = props;
+  const { t } = useTranslation();
+  const { notice } = useNotice();
 
   const changeRef = useRef<string[]>([]);
   const [keys, setKeys] = useState(value);
@@ -113,6 +117,13 @@ export const HotkeyInput = (props: Props) => {
           onKeyUp={() => {
             const ret = changeRef.current.slice();
             if (ret.length) {
+              if (ret.every((key) => MODIFIER_KEYS.has(key))) {
+                notice("error", t("pages.settings.verge.hotkeys.invalid"));
+                changeRef.current = [];
+                setKeys(normalizeKeyList(value));
+                return;
+              }
+
               onChange(ret);
               changeRef.current = [];
             }
@@ -124,6 +135,13 @@ export const HotkeyInput = (props: Props) => {
             const evt = e.nativeEvent;
             const key = parseHotkey(evt.code);
             if (key === "UNIDENTIFIED") return;
+
+            const isModifier = MODIFIER_KEYS.has(key);
+            const hasNonModifier = changeRef.current.some(
+              (k) => !MODIFIER_KEYS.has(k),
+            );
+
+            if (!isModifier && hasNonModifier) return;
 
             changeRef.current = normalizeKeyList([...changeRef.current, key]);
             setKeys(changeRef.current);
