@@ -16,7 +16,8 @@ pub struct Hotkey {
     current: Arc<Mutex<Vec<String>>>, // 保存当前的热键设置
 }
 
-enum HotkeyAction {
+#[derive(Clone, Copy)]
+pub enum HotkeyAction {
     OpenOrCloseDashboard,
     ClashModeRule,
     ClashModeGlobal,
@@ -24,6 +25,24 @@ enum HotkeyAction {
     ToggleSystemProxy,
     ToggleTunMode,
     ExitApp,
+}
+
+impl HotkeyAction {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::OpenOrCloseDashboard => "open_or_close_dashboard",
+            Self::ClashModeRule => "clash_mode_rule",
+            Self::ClashModeGlobal => "clash_mode_global",
+            Self::ClashModeDirect => "clash_mode_direct",
+            Self::ToggleSystemProxy => "toggle_system_proxy",
+            Self::ToggleTunMode => "toggle_tun_mode",
+            Self::ExitApp => "exit_app",
+        }
+    }
+
+    pub fn to_config_entry(self, hotkey: &str) -> String {
+        format!("{},{hotkey}", self.as_str())
+    }
 }
 
 impl TryFrom<&str> for HotkeyAction {
@@ -72,19 +91,11 @@ impl Hotkey {
 
         if let Some(hotkeys) = verge.hotkeys.as_ref() {
             for hotkey in hotkeys {
-                let mut iter = hotkey.split(',');
-                let func = iter.next();
-                let key = iter.next();
-
-                match (key, func) {
-                    (Some(key), Some(func)) => {
+                match Self::parse_hotkey_entry(hotkey) {
+                    Some((func, key)) => {
                         log_err!(self.register(key, func));
                     }
-                    _ => {
-                        let key = key.unwrap_or("None");
-                        let func = func.unwrap_or("None");
-                        tracing::error!("invalid hotkey `{key}`:`{func}`");
-                    }
+                    None => tracing::error!("invalid hotkey `{hotkey}`"),
                 }
             }
             self.current.lock().clone_from(hotkeys);
@@ -144,19 +155,23 @@ impl Hotkey {
         let mut map = HashMap::new();
 
         hotkeys.iter().for_each(|hotkey| {
-            let mut iter = hotkey.split(',');
-            let func = iter.next();
-            let key = iter.next();
-
-            if let Some(func) = func
-                && let Some(key) = key
-            {
-                let func = func.trim();
-                let key = key.trim();
+            if let Some((func, key)) = Self::parse_hotkey_entry(hotkey) {
                 map.insert(key, func);
             }
         });
         map
+    }
+
+    fn parse_hotkey_entry(hotkey: &str) -> Option<(&str, &str)> {
+        let (func, key) = hotkey.split_once(',')?;
+        let func = func.trim();
+        let key = key.trim();
+
+        if func.is_empty() || key.is_empty() {
+            return None;
+        }
+
+        Some((func, key))
     }
 
     fn get_diff<'a>(

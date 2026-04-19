@@ -1,11 +1,18 @@
 use serde::{Deserialize, Serialize};
 use tracing::level_filters::LevelFilter;
 
+#[cfg(target_os = "macos")]
+use crate::core::hotkey::HotkeyAction;
 use crate::{
     config::DEFAULT_PAC,
     error::AppResult,
     utils::{dirs, help},
 };
+
+#[cfg(target_os = "macos")]
+fn default_macos_app_hotkeys() -> Vec<String> {
+    vec![HotkeyAction::ExitApp.to_config_entry("CMD+Q")]
+}
 
 /// ### `verge.yaml` schema
 #[derive(Default, Debug, Clone, Deserialize, Serialize)]
@@ -269,6 +276,11 @@ impl IVerge {
                     config.language = Some("zh_CN".into());
                 }
 
+                #[cfg(target_os = "macos")]
+                if config.app_hotkeys.is_none() {
+                    config.app_hotkeys = Some(default_macos_app_hotkeys());
+                }
+
                 config
             }
             Err(err) => {
@@ -314,6 +326,8 @@ impl IVerge {
             enable_tray: Some(true),
             keep_in_dock: Some(true),
             enable_external_controller: Some(false),
+            #[cfg(target_os = "macos")]
+            app_hotkeys: Some(default_macos_app_hotkeys()),
             ..Self::default()
         }
     }
