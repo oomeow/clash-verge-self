@@ -207,10 +207,10 @@ export const useCustomTheme = () => {
       patchVerge({ theme_mode: vergeThemeMode });
       return;
     }
-    const isDark = nextThemeMode === "light";
+    const preThemeIsDark = nextThemeMode === "light";
 
-    setMode(isDark ? "light" : "dark");
-    if (isDark) {
+    setMode(preThemeIsDark ? "light" : "dark");
+    if (preThemeIsDark) {
       document.documentElement.classList.remove("dark");
     } else {
       document.documentElement.classList.add("dark");

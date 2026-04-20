@@ -75,7 +75,7 @@ const Layout = () => {
     });
 
     window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && OS !== "macos") {
+      if (e.key === "Escape") {
         const enableKeepUiActive =
           useVergeStore.getState().verge.enable_keep_ui_active ?? false;
         handleClose(enableKeepUiActive);

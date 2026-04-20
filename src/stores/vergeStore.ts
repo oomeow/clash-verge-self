@@ -9,7 +9,7 @@ type VergeState = {
 };
 
 type VergeActions = {
-  refreshVerge: () => Promise<IVergeConfig | undefined>;
+  refreshVerge: () => Promise<void>;
   patchVerge: (value: Partial<IVergeConfig>) => Promise<void>;
 };
 
