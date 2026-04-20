@@ -8,6 +8,9 @@ import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatHotkeyKey, HotkeyInput } from "./hotkey-input";
 import { useShallow } from "zustand/react/shallow";
+import getSystem from "@/utils/get-system";
+
+const OS = getSystem();
 
 type HotkeyScope = "global" | "app";
 type HotkeyMap = Record<string, string[]>;
@@ -147,7 +150,16 @@ const parseHotkeyMap = (hotkeys?: string[]) => {
       key
         .split("+")
         .map((e) => e.trim())
-        .map((k) => (k === "PLUS" ? "+" : k)),
+        .map((k) => {
+          let key = k;
+          if (k === "PLUS") {
+            key = "+";
+          }
+          if (k === "ALT" && OS === "macos") {
+            key = "OPTION";
+          }
+          return key;
+        }),
     );
   });
 
