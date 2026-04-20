@@ -12,29 +12,28 @@ import {
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useShallow } from "zustand/react/shallow";
 
 export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const {
-    autoCloseConnection = true,
-    autoCheckUpdate = true,
-    enableBuiltinEnhanced = true,
-    proxyLayoutColumn = 6,
-    defaultLatencyTest = "",
-    autoLogClean = 0,
-    defaultLatencyTimeout = 5000,
-  } = useVergeStore(
-    useShallow((s) => ({
-      autoCloseConnection: s.verge.auto_close_connection,
-      autoCheckUpdate: s.verge.auto_check_update,
-      enableBuiltinEnhanced: s.verge.enable_builtin_enhanced,
-      proxyLayoutColumn: s.verge.proxy_layout_column,
-      defaultLatencyTest: s.verge.default_latency_test,
-      autoLogClean: s.verge.auto_log_clean,
-      defaultLatencyTimeout: s.verge.default_latency_timeout,
-    })),
+  const autoCloseConnection = useVergeStore(
+    (s) => s.verge.auto_close_connection ?? true,
+  );
+  const autoCheckUpdate = useVergeStore(
+    (s) => s.verge.auto_check_update ?? true,
+  );
+  const enableBuiltinEnhanced = useVergeStore(
+    (s) => s.verge.enable_builtin_enhanced ?? true,
+  );
+  const proxyLayoutColumn = useVergeStore(
+    (s) => s.verge.proxy_layout_column ?? 6,
+  );
+  const defaultLatencyTest = useVergeStore(
+    (s) => s.verge.default_latency_test ?? "",
+  );
+  const autoLogClean = useVergeStore((s) => s.verge.auto_log_clean ?? 0);
+  const defaultLatencyTimeout = useVergeStore(
+    (s) => s.verge.default_latency_timeout ?? 5000,
   );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 

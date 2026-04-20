@@ -60,13 +60,13 @@ const DEFAULT_TEST_LIST = [
 
 const TestPage = () => {
   const { t } = useTranslation();
-  const vergeTestList = useVergeStore(useShallow((s) => s.verge.test_list));
+  const testList = useVergeStore(
+    useShallow((s) => s.verge.test_list ?? DEFAULT_TEST_LIST),
+  );
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
   );
-
-  const testList = vergeTestList ?? DEFAULT_TEST_LIST;
 
   const [sortableTestList, setSortableTestList] = useState<IVergeTestItem[]>(
     [],
@@ -124,11 +124,11 @@ const TestPage = () => {
   };
 
   useEffect(() => {
-    if (!vergeTestList) {
+    if (!useVergeStore.getState().verge.test_list) {
       patchVerge({ test_list: testList });
     }
-    setSortableTestList(vergeTestList ?? testList);
-  }, [vergeTestList]);
+    setSortableTestList(testList);
+  }, [testList]);
 
   const viewerRef = useRef<TestViewerRef>(null);
 

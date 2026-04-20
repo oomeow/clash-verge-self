@@ -24,7 +24,6 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { exists } from "@tauri-apps/plugin-fs";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useShallow } from "zustand/react/shallow";
 
 const appWindow = getCurrentWebviewWindow();
 
@@ -34,35 +33,30 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
 
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const {
-    enableSystemTitleBar = false,
-    enableKeepUiActive = false,
-    keepInDock = false,
-    trafficGraph = true,
-    enableMemoryUsage = true,
-    enableGroupIcon = true,
-    menuIcon = "monochrome",
-    enableTray = true,
-    trayIcon = "monochrome",
-    commonTrayIcon = false,
-    sysproxyTrayIcon = false,
-    tunTrayIcon = false,
-  } = useVergeStore(
-    useShallow((s) => ({
-      enableSystemTitleBar: s.verge.enable_system_title_bar,
-      enableKeepUiActive: s.verge.enable_keep_ui_active,
-      keepInDock: s.verge.keep_in_dock,
-      trafficGraph: s.verge.traffic_graph,
-      enableMemoryUsage: s.verge.enable_memory_usage,
-      enableGroupIcon: s.verge.enable_group_icon,
-      menuIcon: s.verge.menu_icon,
-      enableTray: s.verge.enable_tray,
-      trayIcon: s.verge.tray_icon,
-      commonTrayIcon: s.verge.common_tray_icon,
-      sysproxyTrayIcon: s.verge.sysproxy_tray_icon,
-      tunTrayIcon: s.verge.tun_tray_icon,
-    })),
+  const enableSystemTitleBar = useVergeStore(
+    (s) => s.verge.enable_system_title_bar ?? false,
   );
+  const enableKeepUiActive = useVergeStore(
+    (s) => s.verge.enable_keep_ui_active ?? false,
+  );
+  const keepInDock = useVergeStore((s) => s.verge.keep_in_dock ?? false);
+  const trafficGraph = useVergeStore((s) => s.verge.traffic_graph ?? true);
+  const enableMemoryUsage = useVergeStore(
+    (s) => s.verge.enable_memory_usage ?? true,
+  );
+  const enableGroupIcon = useVergeStore(
+    (s) => s.verge.enable_group_icon ?? true,
+  );
+  const menuIcon = useVergeStore((s) => s.verge.menu_icon ?? "monochrome");
+  const enableTray = useVergeStore((s) => s.verge.enable_tray ?? true);
+  const trayIcon = useVergeStore((s) => s.verge.tray_icon ?? "monochrome");
+  const commonTrayIcon = useVergeStore(
+    (s) => s.verge.common_tray_icon ?? false,
+  );
+  const sysproxyTrayIcon = useVergeStore(
+    (s) => s.verge.sysproxy_tray_icon ?? false,
+  );
+  const tunTrayIcon = useVergeStore((s) => s.verge.tun_tray_icon ?? false);
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [open, setOpen] = useState(false);

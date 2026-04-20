@@ -249,12 +249,10 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const [open, setOpen] = useState(false);
-  const { vergeAppHotkeys = [], vergeHotkeys = [] } = useVergeStore(
-    useShallow((s) => ({
-      vergeAppHotkeys: s.verge.app_hotkeys,
-      vergeHotkeys: s.verge.hotkeys,
-    })),
+  const vergeAppHotkeys = useVergeStore(
+    useShallow((s) => s.verge.app_hotkeys ?? []),
   );
+  const vergeHotkeys = useVergeStore(useShallow((s) => s.verge.hotkeys ?? []));
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [globalHotkeyMap, setGlobalHotkeyMap] = useState<HotkeyMap>({});

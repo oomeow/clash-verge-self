@@ -15,7 +15,6 @@ import {
 import { enUS, zhCN } from "@mui/x-data-grid/locales";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useMemo } from "react";
-import { useShallow } from "zustand/react/shallow";
 
 const appWindow = getCurrentWebviewWindow();
 
@@ -40,12 +39,8 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
   };
 
 export const useCustomTheme = () => {
-  const { vergeThemeMode, language } = useVergeStore(
-    useShallow((s) => ({
-      vergeThemeMode: s.verge.theme_mode,
-      language: s.verge.language,
-    })),
-  );
+  const vergeThemeMode = useVergeStore((s) => s.verge.theme_mode);
+  const language = useVergeStore((s) => s.verge.language);
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const currentThemeMode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);

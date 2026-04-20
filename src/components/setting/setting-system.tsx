@@ -5,7 +5,6 @@ import Settings from "@mui/icons-material/Settings";
 import { Button, ButtonGroup, IconButton, Tooltip } from "@mui/material";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useShallow } from "zustand/react/shallow";
 import { GuardState } from "./mods/guard-state";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { SysproxyViewer } from "./mods/sysproxy-viewer";
@@ -17,16 +16,14 @@ interface Props {
 const SettingSystem = ({ onError }: Props) => {
   const { t } = useTranslation();
 
-  const {
-    enableAutoLaunch = false,
-    silentStartMode = false,
-    enableSystemProxy = false,
-  } = useVergeStore(
-    useShallow((s) => ({
-      enableAutoLaunch: s.verge.enable_auto_launch,
-      silentStartMode: s.verge.silent_start_mode,
-      enableSystemProxy: s.verge.enable_system_proxy,
-    })),
+  const enableAutoLaunch = useVergeStore(
+    (s) => s.verge.enable_auto_launch ?? false,
+  );
+  const silentStartMode = useVergeStore(
+    (s) => s.verge.silent_start_mode ?? false,
+  );
+  const enableSystemProxy = useVergeStore(
+    (s) => s.verge.enable_system_proxy ?? false,
   );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 

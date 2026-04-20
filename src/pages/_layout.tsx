@@ -22,7 +22,6 @@ import { debounce } from "lodash-es";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SWRConfig, mutate } from "swr";
-import { useShallow } from "zustand/react/shallow";
 
 dayjs.extend(relativeTime);
 const OS = getSystem();
@@ -41,21 +40,15 @@ const Layout = () => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const visible = useVisibility();
-  const {
-    language,
-    enableSystemTitleBar = false,
-    enableKeepUiActive = false,
-    appHotkeys,
-    hotkeys,
-  } = useVergeStore(
-    useShallow((s) => ({
-      language: s.verge.language,
-      enableSystemTitleBar: s.verge.enable_system_title_bar,
-      enableKeepUiActive: s.verge.enable_keep_ui_active,
-      appHotkeys: s.verge.app_hotkeys,
-      hotkeys: s.verge.hotkeys,
-    })),
+  const language = useVergeStore((s) => s.verge.language);
+  const enableSystemTitleBar = useVergeStore(
+    (s) => s.verge.enable_system_title_bar ?? false,
   );
+  const enableKeepUiActive = useVergeStore(
+    (s) => s.verge.enable_keep_ui_active ?? false,
+  );
+  const appHotkeys = useVergeStore((s) => s.verge.app_hotkeys);
+  const hotkeys = useVergeStore((s) => s.verge.hotkeys);
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
   useAppHotkeys(appHotkeys, hotkeys);
   const pathname = useRouterState({
