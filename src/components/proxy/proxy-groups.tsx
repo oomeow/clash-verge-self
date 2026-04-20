@@ -10,6 +10,7 @@ import { useLockFn, useMemoizedFn, useThrottleFn } from "ahooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import { useShallow } from "zustand/react/shallow";
 import {
   closeConnection,
   getConnections,
@@ -31,9 +32,11 @@ export const ProxyGroups = (props: Props) => {
   const isRuleMode = mode === "rule";
 
   const { renderList, onProxies } = useRenderList(mode);
-  const timeout = useVergeStore((s) => s.verge.default_latency_timeout ?? 5000);
-  const autoCloseConnection = useVergeStore(
-    (s) => s.verge.auto_close_connection ?? true,
+  const { timeout = 5000, autoCloseConnection = true } = useVergeStore(
+    useShallow((s) => ({
+      timeout: s.verge.default_latency_timeout,
+      autoCloseConnection: s.verge.auto_close_connection,
+    })),
   );
 
   const { current, patchCurrent } = useProfiles();

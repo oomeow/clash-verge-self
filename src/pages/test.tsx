@@ -18,6 +18,7 @@ import { nanoid } from "nanoid";
 import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/react/shallow";
 // test icons
 import apple from "@/assets/image/test/apple.svg?raw";
 import github from "@/assets/image/test/github.svg?raw";
@@ -59,7 +60,7 @@ const DEFAULT_TEST_LIST = [
 
 const TestPage = () => {
   const { t } = useTranslation();
-  const vergeTestList = useVergeStore((s) => s.verge.test_list);
+  const vergeTestList = useVergeStore(useShallow((s) => s.verge.test_list));
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),

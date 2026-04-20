@@ -13,14 +13,17 @@ import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { t } from "i18next";
 import { debounce } from "lodash-es";
 import { useEffect, useRef } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useNotice } from "../base/notifies";
 import { TrafficGraph, type TrafficRef } from "./traffic-graph";
 
 // setup the traffic
 export const LayoutTraffic = () => {
-  const trafficGraph = useVergeStore((s) => s.verge.traffic_graph ?? true);
-  const displayMemory = useVergeStore(
-    (s) => s.verge.enable_memory_usage ?? true,
+  const { trafficGraph = true, displayMemory = true } = useVergeStore(
+    useShallow((s) => ({
+      trafficGraph: s.verge.traffic_graph,
+      displayMemory: s.verge.enable_memory_usage,
+    })),
   );
   const { notice } = useNotice();
   const pageVisible = useVisibility();

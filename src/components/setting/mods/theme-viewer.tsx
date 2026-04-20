@@ -22,6 +22,7 @@ import {
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/react/shallow";
 import ThemeColorSelect from "./theme-color-select";
 
 export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
@@ -29,8 +30,12 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
   const { notice } = useNotice();
 
   const [open, setOpen] = useState(false);
-  const lightThemeSetting = useVergeStore((s) => s.verge.light_theme_setting);
-  const darkThemeSetting = useVergeStore((s) => s.verge.dark_theme_setting);
+  const { lightThemeSetting, darkThemeSetting } = useVergeStore(
+    useShallow((s) => ({
+      lightThemeSetting: s.verge.light_theme_setting,
+      darkThemeSetting: s.verge.dark_theme_setting,
+    })),
+  );
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const { toggleTheme } = useCustomTheme();
   const themeMode = useThemeModeStore((s) => s.themeMode);

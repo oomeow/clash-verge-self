@@ -7,6 +7,7 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatHotkeyKey, HotkeyInput } from "./hotkey-input";
+import { useShallow } from "zustand/react/shallow";
 
 type HotkeyScope = "global" | "app";
 type HotkeyMap = Record<string, string[]>;
@@ -248,8 +249,12 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const [open, setOpen] = useState(false);
-  const vergeAppHotkeys = useVergeStore((s) => s.verge.app_hotkeys ?? []);
-  const vergeHotkeys = useVergeStore((s) => s.verge.hotkeys ?? []);
+  const { vergeAppHotkeys = [], vergeHotkeys = [] } = useVergeStore(
+    useShallow((s) => ({
+      vergeAppHotkeys: s.verge.app_hotkeys,
+      vergeHotkeys: s.verge.hotkeys,
+    })),
+  );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [globalHotkeyMap, setGlobalHotkeyMap] = useState<HotkeyMap>({});

@@ -47,6 +47,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/react/shallow";
 import { useNotice } from "../base/notifies";
 import { GuardState } from "./mods/guard-state";
 import { SettingItem, SettingList } from "./mods/setting-comp";
@@ -68,17 +69,31 @@ const SettingVerge = ({ onError }: Props) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
-  const appLogLevel = useVergeStore((s) => s.verge.app_log_level);
-  const themeMode = useVergeStore((s) => s.verge.theme_mode);
-  const language = useVergeStore((s) => s.verge.language);
-  const trayEvent = useVergeStore((s) => s.verge.tray_event);
-  const envType = useVergeStore((s) => s.verge.env_type);
-  const startupScript = useVergeStore((s) => s.verge.startup_script);
-  const startPage = useVergeStore((s) => s.verge.start_page);
-  const webdavUrl = useVergeStore((s) => s.verge.webdav_url);
-  const webdavUsername = useVergeStore((s) => s.verge.webdav_username);
-  const webdavPassword = useVergeStore((s) => s.verge.webdav_password);
-
+  const {
+    appLogLevel,
+    themeMode,
+    language,
+    trayEvent,
+    envType,
+    startupScript,
+    startPage,
+    webdavUrl,
+    webdavUsername,
+    webdavPassword,
+  } = useVergeStore(
+    useShallow((s) => ({
+      appLogLevel: s.verge.app_log_level,
+      themeMode: s.verge.theme_mode,
+      language: s.verge.language,
+      trayEvent: s.verge.tray_event,
+      envType: s.verge.env_type,
+      startupScript: s.verge.startup_script,
+      startPage: s.verge.start_page,
+      webdavUrl: s.verge.webdav_url,
+      webdavUsername: s.verge.webdav_username,
+      webdavPassword: s.verge.webdav_password,
+    })),
+  );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const configRef = useRef<DialogRef>(null);

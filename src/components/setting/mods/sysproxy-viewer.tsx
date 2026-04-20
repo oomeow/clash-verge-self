@@ -34,6 +34,7 @@ import {
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/react/shallow";
 
 const DEFAULT_PAC = `function FindProxyForURL(url, host) {
   return "PROXY 127.0.0.1:%mixed-port%; SOCKS5 127.0.0.1:%mixed-port%; DIRECT;";
@@ -55,21 +56,22 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
   const [sysproxy, setSysproxy] = useState<SysProxy>();
   const [autoproxy, setAutoproxy] = useState<AutoProxy>();
 
-  const enableSystemProxy = useVergeStore(
-    (s) => s.verge.enable_system_proxy ?? false,
-  );
-  const proxyAutoConfig = useVergeStore(
-    (s) => s.verge.proxy_auto_config ?? false,
-  );
-  const pacFileContent = useVergeStore(
-    (s) => s.verge.pac_file_content ?? DEFAULT_PAC,
-  );
-  const enableProxyGuard = useVergeStore(
-    (s) => s.verge.enable_proxy_guard ?? false,
-  );
-  const bypassVerge = useVergeStore((s) => s.verge.bypass ?? "");
-  const proxyGuardDuration = useVergeStore(
-    (s) => s.verge.proxy_guard_duration ?? 10,
+  const {
+    enableSystemProxy = false,
+    proxyAutoConfig = false,
+    pacFileContent = DEFAULT_PAC,
+    enableProxyGuard = false,
+    bypassVerge = "",
+    proxyGuardDuration = 10,
+  } = useVergeStore(
+    useShallow((s) => ({
+      enableSystemProxy: s.verge.enable_system_proxy,
+      proxyAutoConfig: s.verge.proxy_auto_config,
+      pacFileContent: s.verge.pac_file_content,
+      enableProxyGuard: s.verge.enable_proxy_guard,
+      bypassVerge: s.verge.bypass,
+      proxyGuardDuration: s.verge.proxy_guard_duration,
+    })),
   );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 

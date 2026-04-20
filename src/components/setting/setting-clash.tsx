@@ -25,6 +25,7 @@ import {
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
+import { useShallow } from "zustand/react/shallow";
 import { useNotice } from "../base/notifies";
 import { GuardState } from "./mods/guard-state";
 import { SettingItem, SettingList } from "./mods/setting-comp";
@@ -55,13 +56,19 @@ const SettingClash = ({ onError }: Props) => {
     tun,
   } = clash ?? {};
 
-  const clashCore = useVergeStore((s) => s.verge.clash_core ?? "self-mihomo");
-  const enableRandomPort = useVergeStore((s) => s.verge.enable_random_port);
-  const enableServiceMode = useVergeStore((s) => s.verge.enable_service_mode);
-  const enableExternalController = useVergeStore(
-    (s) => s.verge.enable_external_controller,
+  const {
+    clashCore = "self-mihomo",
+    enableRandomPort,
+    enableServiceMode,
+    enableExternalController,
+  } = useVergeStore(
+    useShallow((s) => ({
+      clashCore: s.verge.clash_core,
+      enableRandomPort: s.verge.enable_random_port,
+      enableServiceMode: s.verge.enable_service_mode,
+      enableExternalController: s.verge.enable_external_controller,
+    })),
   );
-
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const { serviceStatus, mutateCheckService } = useService();
 
@@ -94,9 +101,6 @@ const SettingClash = ({ onError }: Props) => {
   }, [enableServiceMode]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
-  const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    patchVerge(patch);
-  };
   const onUpdateGeo = async () => {
     try {
       await updateGeo();
@@ -339,7 +343,6 @@ const SettingClash = ({ onError }: Props) => {
               color={enableRandomPort ? "primary" : "inherit"}
               size="small"
               onClick={() => {
-                onChangeVerge({ enable_random_port: !enableRandomPort });
                 patchVerge({ enable_random_port: !enableRandomPort });
                 patchClash({ "enable-random-port": !enableRandomPort });
               }}>

@@ -7,6 +7,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/react/shallow";
 import { WebUIItem } from "./web-ui-item";
 
 const DEFAULT_WEB_UI_LIST = [
@@ -20,7 +21,7 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
 
   const { clashInfo } = useClashInfo();
   const webUIList = useVergeStore(
-    (s) => s.verge.web_ui_list ?? DEFAULT_WEB_UI_LIST,
+    useShallow((s) => s.verge.web_ui_list ?? DEFAULT_WEB_UI_LIST),
   );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
