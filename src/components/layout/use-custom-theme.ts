@@ -42,7 +42,7 @@ export const useCustomTheme = () => {
   const vergeThemeMode = useVergeStore((s) => s.verge.theme_mode);
   const language = useVergeStore((s) => s.verge.language);
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const mode = useThemeModeStore((s) => s.themeMode);
+  const currentThemeMode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);
   const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
 
@@ -64,8 +64,11 @@ export const useCustomTheme = () => {
   }, [vergeThemeMode]);
 
   const theme = useMemo(() => {
-    const setting = normalizeThemeSetting(mode, themeSettings[mode]);
-    const isDark = mode === "dark";
+    const setting = normalizeThemeSetting(
+      currentThemeMode,
+      themeSettings[currentThemeMode],
+    );
+    const isDark = currentThemeMode === "dark";
 
     const muiDataGridLocale = language === "zh_CN" ? zhCN : enUS;
     const rootElement = document.getElementById("root");
@@ -76,7 +79,7 @@ export const useCustomTheme = () => {
         values: { xs: 0, sm: 650, md: 900, lg: 1200, xl: 1536 },
       },
       palette: {
-        mode,
+        mode: currentThemeMode,
         primary: { main: setting.primary_color! },
         secondary: { main: setting.secondary_color! },
         info: { main: setting.info_color! },
@@ -192,30 +195,29 @@ export const useCustomTheme = () => {
     }
 
     return theme;
-  }, [mode, themeSettings, language]);
+  }, [currentThemeMode, themeSettings, language]);
 
-  const toggleTheme = async (vergeThemeMode: "light" | "dark" | "system") => {
-    let tmp: "light" | "dark" = "light";
-    if (vergeThemeMode === "system") {
-      const appTheme = await appWindow.theme();
-      tmp = appTheme as "light" | "dark";
+  const toggleTheme = async (changeMode: "light" | "dark" | "system") => {
+    let nextThemeMode: "light" | "dark" = "light";
+    if (changeMode === "system") {
+      const appTheme = (await appWindow.theme()) ?? "light";
+      nextThemeMode = appTheme;
     } else {
-      tmp = vergeThemeMode;
+      nextThemeMode = changeMode;
     }
-    const nextThemeMode = tmp;
-    if (mode === nextThemeMode) {
-      patchVerge({ theme_mode: vergeThemeMode });
+    if (currentThemeMode === nextThemeMode) {
+      patchVerge({ theme_mode: changeMode });
       return;
     }
-    const preThemeIsDark = nextThemeMode === "light";
 
-    setMode(preThemeIsDark ? "light" : "dark");
-    if (preThemeIsDark) {
+    if (currentThemeMode === "dark") {
       document.documentElement.classList.remove("dark");
     } else {
       document.documentElement.classList.add("dark");
     }
-    patchVerge({ theme_mode: vergeThemeMode });
+    // set next theme mode
+    setMode(nextThemeMode);
+    patchVerge({ theme_mode: changeMode });
   };
 
   return { theme, toggleTheme };
