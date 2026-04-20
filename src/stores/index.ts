@@ -8,7 +8,7 @@ export { useVergeStore } from "./vergeStore";
 export { useClashLogStore } from "./clashLogStore";
 export { useConnectionsStore } from "./connectionsStore";
 export { useLoadingCacheStore } from "./loadingCacheStore";
-export { useAppUpdateStateStore } from "./appUpdateStateStore";
+export { useAppUpdatingStore } from "./appUpdatingStore";
 export { useWindowSizeStore } from "./windowSizeStore";
 export { useRefreshConnectionDateStore } from "./refreshConnectionDateStore";
 export { useRefreshTrafficDateStore } from "./refreshTrafficDateStore";
