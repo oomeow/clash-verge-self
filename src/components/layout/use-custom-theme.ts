@@ -222,27 +222,3 @@ export const useCustomTheme = () => {
 
   return { theme, toggleTheme };
 };
-
-// const isSameThemeSetting = (
-//   left: IVergeConfig["theme_setting"],
-//   right: IVergeConfig["theme_setting"],
-// ) => JSON.stringify(left ?? {}) === JSON.stringify(right ?? {});
-
-// export const useSyncThemeSettings = () => {
-//   const verge = useVergeStore((s) => s.verge);
-//   const { light_theme_setting, dark_theme_setting } = verge;
-
-//   useEffect(() => {
-//     if (!light_theme_setting || !dark_theme_setting) return;
-
-//     const { themeSettings, setLightThemeSetting, setDarkThemeSetting } =
-//       useThemeSettingsStore.getState();
-
-//     if (!isSameThemeSetting(light_theme_setting, themeSettings.light)) {
-//       setLightThemeSetting(light_theme_setting);
-//     }
-//     if (!isSameThemeSetting(dark_theme_setting, themeSettings.dark)) {
-//       setDarkThemeSetting(dark_theme_setting);
-//     }
-//   }, [dark_theme_setting, light_theme_setting]);
-// };

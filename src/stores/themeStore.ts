@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
+import { isEqual } from "lodash-es";
 
 export type ThemeMode = "light" | "dark";
 type ThemeSetting = NonNullable<IVergeConfig["theme_setting"]>;
@@ -168,19 +169,28 @@ export const useThemeSettingsStore = create<
             },
           };
         }),
-      syncThemeSettings: (verge) =>
+      syncThemeSettings: (verge) => {
         set((state) => {
-          return {
-            themeSettings: {
-              light: verge.light_theme_setting ?? {
-                ...state.themeSettings.light,
+          const { light_theme_setting, dark_theme_setting } = verge;
+          if (!light_theme_setting && !dark_theme_setting) return state;
+          if (
+            !isEqual(light_theme_setting, state.themeSettings.light) ||
+            !isEqual(dark_theme_setting, state.themeSettings.dark)
+          ) {
+            return {
+              themeSettings: {
+                light: verge.light_theme_setting ?? {
+                  ...state.themeSettings.light,
+                },
+                dark: verge.dark_theme_setting ?? {
+                  ...state.themeSettings.dark,
+                },
               },
-              dark: verge.dark_theme_setting ?? {
-                ...state.themeSettings.dark,
-              },
-            },
-          };
-        }),
+            };
+          }
+          return state;
+        });
+      },
     }),
     {
       name: "theme_settings",

@@ -8,6 +8,8 @@ import {
 import { SnackbarProvider } from "notistack";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { useThemeSettingsStore, useVergeStore } from "./stores";
+import { useEffect } from "react";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -19,7 +21,17 @@ declare module "@tanstack/react-router" {
 }
 
 function App() {
+  const refreshVerge = useVergeStore((s) => s.refreshVerge);
+  const syncThemeSettings = useThemeSettingsStore((s) => s.syncThemeSettings);
+
+  useEffect(() => {
+    refreshVerge().then((verge) => {
+      syncThemeSettings(verge);
+    });
+  }, [refreshVerge, syncThemeSettings]);
+
   const { theme } = useCustomTheme();
+
   // const theme = createTheme({ cssVariables: true });
   return (
     <ThemeProvider theme={theme}>
