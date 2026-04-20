@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import { isEqual } from "lodash-es";
+import { isEqual, isNil, mapValues } from "lodash-es";
 
 export type ThemeMode = "light" | "dark";
 type ThemeSetting = NonNullable<IVergeConfig["theme_setting"]>;
@@ -174,17 +174,19 @@ export const useThemeSettingsStore = create<
           const { light_theme_setting, dark_theme_setting } = verge;
           if (!light_theme_setting && !dark_theme_setting) return state;
           if (
-            !isEqual(light_theme_setting, state.themeSettings.light) ||
-            !isEqual(dark_theme_setting, state.themeSettings.dark)
+            !isEqual(light_theme_setting, defaultThemeSettings.light) ||
+            !isEqual(dark_theme_setting, defaultThemeSettings.dark)
           ) {
             return {
               themeSettings: {
-                light: verge.light_theme_setting ?? {
-                  ...state.themeSettings.light,
-                },
-                dark: verge.dark_theme_setting ?? {
-                  ...state.themeSettings.dark,
-                },
+                light: formatNullValue(
+                  light_theme_setting,
+                  defaultThemeSettings.light!,
+                ),
+                dark: formatNullValue(
+                  dark_theme_setting,
+                  defaultThemeSettings.dark!,
+                ),
               },
             };
           }
@@ -198,3 +200,13 @@ export const useThemeSettingsStore = create<
     },
   ),
 );
+
+function formatNullValue(
+  target: IVergeConfig["theme_setting"],
+  defaults: Record<string, any>,
+) {
+  return mapValues(target, (value, key) => {
+    // 如果值为 null，则返回预设的默认值，否则返回原值
+    return isNil(value) ? defaults[key] : value;
+  });
+}
