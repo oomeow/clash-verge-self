@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+import { useShallow } from "zustand/react/shallow";
 import { useNotice } from "../base/notifies";
 
 interface Props {
@@ -23,7 +24,7 @@ export const TestViewer = forwardRef<TestViewerRef, Props>((props, ref) => {
   const [open, setOpen] = useState(false);
   const [openType, setOpenType] = useState<"new" | "edit">("new");
   const [loading, setLoading] = useState(false);
-  const testList = useVergeStore((s) => s.verge.test_list ?? []);
+  const testList = useVergeStore(useShallow((s) => s.verge.test_list ?? []));
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const { setValue, register, handleSubmit, reset } = useForm<IVergeTestItem>({
     defaultValues: {

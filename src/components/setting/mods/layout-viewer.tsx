@@ -57,7 +57,6 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
     (s) => s.verge.sysproxy_tray_icon ?? false,
   );
   const tunTrayIcon = useVergeStore((s) => s.verge.tun_tray_icon ?? false);
-
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [open, setOpen] = useState(false);

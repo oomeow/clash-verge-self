@@ -78,7 +78,6 @@ const SettingVerge = ({ onError }: Props) => {
   const webdavUrl = useVergeStore((s) => s.verge.webdav_url);
   const webdavUsername = useVergeStore((s) => s.verge.webdav_username);
   const webdavPassword = useVergeStore((s) => s.verge.webdav_password);
-
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const configRef = useRef<DialogRef>(null);

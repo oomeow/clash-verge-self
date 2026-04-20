@@ -61,7 +61,6 @@ const SettingClash = ({ onError }: Props) => {
   const enableExternalController = useVergeStore(
     (s) => s.verge.enable_external_controller,
   );
-
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const { serviceStatus, mutateCheckService } = useService();
 
@@ -94,9 +93,6 @@ const SettingClash = ({ onError }: Props) => {
   }, [enableServiceMode]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
-  const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    patchVerge(patch);
-  };
   const onUpdateGeo = async () => {
     try {
       await updateGeo();
@@ -339,7 +335,6 @@ const SettingClash = ({ onError }: Props) => {
               color={enableRandomPort ? "primary" : "inherit"}
               size="small"
               onClick={() => {
-                onChangeVerge({ enable_random_port: !enableRandomPort });
                 patchVerge({ enable_random_port: !enableRandomPort });
                 patchClash({ "enable-random-port": !enableRandomPort });
               }}>

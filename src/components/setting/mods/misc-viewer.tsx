@@ -26,7 +26,7 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
     (s) => s.verge.enable_builtin_enhanced ?? true,
   );
   const proxyLayoutColumn = useVergeStore(
-    (s) => s.verge.proxy_layout_column || 6,
+    (s) => s.verge.proxy_layout_column ?? 6,
   );
   const defaultLatencyTest = useVergeStore(
     (s) => s.verge.default_latency_test ?? "",
