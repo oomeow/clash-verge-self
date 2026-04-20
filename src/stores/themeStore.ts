@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
-import { isEqual } from "lodash-es";
 
 export type ThemeMode = "light" | "dark";
 type ThemeSetting = NonNullable<IVergeConfig["theme_setting"]>;
@@ -175,17 +174,17 @@ export const useThemeSettingsStore = create<
           const nextLight = normalizeThemeSetting("light", light_theme_setting);
           const nextDark = normalizeThemeSetting("dark", dark_theme_setting);
           if (
-            !isEqual(nextLight, state.themeSettings.light) ||
-            !isEqual(nextDark, state.themeSettings.dark)
+            isSameThemeSetting(nextLight, state.themeSettings.light) &&
+            isSameThemeSetting(nextDark, state.themeSettings.dark)
           ) {
-            return {
-              themeSettings: {
-                light: nextLight,
-                dark: nextDark,
-              },
-            };
+            return state;
           }
-          return state;
+          return {
+            themeSettings: {
+              light: nextLight,
+              dark: nextDark,
+            },
+          };
         });
       },
     }),
