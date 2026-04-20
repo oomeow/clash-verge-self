@@ -76,14 +76,14 @@ const KeyWrapper = styled("div")(({ theme }) => ({
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    color: theme.palette.text.primary,
+    color: theme.palette.primary.contrastText,
     height: "24px",
     minWidth: "24px",
     fontSize: "14px",
     lineHeight: 1,
     borderRadius: "2px",
     padding: "2px 6px",
-    backgroundColor: "var(--background-color-alpha)",
+    backgroundColor: alpha(theme.palette.primary.main, 0.4),
     fontFamily:
       OS === "macos"
         ? "-apple-system, BlinkMacSystemFont, system-ui, sans-serif"

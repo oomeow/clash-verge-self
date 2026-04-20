@@ -439,13 +439,13 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
           )}
           <ActionButtons>
             {hasHotkeyChanges && (
-              <Button variant="outlined" size="small" onClick={restoreHotkeys}>
+              <Button variant="contained" size="small" onClick={restoreHotkeys}>
                 {t("pages.settings.verge.hotkeys.restore")}
               </Button>
             )}
             {hasHotkeys && (
               <Button
-                variant="outlined"
+                variant="contained"
                 size="small"
                 color="error"
                 onClick={clearHotkeys}>
