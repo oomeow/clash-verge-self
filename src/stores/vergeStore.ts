@@ -43,7 +43,6 @@ export const useVergeStore = create<VergeState & VergeActions>()(
     }),
     {
       name: "verge-config",
-      partialize: (state) => ({ verge: state.verge }),
       version: 1,
     },
   ),

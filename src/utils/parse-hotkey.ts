@@ -1,3 +1,7 @@
+import getSystem from "./get-system";
+
+const OS = getSystem();
+
 const CODE_MAP: Record<string, string> = {
   BACKQUOTE: "`",
   BACKSLASH: "\\",
@@ -31,7 +35,11 @@ export const parseHotkey = (keyCode: string) => {
     case "CONTROL":
       return "CTRL";
     case "ALT":
-      return "OPTION";
+      if (OS === "macos") {
+        return "OPTION";
+      } else {
+        return "ALT";
+      }
     case "META":
       return "CMD";
     case "SPACE":
