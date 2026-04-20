@@ -65,12 +65,10 @@ impl IProfiles {
                             save_file = true;
                         }
                         match item.itype {
-                            Some(ProfileType::Merge) | Some(ProfileType::Script) => {
-                                if item.scope.is_none() {
-                                    let uid = item.uid.as_ref().unwrap();
-                                    item.scope = Some(ScopeType::Global);
-                                    item.enable = Some(enabled_global_chain.contains(uid));
-                                }
+                            Some(ProfileType::Merge) | Some(ProfileType::Script) if item.scope.is_none() => {
+                                let uid = item.uid.as_ref().unwrap();
+                                item.scope = Some(ScopeType::Global);
+                                item.enable = Some(enabled_global_chain.contains(uid));
                             }
                             _ => {}
                         }

@@ -216,31 +216,27 @@ pub fn run() -> AppResult<()> {
         .expect("error while running tauri application");
 
     app.run(|app_handle, e| match e {
-        tauri::RunEvent::WindowEvent { label, event, .. } => {
-            if label == "main" {
-                match event {
-                    tauri::WindowEvent::Destroyed => {
-                        log_err!(
-                            resolve::save_window_size_position(app_handle),
-                            "save window size position failed"
-                        );
-                    }
-                    tauri::WindowEvent::CloseRequested { api, .. } => {
-                        log_err!(
-                            resolve::save_window_size_position(app_handle),
-                            "save window size position failed"
-                        );
-                        resolve::handle_window_close(api, app_handle);
-                        #[cfg(target_os = "macos")]
-                        {
-                            let dock_visible: bool = Config::verge().latest().keep_in_dock.unwrap_or(true);
-                            resolve::apply_tray_policy(app_handle, dock_visible);
-                        }
-                    }
-                    _ => {}
+        tauri::RunEvent::WindowEvent { label, event, .. } if label == "main" => match event {
+            tauri::WindowEvent::Destroyed => {
+                log_err!(
+                    resolve::save_window_size_position(app_handle),
+                    "save window size position failed"
+                );
+            }
+            tauri::WindowEvent::CloseRequested { api, .. } => {
+                log_err!(
+                    resolve::save_window_size_position(app_handle),
+                    "save window size position failed"
+                );
+                resolve::handle_window_close(api, app_handle);
+                #[cfg(target_os = "macos")]
+                {
+                    let dock_visible: bool = Config::verge().latest().keep_in_dock.unwrap_or(true);
+                    resolve::apply_tray_policy(app_handle, dock_visible);
                 }
             }
-        }
+            _ => {}
+        },
         #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen { .. } => resolve::create_window(),
         tauri::RunEvent::ExitRequested { code, api, .. } => {

@@ -144,13 +144,11 @@ pub async fn patch_profile(uid: String, profile: PrfItem) -> AppResult<()> {
                 CoreManager::global().update_config().await?;
                 handle::Handle::refresh_clash();
             }
-            Some(ScopeType::Specific) => {
-                if result_item.parent.as_ref() == profiles.get_current() {
-                    CoreManager::global().update_config().await?;
-                    handle::Handle::refresh_clash();
-                }
+            Some(ScopeType::Specific) if result_item.parent.as_ref() == profiles.get_current() => {
+                CoreManager::global().update_config().await?;
+                handle::Handle::refresh_clash();
             }
-            None => {}
+            _ => {}
         }
     }
     if name_changed {
