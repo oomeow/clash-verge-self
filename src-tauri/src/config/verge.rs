@@ -5,13 +5,20 @@ use tracing::level_filters::LevelFilter;
 use crate::core::hotkey::HotkeyAction;
 use crate::{
     config::DEFAULT_PAC,
+    core::hotkey::HotkeyAction,
     error::AppResult,
     utils::{dirs, help},
 };
 
-#[cfg(target_os = "macos")]
-fn default_macos_app_hotkeys() -> Vec<String> {
-    vec![HotkeyAction::ExitApp.to_config_entry("CMD+Q")]
+fn default_app_hotkeys() -> Vec<String> {
+    #[cfg(target_os = "macos")]
+    {
+        vec![HotkeyAction::ExitApp.to_config_entry("CMD+Q")]
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        vec![HotkeyAction::OpenOrCloseDashboard.to_config_entry("ESCAPE")]
+    }
 }
 
 /// ### `verge.yaml` schema
@@ -276,9 +283,8 @@ impl IVerge {
                     config.language = Some("zh_CN".into());
                 }
 
-                #[cfg(target_os = "macos")]
                 if config.app_hotkeys.is_none() {
-                    config.app_hotkeys = Some(default_macos_app_hotkeys());
+                    config.app_hotkeys = Some(default_app_hotkeys());
                 }
 
                 config
@@ -326,8 +332,7 @@ impl IVerge {
             enable_tray: Some(true),
             keep_in_dock: Some(true),
             enable_external_controller: Some(false),
-            #[cfg(target_os = "macos")]
-            app_hotkeys: Some(default_macos_app_hotkeys()),
+            app_hotkeys: Some(default_app_hotkeys()),
             ..Self::default()
         }
     }

@@ -74,14 +74,14 @@ const Layout = () => {
       setIsMaximized(maximized);
     });
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && OS !== "macos") {
-        const enableKeepUiActive =
-          useVergeStore.getState().verge.enable_keep_ui_active ?? false;
-        handleClose(enableKeepUiActive);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
+    // const handleKeyDown = (e: KeyboardEvent) => {
+    //   if (e.key === "Escape" && OS !== "macos") {
+    //     const enableKeepUiActive =
+    //       useVergeStore.getState().verge.enable_keep_ui_active ?? false;
+    //     handleClose(enableKeepUiActive);
+    //   }
+    // };
+    // window.addEventListener("keydown", handleKeyDown);
 
     const unlistenRefreshProfiles = listen("verge://refresh-profiles", () => {
       mutate("getProfiles");
@@ -121,7 +121,7 @@ const Layout = () => {
     }, 50);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      // window.removeEventListener("keydown", handleKeyDown);
       unlistenRefreshProfiles.then((fn) => fn());
       unlistenRefreshClash.then((fn) => fn());
       unlistenRefreshVerge.then((fn) => fn());
