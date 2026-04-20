@@ -245,7 +245,7 @@ const SettingVerge = ({ onError }: Props) => {
             value={trayEvent ?? "main_window"}
             onCatch={onError}
             onFormat={(e: any) => e.target.value}
-            onChange={(e) => patchVerge({ tray_event: e })}>
+            onGuard={(e) => patchVerge({ tray_event: e })}>
             <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
               <MenuItem value="main_window">
                 {t("pages.settings.verge.tray.showMainWindow")}
