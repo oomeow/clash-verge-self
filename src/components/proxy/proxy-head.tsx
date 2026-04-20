@@ -56,11 +56,11 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
     return () => clearTimeout(timer);
   }, []);
 
-  const verge = useVergeStore((s) => s.verge)!;
+  const defaultLatencyTest = useVergeStore((s) => s.verge.default_latency_test);
 
   useEffect(() => {
-    delayManager.setUrl(groupName, testUrl || verge?.default_latency_test);
-  }, [groupName, testUrl, verge?.default_latency_test]);
+    delayManager.setUrl(groupName, testUrl || defaultLatencyTest);
+  }, [groupName, testUrl, defaultLatencyTest]);
 
   const filterChange = useMemo(
     () =>

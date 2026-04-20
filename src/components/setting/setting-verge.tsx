@@ -68,20 +68,18 @@ const SettingVerge = ({ onError }: Props) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
-  const verge = useVergeStore((s) => s.verge)!;
+  const appLogLevel = useVergeStore((s) => s.verge.app_log_level);
+  const themeMode = useVergeStore((s) => s.verge.theme_mode);
+  const language = useVergeStore((s) => s.verge.language);
+  const trayEvent = useVergeStore((s) => s.verge.tray_event);
+  const envType = useVergeStore((s) => s.verge.env_type);
+  const startupScript = useVergeStore((s) => s.verge.startup_script);
+  const startPage = useVergeStore((s) => s.verge.start_page);
+  const webdavUrl = useVergeStore((s) => s.verge.webdav_url);
+  const webdavUsername = useVergeStore((s) => s.verge.webdav_username);
+  const webdavPassword = useVergeStore((s) => s.verge.webdav_password);
+
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const {
-    app_log_level,
-    theme_mode,
-    language,
-    tray_event,
-    env_type,
-    startup_script,
-    start_page,
-    webdav_url,
-    webdav_username,
-    webdav_password,
-  } = verge;
 
   const configRef = useRef<DialogRef>(null);
   const hotkeyRef = useRef<DialogRef>(null);
@@ -109,9 +107,9 @@ const SettingVerge = ({ onError }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, watch, reset } = useForm<IWebDavConfig>({
     defaultValues: {
-      url: webdav_url,
-      username: webdav_username,
-      password: webdav_password,
+      url: webdavUrl,
+      username: webdavUsername,
+      password: webdavPassword,
     },
   });
 
@@ -125,9 +123,9 @@ const SettingVerge = ({ onError }: Props) => {
   const username = watch("username");
   const password = watch("password");
   const webdavChanged =
-    webdav_url !== url ||
-    webdav_username !== username ||
-    webdav_password !== password;
+    webdavUrl !== url ||
+    webdavUsername !== username ||
+    webdavPassword !== password;
 
   const onSubmit = async (data: IWebDavConfig) => {
     try {
@@ -203,7 +201,7 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem label={t("pages.settings.verge.misc.appLogLevel")}>
         <GuardState
-          value={app_log_level ?? "info"}
+          value={appLogLevel ?? "info"}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
           onGuard={(e) => patchVerge({ app_log_level: e })}>
@@ -234,7 +232,7 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem label={t("pages.settings.verge.themeMode.label")}>
         <GuardState
-          value={theme_mode}
+          value={themeMode}
           onCatch={onError}
           onGuard={(e) => patchVerge({ theme_mode: e })}>
           <ThemeModeSwitch />
@@ -244,7 +242,7 @@ const SettingVerge = ({ onError }: Props) => {
       {OS !== "linux" && (
         <SettingItem label={t("pages.settings.verge.tray.clickEvent")}>
           <GuardState
-            value={tray_event ?? "main_window"}
+            value={trayEvent ?? "main_window"}
             onCatch={onError}
             onFormat={(e: any) => e.target.value}
             onChange={(e) => patchVerge({ tray_event: e })}>
@@ -278,7 +276,7 @@ const SettingVerge = ({ onError }: Props) => {
           </IconButton>
         }>
         <GuardState
-          value={env_type ?? (OS === "windows" ? "powershell" : "bash")}
+          value={envType ?? (OS === "windows" ? "powershell" : "bash")}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
           onGuard={(e) => patchVerge({ env_type: e })}>
@@ -293,7 +291,7 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem label={t("common.fields.startPage")}>
         <GuardState
-          value={start_page ?? "/"}
+          value={startPage ?? "/"}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
           onGuard={(e) => patchVerge({ start_page: e })}>
@@ -311,12 +309,12 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem label={t("common.fields.startupScript")}>
         <GuardState
-          value={startup_script ?? ""}
+          value={startupScript ?? ""}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
           onGuard={(e) => patchVerge({ startup_script: e })}>
           <Input
-            value={startup_script}
+            value={startupScript}
             disabled
             sx={{ width: 230 }}
             endAdornment={
@@ -339,7 +337,7 @@ const SettingVerge = ({ onError }: Props) => {
                   }}>
                   {t("common.actions.browse")}
                 </Button>
-                {startup_script && (
+                {startupScript && (
                   <Button
                     onClick={async () => {
                       await patchVerge({ startup_script: "" });

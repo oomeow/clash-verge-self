@@ -248,7 +248,8 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const [open, setOpen] = useState(false);
-  const verge = useVergeStore((s) => s.verge)!;
+  const vergeAppHotkeys = useVergeStore((s) => s.verge.app_hotkeys ?? []);
+  const vergeHotkeys = useVergeStore((s) => s.verge.hotkeys ?? []);
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [globalHotkeyMap, setGlobalHotkeyMap] = useState<HotkeyMap>({});
@@ -326,12 +327,10 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   };
 
   const openHotkeySettings = () => {
-    const global = verge?.hotkeys ?? [];
-    const app = verge?.app_hotkeys ?? [];
-    const snapshot = createHotkeySnapshot(global, app);
+    const snapshot = createHotkeySnapshot(vergeHotkeys, vergeAppHotkeys);
 
     initialHotkeysRef.current = snapshot;
-    activeHotkeysRef.current = { global, app };
+    activeHotkeysRef.current = { global: vergeHotkeys, app: vergeAppHotkeys };
     setHotkeyMaps(snapshot.globalMap, snapshot.appMap);
   };
 

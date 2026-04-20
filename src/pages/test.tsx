@@ -30,41 +30,43 @@ const FlexDecorationItems = memo(function FlexDecorationItems() {
   ));
 });
 
+const DEFAULT_TEST_LIST = [
+  {
+    uid: nanoid(),
+    name: "Apple",
+    url: "https://www.apple.com",
+    icon: apple,
+  },
+  {
+    uid: nanoid(),
+    name: "GitHub",
+    url: "https://www.github.com",
+    icon: github,
+  },
+  {
+    uid: nanoid(),
+    name: "Google",
+    url: "https://www.google.com",
+    icon: google,
+  },
+  {
+    uid: nanoid(),
+    name: "Youtube",
+    url: "https://www.youtube.com",
+    icon: youtube,
+  },
+];
+
 const TestPage = () => {
   const { t } = useTranslation();
-  const verge = useVergeStore((s) => s.verge)!;
+  const vergeTestList = useVergeStore((s) => s.verge.test_list);
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
   );
 
-  // test list
-  const testList = verge?.test_list ?? [
-    {
-      uid: nanoid(),
-      name: "Apple",
-      url: "https://www.apple.com",
-      icon: apple,
-    },
-    {
-      uid: nanoid(),
-      name: "GitHub",
-      url: "https://www.github.com",
-      icon: github,
-    },
-    {
-      uid: nanoid(),
-      name: "Google",
-      url: "https://www.google.com",
-      icon: google,
-    },
-    {
-      uid: nanoid(),
-      name: "Youtube",
-      url: "https://www.youtube.com",
-      icon: youtube,
-    },
-  ];
+  const testList = vergeTestList ?? DEFAULT_TEST_LIST;
+
   const [sortableTestList, setSortableTestList] = useState<IVergeTestItem[]>(
     [],
   );
@@ -121,12 +123,11 @@ const TestPage = () => {
   };
 
   useEffect(() => {
-    if (!verge) return;
-    if (!verge?.test_list) {
+    if (!vergeTestList) {
       patchVerge({ test_list: testList });
     }
-    setSortableTestList(verge.test_list ?? testList);
-  }, [verge]);
+    setSortableTestList(vergeTestList ?? testList);
+  }, [vergeTestList]);
 
   const viewerRef = useRef<TestViewerRef>(null);
 

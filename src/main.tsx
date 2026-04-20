@@ -1,29 +1,11 @@
-import {
-  BaseErrorBoundary,
-  MyNoticeContainer,
-  NoticeProvider,
-} from "@/components/base";
 import "@/index.css";
 import "@/services/i18n";
 import { ResizeObserver } from "@juggle/resize-observer";
-import { StyledEngineProvider } from "@mui/material";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { SnackbarProvider } from "notistack";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 
-import { routeTree } from "@/routeTree.gen";
-
-// Create a new router instance
-const router = createRouter({ routeTree });
-
-// Register the router instance for type safety
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
-  }
-}
+import App from "./App";
 
 if (!window.ResizeObserver) {
   window.ResizeObserver = ResizeObserver;
@@ -73,22 +55,6 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 createRoot(container).render(
   <React.StrictMode>
-    <StyledEngineProvider injectFirst>
-      <BaseErrorBoundary>
-        <SnackbarProvider
-          maxSnack={3}
-          Components={{
-            default: MyNoticeContainer,
-            success: MyNoticeContainer,
-            info: MyNoticeContainer,
-            warning: MyNoticeContainer,
-            error: MyNoticeContainer,
-          }}>
-          <NoticeProvider>
-            <RouterProvider router={router} />
-          </NoticeProvider>
-        </SnackbarProvider>
-      </BaseErrorBoundary>
-    </StyledEngineProvider>
+    <App />
   </React.StrictMode>,
 );

@@ -29,9 +29,9 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
   const { notice } = useNotice();
 
   const [open, setOpen] = useState(false);
-  const verge = useVergeStore((s) => s.verge)!;
+  const lightThemeSetting = useVergeStore((s) => s.verge.light_theme_setting);
+  const darkThemeSetting = useVergeStore((s) => s.verge.dark_theme_setting);
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const { light_theme_setting, dark_theme_setting } = verge || {};
   const { toggleTheme } = useCustomTheme();
   const themeMode = useThemeModeStore((s) => s.themeMode);
   const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
@@ -140,13 +140,13 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
       onClose={() => {
-        setLightThemeSetting(light_theme_setting ?? defaultThemeSettings.light);
-        setDarkThemeSetting(dark_theme_setting ?? defaultThemeSettings.dark);
+        setLightThemeSetting(lightThemeSetting ?? defaultThemeSettings.light);
+        setDarkThemeSetting(darkThemeSetting ?? defaultThemeSettings.dark);
         setOpen(false);
       }}
       onCancel={() => {
-        setLightThemeSetting(light_theme_setting ?? defaultThemeSettings.light);
-        setDarkThemeSetting(dark_theme_setting ?? defaultThemeSettings.dark);
+        setLightThemeSetting(lightThemeSetting ?? defaultThemeSettings.light);
+        setDarkThemeSetting(darkThemeSetting ?? defaultThemeSettings.dark);
         setOpen(false);
       }}
       onOk={onSave}>

@@ -100,6 +100,7 @@ type ThemeSettingsActions = {
   setThemeColor: (mode: ThemeMode, key: ThemeKey, value: string) => void;
   resetLightThemeSetting: () => void;
   resetDarkThemeSetting: () => void;
+  syncThemeSettings: (verge: IVergeConfig) => void;
 };
 
 export const useThemeSettingsStore = create<
@@ -164,6 +165,19 @@ export const useThemeSettingsStore = create<
             themeSettings: {
               ...state.themeSettings,
               dark: { ...defaultThemeSettings.dark },
+            },
+          };
+        }),
+      syncThemeSettings: (verge) =>
+        set((state) => {
+          return {
+            themeSettings: {
+              light: verge.light_theme_setting ?? {
+                ...state.themeSettings.light,
+              },
+              dark: verge.dark_theme_setting ?? {
+                ...state.themeSettings.dark,
+              },
             },
           };
         }),

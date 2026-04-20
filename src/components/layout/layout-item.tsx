@@ -30,12 +30,11 @@ export const LayoutItem = (props: Props) => {
     onNavigate,
     onMouseEnter,
   } = props;
-  const verge = useVergeStore((s) => s.verge)!;
+  const menuIcon = useVergeStore((s) => s.verge.menu_icon ?? "monochrome");
   const matchRoute = useMatchRoute();
   const match = !!matchRoute({ to });
-  const { menu_icon } = verge;
   const navigate = useNavigate();
-  const enableMenuIcon = menu_icon && menu_icon !== "disable";
+  const enableMenuIcon = menuIcon && menuIcon !== "disable";
 
   return (
     <Tooltip
@@ -85,7 +84,7 @@ export const LayoutItem = (props: Props) => {
             className={cn("flex items-center text-center", { "w-full": open })}>
             <div className="flex h-8 w-full items-center justify-center">
               <motion.div layout className={cn({ "relative left-4": open })}>
-                {enableMenuIcon && menu_icon === "monochrome" && (
+                {enableMenuIcon && menuIcon === "monochrome" && (
                   <Box
                     sx={{
                       color: match || pending ? "primary.main" : "text.primary",
@@ -93,7 +92,7 @@ export const LayoutItem = (props: Props) => {
                     {icon[0]}
                   </Box>
                 )}
-                {enableMenuIcon && menu_icon === "colorful" && icon[1]}
+                {enableMenuIcon && menuIcon === "colorful" && icon[1]}
               </motion.div>
               {(open || !enableMenuIcon) && (
                 <div className="w-full">

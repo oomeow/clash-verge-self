@@ -37,7 +37,7 @@ const OS = getSystem();
 
 export const useMihomoCoresInfo = () => {
   const { serviceStatus } = useService();
-  const clash_core = useVergeStore((s) => s.verge?.clash_core ?? "self-mihomo");
+  const clashCore = useVergeStore((s) => s.verge?.clash_core ?? "self-mihomo");
   const serviceUnavailable =
     serviceStatus === "uninstall" || serviceStatus === "unknown";
 
@@ -59,7 +59,7 @@ export const useMihomoCoresInfo = () => {
 
   useEffect(() => {
     muteMihomoCoresInfo();
-  }, [enableGrantPermissions, clash_core, portable]);
+  }, [enableGrantPermissions, clashCore, portable]);
 
   const refreshMihomoVersion = useCallback(
     async (coresInfo: MihomoCoreInfo[]) => {

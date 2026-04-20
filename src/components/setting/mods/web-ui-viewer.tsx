@@ -9,12 +9,19 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { WebUIItem } from "./web-ui-item";
 
+const DEFAULT_WEB_UI_LIST = [
+  "https://metacubex.github.io/metacubexd/#/setup?http=true&hostname=%host&port=%port&secret=%secret",
+  "https://yacd.metacubex.one/?host=%host&port=%port&secret=%secret",
+];
+
 export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
   const { clashInfo } = useClashInfo();
-  const verge = useVergeStore((s) => s.verge)!;
+  const webUIList = useVergeStore(
+    (s) => s.verge.web_ui_list ?? DEFAULT_WEB_UI_LIST,
+  );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [open, setOpen] = useState(false);
@@ -24,11 +31,6 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
     open: () => setOpen(true),
     close: () => setOpen(false),
   }));
-
-  const webUIList = verge?.web_ui_list || [
-    "https://metacubex.github.io/metacubexd/#/setup?http=true&hostname=%host&port=%port&secret=%secret",
-    "https://yacd.metacubex.one/?host=%host&port=%port&secret=%secret",
-  ];
 
   const handleAdd = useLockFn(async (value: string) => {
     const newList = [...webUIList, value];

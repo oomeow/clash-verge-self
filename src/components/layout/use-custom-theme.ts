@@ -15,6 +15,7 @@ import {
 import { enUS, zhCN } from "@mui/x-data-grid/locales";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useMemo } from "react";
+
 const appWindow = getCurrentWebviewWindow();
 
 /**
@@ -38,17 +39,17 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
   };
 
 export const useCustomTheme = () => {
-  const verge = useVergeStore((s) => s.verge);
+  const vergeThemeMode = useVergeStore((s) => s.verge.theme_mode);
+  const language = useVergeStore((s) => s.verge.language);
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const { theme_mode, language } = verge;
   const mode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);
   const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
 
   useEffect(() => {
-    if (!theme_mode) return;
-    const themeMode = ["light", "dark", "system"].includes(theme_mode!)
-      ? theme_mode!
+    if (!vergeThemeMode) return;
+    const themeMode = ["light", "dark", "system"].includes(vergeThemeMode!)
+      ? vergeThemeMode!
       : "light";
     if (themeMode !== "system") {
       setMode(themeMode);
@@ -60,7 +61,7 @@ export const useCustomTheme = () => {
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, [theme_mode]);
+  }, [vergeThemeMode]);
 
   const theme = useMemo(() => {
     const setting = normalizeThemeSetting(mode, themeSettings[mode]);
@@ -220,26 +221,26 @@ export const useCustomTheme = () => {
   return { theme, toggleTheme };
 };
 
-const isSameThemeSetting = (
-  left: IVergeConfig["theme_setting"],
-  right: IVergeConfig["theme_setting"],
-) => JSON.stringify(left ?? {}) === JSON.stringify(right ?? {});
+// const isSameThemeSetting = (
+//   left: IVergeConfig["theme_setting"],
+//   right: IVergeConfig["theme_setting"],
+// ) => JSON.stringify(left ?? {}) === JSON.stringify(right ?? {});
 
-export const useSyncThemeSettings = () => {
-  const verge = useVergeStore((s) => s.verge);
-  const { light_theme_setting, dark_theme_setting } = verge;
+// export const useSyncThemeSettings = () => {
+//   const verge = useVergeStore((s) => s.verge);
+//   const { light_theme_setting, dark_theme_setting } = verge;
 
-  useEffect(() => {
-    if (!light_theme_setting || !dark_theme_setting) return;
+//   useEffect(() => {
+//     if (!light_theme_setting || !dark_theme_setting) return;
 
-    const { themeSettings, setLightThemeSetting, setDarkThemeSetting } =
-      useThemeSettingsStore.getState();
+//     const { themeSettings, setLightThemeSetting, setDarkThemeSetting } =
+//       useThemeSettingsStore.getState();
 
-    if (!isSameThemeSetting(light_theme_setting, themeSettings.light)) {
-      setLightThemeSetting(light_theme_setting);
-    }
-    if (!isSameThemeSetting(dark_theme_setting, themeSettings.dark)) {
-      setDarkThemeSetting(dark_theme_setting);
-    }
-  }, [dark_theme_setting, light_theme_setting]);
-};
+//     if (!isSameThemeSetting(light_theme_setting, themeSettings.light)) {
+//       setLightThemeSetting(light_theme_setting);
+//     }
+//     if (!isSameThemeSetting(dark_theme_setting, themeSettings.dark)) {
+//       setDarkThemeSetting(dark_theme_setting);
+//     }
+//   }, [dark_theme_setting, light_theme_setting]);
+// };

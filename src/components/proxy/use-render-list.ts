@@ -31,7 +31,9 @@ export const useRenderList = (mode: string) => {
 
   const { profiles } = useProfiles();
   const current = profiles?.current || "";
-  const verge = useVergeStore((s) => s.verge)!;
+  const proxyLayoutColumn = useVergeStore(
+    (s) => s.verge.proxy_layout_column || 6,
+  );
   const { size } = useWindowSize();
   const headStates = useProxyHeadStateStore((state) =>
     current
@@ -39,7 +41,7 @@ export const useRenderList = (mode: string) => {
       : EMPTY_HEAD_STATES,
   );
 
-  let col = Math.floor(verge?.proxy_layout_column || 6);
+  let col = proxyLayoutColumn;
 
   // 自适应
   if (col >= 6 || col <= 0) {

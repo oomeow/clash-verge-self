@@ -16,7 +16,25 @@ import { useTranslation } from "react-i18next";
 export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const verge = useVergeStore((s) => s.verge)!;
+  const autoCloseConnection = useVergeStore(
+    (s) => s.verge.auto_close_connection ?? true,
+  );
+  const autoCheckUpdate = useVergeStore(
+    (s) => s.verge.auto_check_update ?? true,
+  );
+  const enableBuiltinEnhanced = useVergeStore(
+    (s) => s.verge.enable_builtin_enhanced ?? true,
+  );
+  const proxyLayoutColumn = useVergeStore(
+    (s) => s.verge.proxy_layout_column || 6,
+  );
+  const defaultLatencyTest = useVergeStore(
+    (s) => s.verge.default_latency_test ?? "",
+  );
+  const autoLogClean = useVergeStore((s) => s.verge.auto_log_clean ?? 0);
+  const defaultLatencyTimeout = useVergeStore(
+    (s) => s.verge.default_latency_timeout ?? 5000,
+  );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [open, setOpen] = useState(false);
@@ -34,13 +52,13 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
     open: () => {
       setOpen(true);
       setValues({
-        autoCloseConnection: verge?.auto_close_connection ?? true,
-        autoCheckUpdate: verge?.auto_check_update ?? true,
-        enableBuiltinEnhanced: verge?.enable_builtin_enhanced ?? true,
-        proxyLayoutColumn: verge?.proxy_layout_column || 6,
-        defaultLatencyTest: verge?.default_latency_test || "",
-        autoLogClean: verge?.auto_log_clean || 0,
-        defaultLatencyTimeout: verge?.default_latency_timeout || 5000,
+        autoCloseConnection,
+        autoCheckUpdate,
+        enableBuiltinEnhanced,
+        proxyLayoutColumn,
+        defaultLatencyTest,
+        autoLogClean,
+        defaultLatencyTimeout,
       });
     },
     close: () => setOpen(false),

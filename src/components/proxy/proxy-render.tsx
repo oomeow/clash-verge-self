@@ -105,12 +105,13 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
   const { profiles } = useProfiles();
   const current = profiles?.current || "";
-  const verge = useVergeStore((s) => s.verge)!;
+  const enableGroupIcon = useVergeStore(
+    (s) => s.verge.enable_group_icon ?? true,
+  );
   const headStateActions = useMemo(
     () => createScopedHeadStateActions({ current, groupName: group.name }),
     [current, group.name],
   );
-  const enable_group_icon = verge?.enable_group_icon ?? true;
   const [iconCachePath, setIconCachePath] = useState("");
   const groupIcon = group.icon?.trim() ?? "";
   const isHttpIcon = groupIcon.startsWith("http");
@@ -156,21 +157,21 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           transition: "background-color 0s",
         })}
         onClick={() => headStateActions.setOpen(!headState?.open)}>
-        {enable_group_icon && isHttpIcon && (
+        {enableGroupIcon && isHttpIcon && (
           <img
             src={iconCachePath === "" ? groupIcon : iconCachePath}
             width="32px"
             style={{ marginRight: "12px", borderRadius: "6px" }}
           />
         )}
-        {enable_group_icon && isDataIcon && (
+        {enableGroupIcon && isDataIcon && (
           <img
             src={groupIcon}
             width="32px"
             style={{ marginRight: "12px", borderRadius: "6px" }}
           />
         )}
-        {enable_group_icon && isInlineSvgIcon && (
+        {enableGroupIcon && isInlineSvgIcon && (
           <img
             src={`data:image/svg+xml;base64,${btoa(groupIcon)}`}
             width="32px"

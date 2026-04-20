@@ -23,9 +23,8 @@ export const TestViewer = forwardRef<TestViewerRef, Props>((props, ref) => {
   const [open, setOpen] = useState(false);
   const [openType, setOpenType] = useState<"new" | "edit">("new");
   const [loading, setLoading] = useState(false);
-  const verge = useVergeStore((s) => s.verge)!;
+  const testList = useVergeStore((s) => s.verge.test_list ?? []);
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const testList = verge?.test_list ?? [];
   const { setValue, register, handleSubmit, reset } = useForm<IVergeTestItem>({
     defaultValues: {
       name: "",

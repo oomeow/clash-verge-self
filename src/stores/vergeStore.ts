@@ -13,22 +13,6 @@ type VergeActions = {
   patchVerge: (value: Partial<IVergeConfig>) => Promise<void>;
 };
 
-const syncThemeSettings = (verge: IVergeConfig | undefined) => {
-  if (!verge) return;
-
-  const { setLightThemeSetting, setDarkThemeSetting } =
-    useThemeSettingsStore.getState();
-
-  setLightThemeSetting(verge.light_theme_setting);
-  setDarkThemeSetting(verge.dark_theme_setting);
-};
-
-const applyVerge = (verge: IVergeConfig | undefined) => {
-  syncThemeSettings(verge);
-  return { verge };
-};
-
-let refreshVergePromise: Promise<IVergeConfig | undefined> | null = null;
 let initializeVergeStorePromise: Promise<IVergeConfig | undefined> | null =
   null;
 
@@ -37,38 +21,24 @@ export const useVergeStore = create<VergeState & VergeActions>()(
     (set, get) => ({
       verge: {},
       refreshVerge: async () => {
-        if (refreshVergePromise) {
-          return refreshVergePromise;
-        }
-
-        refreshVergePromise = (async () => {
-          const verge = await getVergeConfig();
-          if (!isEqual(get().verge, verge)) {
-            set(applyVerge(verge));
-          }
-          return verge;
-        })();
-
-        try {
-          return await refreshVergePromise;
-        } finally {
-          refreshVergePromise = null;
+        const verge = await getVergeConfig();
+        if (!isEqual(get().verge, verge)) {
+          set({ verge });
         }
       },
-
       patchVerge: async (value) => {
         const previous = get().verge;
         const next = { ...(previous ?? {}), ...value } as IVergeConfig;
         const hasChanged = !isEqual(previous, next);
 
         if (hasChanged) {
-          set(applyVerge(next));
+          set({ verge: next });
         }
         try {
           await patchVergeConfig(value);
         } catch (err) {
           if (hasChanged) {
-            set(applyVerge(previous));
+            set({ verge: previous });
           }
           throw err;
         }
@@ -90,7 +60,19 @@ const initializeVergeStore = async () => {
   initializeVergeStorePromise = (async () => {
     const verge = await getVergeConfig();
     if (!isEqual(useVergeStore.getState().verge, verge)) {
-      useVergeStore.setState(applyVerge(verge));
+      useVergeStore.setState({ verge });
+    }
+    const themeMode = verge.theme_mode;
+    const themeSetting =
+      themeMode === "dark"
+        ? verge.dark_theme_setting
+        : verge.light_theme_setting;
+    const themeSettingsStore =
+      themeMode === "dark"
+        ? useThemeSettingsStore.getState().themeSettings.dark
+        : useThemeSettingsStore.getState().themeSettings.light;
+    if (!isEqual(themeSettingsStore, themeSetting)) {
+      useThemeSettingsStore.getState().syncThemeSettings(verge);
     }
     return verge;
   })();

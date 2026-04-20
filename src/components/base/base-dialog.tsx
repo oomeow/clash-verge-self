@@ -53,8 +53,9 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
     onCancel,
     onClose,
   } = props;
-  const verge = useVergeStore((s) => s.verge)!;
-  const { enable_system_title_bar } = verge;
+  const enableSystemTitleBar = useVergeStore(
+    (s) => s.verge.enable_system_title_bar ?? false,
+  );
   const titlebarRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
             {
               "bg-black/50": !full,
               "rounded-md border-2 border-solid border-(--divider-color)":
-                OS === "linux" && !enable_system_title_bar,
+                OS === "linux" && !enableSystemTitleBar,
             },
           )}>
           <motion.div

@@ -61,8 +61,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
     sx,
     onClick,
   } = props;
-  const verge = useVergeStore((s) => s.verge)!;
-  const timeout = verge?.default_latency_timeout || 5000;
+  const timeout = useVergeStore((s) => s.verge.default_latency_timeout ?? 5000);
   const delay = delayManager.getDelayFix(proxy, group.name);
 
   const onDelay = useLockFn(async () => {

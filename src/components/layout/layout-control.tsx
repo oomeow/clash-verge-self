@@ -7,6 +7,7 @@ import PushPinRounded from "@mui/icons-material/PushPinRounded";
 import { Button, ButtonGroup } from "@mui/material";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useState } from "react";
+
 const appWindow = getCurrentWebviewWindow();
 
 interface Props {
