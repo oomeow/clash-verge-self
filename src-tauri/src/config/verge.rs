@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tracing::level_filters::LevelFilter;
 
-#[cfg(target_os = "macos")]
-use crate::core::hotkey::HotkeyAction;
 use crate::{
     config::DEFAULT_PAC,
     core::hotkey::HotkeyAction,
