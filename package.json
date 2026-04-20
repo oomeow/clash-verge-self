@@ -107,7 +107,7 @@
     "tar": "7.5.13",
     "terser": "5.46.1",
     "types-pac": "1.0.3",
-    "typescript": "6.0.2",
+    "typescript": "6.0.3",
     "typescript-eslint": "8.58.2",
     "vite": "8.0.8",
     "vite-plugin-monaco-editor": "1.1.0",
