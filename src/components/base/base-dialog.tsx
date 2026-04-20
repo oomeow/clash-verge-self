@@ -1,4 +1,4 @@
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 import { Button } from "@mui/material";
@@ -53,8 +53,9 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
     onCancel,
     onClose,
   } = props;
-  const { verge } = useVerge();
-  const { enable_system_title_bar } = verge;
+  const enableSystemTitleBar = useVergeStore(
+    (s) => s.verge.enable_system_title_bar ?? false,
+  );
   const titlebarRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
             {
               "bg-black/50": !full,
               "rounded-md border-2 border-solid border-(--divider-color)":
-                OS === "linux" && !enable_system_title_bar,
+                OS === "linux" && !enableSystemTitleBar,
             },
           )}>
           <motion.div

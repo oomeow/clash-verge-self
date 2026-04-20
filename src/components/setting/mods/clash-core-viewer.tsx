@@ -4,7 +4,7 @@ import { useNotice } from "@/components/base/notifies";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   changeClashCore,
   grantPermissions,
@@ -44,8 +44,8 @@ const OS = getSystem();
 export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const { verge, mutateVerge } = useVerge();
-  const { clash_core = "self-mihomo" } = verge;
+  const clashCore = useVergeStore((s) => s.verge.clash_core ?? "self-mihomo");
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const { clash } = useClash();
   const { tun } = clash ?? {};
   const [open, setOpen] = useState(false);
@@ -63,7 +63,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   }));
 
   const onCoreChange = useLockFn(async (core: string) => {
-    if (core === clash_core) return;
+    if (core === clashCore) return;
     if (isLinuxPortable) {
       const enableTun = tun?.enable ?? false;
       const permissionsGranted =
@@ -82,7 +82,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       setChangingCore(core);
       closeAllConnections();
       await changeClashCore(core);
-      mutateVerge();
+      patchVerge({ clash_core: core });
       await MihomoWebSocket.cleanupAll();
       setTimeout(() => {
         mutate("getClashConfig");
@@ -104,7 +104,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
     try {
       await grantPermissions(core);
       // 自动重启
-      if (core === clash_core) await restartSidecar();
+      if (core === clashCore) await restartSidecar();
       notice(
         "success",
         t("messages.clash.core.permissionsGranted", {
@@ -186,7 +186,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
           <ListItemButton
             sx={{ pl: "2px" }}
             key={each.core}
-            selected={each.core === clash_core}
+            selected={each.core === clashCore}
             onClick={async () => {
               await onCoreChange(each.core);
             }}>

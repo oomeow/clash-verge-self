@@ -2,7 +2,7 @@ import { DialogRef } from "@/components/base";
 import WebDavFilesViewer, {
   WebDavFilesViewerRef,
 } from "@/components/setting/mods/webdav-files-viewer";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { routes } from "@/routes/__root";
 import {
   applyLocalBackup,
@@ -68,19 +68,18 @@ const SettingVerge = ({ onError }: Props) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
-  const { verge, patchVerge, mutateVerge } = useVerge();
-  const {
-    app_log_level,
-    theme_mode,
-    language,
-    tray_event,
-    env_type,
-    startup_script,
-    start_page,
-    webdav_url,
-    webdav_username,
-    webdav_password,
-  } = verge;
+  const appLogLevel = useVergeStore((s) => s.verge.app_log_level);
+  const themeMode = useVergeStore((s) => s.verge.theme_mode);
+  const language = useVergeStore((s) => s.verge.language);
+  const trayEvent = useVergeStore((s) => s.verge.tray_event);
+  const envType = useVergeStore((s) => s.verge.env_type);
+  const startupScript = useVergeStore((s) => s.verge.startup_script);
+  const startPage = useVergeStore((s) => s.verge.start_page);
+  const webdavUrl = useVergeStore((s) => s.verge.webdav_url);
+  const webdavUsername = useVergeStore((s) => s.verge.webdav_username);
+  const webdavPassword = useVergeStore((s) => s.verge.webdav_password);
+
+  const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const configRef = useRef<DialogRef>(null);
   const hotkeyRef = useRef<DialogRef>(null);
@@ -89,10 +88,6 @@ const SettingVerge = ({ onError }: Props) => {
   const layoutRef = useRef<DialogRef>(null);
   const updateRef = useRef<DialogRef>(null);
   const webDavRef = useRef<WebDavFilesViewerRef>(null);
-
-  const onChangeData = (patch: Partial<IVergeConfig>) => {
-    mutateVerge({ ...verge, ...patch }, false);
-  };
 
   const onCheckUpdate = async () => {
     try {
@@ -112,9 +107,9 @@ const SettingVerge = ({ onError }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
   const { register, handleSubmit, watch, reset } = useForm<IWebDavConfig>({
     defaultValues: {
-      url: webdav_url,
-      username: webdav_username,
-      password: webdav_password,
+      url: webdavUrl,
+      username: webdavUsername,
+      password: webdavPassword,
     },
   });
 
@@ -128,9 +123,9 @@ const SettingVerge = ({ onError }: Props) => {
   const username = watch("username");
   const password = watch("password");
   const webdavChanged =
-    webdav_url !== url ||
-    webdav_username !== username ||
-    webdav_password !== password;
+    webdavUrl !== url ||
+    webdavUsername !== username ||
+    webdavPassword !== password;
 
   const onSubmit = async (data: IWebDavConfig) => {
     try {
@@ -206,10 +201,9 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem label={t("pages.settings.verge.misc.appLogLevel")}>
         <GuardState
-          value={app_log_level ?? "info"}
+          value={appLogLevel ?? "info"}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ app_log_level: e })}
           onGuard={(e) => patchVerge({ app_log_level: e })}>
           <Select size="small" sx={{ width: 110, "> div": { py: "7.5px" } }}>
             {["trace", "debug", "info", "warn", "error", "silent"].map((i) => (
@@ -226,7 +220,6 @@ const SettingVerge = ({ onError }: Props) => {
           value={language ?? "en"}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ language: e })}
           onGuard={(e) => patchVerge({ language: e })}>
           <Select size="small" sx={{ width: 110, "> div": { py: "7.5px" } }}>
             <MenuItem value="zh_CN">中文</MenuItem>
@@ -239,9 +232,8 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem label={t("pages.settings.verge.themeMode.label")}>
         <GuardState
-          value={theme_mode}
+          value={themeMode}
           onCatch={onError}
-          onChange={(e) => onChangeData({ theme_mode: e })}
           onGuard={(e) => patchVerge({ theme_mode: e })}>
           <ThemeModeSwitch />
         </GuardState>
@@ -250,10 +242,9 @@ const SettingVerge = ({ onError }: Props) => {
       {OS !== "linux" && (
         <SettingItem label={t("pages.settings.verge.tray.clickEvent")}>
           <GuardState
-            value={tray_event ?? "main_window"}
+            value={trayEvent ?? "main_window"}
             onCatch={onError}
             onFormat={(e: any) => e.target.value}
-            onChange={(e) => onChangeData({ tray_event: e })}
             onGuard={(e) => patchVerge({ tray_event: e })}>
             <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
               <MenuItem value="main_window">
@@ -285,10 +276,9 @@ const SettingVerge = ({ onError }: Props) => {
           </IconButton>
         }>
         <GuardState
-          value={env_type ?? (OS === "windows" ? "powershell" : "bash")}
+          value={envType ?? (OS === "windows" ? "powershell" : "bash")}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ env_type: e })}
           onGuard={(e) => patchVerge({ env_type: e })}>
           <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
             <MenuItem value="bash">Bash</MenuItem>
@@ -301,10 +291,9 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem label={t("common.fields.startPage")}>
         <GuardState
-          value={start_page ?? "/"}
+          value={startPage ?? "/"}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ start_page: e })}
           onGuard={(e) => patchVerge({ start_page: e })}>
           <Select size="small" sx={{ width: 140, "> div": { py: "7.5px" } }}>
             {routes.map((route) => {
@@ -320,13 +309,12 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem label={t("common.fields.startupScript")}>
         <GuardState
-          value={startup_script ?? ""}
+          value={startupScript ?? ""}
           onCatch={onError}
           onFormat={(e: any) => e.target.value}
-          onChange={(e) => onChangeData({ startup_script: e })}
           onGuard={(e) => patchVerge({ startup_script: e })}>
           <Input
-            value={startup_script}
+            value={startupScript}
             disabled
             sx={{ width: 230 }}
             endAdornment={
@@ -344,17 +332,15 @@ const SettingVerge = ({ onError }: Props) => {
                       ],
                     });
                     if (path?.length) {
-                      onChangeData({ startup_script: `${path}` });
-                      patchVerge({ startup_script: `${path}` });
+                      await patchVerge({ startup_script: `${path}` });
                     }
                   }}>
                   {t("common.actions.browse")}
                 </Button>
-                {startup_script && (
+                {startupScript && (
                   <Button
                     onClick={async () => {
-                      onChangeData({ startup_script: "" });
-                      patchVerge({ startup_script: "" });
+                      await patchVerge({ startup_script: "" });
                     }}>
                     {t("common.actions.clear")}
                   </Button>

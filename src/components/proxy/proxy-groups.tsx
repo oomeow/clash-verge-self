@@ -1,7 +1,7 @@
 import { ProxyGroupSidebar } from "@/components/proxy/proxy-group-sidebar";
 import { ProxyRender } from "@/components/proxy/proxy-render";
 import { useProfiles } from "@/hooks/use-profiles";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import LoadingPage from "@/pages/loading";
 import delayManager from "@/services/delay";
 import { cn } from "@/utils";
@@ -31,9 +31,12 @@ export const ProxyGroups = (props: Props) => {
   const isRuleMode = mode === "rule";
 
   const { renderList, onProxies } = useRenderList(mode);
-  const { verge } = useVerge();
+  const timeout = useVergeStore((s) => s.verge.default_latency_timeout ?? 5000);
+  const autoCloseConnection = useVergeStore(
+    (s) => s.verge.auto_close_connection ?? true,
+  );
+
   const { current, patchCurrent } = useProfiles();
-  const timeout = verge.default_latency_timeout || 5000;
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [groupDelayVersions, setGroupDelayVersions] = useState<
@@ -92,7 +95,7 @@ export const ProxyGroups = (props: Props) => {
       onProxies();
 
       // 断开连接
-      if (verge.auto_close_connection) {
+      if (autoCloseConnection) {
         getConnections().then(({ connections }) => {
           connections?.forEach((conn) => {
             if (conn.chains.includes(now!)) {

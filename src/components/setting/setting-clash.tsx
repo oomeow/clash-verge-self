@@ -3,7 +3,7 @@ import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";
 import { useService } from "@/hooks/use-service";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { invoke_uwp_tool } from "@/services/cmds";
 import { useClashLogStore } from "@/stores";
 import getSystem from "@/utils/get-system";
@@ -55,22 +55,23 @@ const SettingClash = ({ onError }: Props) => {
     tun,
   } = clash ?? {};
 
-  const { verge, mutateVerge, patchVerge } = useVerge();
-  const {
-    clash_core = "self-mihomo",
-    enable_random_port,
-    enable_service_mode,
-    enable_external_controller,
-  } = verge;
+  const clashCore = useVergeStore((s) => s.verge.clash_core ?? "self-mihomo");
+  const enableRandomPort = useVergeStore((s) => s.verge.enable_random_port);
+  const enableServiceMode = useVergeStore((s) => s.verge.enable_service_mode);
+  const enableExternalController = useVergeStore(
+    (s) => s.verge.enable_external_controller,
+  );
+
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const { serviceStatus, mutateCheckService } = useService();
 
   const { mihomoCoresInfo } = useMihomoCoresInfo();
   const mihomoVersion =
-    mihomoCoresInfo.find((core) => core.core === clash_core)?.version ??
+    mihomoCoresInfo.find((core) => core.core === clashCore)?.version ??
     "Unknown";
 
   const permissionsGranted =
-    mihomoCoresInfo.find((core) => core.core === clash_core)
+    mihomoCoresInfo.find((core) => core.core === clashCore)
       ?.permissionsGranted ?? false;
 
   const { portable } = usePortable();
@@ -88,13 +89,13 @@ const SettingClash = ({ onError }: Props) => {
   const netInfoRef = useRef<DialogRef>(null);
 
   useEffect(() => {
-    if (enable_service_mode === undefined) return;
+    if (enableServiceMode === undefined) return;
     mutateCheckService();
-  }, [enable_service_mode]);
+  }, [enableServiceMode]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    mutateVerge({ ...verge, ...patch }, false);
+    patchVerge(patch);
   };
   const onUpdateGeo = async () => {
     try {
@@ -141,7 +142,7 @@ const SettingClash = ({ onError }: Props) => {
         ref={coreRef}
         serviceActive={serviceStatus === "active"}
       />
-      <ServiceViewer ref={serviceRef} enable={!!enable_service_mode} />
+      <ServiceViewer ref={serviceRef} enable={!!enableServiceMode} />
       <NetInfoViewer ref={netInfoRef} />
 
       <SettingItem
@@ -197,7 +198,7 @@ const SettingClash = ({ onError }: Props) => {
           </IconButton>
         }>
         <GuardState
-          value={enable_service_mode ?? false}
+          value={enableServiceMode ?? false}
           valueProps="checked"
           onCatch={onError}
           onFormat={onSwitchFormat}
@@ -335,12 +336,12 @@ const SettingClash = ({ onError }: Props) => {
         extra={
           <Tooltip title={t("pages.settings.clash.portConfig.randomPort")}>
             <IconButton
-              color={enable_random_port ? "primary" : "inherit"}
+              color={enableRandomPort ? "primary" : "inherit"}
               size="small"
               onClick={() => {
-                onChangeVerge({ enable_random_port: !enable_random_port });
-                patchVerge({ enable_random_port: !enable_random_port });
-                patchClash({ "enable-random-port": !enable_random_port });
+                onChangeVerge({ enable_random_port: !enableRandomPort });
+                patchVerge({ enable_random_port: !enableRandomPort });
+                patchClash({ "enable-random-port": !enableRandomPort });
               }}>
               <Shuffle
                 fontSize="inherit"
@@ -350,7 +351,7 @@ const SettingClash = ({ onError }: Props) => {
           </Tooltip>
         }>
         <TextField
-          disabled={enable_random_port ?? false}
+          disabled={enableRandomPort ?? false}
           autoComplete="off"
           size="small"
           value={clash?.["mixed-port"] ?? 7890}
@@ -373,7 +374,7 @@ const SettingClash = ({ onError }: Props) => {
           </IconButton>
         }>
         <GuardState
-          value={enable_external_controller ?? false}
+          value={enableExternalController ?? false}
           valueProps="checked"
           onCatch={onError}
           onFormat={onSwitchFormat}

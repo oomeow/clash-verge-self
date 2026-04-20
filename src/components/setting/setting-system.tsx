@@ -1,5 +1,5 @@
 import { DialogRef, SwitchLovely } from "@/components/base";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Settings from "@mui/icons-material/Settings";
 import { Button, ButtonGroup, IconButton, Tooltip } from "@mui/material";
@@ -16,21 +16,20 @@ interface Props {
 const SettingSystem = ({ onError }: Props) => {
   const { t } = useTranslation();
 
-  const { verge, mutateVerge, patchVerge } = useVerge();
+  const enableAutoLaunch = useVergeStore(
+    (s) => s.verge.enable_auto_launch ?? false,
+  );
+  const silentStartMode = useVergeStore(
+    (s) => s.verge.silent_start_mode ?? false,
+  );
+  const enableSystemProxy = useVergeStore(
+    (s) => s.verge.enable_system_proxy ?? false,
+  );
+  const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const sysproxyRef = useRef<DialogRef>(null);
 
-  const {
-    enable_auto_launch,
-    // enable_silent_start,
-    silent_start_mode,
-    enable_system_proxy,
-  } = verge;
-
   const onSwitchFormat = (_e: any, value: boolean) => value;
-  const onChangeVerge = (patch: Partial<IVergeConfig>) => {
-    mutateVerge({ ...verge, ...patch }, false);
-  };
 
   return (
     <SettingList title={t("pages.settings.system.title")}>
@@ -62,11 +61,10 @@ const SettingSystem = ({ onError }: Props) => {
           </>
         }>
         <GuardState
-          value={enable_system_proxy ?? false}
+          value={enableSystemProxy}
           valueProps="checked"
           onCatch={onError}
           onFormat={onSwitchFormat}
-          onChange={(e) => onChangeVerge({ enable_system_proxy: e })}
           onGuard={(e) => patchVerge({ enable_system_proxy: e })}>
           <SwitchLovely edge="end" />
         </GuardState>
@@ -74,11 +72,10 @@ const SettingSystem = ({ onError }: Props) => {
 
       <SettingItem label={t("pages.settings.system.autoLaunch")}>
         <GuardState
-          value={enable_auto_launch ?? false}
+          value={enableAutoLaunch}
           valueProps="checked"
           onCatch={onError}
           onFormat={onSwitchFormat}
-          onChange={(e) => onChangeVerge({ enable_auto_launch: e })}
           onGuard={(e) => patchVerge({ enable_auto_launch: e })}>
           <SwitchLovely edge="end" />
         </GuardState>
@@ -89,7 +86,7 @@ const SettingSystem = ({ onError }: Props) => {
           {(["bootup", "global", "off"] as const).map((mode) => (
             <Button
               key={mode}
-              variant={mode === silent_start_mode ? "contained" : "outlined"}
+              variant={mode === silentStartMode ? "contained" : "outlined"}
               onClick={() => patchVerge({ silent_start_mode: mode })}
               sx={{ textTransform: "capitalize" }}>
               {t(`pages.settings.system.silentStart.options.${mode}`)}

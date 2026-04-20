@@ -2,7 +2,7 @@ import { BasePage } from "@/components/base";
 import { ProviderButton } from "@/components/proxy/provider-button";
 import { ProxyGroups } from "@/components/proxy/proxy-groups";
 import { useClashInfo } from "@/hooks/use-clash";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { Box, Button, ButtonGroup } from "@mui/material";
 import { useLockFn, useMemoizedFn } from "ahooks";
 import { useEffect } from "react";
@@ -12,7 +12,9 @@ import { closeAllConnections } from "tauri-plugin-mihomo-api";
 const ProxyPage = () => {
   const { t } = useTranslation();
   const { clashInfo, patchInfo, mutateInfo } = useClashInfo();
-  const { verge } = useVerge();
+  const autoCloseConnection = useVergeStore(
+    (s) => s.verge.auto_close_connection ?? true,
+  );
 
   const modeList = ["rule", "global", "direct"];
   const curMode = clashInfo?.mode?.toLowerCase() ?? "rule";
@@ -22,7 +24,7 @@ const ProxyPage = () => {
       await patchInfo({ mode });
       mutateInfo();
       // 断开连接
-      if (mode !== curMode && verge?.auto_close_connection) {
+      if (mode !== curMode && autoCloseConnection) {
         closeAllConnections();
       }
     }),

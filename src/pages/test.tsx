@@ -1,7 +1,7 @@
 import { BasePage, DraggableItem } from "@/components/base";
 import { TestItem } from "@/components/test/test-item";
 import { TestViewer, TestViewerRef } from "@/components/test/test-viewer";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   DndContext,
   DragEndEvent,
@@ -30,40 +30,43 @@ const FlexDecorationItems = memo(function FlexDecorationItems() {
   ));
 });
 
+const DEFAULT_TEST_LIST = [
+  {
+    uid: nanoid(),
+    name: "Apple",
+    url: "https://www.apple.com",
+    icon: apple,
+  },
+  {
+    uid: nanoid(),
+    name: "GitHub",
+    url: "https://www.github.com",
+    icon: github,
+  },
+  {
+    uid: nanoid(),
+    name: "Google",
+    url: "https://www.google.com",
+    icon: google,
+  },
+  {
+    uid: nanoid(),
+    name: "Youtube",
+    url: "https://www.youtube.com",
+    icon: youtube,
+  },
+];
+
 const TestPage = () => {
   const { t } = useTranslation();
-  const { verge, mutateVerge, patchVerge } = useVerge();
+  const vergeTestList = useVergeStore((s) => s.verge.test_list);
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
   );
 
-  // test list
-  const testList = verge?.test_list ?? [
-    {
-      uid: nanoid(),
-      name: "Apple",
-      url: "https://www.apple.com",
-      icon: apple,
-    },
-    {
-      uid: nanoid(),
-      name: "GitHub",
-      url: "https://www.github.com",
-      icon: github,
-    },
-    {
-      uid: nanoid(),
-      name: "Google",
-      url: "https://www.google.com",
-      icon: google,
-    },
-    {
-      uid: nanoid(),
-      name: "Youtube",
-      url: "https://www.youtube.com",
-      icon: youtube,
-    },
-  ];
+  const testList = vergeTestList ?? DEFAULT_TEST_LIST;
+
   const [sortableTestList, setSortableTestList] = useState<IVergeTestItem[]>(
     [],
   );
@@ -72,7 +75,7 @@ const TestPage = () => {
 
   const [overItemWidth, setOverItemWidth] = useState(180);
 
-  const onTestListItemChange = (
+  const onTestListItemChange = async (
     uid: string,
     patch?: Partial<IVergeTestItem>,
   ) => {
@@ -83,16 +86,13 @@ const TestPage = () => {
         }
         return x;
       });
-      mutateVerge({ ...verge, test_list: newList }, false);
-    } else {
-      mutateVerge();
+      await patchVerge({ test_list: newList });
     }
   };
 
-  const onDeleteTestListItem = (uid: string) => {
+  const onDeleteTestListItem = async (uid: string) => {
     const newList = testList.filter((x) => x.uid !== uid);
-    patchVerge({ test_list: newList });
-    mutateVerge({ ...verge, test_list: newList }, false);
+    await patchVerge({ test_list: newList });
   };
 
   const getIndex = (id: UniqueIdentifier | undefined) => {
@@ -117,19 +117,17 @@ const TestPage = () => {
           overIndex,
         );
         setSortableTestList(newTestList);
-        await mutateVerge({ ...verge, test_list: newTestList }, false);
         await patchVerge({ test_list: newTestList });
       }
     }
   };
 
   useEffect(() => {
-    if (!verge) return;
-    if (!verge?.test_list) {
+    if (!vergeTestList) {
       patchVerge({ test_list: testList });
     }
-    setSortableTestList(verge.test_list ?? testList);
-  }, [verge]);
+    setSortableTestList(vergeTestList ?? testList);
+  }, [vergeTestList]);
 
   const viewerRef = useRef<TestViewerRef>(null);
 
@@ -191,7 +189,7 @@ const TestPage = () => {
                       isDragging={draggingTestItem?.uid === item.uid}
                       itemData={item}
                       onEdit={() => viewerRef.current?.edit(item)}
-                      onDelete={onDeleteTestListItem}
+                      onDelete={async (uid) => await onDeleteTestListItem(uid)}
                     />
                   </DraggableItem>
                 ))}
@@ -211,7 +209,7 @@ const TestPage = () => {
                   id={draggingTestItem.uid}
                   itemData={draggingTestItem}
                   onEdit={() => viewerRef.current?.edit(draggingTestItem)}
-                  onDelete={onDeleteTestListItem}
+                  onDelete={async (uid) => await onDeleteTestListItem(uid)}
                 />
               ) : null}
             </DragOverlay>,
@@ -219,7 +217,10 @@ const TestPage = () => {
           )}
         </DndContext>
       </Box>
-      <TestViewer ref={viewerRef} onChange={onTestListItemChange} />
+      <TestViewer
+        ref={viewerRef}
+        onChange={async (uid, value) => await onTestListItemChange(uid, value)}
+      />
     </BasePage>
   );
 };

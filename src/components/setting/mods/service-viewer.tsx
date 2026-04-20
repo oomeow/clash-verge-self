@@ -1,7 +1,7 @@
 import { BaseDialog, DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useService } from "@/hooks/use-service";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { installService, uninstallService } from "@/services/cmds";
 import Check from "@mui/icons-material/Check";
 import Close from "@mui/icons-material/Close";
@@ -19,7 +19,7 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
 
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const { patchVerge } = useVerge();
+  const patchVerge = useVergeStore((s) => s.patchVerge);
   const [open, setOpen] = useState(false);
 
   const { serviceStatus, mutateCheckService } = useService();

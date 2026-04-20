@@ -230,7 +230,7 @@ export async function getVergeConfig() {
   return verge;
 }
 
-export async function patchVergeConfig(payload: IVergeConfig) {
+export async function patchVergeConfig(payload: Partial<IVergeConfig>) {
   return invoke<void>("patch_verge_config", { payload });
 }
 

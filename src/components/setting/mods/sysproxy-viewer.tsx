@@ -6,7 +6,7 @@ import {
   SwitchLovely,
 } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   getAutotemProxy,
   getDefaultBypass,
@@ -49,41 +49,49 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
 
   const [open, setOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
-  const { verge, patchVerge } = useVerge();
   const [bypass, setBypass] = useState<string[]>([]);
   const [bypassInput, setBypassInput] = useState("");
 
   const [sysproxy, setSysproxy] = useState<SysProxy>();
   const [autoproxy, setAutoproxy] = useState<AutoProxy>();
 
-  const {
-    enable_system_proxy: enabled,
-    proxy_auto_config,
-    pac_file_content,
-    enable_proxy_guard,
-    bypass: verge_bypass,
-    proxy_guard_duration,
-  } = verge ?? {};
+  const enableSystemProxy = useVergeStore(
+    (s) => s.verge.enable_system_proxy ?? false,
+  );
+  const proxyAutoConfig = useVergeStore(
+    (s) => s.verge.proxy_auto_config ?? false,
+  );
+  const pacFileContent = useVergeStore(
+    (s) => s.verge.pac_file_content ?? DEFAULT_PAC,
+  );
+  const enableProxyGuard = useVergeStore(
+    (s) => s.verge.enable_proxy_guard ?? false,
+  );
+  const bypassVerge = useVergeStore((s) => s.verge.bypass ?? "");
+  const proxyGuardDuration = useVergeStore(
+    (s) => s.verge.proxy_guard_duration ?? 10,
+  );
+  const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [value, setValue] = useState({
-    guard: enable_proxy_guard,
-    duration: proxy_guard_duration ?? 10,
-    pac: proxy_auto_config,
-    pac_content: pac_file_content ?? DEFAULT_PAC,
+    guard: enableProxyGuard,
+    duration: proxyGuardDuration,
+    pac: proxyAutoConfig,
+    pac_content: pacFileContent,
   });
 
   useImperativeHandle(ref, () => ({
     open: () => {
       setOpen(true);
       setValue({
-        guard: enable_proxy_guard,
-        duration: proxy_guard_duration ?? 10,
-        pac: proxy_auto_config,
-        pac_content: pac_file_content ?? DEFAULT_PAC,
+        guard: enableProxyGuard,
+        duration: proxyGuardDuration,
+        pac: proxyAutoConfig,
+        pac_content: pacFileContent ?? DEFAULT_PAC,
       });
       getSystemProxy().then((p) => setSysproxy(p));
       getAutotemProxy().then((p) => setAutoproxy(p));
-      const bypassList = verge_bypass?.split(separator) ?? [];
+      const bypassList = bypassVerge.split(separator) ?? [];
       if (bypassList.length > 0) {
         setBypass(bypassList);
       } else {
@@ -94,7 +102,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
     },
     close: () => {
       setOpen(false);
-      const bypassList = verge_bypass?.split(separator) ?? [];
+      const bypassList = bypassVerge.split(separator) ?? [];
       if (bypassList.length > 0) {
         setBypass(bypassList);
       } else {
@@ -113,14 +121,14 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
 
     const patch: Partial<IVergeConfig> = {};
 
-    if (value.guard !== enable_proxy_guard) {
+    if (value.guard !== enableProxyGuard) {
       patch.enable_proxy_guard = value.guard;
     }
-    if (value.duration !== proxy_guard_duration) {
+    if (value.duration !== proxyGuardDuration) {
       patch.proxy_guard_duration = value.duration;
     }
     const bypassStr = bypass.join(separator);
-    if (bypassStr !== verge_bypass) {
+    if (bypassStr !== bypassVerge) {
       if (OS === "windows") {
         patch.windows_bypass = bypassStr;
       } else if (OS === "macos") {
@@ -129,10 +137,10 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
         patch.linux_bypass = bypassStr;
       }
     }
-    if (value.pac !== proxy_auto_config) {
+    if (value.pac !== proxyAutoConfig) {
       patch.proxy_auto_config = value.pac;
     }
-    if (value.pac_content !== pac_file_content) {
+    if (value.pac_content !== pacFileContent) {
       patch.pac_file_content = value.pac_content;
     }
     try {
@@ -216,7 +224,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
           />
           <SwitchLovely
             edge="end"
-            disabled={!enabled}
+            disabled={!enableSystemProxy}
             checked={value.pac}
             onChange={(_, e) => setValue((v) => ({ ...v, pac: e }))}
           />
@@ -236,7 +244,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
           </Tooltip>
           <SwitchLovely
             edge="end"
-            disabled={!enabled}
+            disabled={!enableSystemProxy}
             checked={value.guard}
             onChange={(_, e) => setValue((v) => ({ ...v, guard: e }))}
           />
@@ -247,7 +255,7 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
             primary={t("pages.settings.system.proxy.guard.duration")}
           />
           <TextField
-            disabled={!enabled}
+            disabled={!enableSystemProxy}
             size="small"
             value={value.duration}
             sx={{ width: 100 }}

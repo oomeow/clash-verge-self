@@ -1,7 +1,7 @@
 import { BaseDialog, DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { normalizeKeyList, normalizeKeys } from "@/hooks/use-app-hotkeys";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { Button, styled, Typography } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
@@ -248,7 +248,9 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const [open, setOpen] = useState(false);
-  const { verge, patchVerge } = useVerge();
+  const vergeAppHotkeys = useVergeStore((s) => s.verge.app_hotkeys ?? []);
+  const vergeHotkeys = useVergeStore((s) => s.verge.hotkeys ?? []);
+  const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [globalHotkeyMap, setGlobalHotkeyMap] = useState<HotkeyMap>({});
   const [appHotkeyMap, setAppHotkeyMap] = useState<HotkeyMap>({});
@@ -325,12 +327,10 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   };
 
   const openHotkeySettings = () => {
-    const global = verge?.hotkeys ?? [];
-    const app = verge?.app_hotkeys ?? [];
-    const snapshot = createHotkeySnapshot(global, app);
+    const snapshot = createHotkeySnapshot(vergeHotkeys, vergeAppHotkeys);
 
     initialHotkeysRef.current = snapshot;
-    activeHotkeysRef.current = { global, app };
+    activeHotkeysRef.current = { global: vergeHotkeys, app: vergeAppHotkeys };
     setHotkeyMaps(snapshot.globalMap, snapshot.appMap);
   };
 

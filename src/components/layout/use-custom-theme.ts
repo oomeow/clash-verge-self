@@ -1,4 +1,4 @@
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import {
   normalizeThemeSetting,
   useThemeModeStore,
@@ -15,6 +15,7 @@ import {
 import { enUS, zhCN } from "@mui/x-data-grid/locales";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useMemo } from "react";
+
 const appWindow = getCurrentWebviewWindow();
 
 /**
@@ -38,16 +39,17 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
   };
 
 export const useCustomTheme = () => {
-  const { verge, patchVerge } = useVerge();
-  const { theme_mode, language } = verge ?? {};
-  const mode = useThemeModeStore((s) => s.themeMode);
+  const vergeThemeMode = useVergeStore((s) => s.verge.theme_mode);
+  const language = useVergeStore((s) => s.verge.language);
+  const patchVerge = useVergeStore((s) => s.patchVerge);
+  const currentThemeMode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);
   const themeSettings = useThemeSettingsStore((s) => s.themeSettings);
 
   useEffect(() => {
-    if (!theme_mode) return;
-    const themeMode = ["light", "dark", "system"].includes(theme_mode!)
-      ? theme_mode!
+    if (!vergeThemeMode) return;
+    const themeMode = ["light", "dark", "system"].includes(vergeThemeMode!)
+      ? vergeThemeMode!
       : "light";
     if (themeMode !== "system") {
       setMode(themeMode);
@@ -59,11 +61,14 @@ export const useCustomTheme = () => {
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, [theme_mode]);
+  }, [vergeThemeMode]);
 
   const theme = useMemo(() => {
-    const setting = normalizeThemeSetting(mode, themeSettings[mode]);
-    const isDark = mode === "dark";
+    const setting = normalizeThemeSetting(
+      currentThemeMode,
+      themeSettings[currentThemeMode],
+    );
+    const isDark = currentThemeMode === "dark";
 
     const muiDataGridLocale = language === "zh_CN" ? zhCN : enUS;
     const rootElement = document.getElementById("root");
@@ -74,7 +79,7 @@ export const useCustomTheme = () => {
         values: { xs: 0, sm: 650, md: 900, lg: 1200, xl: 1536 },
       },
       palette: {
-        mode,
+        mode: currentThemeMode,
         primary: { main: setting.primary_color! },
         secondary: { main: setting.secondary_color! },
         info: { main: setting.info_color! },
@@ -190,55 +195,30 @@ export const useCustomTheme = () => {
     }
 
     return theme;
-  }, [mode, themeSettings, language]);
+  }, [currentThemeMode, themeSettings, language]);
 
-  const toggleTheme = async (vergeThemeMode: "light" | "dark" | "system") => {
-    let tmp: "light" | "dark" = "light";
-    if (vergeThemeMode === "system") {
-      const appTheme = await appWindow.theme();
-      tmp = appTheme as "light" | "dark";
+  const toggleTheme = async (changeMode: "light" | "dark" | "system") => {
+    let nextThemeMode: "light" | "dark" = "light";
+    if (changeMode === "system") {
+      const appTheme = (await appWindow.theme()) ?? "light";
+      nextThemeMode = appTheme;
     } else {
-      tmp = vergeThemeMode;
+      nextThemeMode = changeMode;
     }
-    const nextThemeMode = tmp;
-    if (mode === nextThemeMode) {
-      patchVerge({ theme_mode: vergeThemeMode });
+    if (currentThemeMode === nextThemeMode) {
+      patchVerge({ theme_mode: changeMode });
       return;
     }
-    const isDark = nextThemeMode === "light";
 
-    setMode(isDark ? "light" : "dark");
-    if (isDark) {
+    if (currentThemeMode === "dark") {
       document.documentElement.classList.remove("dark");
     } else {
       document.documentElement.classList.add("dark");
     }
-    patchVerge({ theme_mode: vergeThemeMode });
+    // set next theme mode
+    setMode(nextThemeMode);
+    patchVerge({ theme_mode: changeMode });
   };
 
   return { theme, toggleTheme };
-};
-
-const isSameThemeSetting = (
-  left: IVergeConfig["theme_setting"],
-  right: IVergeConfig["theme_setting"],
-) => JSON.stringify(left ?? {}) === JSON.stringify(right ?? {});
-
-export const useSyncThemeSettings = () => {
-  const { verge } = useVerge();
-  const { light_theme_setting, dark_theme_setting } = verge ?? {};
-
-  useEffect(() => {
-    if (!light_theme_setting || !dark_theme_setting) return;
-
-    const { themeSettings, setLightThemeSetting, setDarkThemeSetting } =
-      useThemeSettingsStore.getState();
-
-    if (!isSameThemeSetting(light_theme_setting, themeSettings.light)) {
-      setLightThemeSetting(light_theme_setting);
-    }
-    if (!isSameThemeSetting(dark_theme_setting, themeSettings.dark)) {
-      setDarkThemeSetting(dark_theme_setting);
-    }
-  }, [dark_theme_setting, light_theme_setting]);
 };

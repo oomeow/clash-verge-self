@@ -4,11 +4,11 @@ import {
 } from "@/services/cmds";
 import getSystem from "@/utils/get-system";
 import { Command } from "@tauri-apps/plugin-shell";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import useSWR from "swr";
 import { usePortable } from "./use-portable";
 import { useService } from "./use-service";
-import { useVerge } from "./use-verge";
+import { useVergeStore } from "@/stores";
 
 type MihomoCoreInfo = {
   name: string;
@@ -37,9 +37,7 @@ const OS = getSystem();
 
 export const useMihomoCoresInfo = () => {
   const { serviceStatus } = useService();
-  const {
-    verge: { clash_core = "self-mihomo" },
-  } = useVerge();
+  const clashCore = useVergeStore((s) => s.verge?.clash_core ?? "self-mihomo");
   const serviceUnavailable =
     serviceStatus === "uninstall" || serviceStatus === "unknown";
 
@@ -61,36 +59,44 @@ export const useMihomoCoresInfo = () => {
 
   useEffect(() => {
     muteMihomoCoresInfo();
-  }, [enableGrantPermissions, clash_core, portable]);
+  }, [enableGrantPermissions, clashCore, portable]);
 
-  const refreshMihomoVersion = async (coresInfo: MihomoCoreInfo[]) => {
-    for (const core of MIHOMO_CORES) {
-      const output = await Command.sidecar(`sidecar/${core}`, ["-v"]).execute();
-      if (output.code === 0) {
-        const regex = /(alpha-\w+|v\d+(?:\.\d+)*)/gm;
-        const version = output.stdout.match(regex)?.[0];
-        if (version) {
+  const refreshMihomoVersion = useCallback(
+    async (coresInfo: MihomoCoreInfo[]) => {
+      for (const core of MIHOMO_CORES) {
+        const output = await Command.sidecar(`sidecar/${core}`, [
+          "-v",
+        ]).execute();
+        if (output.code === 0) {
+          const regex = /(alpha-\w+|v\d+(?:\.\d+)*)/gm;
+          const version = output.stdout.match(regex)?.[0];
+          if (version) {
+            coresInfo = coresInfo.map((c) =>
+              c.core === core ? { ...c, version } : c,
+            );
+          }
+        }
+      }
+      return coresInfo;
+    },
+    [],
+  );
+
+  const refreshMihomoPermissions = useCallback(
+    async (coresInfo: MihomoCoreInfo[]) => {
+      if (enableGrantPermissions) {
+        await refreshPermissionsGranted();
+        for (const core of MIHOMO_CORES) {
+          const granted = await checkPermissionsGranted(core);
           coresInfo = coresInfo.map((c) =>
-            c.core === core ? { ...c, version } : c,
+            c.core === core ? { ...c, permissionsGranted: granted } : c,
           );
         }
       }
-    }
-    return coresInfo;
-  };
-
-  const refreshMihomoPermissions = async (coresInfo: MihomoCoreInfo[]) => {
-    if (enableGrantPermissions) {
-      await refreshPermissionsGranted();
-      for (const core of MIHOMO_CORES) {
-        const granted = await checkPermissionsGranted(core);
-        coresInfo = coresInfo.map((c) =>
-          c.core === core ? { ...c, permissionsGranted: granted } : c,
-        );
-      }
-    }
-    return coresInfo;
-  };
+      return coresInfo;
+    },
+    [],
+  );
 
   return {
     mihomoCoresInfo,

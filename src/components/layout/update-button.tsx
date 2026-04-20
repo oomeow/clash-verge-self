@@ -1,4 +1,4 @@
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { check } from "@tauri-apps/plugin-updater";
 import React, { Suspense, useRef } from "react";
 import useSWR from "swr";
@@ -16,13 +16,14 @@ interface Props {
 
 export const UpdateButton = (props: Props) => {
   const { className } = props;
-  const { verge } = useVerge();
-  const { auto_check_update } = verge || {};
+  const autoCheckUpdate = useVergeStore(
+    (s) => s.verge.auto_check_update ?? true,
+  );
 
   const viewerRef = useRef<DialogRef>(null);
 
   const { data: updateInfo } = useSWR(
-    auto_check_update || auto_check_update === null ? "checkUpdate" : null,
+    autoCheckUpdate ? "checkUpdate" : null,
     check,
     {
       errorRetryCount: 2,

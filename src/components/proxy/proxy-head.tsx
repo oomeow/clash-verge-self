@@ -4,7 +4,7 @@ import {
   useProxyHeadStateStore,
 } from "@/stores/proxyHeadStateStore";
 import { useProfiles } from "@/hooks/use-profiles";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import delayManager from "@/services/delay";
 import AccessTimeRounded from "@mui/icons-material/AccessTimeRounded";
 import FilterAltOffRounded from "@mui/icons-material/FilterAltOffRounded";
@@ -56,11 +56,11 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
     return () => clearTimeout(timer);
   }, []);
 
-  const { verge } = useVerge();
+  const defaultLatencyTest = useVergeStore((s) => s.verge.default_latency_test);
 
   useEffect(() => {
-    delayManager.setUrl(groupName, testUrl || verge?.default_latency_test);
-  }, [groupName, testUrl, verge?.default_latency_test]);
+    delayManager.setUrl(groupName, testUrl || defaultLatencyTest);
+  }, [groupName, testUrl, defaultLatencyTest]);
 
   const filterChange = useMemo(
     () =>

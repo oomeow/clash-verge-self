@@ -1,5 +1,5 @@
 import { BaseLoading } from "@/components/base";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import delayManager from "@/services/delay";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import {
@@ -61,8 +61,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
     sx,
     onClick,
   } = props;
-  const { verge } = useVerge();
-  const timeout = verge?.default_latency_timeout || 5000;
+  const timeout = useVergeStore((s) => s.verge.default_latency_timeout ?? 5000);
   const delay = delayManager.getDelayFix(proxy, group.name);
 
   const onDelay = useLockFn(async () => {

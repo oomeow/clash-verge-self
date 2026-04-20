@@ -2,7 +2,7 @@ import { useConnectionData } from "@/hooks/use-connection-data";
 import { useLogData } from "@/hooks/use-log-data";
 import { useMemoryData } from "@/hooks/use-memory-data";
 import { useTrafficData } from "@/hooks/use-traffic-data";
-import { useVerge } from "@/hooks/use-verge";
+import { useVergeStore } from "@/stores";
 import { useVisibility } from "@/hooks/use-visibility";
 import { restartSidecar } from "@/services/cmds";
 import parseTraffic from "@/utils/parse-traffic";
@@ -18,15 +18,12 @@ import { TrafficGraph, type TrafficRef } from "./traffic-graph";
 
 // setup the traffic
 export const LayoutTraffic = () => {
-  const { verge } = useVerge();
+  const trafficGraph = useVergeStore((s) => s.verge.traffic_graph ?? true);
+  const displayMemory = useVergeStore(
+    (s) => s.verge.enable_memory_usage ?? true,
+  );
   const { notice } = useNotice();
-
-  // whether hide traffic graph
-  const trafficGraph = verge?.traffic_graph ?? true;
-
-  const trafficRef = useRef<TrafficRef>(null);
   const pageVisible = useVisibility();
-  const displayMemory = verge?.enable_memory_usage ?? true;
 
   // init mihomo websocket data
   const {
@@ -37,6 +34,8 @@ export const LayoutTraffic = () => {
   } = useMemoryData();
   useLogData();
   useConnectionData();
+
+  const trafficRef = useRef<TrafficRef>(null);
 
   useEffect(() => {
     if (trafficRef.current) trafficRef.current.appendData(traffic);
