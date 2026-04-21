@@ -437,6 +437,7 @@ pub struct Groups {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/adapter.go#L136
 pub struct Proxy {
     // group type need
     #[ts(optional)]
@@ -492,11 +493,13 @@ pub struct Proxy {
 
     #[serde(rename(serialize = "routingMark", deserialize = "routing-mark"))]
     pub routing_mark: i8,
+
+    pub provider_name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/4ca515896b4a67792a7b727c3c0288a3ca4831cb/constant/adapters.go#L171
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L18
 pub enum ProxyType {
     Direct,
     Reject,
