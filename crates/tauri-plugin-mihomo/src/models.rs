@@ -496,6 +496,7 @@ pub struct Proxy {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/4ca515896b4a67792a7b727c3c0288a3ca4831cb/constant/adapters.go#L171
 pub enum ProxyType {
     Direct,
     Reject,
