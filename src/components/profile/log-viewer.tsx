@@ -4,7 +4,7 @@ import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 import Close from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 interface Props {
   open: boolean;
@@ -354,7 +354,7 @@ const LogContent = ({
   log: LogMessage;
   syntaxClasses: SyntaxClasses;
 }) => {
-  const data = log.data.map(parseLogValue);
+  const data = useMemo(() => log.data.map(parseLogValue), [log.data]);
 
   return (
     <>
@@ -409,11 +409,7 @@ export const LogViewer = (props: Props) => {
         backgroundColor,
         color: textColor,
       }}>
-      <div
-        className={cn(
-          "h-full w-full font-mono text-xs leading-normal",
-          isDarkMode ? "bg-[#1f1f1f] text-[#f5f5f5]" : "bg-white text-gray-800",
-        )}>
+      <div className={cn("h-full w-full font-mono text-xs leading-normal")}>
         {logInfo.length === 0 ? (
           <div className="h-full w-full">
             <BaseEmpty />
