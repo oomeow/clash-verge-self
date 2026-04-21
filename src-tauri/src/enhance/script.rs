@@ -74,7 +74,7 @@ pub fn use_script(script: String, config: Mapping) -> AppResult<(Mapping, Vec<Lo
             Err(err) => {
                 out.push(LogMessage {
                     method: "error".into(),
-                    data: vec![err.to_string()],
+                    data: vec![],
                     exception: Some(err.to_string()),
                 });
                 Ok((config, out.to_vec()))

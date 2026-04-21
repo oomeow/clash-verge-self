@@ -230,11 +230,13 @@ pub async fn test_merge_chain(
                     config = res_config;
                     logs.extend(res_logs);
                 }
-                Err(err) => logs.push(LogMessage {
-                    method: "error".into(),
-                    data: vec![err.to_string()],
-                    exception: Some(err.to_string()),
-                }),
+                Err(err) => {
+                    logs.push(LogMessage {
+                        method: "error".into(),
+                        data: vec![],
+                        exception: Some(err.to_string()),
+                    });
+                }
             }
             result_map.insert(modified_uid, logs);
         }
@@ -281,7 +283,7 @@ fn execute_chains(config: &mut Mapping, chains: &Vec<ChainItem>, script_logs: &m
             Err(err) => {
                 let log_message = LogMessage {
                     method: "error".into(),
-                    data: vec![err.to_string()],
+                    data: vec![],
                     exception: Some(err.to_string()),
                 };
                 script_logs.insert(chain.uid.clone(), vec![log_message]);
