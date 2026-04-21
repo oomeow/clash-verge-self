@@ -12,7 +12,7 @@ export declare function updateController(controller: string): Promise<void>;
  */
 export declare function updateSecret(secret: string): Promise<void>;
 /**
- * 获取Mihomo版本信息
+ * 获取 Mihomo 版本信息
  */
 export declare function getVersion(): Promise<MihomoVersion>;
 /**
@@ -202,32 +202,32 @@ export declare class MihomoWebSocket {
     private static instances;
     constructor(id: number, listeners: Set<(arg: Message) => void>);
     /**
-     * 创建一个新的 WebSocket 连接，用于 Mihomo 的流量监控
+     * 监听 Mihomo 的流量信息
      * @returns WebSocket 实例
      */
     static connect_traffic(): Promise<MihomoWebSocket>;
     /**
-     * 创建一个新的 WebSocket 连接，用于 Mihomo 的内存监控
+     * 监听 Mihomo 的内存信息
      * @returns WebSocket 实例
      */
     static connect_memory(): Promise<MihomoWebSocket>;
     /**
-     * 创建一个新的 WebSocket 连接，用于 Mihomo 的连接监控
+     * 监听 Mihomo 的连接信息
      * @returns WebSocket 实例
      */
     static connect_connections(): Promise<MihomoWebSocket>;
     /**
-     * 创建一个新的 WebSocket 连接，用于 Mihomo 的日志监控
+     * 监听 Mihomo 的日志信息
      * @returns WebSocket 实例
      */
     static connect_logs(level: LogLevel): Promise<MihomoWebSocket>;
     /**
-     * 添加处理 WebSocket 连接后接受的数据的回调函数
+     * WebSocket 接收数据的回调函数
      * @param cb 回调函数
      */
     addListener(cb: (arg: Message) => void): () => void;
     /**
-     * 关闭 WebSocket 连接
+     * 关闭连接
      * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认为 0
      */
     close(): Promise<void>;

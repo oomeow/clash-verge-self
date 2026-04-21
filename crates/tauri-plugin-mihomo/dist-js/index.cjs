@@ -20,7 +20,7 @@ async function updateSecret(secret) {
     await core.invoke("plugin:mihomo|update_secret", { secret });
 }
 /**
- * 获取Mihomo版本信息
+ * 获取 Mihomo 版本信息
  */
 async function getVersion() {
     return await core.invoke("plugin:mihomo|get_version");
@@ -304,7 +304,7 @@ class MihomoWebSocket {
         this.listeners = listeners;
     }
     /**
-     * 创建一个新的 WebSocket 连接，用于 Mihomo 的流量监控
+     * 监听 Mihomo 的流量信息
      * @returns WebSocket 实例
      */
     static async connect_traffic() {
@@ -323,7 +323,7 @@ class MihomoWebSocket {
         return instance;
     }
     /**
-     * 创建一个新的 WebSocket 连接，用于 Mihomo 的内存监控
+     * 监听 Mihomo 的内存信息
      * @returns WebSocket 实例
      */
     static async connect_memory() {
@@ -342,7 +342,7 @@ class MihomoWebSocket {
         return instance;
     }
     /**
-     * 创建一个新的 WebSocket 连接，用于 Mihomo 的连接监控
+     * 监听 Mihomo 的连接信息
      * @returns WebSocket 实例
      */
     static async connect_connections() {
@@ -361,7 +361,7 @@ class MihomoWebSocket {
         return instance;
     }
     /**
-     * 创建一个新的 WebSocket 连接，用于 Mihomo 的日志监控
+     * 监听 Mihomo 的日志信息
      * @returns WebSocket 实例
      */
     static async connect_logs(level) {
@@ -381,7 +381,7 @@ class MihomoWebSocket {
         return instance;
     }
     /**
-     * 添加处理 WebSocket 连接后接受的数据的回调函数
+     * WebSocket 接收数据的回调函数
      * @param cb 回调函数
      */
     addListener(cb) {
@@ -410,7 +410,7 @@ class MihomoWebSocket {
     //   await invoke("plugin:mihomo|ws_send", { id: this.id, message: m });
     // }
     /**
-     * 关闭 WebSocket 连接
+     * 关闭连接
      * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认为 0
      */
     async close() {
