@@ -494,6 +494,7 @@ pub struct Proxy {
     #[serde(rename(serialize = "routingMark", deserialize = "routing-mark"))]
     pub routing_mark: i8,
 
+    #[serde(rename(serialize = "providerName", deserialize = "provider-name"))]
     pub provider_name: String,
 }
 
