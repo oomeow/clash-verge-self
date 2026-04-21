@@ -1,6 +1,7 @@
-import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { Button, ButtonGroup } from "@mui/material";
 import { useTranslation } from "react-i18next";
+
+import { useCustomTheme } from "@/components/layout/use-custom-theme";
 
 type ThemeValue = IVergeConfig["theme_mode"];
 

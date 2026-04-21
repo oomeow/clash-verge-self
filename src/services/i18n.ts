@@ -1,9 +1,10 @@
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+
 import en from "../../locales/en.json";
 import fa from "../../locales/fa.json";
 import ru from "../../locales/ru.json";
 import zh_CN from "../../locales/zh_CN.json";
-import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
 
 const resources = {
   en: { translation: en },

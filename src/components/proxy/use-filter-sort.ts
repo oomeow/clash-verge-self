@@ -1,5 +1,6 @@
-import delayManager from "@/services/delay";
 import { useEffect, useMemo, useState } from "react";
+
+import delayManager from "@/services/delay";
 
 // default | delay | alphabet
 export type ProxySortType = 0 | 1 | 2;

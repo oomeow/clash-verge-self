@@ -1,7 +1,8 @@
+import { useEffect, useMemo, useRef } from "react";
+
 import { dispatchHotkeyAction } from "@/services/cmds";
 import getSystem from "@/utils/get-system";
 import { parseHotkey } from "@/utils/parse-hotkey";
-import { useEffect, useMemo, useRef } from "react";
 
 export const MODIFIER_KEYS = new Set(["CMD", "CTRL", "OPTION", "ALT", "SHIFT"]);
 const HOTKEY_TOKEN_ORDER = ["CMD", "CTRL", "OPTION", "ALT", "SHIFT"];

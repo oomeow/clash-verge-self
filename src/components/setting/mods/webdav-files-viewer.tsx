@@ -1,14 +1,3 @@
-import LinuxIcon from "@/assets/image/linux.svg?react";
-import MacIcon from "@/assets/image/macos.svg?react";
-import WindowsIcon from "@/assets/image/windows.svg?react";
-import { BaseDialog, DialogRef, Marquee } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import {
-  deleteBackup,
-  downloadBackupAndReload,
-  listBackup,
-} from "@/services/cmds";
-import { sleep } from "@/utils";
 import Check from "@mui/icons-material/Check";
 import Delete from "@mui/icons-material/Delete";
 import InboxRounded from "@mui/icons-material/InboxRounded";
@@ -27,6 +16,18 @@ import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import LinuxIcon from "@/assets/image/linux.svg?react";
+import MacIcon from "@/assets/image/macos.svg?react";
+import WindowsIcon from "@/assets/image/windows.svg?react";
+import { BaseDialog, DialogRef, Marquee } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import {
+  deleteBackup,
+  downloadBackupAndReload,
+  listBackup,
+} from "@/services/cmds";
+import { sleep } from "@/utils";
 
 dayjs.extend(customParseFormat);
 

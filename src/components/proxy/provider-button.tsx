@@ -1,16 +1,13 @@
-import { calcuProxyProviders } from "@/services/api";
-import { cn } from "@/utils";
-import parseTraffic from "@/utils/parse-traffic";
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import {
+  alpha,
   Box,
   Button,
   Divider,
   IconButton,
   LinearProgress,
-  Typography,
-  alpha,
   styled,
+  Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
 import { throttle } from "lodash-es";
@@ -18,6 +15,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import useSWR, { mutate } from "swr";
 import { updateProxyProvider } from "tauri-plugin-mihomo-api";
+
+import { calcuProxyProviders } from "@/services/api";
+import { cn } from "@/utils";
+import parseTraffic from "@/utils/parse-traffic";
+
 import { BaseDialog } from "../base";
 
 export const ProviderButton = () => {

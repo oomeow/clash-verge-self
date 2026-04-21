@@ -1,3 +1,18 @@
+import "dayjs/locale/ru";
+import "dayjs/locale/zh-cn";
+
+import { Paper } from "@mui/material";
+import { Outlet, useRouterState } from "@tanstack/react-router";
+import { Event, listen } from "@tauri-apps/api/event";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import i18next from "i18next";
+import { debounce } from "lodash-es";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { mutate, SWRConfig } from "swr";
+
 import { TailwindIndicator } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { LayoutControl } from "@/components/layout/layout-control";
@@ -9,19 +24,6 @@ import LoadingPage from "@/pages/loading";
 import { useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
-import { Paper } from "@mui/material";
-import { Outlet, useRouterState } from "@tanstack/react-router";
-import { Event, listen } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import dayjs from "dayjs";
-import "dayjs/locale/ru";
-import "dayjs/locale/zh-cn";
-import relativeTime from "dayjs/plugin/relativeTime";
-import i18next from "i18next";
-import { debounce } from "lodash-es";
-import { Suspense, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { SWRConfig, mutate } from "swr";
 
 dayjs.extend(relativeTime);
 const OS = getSystem();

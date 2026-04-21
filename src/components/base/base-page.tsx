@@ -1,6 +1,8 @@
-import { cn } from "@/utils";
 import { Typography } from "@mui/material";
 import React, { ReactNode } from "react";
+
+import { cn } from "@/utils";
+
 import { BaseErrorBoundary } from "./base-error-boundary";
 
 interface Props {

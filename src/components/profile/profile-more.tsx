@@ -1,11 +1,3 @@
-import JSIcon from "@/assets/image/js.svg?react";
-import YamlIcon from "@/assets/image/yaml.svg?react";
-import { Marquee } from "@/components/base";
-import { LogViewer } from "@/components/profile/log-viewer";
-import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
-import { viewProfile } from "@/services/cmds";
-import { useThemeModeStore } from "@/stores";
-import { cn } from "@/utils";
 import Block from "@mui/icons-material/Block";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import Delete from "@mui/icons-material/Delete";
@@ -29,6 +21,16 @@ import {
 import { useLockFn } from "ahooks";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import JSIcon from "@/assets/image/js.svg?react";
+import YamlIcon from "@/assets/image/yaml.svg?react";
+import { Marquee } from "@/components/base";
+import { LogViewer } from "@/components/profile/log-viewer";
+import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
+import { viewProfile } from "@/services/cmds";
+import { useThemeModeStore } from "@/stores";
+import { cn } from "@/utils";
+
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";

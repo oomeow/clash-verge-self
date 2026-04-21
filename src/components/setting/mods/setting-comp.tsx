@@ -1,4 +1,3 @@
-import isAsyncFunction from "@/utils/is-async-function";
 import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
 import {
   Box,
@@ -10,6 +9,8 @@ import {
 } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
 import React, { ReactNode, useState } from "react";
+
+import isAsyncFunction from "@/utils/is-async-function";
 
 interface ItemProps {
   label: ReactNode;

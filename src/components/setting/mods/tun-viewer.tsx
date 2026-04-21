@@ -1,7 +1,3 @@
-import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { useClash } from "@/hooks/use-clash";
-import getSystem from "@/utils/get-system";
 import {
   Box,
   Button,
@@ -14,6 +10,12 @@ import {
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { useClash } from "@/hooks/use-clash";
+import getSystem from "@/utils/get-system";
+
 import { StackModeSwitch } from "./stack-mode-switch";
 
 const OS = getSystem();

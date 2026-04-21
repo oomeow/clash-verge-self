@@ -1,7 +1,6 @@
+import { LogLevel } from "tauri-plugin-mihomo-api";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-import { LogLevel } from "tauri-plugin-mihomo-api";
 
 export type LogFilter = "all" | "inf" | "warn" | "err";
 

@@ -1,18 +1,19 @@
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
-import parseTraffic from "@/utils/parse-traffic";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import {
+  alpha,
   IconButton,
   ListItem,
   ListItemText,
-  Typography,
-  alpha,
   styled,
+  Typography,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import { closeConnection } from "tauri-plugin-mihomo-api";
+
+import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import parseTraffic from "@/utils/parse-traffic";
 
 const Tag = styled("span")(({ theme }) => ({
   fontSize: "10px",

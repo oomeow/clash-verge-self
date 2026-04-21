@@ -1,11 +1,3 @@
-import {
-  createScopedHeadStateActions,
-  DEFAULT_STATE,
-  useProxyHeadStateStore,
-} from "@/stores/proxyHeadStateStore";
-import { useProfiles } from "@/hooks/use-profiles";
-import { useVergeStore } from "@/stores";
-import delayManager from "@/services/delay";
 import AccessTimeRounded from "@mui/icons-material/AccessTimeRounded";
 import FilterAltOffRounded from "@mui/icons-material/FilterAltOffRounded";
 import FilterAltRounded from "@mui/icons-material/FilterAltRounded";
@@ -21,6 +13,16 @@ import { Box, IconButton, SxProps, TextField } from "@mui/material";
 import debounce from "lodash-es/debounce";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useProfiles } from "@/hooks/use-profiles";
+import delayManager from "@/services/delay";
+import { useVergeStore } from "@/stores";
+import {
+  createScopedHeadStateActions,
+  DEFAULT_STATE,
+  useProxyHeadStateStore,
+} from "@/stores/proxyHeadStateStore";
+
 import type { ProxySortType } from "./use-filter-sort";
 
 interface Props {

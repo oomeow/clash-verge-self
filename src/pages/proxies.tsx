@@ -1,13 +1,14 @@
-import { BasePage } from "@/components/base";
-import { ProviderButton } from "@/components/proxy/provider-button";
-import { ProxyGroups } from "@/components/proxy/proxy-groups";
-import { useClashInfo } from "@/hooks/use-clash";
-import { useVergeStore } from "@/stores";
 import { Box, Button, ButtonGroup } from "@mui/material";
 import { useLockFn, useMemoizedFn } from "ahooks";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { closeAllConnections } from "tauri-plugin-mihomo-api";
+
+import { BasePage } from "@/components/base";
+import { ProviderButton } from "@/components/proxy/provider-button";
+import { ProxyGroups } from "@/components/proxy/proxy-groups";
+import { useClashInfo } from "@/hooks/use-clash";
+import { useVergeStore } from "@/stores";
 
 const ProxyPage = () => {
   const { t } = useTranslation();

@@ -1,23 +1,3 @@
-import { DialogRef } from "@/components/base";
-import WebDavFilesViewer, {
-  WebDavFilesViewerRef,
-} from "@/components/setting/mods/webdav-files-viewer";
-import { useVergeStore } from "@/stores";
-import { routes } from "@/routes/__root";
-import {
-  applyLocalBackup,
-  copyClashEnv,
-  createAndUploadBackup,
-  createLocalBackup,
-  exitApp,
-  getAppDir,
-  openAppDir,
-  openCoreDir,
-  openDevTools,
-  openLogsDir,
-  updateWebDavInfo,
-} from "@/services/cmds";
-import getSystem from "@/utils/get-system";
 import Check from "@mui/icons-material/Check";
 import CloudUpload from "@mui/icons-material/CloudUpload";
 import ContentCopy from "@mui/icons-material/ContentCopy";
@@ -47,15 +27,37 @@ import { check } from "@tauri-apps/plugin-updater";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+
+import { DialogRef } from "@/components/base";
+import WebDavFilesViewer, {
+  WebDavFilesViewerRef,
+} from "@/components/setting/mods/webdav-files-viewer";
+import { routes } from "@/routes/__root";
+import {
+  applyLocalBackup,
+  copyClashEnv,
+  createAndUploadBackup,
+  createLocalBackup,
+  exitApp,
+  getAppDir,
+  openAppDir,
+  openCoreDir,
+  openDevTools,
+  openLogsDir,
+  updateWebDavInfo,
+} from "@/services/cmds";
+import { useVergeStore } from "@/stores";
+import getSystem from "@/utils/get-system";
+
 import { useNotice } from "../base/notifies";
+import ConfigViewer from "./mods/config-viewer";
 import { GuardState } from "./mods/guard-state";
+import HotkeyViewer from "./mods/hotkey-viewer";
+import LayoutViewer from "./mods/layout-viewer";
+import MiscViewer from "./mods/misc-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { ThemeModeSwitch } from "./mods/theme-mode-switch";
 import ThemeViewer from "./mods/theme-viewer";
-import ConfigViewer from "./mods/config-viewer";
-import HotkeyViewer from "./mods/hotkey-viewer";
-import MiscViewer from "./mods/misc-viewer";
-import LayoutViewer from "./mods/layout-viewer";
 import UpdateViewer from "./mods/update-viewer";
 
 interface Props {

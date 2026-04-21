@@ -1,9 +1,3 @@
-import { useVergeStore } from "@/stores";
-import {
-  normalizeThemeSetting,
-  useThemeModeStore,
-  useThemeSettingsStore,
-} from "@/stores";
 import {
   alpha,
   createTheme,
@@ -15,6 +9,13 @@ import {
 import { enUS, zhCN } from "@mui/x-data-grid/locales";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useMemo } from "react";
+
+import { useVergeStore } from "@/stores";
+import {
+  normalizeThemeSetting,
+  useThemeModeStore,
+  useThemeSettingsStore,
+} from "@/stores";
 
 const appWindow = getCurrentWebviewWindow();
 

@@ -1,15 +1,16 @@
 import { StyledEngineProvider, ThemeProvider } from "@mui/material";
-import { useCustomTheme } from "./components/layout/use-custom-theme";
+import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { SnackbarProvider } from "notistack";
+import { useEffect } from "react";
+
 import {
   BaseErrorBoundary,
   MyNoticeContainer,
   NoticeProvider,
 } from "./components/base";
-import { SnackbarProvider } from "notistack";
-import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { useCustomTheme } from "./components/layout/use-custom-theme";
 import { routeTree } from "./routeTree.gen";
 import { useThemeSettingsStore, useVergeStore } from "./stores";
-import { useEffect } from "react";
 
 // Create a new router instance
 const router = createRouter({ routeTree });

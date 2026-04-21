@@ -1,7 +1,9 @@
-import { useVergeStore } from "@/stores";
 import { check } from "@tauri-apps/plugin-updater";
 import React, { Suspense, useRef } from "react";
 import useSWR from "swr";
+
+import { useVergeStore } from "@/stores";
+
 import { DialogRef } from "../base";
 
 const UpdateViewer = React.lazy(() =>

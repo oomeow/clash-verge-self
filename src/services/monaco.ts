@@ -1,7 +1,8 @@
 import { t } from "i18next";
-import { getTemplate } from "./cmds";
 import type { editor } from "monaco-editor";
 import type { JSONSchema } from "monaco-yaml";
+
+import { getTemplate } from "./cmds";
 
 // 延迟加载 Monaco Editor
 let monacoInstance: typeof import("monaco-editor") | null = null;

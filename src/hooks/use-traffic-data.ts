@@ -1,8 +1,9 @@
-import { TrafficRef } from "@/components/layout/traffic-graph";
 import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+
+import { TrafficRef } from "@/components/layout/traffic-graph";
 import { useRefreshTrafficDateStore } from "@/stores";
 
 export const useTrafficData = () => {

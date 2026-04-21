@@ -1,14 +1,16 @@
-import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { normalizeKeyList, normalizeKeys } from "@/hooks/use-app-hotkeys";
-import { useVergeStore } from "@/stores";
 import { Button, styled, Typography } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatHotkeyKey, HotkeyInput } from "./hotkey-input";
 import { useShallow } from "zustand/react/shallow";
+
+import { BaseDialog, DialogRef } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { normalizeKeyList, normalizeKeys } from "@/hooks/use-app-hotkeys";
+import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
+
+import { formatHotkeyKey, HotkeyInput } from "./hotkey-input";
 
 const OS = getSystem();
 

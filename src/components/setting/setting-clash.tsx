@@ -1,12 +1,3 @@
-import { DialogRef, SwitchLovely } from "@/components/base";
-import { useClash } from "@/hooks/use-clash";
-import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
-import { usePortable } from "@/hooks/use-portable";
-import { useService } from "@/hooks/use-service";
-import { useVergeStore } from "@/stores";
-import { invoke_uwp_tool } from "@/services/cmds";
-import { useClashLogStore } from "@/stores";
-import getSystem from "@/utils/get-system";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Lan from "@mui/icons-material/Lan";
 import PrivacyTipRounded from "@mui/icons-material/PrivacyTipRounded";
@@ -25,16 +16,27 @@ import {
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
+
+import { DialogRef, SwitchLovely } from "@/components/base";
+import { useClash } from "@/hooks/use-clash";
+import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
+import { usePortable } from "@/hooks/use-portable";
+import { useService } from "@/hooks/use-service";
+import { invoke_uwp_tool } from "@/services/cmds";
+import { useVergeStore } from "@/stores";
+import { useClashLogStore } from "@/stores";
+import getSystem from "@/utils/get-system";
+
 import { useNotice } from "../base/notifies";
+import ClashCoreViewer from "./mods/clash-core-viewer";
+import ClashPortViewer from "./mods/clash-port-viewer";
+import ControllerViewer from "./mods/controller-viewer";
 import { GuardState } from "./mods/guard-state";
+import NetInfoViewer from "./mods/net-info-viewer";
+import ServiceViewer from "./mods/service-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import TunViewer from "./mods/tun-viewer";
 import WebUIViewer from "./mods/web-ui-viewer";
-import ClashPortViewer from "./mods/clash-port-viewer";
-import ControllerViewer from "./mods/controller-viewer";
-import ClashCoreViewer from "./mods/clash-core-viewer";
-import ServiceViewer from "./mods/service-viewer";
-import NetInfoViewer from "./mods/net-info-viewer";
 
 const OS = getSystem();
 

@@ -1,7 +1,3 @@
-import { BaseEmpty, BasePage, BaseSearchBox } from "@/components/base";
-import { ProviderButton } from "@/components/rule/provider-button";
-import { RuleItem } from "@/components/rule/rule-item";
-import { getRuleProviderPayload } from "@/services/cmds";
 import ExpandIcon from "@mui/icons-material/Expand";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 import { Box, IconButton } from "@mui/material";
@@ -16,7 +12,13 @@ import {
   RuleBehavior,
   RuleFormat,
 } from "tauri-plugin-mihomo-api";
+
+import { BaseEmpty, BasePage, BaseSearchBox } from "@/components/base";
+import { ProviderButton } from "@/components/rule/provider-button";
+import { RuleItem } from "@/components/rule/rule-item";
+import { getRuleProviderPayload } from "@/services/cmds";
 import { useRulesStateStore } from "@/stores";
+
 import LoadingPage from "./loading";
 
 export type CustomRule = Rule &

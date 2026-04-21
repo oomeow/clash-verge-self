@@ -1,10 +1,3 @@
-import { ProxyGroupSidebar } from "@/components/proxy/proxy-group-sidebar";
-import { ProxyRender } from "@/components/proxy/proxy-render";
-import { useProfiles } from "@/hooks/use-profiles";
-import { useVergeStore } from "@/stores";
-import LoadingPage from "@/pages/loading";
-import delayManager from "@/services/delay";
-import { cn } from "@/utils";
 import { Box } from "@mui/material";
 import { useLockFn, useMemoizedFn, useThrottleFn } from "ahooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -17,6 +10,15 @@ import {
   selectNodeForGroup,
   unfixedProxy,
 } from "tauri-plugin-mihomo-api";
+
+import { ProxyGroupSidebar } from "@/components/proxy/proxy-group-sidebar";
+import { ProxyRender } from "@/components/proxy/proxy-render";
+import { useProfiles } from "@/hooks/use-profiles";
+import LoadingPage from "@/pages/loading";
+import delayManager from "@/services/delay";
+import { useVergeStore } from "@/stores";
+import { cn } from "@/utils";
+
 import { BaseEmpty } from "../base";
 import { useRenderList } from "./use-render-list";
 

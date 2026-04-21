@@ -1,4 +1,5 @@
 import { create } from "zustand";
+
 import { CustomRule } from "@/pages/rules";
 
 type RulesState = {

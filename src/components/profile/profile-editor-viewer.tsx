@@ -1,19 +1,4 @@
 import {
-  BaseDialog,
-  DraggableItem,
-  Marquee,
-  SwitchLovely,
-} from "@/components/base";
-import { LogMessage } from "@/components/profile/profile-more";
-import { useProfiles } from "@/hooks/use-profiles";
-import {
-  enhanceProfiles,
-  getChains,
-  patchProfile,
-  reorderProfile,
-} from "@/services/cmds";
-import { sleep } from "@/utils";
-import {
   closestCenter,
   defaultDropAnimationSideEffects,
   DndContext,
@@ -45,6 +30,23 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { mutate } from "swr";
+
+import {
+  BaseDialog,
+  DraggableItem,
+  Marquee,
+  SwitchLovely,
+} from "@/components/base";
+import { LogMessage } from "@/components/profile/profile-more";
+import { useProfiles } from "@/hooks/use-profiles";
+import {
+  enhanceProfiles,
+  getChains,
+  patchProfile,
+  reorderProfile,
+} from "@/services/cmds";
+import { sleep } from "@/utils";
+
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileEditor, ProfileEditorHandle } from "./profile-editor";

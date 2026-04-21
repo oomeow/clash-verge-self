@@ -1,14 +1,15 @@
-import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { useService } from "@/hooks/use-service";
-import { useVergeStore } from "@/stores";
-import { installService, uninstallService } from "@/services/cmds";
 import Check from "@mui/icons-material/Check";
 import Close from "@mui/icons-material/Close";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { BaseDialog, DialogRef } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { useService } from "@/hooks/use-service";
+import { installService, uninstallService } from "@/services/cmds";
+import { useVergeStore } from "@/stores";
 
 interface Props {
   enable: boolean;

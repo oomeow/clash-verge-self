@@ -1,11 +1,12 @@
-import { useNotice } from "@/components/base/notifies";
-import { MODIFIER_KEYS, normalizeKeyList } from "@/hooks/use-app-hotkeys";
-import { parseHotkey } from "@/utils/parse-hotkey";
-import getSystem from "@/utils/get-system";
 import DeleteRounded from "@mui/icons-material/DeleteRounded";
 import { alpha, Box, IconButton, styled } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useNotice } from "@/components/base/notifies";
+import { MODIFIER_KEYS, normalizeKeyList } from "@/hooks/use-app-hotkeys";
+import getSystem from "@/utils/get-system";
+import { parseHotkey } from "@/utils/parse-hotkey";
 
 const OS = getSystem();
 

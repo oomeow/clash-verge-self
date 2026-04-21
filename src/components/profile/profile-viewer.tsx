@@ -1,6 +1,3 @@
-import { BaseDialog, SwitchLovely } from "@/components/base";
-import { FileInput } from "@/components/profile/file-input";
-import { createProfile, patchProfile } from "@/services/cmds";
 import {
   Button,
   ButtonGroup,
@@ -20,6 +17,11 @@ import {
 } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
+
+import { BaseDialog, SwitchLovely } from "@/components/base";
+import { FileInput } from "@/components/profile/file-input";
+import { createProfile, patchProfile } from "@/services/cmds";
+
 import { useNotice } from "../base/notifies";
 
 interface Props {

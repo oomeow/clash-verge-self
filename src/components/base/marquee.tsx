@@ -1,4 +1,3 @@
-import { cn } from "@/utils";
 import { debounce } from "lodash-es";
 import React, {
   ComponentPropsWithoutRef,
@@ -6,6 +5,8 @@ import React, {
   useRef,
   useState,
 } from "react";
+
+import { cn } from "@/utils";
 
 // ref https://github.com/magicuidesign/magicui/blob/main/registry/magicui/marquee.tsx
 // modified from MagicUI Marquee component.
