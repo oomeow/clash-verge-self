@@ -2,12 +2,12 @@ name: Build dist-js
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - dev
-    paths:
-      - "crates/tauri-plugin-mihomo/guest-js/**"
-      - "crates/tauri-plugin-mihomo/src/models.rs"
+  # push:
+  #   branches:
+  #     - dev
+  #   paths:
+  #     - "crates/tauri-plugin-mihomo/guest-js/**"
+  #     - "crates/tauri-plugin-mihomo/src/models.rs"
 
 permissions: write-all
 
