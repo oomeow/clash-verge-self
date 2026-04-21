@@ -20,7 +20,7 @@ env:
   RUST_BACKTRACE: short
 
 jobs:
-  build-dist-js:
+  update-dist-js-or-guest-js:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository
@@ -74,6 +74,7 @@ jobs:
           git push origin dev
 
   delete-release-assets:
+    needs: [update-dist-js-or-guest-js]
     runs-on: ubuntu-latest
     steps:
       - name: Delete old release assets
