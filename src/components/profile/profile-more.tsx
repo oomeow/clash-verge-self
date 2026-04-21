@@ -27,15 +27,19 @@ import {
   Typography,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { Message } from "console-feed/lib/definitions/Component";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
 
-export interface LogMessage extends Message {
-  exception?: string;
+export interface LogMessage {
+  method: string;
+  data: string[];
+  exception?: string | null;
+  // id?: string;
+  // timestamp?: string;
+  // amount?: number;
 }
 interface Props {
   sx?: SxProps;

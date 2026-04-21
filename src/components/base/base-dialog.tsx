@@ -104,7 +104,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
               ...contentStyle,
             }}
             className={cn(
-              "bg-comment text-primary-text inline-flex max-h-[calc(100%-100px)] w-full max-w-md flex-col rounded-sm shadow-xl",
+              "bg-comment text-primary-text inline-flex max-h-[calc(100%-100px)] w-full max-w-md flex-col rounded-sm px-6 shadow-xl",
               {
                 "h-full max-w-[calc(100%-100px)]": fullWidth,
                 "h-full max-h-full w-full max-w-full": full,
@@ -112,21 +112,21 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
             )}>
             <div
               ref={titlebarRef}
-              className={cn("w-full px-6 py-4 text-xl font-bold", {
+              className={cn("w-full py-4 text-xl font-bold", {
                 "pt-6": full && OS === "macos",
               })}>
               {title}
             </div>
 
             <div
-              className={cn("h-full overflow-y-auto px-6", {
+              className={cn("h-full overflow-y-auto", {
                 "mb-6": hideFooter,
               })}>
               {children}
             </div>
 
             {!hideFooter && (
-              <div className="my-4 flex justify-end space-x-2! px-6">
+              <div className="my-4 flex justify-end space-x-2!">
                 {!hideCancelBtn && (
                   <Button variant="outlined" onClick={onCancel}>
                     {cancelBtn}

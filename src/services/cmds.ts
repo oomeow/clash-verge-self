@@ -9,6 +9,18 @@ export interface MergeResult {
   logs: Record<string, LogMessage[]>;
 }
 
+const parseLogData = (data: unknown[]) => {
+  return data.map((item) => {
+    if (typeof item !== "string") return item;
+
+    try {
+      return JSON.parse(item);
+    } catch (ignore) {
+      return item;
+    }
+  });
+};
+
 export async function getClashLogs() {
   const regex = /time="(.+?)"\s+level=(.+?)\s+msg="(.+?)"/;
   const newRegex = /(.+?)\s+(.+?)\s+(.+)/;
@@ -144,15 +156,7 @@ export async function getRuntimeLogs() {
     const profileUid = item[0];
     const logs = item[1];
     logs.forEach((logsItem) => {
-      const newData = logsItem.data.map((i) => {
-        try {
-          const jsonData = JSON.parse(i);
-          return jsonData;
-        } catch (ignore) {
-          return i;
-        }
-      });
-      logsItem.data = newData;
+      logsItem.data = parseLogData(logsItem.data);
     });
     res[profileUid] = logs;
   });
@@ -169,15 +173,7 @@ export async function getPreMergeResult(
   });
   if (res.logs[modifiedUid]) {
     res.logs[modifiedUid].map((item) => {
-      const newData = item.data.map((i) => {
-        try {
-          const jsonData = JSON.parse(i);
-          return jsonData;
-        } catch (ignore) {
-          return i;
-        }
-      });
-      item.data = newData;
+      item.data = parseLogData(item.data);
     });
   }
   return res;
@@ -195,15 +191,7 @@ export async function testMergeChain(
   });
   if (res.logs[modifiedUid]) {
     res.logs[modifiedUid].map((item) => {
-      const newData = item.data.map((i) => {
-        try {
-          const jsonData = JSON.parse(i);
-          return jsonData;
-        } catch (ignore) {
-          return i;
-        }
-      });
-      item.data = newData;
+      item.data = parseLogData(item.data);
     });
   }
   return res;
