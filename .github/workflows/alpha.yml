@@ -51,6 +51,8 @@ jobs:
         run: |
           pnpm i
           pnpm build:mihomo-api
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check file changed
         uses: dorny/paths-filter@v3
