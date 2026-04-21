@@ -26,4 +26,5 @@ export type Proxy = {
     interface: string;
     dialerProxy: string;
     routingMark: number;
+    providerName: string;
 };
