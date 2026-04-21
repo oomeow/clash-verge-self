@@ -152,13 +152,15 @@ fn local_backup_file_path(file_name: String) -> AppResult<PathBuf> {
     Ok(local_backup_dir()?.join(file_name))
 }
 
-fn local_backup_file(entry: fs::DirEntry) -> AppResult<Option<BackupFile>> {
+fn local_backup_file(entry: fs::DirEntry) -> Option<BackupFile> {
     let path = entry.path();
     if !path.is_file() || path.extension().and_then(|ext| ext.to_str()) != Some("zip") {
-        return Ok(None);
+        return None;
     }
 
-    let metadata = entry.metadata()?;
+    let Ok(metadata) = entry.metadata() else {
+        return None;
+    };
     let last_modified = metadata
         .modified()
         .ok()
@@ -166,14 +168,14 @@ fn local_backup_file(entry: fs::DirEntry) -> AppResult<Option<BackupFile>> {
         .unwrap_or_default();
     let filename = entry.file_name().to_string_lossy().to_string();
 
-    Ok(Some(BackupFile {
+    Some(BackupFile {
         filename,
         href: path.to_string_lossy().to_string(),
         last_modified,
         content_length: metadata.len(),
         content_type: "application/zip".into(),
         tag: String::new(),
-    }))
+    })
 }
 
 fn webdav_backup_file(file: ListFile) -> BackupFile {
@@ -212,7 +214,7 @@ pub async fn list_backup_files(backup_type: BackupType) -> AppResult<Vec<BackupF
             let mut files = Vec::new();
 
             for entry in fs::read_dir(backup_dir)? {
-                if let Some(file) = local_backup_file(entry?)? {
+                if let Some(file) = local_backup_file(entry?) {
                     files.push(file);
                 }
             }
