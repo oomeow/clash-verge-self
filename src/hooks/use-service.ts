@@ -1,5 +1,6 @@
-import { checkService } from "@/services/cmds";
 import useSWR from "swr";
+
+import { checkService } from "@/services/cmds";
 
 export const useService = () => {
   const { data: serviceStatus, mutate: mutateCheckService } = useSWR<

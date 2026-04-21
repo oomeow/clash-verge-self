@@ -1,7 +1,3 @@
-import { LogViewer } from "@/components/profile/log-viewer";
-import { LogMessage } from "@/components/profile/profile-more";
-import { deleteProfile, patchProfile } from "@/services/cmds";
-import { cn } from "@/utils";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import CircleOutlined from "@mui/icons-material/CircleOutlined";
 import Delete from "@mui/icons-material/Delete";
@@ -19,6 +15,12 @@ import {
 } from "@mui/material";
 import { t } from "i18next";
 import { useRef, useState } from "react";
+
+import { LogViewer } from "@/components/profile/log-viewer";
+import { LogMessage } from "@/components/profile/profile-more";
+import { deleteProfile, patchProfile } from "@/services/cmds";
+import { cn } from "@/utils";
+
 import { Marquee } from "../base";
 import { useCustomTheme } from "../layout/use-custom-theme";
 import { ProfileViewer, ProfileViewerRef } from "./profile-viewer";

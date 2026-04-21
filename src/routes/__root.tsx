@@ -1,5 +1,10 @@
-import Layout from "@/pages/_layout";
-import NotFountPage from "@/pages/not_found";
+import DnsRoundedIcon from "@mui/icons-material/DnsRounded";
+import ForkRightRoundedIcon from "@mui/icons-material/ForkRightRounded";
+import LanguageRoundedIcon from "@mui/icons-material/LanguageRounded";
+import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
+import SubjectRoundedIcon from "@mui/icons-material/SubjectRounded";
+import WifiRoundedIcon from "@mui/icons-material/WifiRounded";
+import WifiTetheringRoundedIcon from "@mui/icons-material/WifiTetheringRounded";
 import { createRootRoute } from "@tanstack/react-router";
 
 import ConnectionsSvg from "@/assets/image/itemicon/connections.svg?react";
@@ -9,13 +14,8 @@ import ProxiesSvg from "@/assets/image/itemicon/proxies.svg?react";
 import RulesSvg from "@/assets/image/itemicon/rules.svg?react";
 import SettingsSvg from "@/assets/image/itemicon/settings.svg?react";
 import TestSvg from "@/assets/image/itemicon/test.svg?react";
-import DnsRoundedIcon from "@mui/icons-material/DnsRounded";
-import ForkRightRoundedIcon from "@mui/icons-material/ForkRightRounded";
-import LanguageRoundedIcon from "@mui/icons-material/LanguageRounded";
-import SettingsRoundedIcon from "@mui/icons-material/SettingsRounded";
-import SubjectRoundedIcon from "@mui/icons-material/SubjectRounded";
-import WifiRoundedIcon from "@mui/icons-material/WifiRounded";
-import WifiTetheringRoundedIcon from "@mui/icons-material/WifiTetheringRounded";
+import Layout from "@/pages/_layout";
+import NotFountPage from "@/pages/not_found";
 
 export const Route = createRootRoute({
   component: () => <Layout />,

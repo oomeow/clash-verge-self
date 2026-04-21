@@ -1,4 +1,4 @@
-import { TextField, type TextFieldProps, styled } from "@mui/material";
+import { styled, TextField, type TextFieldProps } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 export const BaseStyledTextField = styled((props: TextFieldProps) => {

@@ -1,14 +1,16 @@
+import { Command } from "@tauri-apps/plugin-shell";
+import { useCallback, useEffect } from "react";
+import useSWR from "swr";
+
 import {
   checkPermissionsGranted,
   refreshPermissionsGranted,
 } from "@/services/cmds";
+import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
-import { Command } from "@tauri-apps/plugin-shell";
-import { useCallback, useEffect } from "react";
-import useSWR from "swr";
+
 import { usePortable } from "./use-portable";
 import { useService } from "./use-service";
-import { useVergeStore } from "@/stores";
 
 type MihomoCoreInfo = {
   name: string;

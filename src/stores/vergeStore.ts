@@ -1,7 +1,8 @@
-import { getVergeConfig, patchVergeConfig } from "@/services/cmds";
 import { isEqual } from "lodash-es";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+
+import { getVergeConfig, patchVergeConfig } from "@/services/cmds";
 
 type VergeState = {
   verge: IVergeConfig;

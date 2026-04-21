@@ -1,10 +1,3 @@
-import { useProfiles } from "@/hooks/use-profiles";
-import { useVergeStore } from "@/stores";
-import { downloadIconCache } from "@/services/cmds";
-import {
-  createScopedHeadStateActions,
-  DEFAULT_STATE,
-} from "@/stores/proxyHeadStateStore";
 import ExpandLessRounded from "@mui/icons-material/ExpandLessRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
 import InboxRounded from "@mui/icons-material/InboxRounded";
@@ -20,6 +13,15 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { useMemoizedFn } from "ahooks";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { useProfiles } from "@/hooks/use-profiles";
+import { downloadIconCache } from "@/services/cmds";
+import { useVergeStore } from "@/stores";
+import {
+  createScopedHeadStateActions,
+  DEFAULT_STATE,
+} from "@/stores/proxyHeadStateStore";
+
 import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";

@@ -1,13 +1,8 @@
-import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { usePortable } from "@/hooks/use-portable";
-import { useWindowSize } from "@/hooks/use-window-size";
-import { useThemeModeStore, useAppUpdatingStore } from "@/stores";
-import getSystem from "@/utils/get-system";
 import { Box, Button, LinearProgress } from "@mui/material";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { open as openUrl } from "@tauri-apps/plugin-shell";
 import { check } from "@tauri-apps/plugin-updater";
+import MarkdownPreview from "@uiw/react-markdown-preview";
 import { useLockFn } from "ahooks";
 import React, {
   forwardRef,
@@ -17,7 +12,13 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 import useSWR from "swr";
-import MarkdownPreview from "@uiw/react-markdown-preview";
+
+import { BaseDialog, DialogRef } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { usePortable } from "@/hooks/use-portable";
+import { useWindowSize } from "@/hooks/use-window-size";
+import { useAppUpdatingStore, useThemeModeStore } from "@/stores";
+import getSystem from "@/utils/get-system";
 
 const OS = getSystem();
 

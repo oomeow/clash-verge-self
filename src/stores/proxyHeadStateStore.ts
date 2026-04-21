@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
+
 import { ProxySortType } from "@/components/proxy/use-filter-sort";
 
 export interface HeadState {

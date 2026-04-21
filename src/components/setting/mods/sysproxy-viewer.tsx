@@ -1,18 +1,3 @@
-import {
-  BaseDialog,
-  BaseFieldset,
-  DialogRef,
-  EditorViewer,
-  SwitchLovely,
-} from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { useVergeStore } from "@/stores";
-import {
-  getAutotemProxy,
-  getDefaultBypass,
-  getSystemProxy,
-} from "@/services/cmds";
-import getSystem from "@/utils/get-system";
 import Add from "@mui/icons-material/Add";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Remove from "@mui/icons-material/Remove";
@@ -34,6 +19,22 @@ import {
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import {
+  BaseDialog,
+  BaseFieldset,
+  DialogRef,
+  EditorViewer,
+  SwitchLovely,
+} from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import {
+  getAutotemProxy,
+  getDefaultBypass,
+  getSystemProxy,
+} from "@/services/cmds";
+import { useVergeStore } from "@/stores";
+import getSystem from "@/utils/get-system";
 
 const DEFAULT_PAC = `function FindProxyForURL(url, host) {
   return "PROXY 127.0.0.1:%mixed-port%; SOCKS5 127.0.0.1:%mixed-port%; DIRECT;";

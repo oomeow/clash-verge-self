@@ -1,11 +1,3 @@
-import { useConnectionData } from "@/hooks/use-connection-data";
-import { useLogData } from "@/hooks/use-log-data";
-import { useMemoryData } from "@/hooks/use-memory-data";
-import { useTrafficData } from "@/hooks/use-traffic-data";
-import { useVergeStore } from "@/stores";
-import { useVisibility } from "@/hooks/use-visibility";
-import { restartSidecar } from "@/services/cmds";
-import parseTraffic from "@/utils/parse-traffic";
 import ArrowDownward from "@mui/icons-material/ArrowDownward";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import MemoryOutlined from "@mui/icons-material/MemoryOutlined";
@@ -13,6 +5,16 @@ import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { t } from "i18next";
 import { debounce } from "lodash-es";
 import { useEffect, useRef } from "react";
+
+import { useConnectionData } from "@/hooks/use-connection-data";
+import { useLogData } from "@/hooks/use-log-data";
+import { useMemoryData } from "@/hooks/use-memory-data";
+import { useTrafficData } from "@/hooks/use-traffic-data";
+import { useVisibility } from "@/hooks/use-visibility";
+import { restartSidecar } from "@/services/cmds";
+import { useVergeStore } from "@/stores";
+import parseTraffic from "@/utils/parse-traffic";
+
 import { useNotice } from "../base/notifies";
 import { TrafficGraph, type TrafficRef } from "./traffic-graph";
 

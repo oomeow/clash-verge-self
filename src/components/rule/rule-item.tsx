@@ -1,19 +1,20 @@
-import { CustomRule } from "@/pages/rules";
-import Update from "@mui/icons-material/Update";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import Update from "@mui/icons-material/Update";
 import {
+  alpha,
   Box,
   Card,
   Collapse,
   IconButton,
   IconButtonProps,
   ListItemButton,
-  Typography,
-  alpha,
   styled,
+  Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
 import { Virtuoso } from "react-virtuoso";
+
+import { CustomRule } from "@/pages/rules";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;

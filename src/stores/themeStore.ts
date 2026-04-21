@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
 
 export type ThemeMode = "light" | "dark";

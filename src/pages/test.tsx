@@ -1,7 +1,3 @@
-import { BasePage, DraggableItem } from "@/components/base";
-import { TestItem } from "@/components/test/test-item";
-import { TestViewer, TestViewerRef } from "@/components/test/test-viewer";
-import { useVergeStore } from "@/stores";
 import {
   DndContext,
   DragEndEvent,
@@ -19,11 +15,16 @@ import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
+
 // test icons
 import apple from "@/assets/image/test/apple.svg?raw";
 import github from "@/assets/image/test/github.svg?raw";
 import google from "@/assets/image/test/google.svg?raw";
 import youtube from "@/assets/image/test/youtube.svg?raw";
+import { BasePage, DraggableItem } from "@/components/base";
+import { TestItem } from "@/components/test/test-item";
+import { TestViewer, TestViewerRef } from "@/components/test/test-viewer";
+import { useVergeStore } from "@/stores";
 
 const FlexDecorationItems = memo(function FlexDecorationItems() {
   return [...Array(20)].map((_, index) => (

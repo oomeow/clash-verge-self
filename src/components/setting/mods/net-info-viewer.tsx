@@ -1,8 +1,9 @@
-import { BaseDialog, CopyButton, DialogRef } from "@/components/base";
-import { getNetInfo } from "@/services/cmds";
 import { Typography } from "@mui/material";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { BaseDialog, CopyButton, DialogRef } from "@/components/base";
+import { getNetInfo } from "@/services/cmds";
 
 export const NetInfoViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();

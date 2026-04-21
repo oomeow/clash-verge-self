@@ -1,9 +1,10 @@
-import { BaseLoading } from "@/components/base";
-import { useVergeStore } from "@/stores";
-import delayManager from "@/services/delay";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { alpha, Box, ListItemButton, styled, Typography } from "@mui/material";
 import { memo } from "react";
+
+import { BaseLoading } from "@/components/base";
+import delayManager from "@/services/delay";
+import { useVergeStore } from "@/stores";
 
 interface Props {
   groupName: string;

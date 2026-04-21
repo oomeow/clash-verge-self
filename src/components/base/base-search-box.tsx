@@ -1,11 +1,12 @@
-import matchCaseIcon from "@/assets/image/component/match_case.svg?react";
-import matchWholeWordIcon from "@/assets/image/component/match_whole_word.svg?react";
-import useRegularExpressionIcon from "@/assets/image/component/use_regular_expression.svg?react";
 import ClearRounded from "@mui/icons-material/ClearRounded";
 import { Box, IconButton, SvgIcon, TextField, Tooltip } from "@mui/material";
 import { useDebounce, useMemoizedFn } from "ahooks";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import matchCaseIcon from "@/assets/image/component/match_case.svg?react";
+import matchWholeWordIcon from "@/assets/image/component/match_whole_word.svg?react";
+import useRegularExpressionIcon from "@/assets/image/component/use_regular_expression.svg?react";
 
 type SearchState = {
   text: string;

@@ -1,6 +1,7 @@
-import { isPortableVersion } from "@/services/cmds";
 import { useLocalStorageState } from "ahooks";
 import { useEffect } from "react";
+
+import { isPortableVersion } from "@/services/cmds";
 
 export const usePortable = () => {
   const [portable, setPortable] = useLocalStorageState("portable", {

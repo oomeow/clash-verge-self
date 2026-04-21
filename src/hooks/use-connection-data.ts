@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { mutate } from "swr";
 import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+
 import { useRefreshConnectionDateStore } from "@/stores";
 
 export type IClosedConnectionItem = IConnectionsItem & {

@@ -1,5 +1,3 @@
-import { useVergeStore } from "@/stores";
-import { cn } from "@/utils";
 import {
   alpha,
   Box,
@@ -10,6 +8,9 @@ import {
 } from "@mui/material";
 import { useMatchRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
+
+import { useVergeStore } from "@/stores";
+import { cn } from "@/utils";
 
 interface Props {
   to: string;

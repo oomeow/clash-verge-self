@@ -1,6 +1,3 @@
-import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { useClashInfo } from "@/hooks/use-clash";
 import Add from "@mui/icons-material/Add";
 import Remove from "@mui/icons-material/Remove";
 import RotateLeft from "@mui/icons-material/RotateLeft";
@@ -18,6 +15,10 @@ import { useLockFn } from "ahooks";
 import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { useClashInfo } from "@/hooks/use-clash";
 
 const DEFAULT_ALLOW_ORIGINS = [
   "https://metacubex.github.io",

@@ -1,5 +1,3 @@
-import { sleep } from "@/utils";
-import noop from "@/utils/noop";
 import {
   cloneElement,
   isValidElement,
@@ -7,6 +5,9 @@ import {
   useRef,
   useState,
 } from "react";
+
+import { sleep } from "@/utils";
+import noop from "@/utils/noop";
 
 interface Props<Value> {
   value?: Value;

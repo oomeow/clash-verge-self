@@ -1,22 +1,24 @@
-import { BaseLoading } from "@/components/base";
-import { cmdTestDelay, downloadIconCache } from "@/services/cmds";
-import delayManager from "@/services/delay";
 import LanguageTwoTone from "@mui/icons-material/LanguageTwoTone";
 import {
+  alpha,
   Box,
   Divider,
   Menu,
   MenuItem,
+  styled,
   SxProps,
   Typography,
-  alpha,
-  styled,
 } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { BaseLoading } from "@/components/base";
+import { cmdTestDelay, downloadIconCache } from "@/services/cmds";
+import delayManager from "@/services/delay";
+
 import { useNotice } from "../base/notifies";
 import { TestDiv } from "./test-box";
 

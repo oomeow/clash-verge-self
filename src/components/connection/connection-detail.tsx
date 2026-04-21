@@ -1,10 +1,11 @@
-import parseTraffic from "@/utils/parse-traffic";
 import { Box, Button, Snackbar } from "@mui/material";
 import { useLockFn } from "ahooks";
 import dayjs from "dayjs";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { closeConnection } from "tauri-plugin-mihomo-api";
+
+import parseTraffic from "@/utils/parse-traffic";
 
 export interface ConnectionDetailRef {
   open: (detail: IConnectionsItem, active: boolean) => void;

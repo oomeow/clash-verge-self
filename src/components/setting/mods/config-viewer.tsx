@@ -1,8 +1,9 @@
-import { DialogRef, EditorViewer } from "@/components/base";
-import { getRuntimeYaml } from "@/services/cmds";
 import { Chip } from "@mui/material";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { DialogRef, EditorViewer } from "@/components/base";
+import { getRuntimeYaml } from "@/services/cmds";
 
 export const ConfigViewer = forwardRef<DialogRef>((_, ref) => {
   const { t } = useTranslation();

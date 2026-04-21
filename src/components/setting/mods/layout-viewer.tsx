@@ -1,9 +1,3 @@
-import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { GuardState } from "@/components/setting/mods/guard-state";
-import { useVergeStore } from "@/stores";
-import { copyIconFile, getAppDir } from "@/services/cmds";
-import getSystem from "@/utils/get-system";
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import {
   Box,
@@ -24,6 +18,13 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { exists } from "@tauri-apps/plugin-fs";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { GuardState } from "@/components/setting/mods/guard-state";
+import { copyIconFile, getAppDir } from "@/services/cmds";
+import { useVergeStore } from "@/stores";
+import getSystem from "@/utils/get-system";
 
 const appWindow = getCurrentWebviewWindow();
 

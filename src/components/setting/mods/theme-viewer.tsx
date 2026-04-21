@@ -1,12 +1,3 @@
-import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { useCustomTheme } from "@/components/layout/use-custom-theme";
-import { useVergeStore } from "@/stores";
-import {
-  defaultThemeSettings,
-  useThemeModeStore,
-  useThemeSettingsStore,
-} from "@/stores";
 import {
   Box,
   Button,
@@ -22,6 +13,17 @@ import {
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { useCustomTheme } from "@/components/layout/use-custom-theme";
+import { useVergeStore } from "@/stores";
+import {
+  defaultThemeSettings,
+  useThemeModeStore,
+  useThemeSettingsStore,
+} from "@/stores";
+
 import ThemeColorSelect from "./theme-color-select";
 
 export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {

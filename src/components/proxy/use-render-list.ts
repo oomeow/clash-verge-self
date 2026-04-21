@@ -1,15 +1,17 @@
+import { useEffect, useMemo } from "react";
+import useSWR from "swr";
+
 import { useProfiles } from "@/hooks/use-profiles";
+import { useWindowSize } from "@/hooks/use-window-size";
+import { calcuProxies } from "@/services/api";
+import { useVergeStore } from "@/stores";
+import type { HeadState } from "@/stores/proxyHeadStateStore";
 import {
   DEFAULT_STATE,
   useProxyHeadStateStore,
 } from "@/stores/proxyHeadStateStore";
-import { useVergeStore } from "@/stores";
-import { useWindowSize } from "@/hooks/use-window-size";
-import { calcuProxies } from "@/services/api";
-import { useEffect, useMemo } from "react";
-import useSWR from "swr";
+
 import { filterSort } from "./use-filter-sort";
-import type { HeadState } from "@/stores/proxyHeadStateStore";
 
 export interface IRenderItem {
   // 组 ｜ head ｜ item ｜ empty | item col

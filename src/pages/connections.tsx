@@ -1,26 +1,7 @@
-import {
-  BaseEmpty,
-  BasePage,
-  BaseSearchBox,
-  BaseStyledSelect,
-} from "@/components/base";
-import {
-  ConnectionDetail,
-  ConnectionDetailRef,
-} from "@/components/connection/connection-detail";
-import { ConnectionItem } from "@/components/connection/connection-item";
-import { ConnectionTable } from "@/components/connection/connection-table";
-import {
-  IClosedConnectionItem,
-  initConnData,
-  useConnectionData,
-} from "@/hooks/use-connection-data";
-import { useConnectionsStore, type ConnectionsOrderType } from "@/stores";
-import parseTraffic from "@/utils/parse-traffic";
+import DeleteForeverRounded from "@mui/icons-material/DeleteForeverRounded";
 import Download from "@mui/icons-material/Download";
 import TableChartRounded from "@mui/icons-material/TableChartRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
-import DeleteForeverRounded from "@mui/icons-material/DeleteForeverRounded";
 import Upload from "@mui/icons-material/Upload";
 import {
   Box,
@@ -38,6 +19,26 @@ import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
+
+import {
+  BaseEmpty,
+  BasePage,
+  BaseSearchBox,
+  BaseStyledSelect,
+} from "@/components/base";
+import {
+  ConnectionDetail,
+  ConnectionDetailRef,
+} from "@/components/connection/connection-detail";
+import { ConnectionItem } from "@/components/connection/connection-item";
+import { ConnectionTable } from "@/components/connection/connection-table";
+import {
+  IClosedConnectionItem,
+  initConnData,
+  useConnectionData,
+} from "@/hooks/use-connection-data";
+import { type ConnectionsOrderType, useConnectionsStore } from "@/stores";
+import parseTraffic from "@/utils/parse-traffic";
 
 type OrderFunc = (list: IClosedConnectionItem[]) => IClosedConnectionItem[];
 

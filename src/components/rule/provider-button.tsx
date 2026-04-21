@@ -1,16 +1,13 @@
-import { BaseDialog } from "@/components/base";
-import { calcuRuleProviders } from "@/services/api";
-import { cn } from "@/utils";
 import Error from "@mui/icons-material/Error";
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import {
+  alpha,
   Box,
   Button,
   Divider,
   IconButton,
-  Typography,
-  alpha,
   styled,
+  Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
 import { throttle } from "lodash-es";
@@ -18,6 +15,10 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import useSWR, { mutate } from "swr";
 import { updateRuleProvider } from "tauri-plugin-mihomo-api";
+
+import { BaseDialog } from "@/components/base";
+import { calcuRuleProviders } from "@/services/api";
+import { cn } from "@/utils";
 
 export const ProviderButton = () => {
   const { t } = useTranslation();

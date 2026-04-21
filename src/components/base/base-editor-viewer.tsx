@@ -1,20 +1,22 @@
+import { useLockFn } from "ahooks";
+import type { editor, IDisposable } from "monaco-editor";
+import { nanoid } from "nanoid";
+import { ReactNode, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import { useWindowSize } from "@/hooks/use-window-size";
 import {
-  loadMonaco,
   configureYaml,
   defaultOptions,
   generateTemplate,
+  loadMonaco,
   registerPacCompletion,
   registerPacFunctionLib,
 } from "@/services/monaco";
 import { useThemeModeStore } from "@/stores";
-import { useLockFn } from "ahooks";
-import { nanoid } from "nanoid";
-import { ReactNode, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useNotice } from "./notifies";
-import type { IDisposable, editor } from "monaco-editor";
+
 import { BaseDialog } from "./base-dialog";
+import { useNotice } from "./notifies";
 
 interface Props {
   title?: string | ReactNode;

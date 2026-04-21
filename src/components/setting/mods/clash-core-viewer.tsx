@@ -1,17 +1,3 @@
-import MetaIcon from "@/assets/image/Meta.svg?react";
-import { BaseDialog, DialogRef } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { useClash } from "@/hooks/use-clash";
-import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
-import { usePortable } from "@/hooks/use-portable";
-import { useVergeStore } from "@/stores";
-import {
-  changeClashCore,
-  grantPermissions,
-  restartSidecar,
-} from "@/services/cmds";
-import { cn } from "@/utils";
-import getSystem from "@/utils/get-system";
 import RestartAlt from "@mui/icons-material/RestartAlt";
 import SwitchAccessShortcut from "@mui/icons-material/SwitchAccessShortcut";
 import {
@@ -34,6 +20,21 @@ import {
   MihomoWebSocket,
   upgradeCore,
 } from "tauri-plugin-mihomo-api";
+
+import MetaIcon from "@/assets/image/Meta.svg?react";
+import { BaseDialog, DialogRef } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { useClash } from "@/hooks/use-clash";
+import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
+import { usePortable } from "@/hooks/use-portable";
+import {
+  changeClashCore,
+  grantPermissions,
+  restartSidecar,
+} from "@/services/cmds";
+import { useVergeStore } from "@/stores";
+import { cn } from "@/utils";
+import getSystem from "@/utils/get-system";
 
 interface Props {
   serviceActive: boolean;

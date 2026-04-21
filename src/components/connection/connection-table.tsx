@@ -1,7 +1,3 @@
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
-import { useConnectionsStore } from "@/stores";
-import parseTraffic from "@/utils/parse-traffic";
-import { truncateStr } from "@/utils/truncate-str";
 import CancelIcon from "@mui/icons-material/Close";
 import {
   DataGrid,
@@ -15,6 +11,11 @@ import dayjs from "dayjs";
 import { RefObject, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { closeConnection } from "tauri-plugin-mihomo-api";
+
+import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import { useConnectionsStore } from "@/stores";
+import parseTraffic from "@/utils/parse-traffic";
+import { truncateStr } from "@/utils/truncate-str";
 
 interface Props {
   gridApiRef: RefObject<GridApiCommunity>;

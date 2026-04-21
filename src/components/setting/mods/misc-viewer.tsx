@@ -1,6 +1,3 @@
-import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
-import { useNotice } from "@/components/base/notifies";
-import { useVergeStore } from "@/stores";
 import {
   List,
   ListItem,
@@ -12,6 +9,10 @@ import {
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
+import { useNotice } from "@/components/base/notifies";
+import { useVergeStore } from "@/stores";
 
 export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();

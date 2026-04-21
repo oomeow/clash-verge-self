@@ -1,6 +1,7 @@
-import { cn } from "@/utils";
 import { Link, Tooltip, Typography } from "@mui/material";
 import { memo, useMemo, useState } from "react";
+
+import { cn } from "@/utils";
 
 interface Props {
   groupNameList: string[];

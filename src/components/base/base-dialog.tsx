@@ -1,12 +1,13 @@
+import { Button } from "@mui/material";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { t } from "i18next";
+import { AnimatePresence, motion } from "motion/react";
+import { CSSProperties, ReactNode, useEffect, useRef } from "react";
+import ReactDOM from "react-dom";
+
 import { useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
-import { Button } from "@mui/material";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { AnimatePresence, motion } from "motion/react";
-import { t } from "i18next";
-import { CSSProperties, ReactNode, useEffect, useRef } from "react";
-import ReactDOM from "react-dom";
 
 const OS = getSystem();
 

@@ -1,5 +1,6 @@
 import "@/index.css";
 import "@/services/i18n";
+
 import { ResizeObserver } from "@juggle/resize-observer";
 import React from "react";
 import { createRoot } from "react-dom/client";

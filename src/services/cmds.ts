@@ -1,8 +1,9 @@
-import { LogMessage } from "@/components/profile/profile-more";
-import getSystem from "@/utils/get-system";
 import { invoke } from "@tauri-apps/api/core";
 import dayjs from "dayjs";
 import { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
+
+import { LogMessage } from "@/components/profile/profile-more";
+import getSystem from "@/utils/get-system";
 
 export interface MergeResult {
   config: string;

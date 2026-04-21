@@ -1,19 +1,3 @@
-import { LogViewer } from "@/components/profile/log-viewer";
-import { LogMessage } from "@/components/profile/profile-more";
-import { useWindowSize } from "@/hooks/use-window-size";
-import {
-  readProfileFile,
-  saveProfileFile,
-  testMergeChain,
-} from "@/services/cmds";
-import {
-  defaultOptions,
-  generateTemplate,
-  loadMonaco,
-  configureYaml,
-} from "@/services/monaco";
-import { useThemeModeStore } from "@/stores";
-import { sleep } from "@/utils";
 import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutline from "@mui/icons-material/ErrorOutline";
 import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked";
@@ -21,6 +5,7 @@ import Restore from "@mui/icons-material/Restore";
 import Save from "@mui/icons-material/Save";
 import Terminal from "@mui/icons-material/Terminal";
 import { Badge, BadgeProps, IconButton, styled, Tooltip } from "@mui/material";
+import type { editor, IDisposable } from "monaco-editor";
 import { nanoid } from "nanoid";
 import {
   ForwardedRef,
@@ -30,9 +15,26 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useNotice } from "../base/notifies";
-import type { IDisposable, editor } from "monaco-editor";
+
+import { LogViewer } from "@/components/profile/log-viewer";
+import { LogMessage } from "@/components/profile/profile-more";
+import { useWindowSize } from "@/hooks/use-window-size";
+import {
+  readProfileFile,
+  saveProfileFile,
+  testMergeChain,
+} from "@/services/cmds";
+import {
+  configureYaml,
+  defaultOptions,
+  generateTemplate,
+  loadMonaco,
+} from "@/services/monaco";
+import { useThemeModeStore } from "@/stores";
+import { sleep } from "@/utils";
 import getSystem from "@/utils/get-system";
+
+import { useNotice } from "../base/notifies";
 
 const OS = getSystem();
 
