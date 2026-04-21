@@ -1,7 +1,7 @@
 import Check from "@mui/icons-material/Check";
 import CloudUpload from "@mui/icons-material/CloudUpload";
 import ContentCopy from "@mui/icons-material/ContentCopy";
-import Refresh from "@mui/icons-material/Refresh";
+import FolderOpen from "@mui/icons-material/FolderOpen";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { TabContext, TabPanel } from "@mui/lab";
@@ -24,22 +24,21 @@ import {
 import { version } from "@root/package.json";
 import { open } from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import { DialogRef } from "@/components/base";
-import WebDavFilesViewer, {
-  WebDavFilesViewerRef,
-} from "@/components/setting/mods/webdav-files-viewer";
+import BackupFilesViewer, {
+  BackupFilesViewerRef,
+  type BackupSource,
+} from "@/components/setting/mods/backup-files-viewer";
 import { routes } from "@/routes/__root";
 import {
-  applyLocalBackup,
   copyClashEnv,
-  createAndUploadBackup,
-  createLocalBackup,
+  createBackup,
   exitApp,
-  getAppDir,
+  getDefaultBackupDir,
   openAppDir,
   openCoreDir,
   openDevTools,
@@ -80,6 +79,7 @@ const SettingVerge = ({ onError }: Props) => {
   const webdavUrl = useVergeStore((s) => s.verge.webdav_url);
   const webdavUsername = useVergeStore((s) => s.verge.webdav_username);
   const webdavPassword = useVergeStore((s) => s.verge.webdav_password);
+  const localBackupDir = useVergeStore((s) => s.verge.local_backup_dir);
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const configRef = useRef<DialogRef>(null);
@@ -88,7 +88,7 @@ const SettingVerge = ({ onError }: Props) => {
   const themeRef = useRef<DialogRef>(null);
   const layoutRef = useRef<DialogRef>(null);
   const updateRef = useRef<DialogRef>(null);
-  const webDavRef = useRef<WebDavFilesViewerRef>(null);
+  const backupFilesRef = useRef<BackupFilesViewerRef>(null);
 
   const onCheckUpdate = async () => {
     try {
@@ -119,6 +119,9 @@ const SettingVerge = ({ onError }: Props) => {
   const [onlyBackupProfiles, setOnlyBackupProfiles] = useState(false);
   const [loadingBackupFiles, setLoadingBackupFiles] = useState(false);
   const [startingBackup, setStartingBackup] = useState(false);
+  const [localBackupDirValue, setLocalBackupDirValue] = useState(
+    localBackupDir ?? "",
+  );
 
   const url = watch("url");
   const username = watch("username");
@@ -127,6 +130,10 @@ const SettingVerge = ({ onError }: Props) => {
     webdavUrl !== url ||
     webdavUsername !== username ||
     webdavPassword !== password;
+
+  useEffect(() => {
+    setLocalBackupDirValue(localBackupDir ?? "");
+  }, [localBackupDir]);
 
   const onSubmit = async (data: IWebDavConfig) => {
     try {
@@ -140,8 +147,8 @@ const SettingVerge = ({ onError }: Props) => {
         await updateWebDavInfo(data.url, data.username, data.password);
       } else {
         setLoadingBackupFiles(true);
-        await webDavRef.current?.getAllBackupFiles();
-        webDavRef.current?.open();
+        await backupFilesRef.current?.getAllBackupFiles("webdav");
+        backupFilesRef.current?.open();
       }
     } catch (e: any) {
       notice(
@@ -155,33 +162,52 @@ const SettingVerge = ({ onError }: Props) => {
     }
   };
 
-  const handleSelectLocalBackup = async () => {
-    const appDir = await getAppDir();
-    const defaultAppBackupDir = appDir + "/backup";
+  const handleSelectLocalBackupDir = async () => {
+    const defaultPath =
+      localBackupDirValue.trim() || (await getDefaultBackupDir());
     const selected = await open({
       multiple: false,
-      directory: false,
-      defaultPath: defaultAppBackupDir,
-      filters: [{ name: "zip", extensions: ["zip"] }],
+      directory: true,
+      defaultPath,
     });
     if (selected) {
-      if (selected.endsWith(".zip")) {
-        await applyLocalBackup(selected);
-        notice("success", t("messages.backup.applySuccess"));
-      } else {
-        notice("error", t("pages.settings.verge.backup.invalidFileFormat"));
+      const nextDir = `${selected}`;
+      setLocalBackupDirValue(nextDir);
+      setSaving(true);
+      try {
+        await patchVerge({ local_backup_dir: nextDir });
+      } finally {
+        setSaving(false);
       }
+    }
+  };
+
+  const handleResetLocalBackupDir = async () => {
+    setLocalBackupDirValue("");
+    setSaving(true);
+    try {
+      await patchVerge({ local_backup_dir: "" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleViewBackupFiles = async (source: BackupSource) => {
+    try {
+      setLoadingBackupFiles(true);
+      await backupFilesRef.current?.getAllBackupFiles(source);
+      backupFilesRef.current?.open();
+    } catch (e) {
+      notice("error", t("messages.backup.failed", { error: e }), 3000);
+    } finally {
+      setLoadingBackupFiles(false);
     }
   };
 
   const handleBackup = async () => {
     try {
       setStartingBackup(true);
-      if (backupMode === "local") {
-        await createLocalBackup(onlyBackupProfiles);
-      } else if (backupMode === "webdav") {
-        await createAndUploadBackup(onlyBackupProfiles);
-      }
+      await createBackup(backupMode, onlyBackupProfiles);
       notice("success", t("messages.backup.success"));
     } catch (e) {
       notice("error", t("messages.backup.failed", { error: e }), 3000);
@@ -198,7 +224,7 @@ const SettingVerge = ({ onError }: Props) => {
       <MiscViewer ref={miscRef} />
       <LayoutViewer ref={layoutRef} />
       <UpdateViewer ref={updateRef} />
-      <WebDavFilesViewer ref={webDavRef} />
+      <BackupFilesViewer ref={backupFilesRef} />
 
       <SettingItem label={t("pages.settings.verge.misc.appLogLevel")}>
         <GuardState
@@ -404,6 +430,29 @@ const SettingVerge = ({ onError }: Props) => {
               </Tabs>
             </Box>
             <TabPanel value="local">
+              <div className="my-2 flex w-full flex-col gap-2">
+                <Typography className="w-full text-sm break-all">
+                  {localBackupDirValue ||
+                    t("pages.settings.verge.backup.local.defaultDir")}
+                </Typography>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    loading={saving}
+                    loadingPosition="start"
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleSelectLocalBackupDir()}>
+                    {t("common.actions.browse")}
+                  </Button>
+                  <Button
+                    disabled={!localBackupDirValue || saving}
+                    size="small"
+                    variant="outlined"
+                    onClick={() => handleResetLocalBackupDir()}>
+                    {t("common.actions.resetToDefault")}
+                  </Button>
+                </div>
+              </div>
               <div className="flex w-full items-center justify-end">
                 <FormControlLabel
                   className="mx-0"
@@ -419,12 +468,14 @@ const SettingVerge = ({ onError }: Props) => {
               </div>
               <div className="flex w-full items-center justify-around space-x-4!">
                 <Button
-                  startIcon={<Refresh />}
-                  onClick={() => handleSelectLocalBackup()}
+                  loading={loadingBackupFiles || saving}
+                  startIcon={<FolderOpen />}
+                  loadingPosition="start"
+                  onClick={() => handleViewBackupFiles("local")}
                   size="small"
                   fullWidth
                   variant="contained">
-                  {t("pages.settings.verge.backup.actions.recovery")}
+                  {t("pages.settings.verge.backup.actions.viewFiles")}
                 </Button>
                 <Button
                   loading={startingBackup}
@@ -524,13 +575,13 @@ const SettingVerge = ({ onError }: Props) => {
                     <>
                       <Button
                         loading={loadingBackupFiles}
-                        startIcon={<Refresh />}
+                        startIcon={<FolderOpen />}
                         loadingPosition="start"
                         type="submit"
                         size="small"
                         fullWidth
                         variant="contained">
-                        {t("pages.settings.verge.backup.actions.recovery")}
+                        {t("pages.settings.verge.backup.actions.viewFiles")}
                       </Button>
                       <Button
                         loading={startingBackup}

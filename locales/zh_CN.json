@@ -443,9 +443,14 @@
           "webdavTitle": "WebDav 备份",
           "actions": {
             "recovery": "恢复",
+            "viewFiles": "查看备份",
             "backup": "备份"
           },
           "onlyProfiles": "仅备份订阅文件",
+          "local": {
+            "dir": "本地备份文件夹",
+            "defaultDir": "默认备份文件夹"
+          },
           "webdav": {
             "url": "WebDav 地址",
             "username": "WebDav 用户名",

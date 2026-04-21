@@ -1,62 +1,41 @@
-use std::{fs, path::PathBuf};
-
-use reqwest_dav::list_cmd::ListFile;
+use std::path::PathBuf;
 
 use crate::{
     cmds,
     config::Config,
-    core::backup::{self, WebDav},
+    core::backup::{self, BackupFile, BackupType, WebDav},
     error::AppResult,
-    utils::dirs,
 };
 
 #[tauri::command]
-pub async fn create_local_backup(only_backup_profiles: bool) -> AppResult<(String, PathBuf)> {
-    let (file_name, file_path) = backup::create_backup(true, only_backup_profiles)?;
-    Ok((file_name, file_path))
+pub async fn create_backup(backup_type: BackupType, only_backup_profiles: bool) -> AppResult<(String, PathBuf)> {
+    backup::create_backup_by_type(backup_type, only_backup_profiles).await
 }
 
 #[tauri::command]
-pub async fn apply_local_backup(app_handle: tauri::AppHandle, file_path: String) -> AppResult<()> {
-    let file = fs::File::open(file_path)?;
-    let mut zip: zip::ZipArchive<fs::File> = zip::ZipArchive::new(file)?;
-    zip.extract(dirs::app_home_dir()?)?;
+pub async fn apply_backup_and_reload(
+    app_handle: tauri::AppHandle,
+    backup_type: BackupType,
+    file_name: String,
+) -> AppResult<()> {
+    backup::apply_backup_file_by_type(backup_type, file_name).await?;
     Config::reload().await?;
     cmds::common::restart_app(app_handle).await;
     Ok(())
+}
+
+#[tauri::command]
+pub async fn list_backup(backup_type: BackupType) -> AppResult<Vec<BackupFile>> {
+    backup::list_backup_files(backup_type).await
+}
+
+#[tauri::command]
+pub async fn delete_backup(backup_type: BackupType, file_name: String) -> AppResult<()> {
+    backup::delete_backup_file(backup_type, file_name).await
 }
 
 // web dav
 #[tauri::command]
 pub async fn update_webdav_info(url: String, username: String, password: String) -> AppResult<()> {
     WebDav::global().update_webdav_info(url, username, password).await
-}
-
-#[tauri::command]
-pub async fn create_and_upload_backup(only_backup_profiles: bool) -> AppResult<()> {
-    let (file_name, file_path) = backup::create_backup(false, only_backup_profiles)?;
-    WebDav::upload_file(&file_path, &file_name).await
-}
-
-#[tauri::command]
-pub async fn list_backup() -> AppResult<Vec<ListFile>> {
-    WebDav::list_file().await
-}
-
-#[tauri::command]
-pub async fn download_backup_and_reload(app_handle: tauri::AppHandle, file_name: String) -> AppResult<()> {
-    let backup_archive = dirs::backup_archive_file()?;
-    WebDav::download_file(&file_name, &backup_archive).await?;
-    let file = fs::File::open(backup_archive)?;
-    // extract zip file
-    let mut zip = zip::ZipArchive::new(file)?;
-    zip.extract(dirs::app_home_dir()?)?;
-    Config::reload().await?;
-    cmds::common::restart_app(app_handle).await;
-    Ok(())
-}
-
-#[tauri::command]
-pub async fn delete_backup(file_name: String) -> AppResult<()> {
-    WebDav::delete_file(file_name).await
 }

@@ -443,9 +443,14 @@
           "webdavTitle": "WebDav Backup",
           "actions": {
             "recovery": "Recovery",
+            "viewFiles": "View Backups",
             "backup": "Backup"
           },
           "onlyProfiles": "Only Backup Profiles",
+          "local": {
+            "dir": "Local Backup Folder",
+            "defaultDir": "Default backup folder"
+          },
           "webdav": {
             "url": "WebDav URL",
             "username": "WebDav Username",

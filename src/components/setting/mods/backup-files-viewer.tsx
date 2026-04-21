@@ -1,16 +1,6 @@
 import Check from "@mui/icons-material/Check";
 import Delete from "@mui/icons-material/Delete";
-import InboxRounded from "@mui/icons-material/InboxRounded";
-import {
-  Box,
-  Button,
-  Chip,
-  FormControl,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  Typography,
-} from "@mui/material";
+import { Button, ButtonGroup, Chip } from "@mui/material";
 import { useLockFn } from "ahooks";
 import dayjs, { Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
@@ -20,36 +10,39 @@ import { useTranslation } from "react-i18next";
 import LinuxIcon from "@/assets/image/linux.svg?react";
 import MacIcon from "@/assets/image/macos.svg?react";
 import WindowsIcon from "@/assets/image/windows.svg?react";
-import { BaseDialog, DialogRef, Marquee } from "@/components/base";
+import { BaseDialog, BaseEmpty, DialogRef, Marquee } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import {
+  applyBackupAndReload,
   deleteBackup,
-  downloadBackupAndReload,
   listBackup,
 } from "@/services/cmds";
 import { sleep } from "@/utils";
 
 dayjs.extend(customParseFormat);
 
-type BackupFile = IWebDavFile & {
+type BackupFileItem = IBackupFile & {
   platform: string;
   type: "profiles" | "all";
   backupTime: Dayjs;
 };
 
-export interface WebDavFilesViewerRef extends DialogRef {
-  getAllBackupFiles: () => Promise<void>;
+export type BackupSource = "webdav" | "local";
+
+export interface BackupFilesViewerRef extends DialogRef {
+  getAllBackupFiles: (source?: BackupSource) => Promise<void>;
 }
 
-export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
+export const BackupFilesViewer = forwardRef<BackupFilesViewerRef>(
   (_props, ref) => {
     const { t } = useTranslation();
     const { notice } = useNotice();
     const [open, setOpen] = useState(false);
     const [deletingFile, setDeletingFile] = useState("");
     const [applyingFile, setApplyingFile] = useState("");
-    const [backupFiles, setBackupFiles] = useState<BackupFile[]>([]);
+    const [backupFiles, setBackupFiles] = useState<BackupFileItem[]>([]);
     const [filter, setFilter] = useState<"all" | "profiles">("all");
+    const [source, setSource] = useState<BackupSource>("webdav");
     const filterBackupFiles = backupFiles.filter(
       (item) => item.type === filter,
     );
@@ -61,35 +54,38 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
       close: () => {
         setOpen(false);
       },
-      getAllBackupFiles: () => getAllBackupFiles(),
+      getAllBackupFiles: (source) => getAllBackupFiles(source),
     }));
 
-    const getAllBackupFiles = async () => {
-      const files = await listBackup();
+    const getAllBackupFiles = async (nextSource: BackupSource = source) => {
+      setSource(nextSource);
+      const files = await listBackup(nextSource);
       const backupFiles = files
-        .map((file) => {
+        .map((file): BackupFileItem | null => {
           const platform = file.filename.split("-")[0];
           const type =
             file.filename.split("-")[1] === "profiles" ? "profiles" : "all";
           const fileBackupTimeStr = file.filename.match(
             /\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}/,
-          )!;
+          );
+          if (!fileBackupTimeStr) return null;
           const backupTime = dayjs(fileBackupTimeStr[0], "YYYY-MM-DD_HH-mm-ss");
           return {
             ...file,
             platform,
             type,
             backupTime,
-          } as BackupFile;
+          } as BackupFileItem;
         })
+        .filter((file): file is BackupFileItem => Boolean(file))
         .sort((a, b) => (a.backupTime.isAfter(b.backupTime) ? -1 : 1));
       setBackupFiles(backupFiles);
     };
 
-    const handleDeleteBackup = async (file: BackupFile) => {
+    const handleDeleteBackup = async (file: BackupFileItem) => {
       try {
         setDeletingFile(file.filename);
-        await deleteBackup(file.filename);
+        await deleteBackup(source, file.filename);
         await getAllBackupFiles();
         notice("success", t("messages.backup.deleteSuccess"));
       } catch (e) {
@@ -99,10 +95,10 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
       }
     };
 
-    const handleApplyBackup = useLockFn(async (file: BackupFile) => {
+    const handleApplyBackup = useLockFn(async (file: BackupFileItem) => {
       try {
         setApplyingFile(file.filename);
-        await downloadBackupAndReload(file.filename);
+        await applyBackupAndReload(source, file.filename);
         await sleep(1000);
         setApplyingFile("");
         notice("success", t("messages.backup.applySuccess"));
@@ -120,41 +116,25 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
         title={
           <div className="flex items-center justify-between">
             {t("pages.settings.verge.backup.files")}
-            <div>
-              <FormControl>
-                <RadioGroup
-                  row
-                  aria-labelledby="demo-radio-buttons-group-label"
-                  value={filter}
-                  name="radio-buttons-group"
-                  onChange={(e) => {
-                    const value = (e.target as HTMLInputElement).value;
-                    if (value === "profiles") {
-                      setFilter("profiles");
-                    } else if (value === "all") {
-                      setFilter("all");
-                    }
-                  }}>
-                  <FormControlLabel
-                    value="all"
-                    control={<Radio />}
-                    label={t("pages.settings.verge.backup.scopes.all")}
-                  />
-                  <FormControlLabel
-                    value="profiles"
-                    control={<Radio />}
-                    label={t("pages.settings.verge.backup.scopes.profiles")}
-                  />
-                </RadioGroup>
-              </FormControl>
-            </div>
+            <ButtonGroup size="small" variant="outlined">
+              <Button
+                variant={filter === "all" ? "contained" : "outlined"}
+                onClick={() => setFilter("all")}>
+                {t("pages.settings.verge.backup.scopes.all")}
+              </Button>
+              <Button
+                variant={filter === "profiles" ? "contained" : "outlined"}
+                onClick={() => setFilter("profiles")}>
+                {t("pages.settings.verge.backup.scopes.profiles")}
+              </Button>
+            </ButtonGroup>
           </div>
         }
         hideOkBtn
         cancelBtn={t("common.actions.back")}
         onClose={() => setOpen(false)}
         onCancel={() => setOpen(false)}>
-        <Box>
+        <div className="h-full w-full items-center justify-center">
           {filterBackupFiles.length > 0 ? (
             <div>
               {filterBackupFiles.map((file) => (
@@ -219,22 +199,12 @@ export const WebDavFilesViewer = forwardRef<WebDavFilesViewerRef>(
               ))}
             </div>
           ) : (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100px",
-              }}>
-              <InboxRounded sx={{ fontSize: "4em" }} />
-              <Typography sx={{ fontSize: "1.25em" }}>Empty</Typography>
-            </Box>
+            <BaseEmpty />
           )}
-        </Box>
+        </div>
       </BaseDialog>
     );
   },
 );
 
-export default WebDavFilesViewer;
+export default BackupFilesViewer;
