@@ -443,9 +443,14 @@
           "webdavTitle": "پشتیبان‌گیری WebDAV",
           "actions": {
             "recovery": "بازیابی",
+            "viewFiles": "مشاهده پشتیبان‌ها",
             "backup": "پشتیبان‌گیری"
           },
           "onlyProfiles": "فقط از پروفایل‌ها پشتیبان بگیر",
+          "local": {
+            "dir": "پوشه پشتیبان محلی",
+            "defaultDir": "پوشه پیش‌فرض پشتیبان"
+          },
           "webdav": {
             "url": "نشانی WebDAV",
             "username": "نام کاربری WebDAV",

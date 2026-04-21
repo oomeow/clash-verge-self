@@ -225,6 +225,10 @@ export async function getAppDir() {
   return invoke<string>("get_app_dir");
 }
 
+export async function getDefaultBackupDir() {
+  return invoke<string>("get_default_backup_dir");
+}
+
 export async function openAppDir() {
   return invoke<void>("open_app_dir");
 }
@@ -313,32 +317,28 @@ export async function updateWebDavInfo(
   return invoke<void>("update_webdav_info", { url, username, password });
 }
 
-export async function createLocalBackup(onlyBackupProfiles = false) {
-  return invoke<string[]>("create_local_backup", { onlyBackupProfiles });
+export type BackupType = "local" | "webdav";
+
+export async function createBackup(
+  backupType: BackupType,
+  onlyBackupProfiles = false,
+) {
+  return invoke<string[]>("create_backup", { backupType, onlyBackupProfiles });
 }
 
-export async function applyLocalBackup(filePath: string) {
-  return invoke<void>("apply_local_backup", { filePath });
+export async function listBackup(backupType: BackupType) {
+  return invoke<IBackupFile[]>("list_backup", { backupType });
 }
 
-export async function createAndUploadBackup(onlyBackupProfiles = false) {
-  return invoke<void>("create_and_upload_backup", { onlyBackupProfiles });
+export async function applyBackupAndReload(
+  backupType: BackupType,
+  fileName: string,
+) {
+  return invoke<void>("apply_backup_and_reload", { backupType, fileName });
 }
 
-export async function listBackup() {
-  const list: IWebDavFile[] = await invoke<IWebDavFile[]>("list_backup");
-  list.forEach((item) => {
-    item.filename = item.href.split("/").pop() as string;
-  });
-  return list;
-}
-
-export async function downloadBackupAndReload(fileName: string) {
-  return invoke<void>("download_backup_and_reload", { fileName });
-}
-
-export async function deleteBackup(fileName: string) {
-  return invoke<void>("delete_backup", { fileName });
+export async function deleteBackup(backupType: BackupType, fileName: string) {
+  return invoke<void>("delete_backup", { backupType, fileName });
 }
 
 export async function isWayland() {

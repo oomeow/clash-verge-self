@@ -176,6 +176,8 @@ pub struct IVerge {
     pub webdav_username: Option<String>,
     /// webdav password
     pub webdav_password: Option<String>,
+    /// local backup dir
+    pub local_backup_dir: Option<String>,
 
     /// enable tray
     pub enable_tray: Option<bool>,
@@ -406,6 +408,7 @@ impl IVerge {
         patch!(webdav_url);
         patch!(webdav_username);
         patch!(webdav_password);
+        patch!(local_backup_dir);
         patch!(enable_tray);
         patch!(keep_in_dock);
         patch!(enable_external_controller);

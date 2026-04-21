@@ -145,6 +145,7 @@ pub fn run() -> AppResult<()> {
             cmds::common::get_default_bypass,
             cmds::common::get_auto_proxy,
             cmds::common::get_app_dir,
+            cmds::common::get_default_backup_dir,
             cmds::common::open_app_dir,
             cmds::common::open_logs_dir,
             cmds::common::open_web_url,
@@ -202,12 +203,10 @@ pub fn run() -> AppResult<()> {
             cmds::service::install_service,
             cmds::service::uninstall_service,
             // backup
-            cmds::backup::create_local_backup,
-            cmds::backup::apply_local_backup,
+            cmds::backup::create_backup,
+            cmds::backup::apply_backup_and_reload,
             cmds::backup::update_webdav_info,
-            cmds::backup::create_and_upload_backup,
             cmds::backup::list_backup,
-            cmds::backup::download_backup_and_reload,
             cmds::backup::delete_backup,
         ]);
 

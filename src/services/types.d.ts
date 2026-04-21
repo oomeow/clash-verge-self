@@ -312,6 +312,7 @@ interface IVergeConfig {
   webdav_url?: string;
   webdav_username?: string;
   webdav_password?: string;
+  local_backup_dir?: string;
   enable_tray?: boolean;
   keep_in_dock?: boolean;
   enable_external_controller?: boolean;
@@ -389,7 +390,7 @@ interface IEnhancedResult {
   error?: string;
 }
 
-interface IWebDavFile {
+interface IBackupFile {
   filename: string;
   href: string;
   last_modified: string;

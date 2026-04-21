@@ -109,6 +109,12 @@ pub fn get_app_dir() -> AppResult<String> {
 }
 
 #[tauri::command]
+pub fn get_default_backup_dir() -> AppResult<String> {
+    let backup_dir = dirs::backup_dir()?.to_string_lossy().to_string();
+    Ok(backup_dir)
+}
+
+#[tauri::command]
 pub fn open_app_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
     let app_dir = dirs::app_home_dir()?;
     app_handle.opener().open_path(app_dir.to_string_lossy(), None::<&str>)?;
