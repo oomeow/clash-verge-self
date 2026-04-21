@@ -138,25 +138,17 @@ export async function getRuntimeExists() {
 }
 
 export async function getRuntimeLogs() {
-  const res = await invoke<Record<string, LogMessage[]>>("get_runtime_logs");
-  const list = Object.entries(res);
-  list.map((item) => {
-    const profileUid = item[0];
-    const logs = item[1];
-    res[profileUid] = logs;
-  });
-  return res;
+  return await invoke<Record<string, LogMessage[]>>("get_runtime_logs");
 }
 
 export async function getPreMergeResult(
   profileUid: string | null,
   modifiedUid: string,
 ) {
-  const res = await invoke<MergeResult>("get_pre_merge_result", {
+  return await invoke<MergeResult>("get_pre_merge_result", {
     profileUid,
     modifiedUid,
   });
-  return res;
 }
 
 export async function testMergeChain(
@@ -164,12 +156,11 @@ export async function testMergeChain(
   modifiedUid: string,
   content: string,
 ) {
-  const res = await invoke<MergeResult>("test_merge_chain", {
+  return await invoke<MergeResult>("test_merge_chain", {
     profileUid,
     modifiedUid,
     content,
   });
-  return res;
 }
 
 export async function patchClashConfig(payload: Partial<IConfigData>) {
