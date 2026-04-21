@@ -9,18 +9,6 @@ export interface MergeResult {
   logs: Record<string, LogMessage[]>;
 }
 
-const parseLogData = (data: unknown[]) => {
-  return data.map((item) => {
-    if (typeof item !== "string") return item;
-
-    try {
-      return JSON.parse(item);
-    } catch (ignore) {
-      return item;
-    }
-  });
-};
-
 export async function getClashLogs() {
   const regex = /time="(.+?)"\s+level=(.+?)\s+msg="(.+?)"/;
   const newRegex = /(.+?)\s+(.+?)\s+(.+)/;
@@ -155,9 +143,6 @@ export async function getRuntimeLogs() {
   list.map((item) => {
     const profileUid = item[0];
     const logs = item[1];
-    logs.forEach((logsItem) => {
-      logsItem.data = parseLogData(logsItem.data);
-    });
     res[profileUid] = logs;
   });
   return res;
@@ -171,11 +156,6 @@ export async function getPreMergeResult(
     profileUid,
     modifiedUid,
   });
-  if (res.logs[modifiedUid]) {
-    res.logs[modifiedUid].map((item) => {
-      item.data = parseLogData(item.data);
-    });
-  }
   return res;
 }
 
@@ -189,11 +169,6 @@ export async function testMergeChain(
     modifiedUid,
     content,
   });
-  if (res.logs[modifiedUid]) {
-    res.logs[modifiedUid].map((item) => {
-      item.data = parseLogData(item.data);
-    });
-  }
   return res;
 }
 
