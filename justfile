@@ -5,16 +5,17 @@ set windows-shell := ["nu", "-c"]
 
 # check
 check:
-  cargo check
+    cargo check
 
 # clippy
 clippy:
-  cargo clippy --all-targets --all-features --tests --benches -- -D warnings
+    cargo clippy --all-targets --all-features --tests --benches -- -D warnings
 
 # clippy fix
 fix:
-  cargo clippy --fix --allow-dirty
+    cargo clippy --fix --allow-dirty
 
 # fmt
 fmt:
     cargo +nightly fmt
+    pnpm lint:fix
