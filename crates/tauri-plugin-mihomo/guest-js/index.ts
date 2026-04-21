@@ -39,7 +39,7 @@ export async function updateSecret(secret: string): Promise<void> {
 }
 
 /**
- * 获取Mihomo版本信息
+ * 获取 Mihomo 版本信息
  */
 export async function getVersion(): Promise<MihomoVersion> {
   return await invoke<MihomoVersion>("plugin:mihomo|get_version");
@@ -411,7 +411,7 @@ export class MihomoWebSocket {
   }
 
   /**
-   * 创建一个新的 WebSocket 连接，用于 Mihomo 的流量监控
+   * 监听 Mihomo 的流量信息
    * @returns WebSocket 实例
    */
   static async connect_traffic(): Promise<MihomoWebSocket> {
@@ -431,7 +431,7 @@ export class MihomoWebSocket {
   }
 
   /**
-   * 创建一个新的 WebSocket 连接，用于 Mihomo 的内存监控
+   * 监听 Mihomo 的内存信息
    * @returns WebSocket 实例
    */
   static async connect_memory(): Promise<MihomoWebSocket> {
@@ -451,7 +451,7 @@ export class MihomoWebSocket {
   }
 
   /**
-   * 创建一个新的 WebSocket 连接，用于 Mihomo 的连接监控
+   * 监听 Mihomo 的连接信息
    * @returns WebSocket 实例
    */
   static async connect_connections(): Promise<MihomoWebSocket> {
@@ -471,7 +471,7 @@ export class MihomoWebSocket {
   }
 
   /**
-   * 创建一个新的 WebSocket 连接，用于 Mihomo 的日志监控
+   * 监听 Mihomo 的日志信息
    * @returns WebSocket 实例
    */
   static async connect_logs(level: LogLevel): Promise<MihomoWebSocket> {
@@ -492,7 +492,7 @@ export class MihomoWebSocket {
   }
 
   /**
-   * 添加处理 WebSocket 连接后接受的数据的回调函数
+   * WebSocket 接收数据的回调函数
    * @param cb 回调函数
    */
   addListener(cb: (arg: Message) => void): () => void {
@@ -523,7 +523,7 @@ export class MihomoWebSocket {
   // }
 
   /**
-   * 关闭 WebSocket 连接
+   * 关闭连接
    * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认为 0
    */
   async close(): Promise<void> {
