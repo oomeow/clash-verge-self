@@ -37,10 +37,8 @@ export interface LogMessage {
   method: string;
   data: string[];
   exception?: string | null;
-  // id?: string;
-  // timestamp?: string;
-  // amount?: number;
 }
+
 interface Props {
   sx?: SxProps;
   selected: boolean;
