@@ -130,6 +130,7 @@ pub async fn create_backup_by_type(
 
     if matches!(backup_type, BackupType::Webdav) {
         WebDav::upload_file(&file_path, &file_name).await?;
+        let _ = fs::remove_file(&file_path);
     }
 
     Ok((file_name, file_path))
