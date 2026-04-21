@@ -143,6 +143,9 @@ pub fn apply_backup_file(file_path: PathBuf) -> AppResult<()> {
 }
 
 fn local_backup_file_path(file_name: String) -> AppResult<PathBuf> {
+    if file_name.is_empty() || file_name.contains(['/', '\\', '\0']) {
+        return Err(any_err!("invalid backup file name"));
+    }
     let file_name = Path::new(&file_name)
         .file_name()
         .ok_or_else(|| any_err!("invalid backup file name"))?;
