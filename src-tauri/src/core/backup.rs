@@ -62,6 +62,11 @@ pub fn local_backup_dir() -> AppResult<PathBuf> {
     }
 
     let backup_dir = dirs::backup_dir()?;
+    // make sure the backup dir exists
+    if !backup_dir.exists() {
+        fs::create_dir_all(&backup_dir)?;
+    }
+
     Ok(backup_dir)
 }
 
