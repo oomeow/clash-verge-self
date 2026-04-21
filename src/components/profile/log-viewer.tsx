@@ -380,8 +380,6 @@ export const LogViewer = (props: Props) => {
   const isDarkMode = themeMode === "dark";
   const levelClasses = isDarkMode ? DARK_LEVEL_CLASSES : LIGHT_LEVEL_CLASSES;
   const syntaxClasses = isDarkMode ? DARK_SYNTAX_CLASSES : LIGHT_SYNTAX_CLASSES;
-  const backgroundColor = isDarkMode ? "#1f1f1f" : "#fff";
-  const textColor = isDarkMode ? "#f5f5f5" : "#1f2937";
 
   const title = (
     <div className="flex items-center justify-between">
@@ -406,8 +404,6 @@ export const LogViewer = (props: Props) => {
         width: "min(900px, calc(100vw - 96px))",
         maxWidth: "none",
         height: "min(72vh, 680px)",
-        backgroundColor,
-        color: textColor,
       }}>
       <div className={cn("h-full w-full font-mono text-xs leading-normal")}>
         {logInfo.length === 0 ? (
