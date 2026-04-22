@@ -85,7 +85,7 @@ async function resolvePortable() {
     ...options,
     release_id: release.id,
     name: zipFile,
-    data: zipBuffer.toString("utf-8"),
+    data: zipBuffer as unknown as string,
   });
 
   console.log(`✅ Uploaded ${zipFile}`);
