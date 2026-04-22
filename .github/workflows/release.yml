@@ -51,7 +51,7 @@ jobs:
       - name: Pnpm install and check
         run: |
           pnpm i
-          pnpm check ${{ matrix.target }}
+          pnpm check ${{ matrix.target }} --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -136,7 +136,7 @@ jobs:
       - name: Pnpm install and check
         run: |
           pnpm i
-          pnpm check ${{ matrix.target }}
+          pnpm check ${{ matrix.target }} --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

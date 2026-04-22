@@ -72,7 +72,7 @@ jobs:
           CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
         run: |
           pnpm i
-          pnpm check ${{ matrix.target }} --alpha
+          pnpm check ${{ matrix.target }} --alpha --no-confirm
           pnpm build --target ${{ matrix.target }}
 
       - name: Update Checksums (Arch Linux PKG)

@@ -1,23 +1,37 @@
 import AdmZip from "adm-zip";
+import {
+  cancel,
+  confirm,
+  intro,
+  isCancel,
+  log,
+  outro,
+  progress,
+  select,
+  taskLog,
+} from "@clack/prompts";
 import { execSync } from "child_process";
-import { consola } from "consola";
 import fs from "fs-extra";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import fetch from "node-fetch";
 import path from "path";
+import pc from "picocolors";
 import * as tar from "tar";
 import zlib from "zlib";
-import ora from "ora";
+import { spinner } from "@clack/prompts";
 
 const VERGE_SERVICE_VERSION = "v2.0.0";
 const cwd = process.cwd();
 const TEMP_DIR = path.join(cwd, "node_modules/.verge");
-let process_argvs = process.argv;
-const FORCE = process_argvs.includes("--force");
-const useAlphaService = process_argvs.includes("--alpha");
-if (useAlphaService) {
-  process_argvs = process_argvs.filter((item) => item !== "--alpha");
-}
+const SIDECAR_DIR = path.join(cwd, "src-tauri", "sidecar");
+const RESOURCE_DIR = path.join(cwd, "src-tauri", "resources");
+const rawArgvs = process.argv;
+const useAlphaService = rawArgvs.includes("--alpha");
+const NO_CONFIRM = rawArgvs.includes("--no-confirm");
+let FORCE = rawArgvs.includes("--force");
+const process_argvs = rawArgvs.filter(
+  (item) => !["--alpha", "--force", "--no-confirm"].includes(item),
+);
 
 const PLATFORM_MAP = {
   "x86_64-pc-windows-msvc": "win32",
@@ -46,9 +60,7 @@ const ARCH_MAP = {
   "loongarch64-unknown-linux-gnu": "loong64",
 };
 
-const arg1 = process_argvs.slice(2)[0];
-const arg2 = process_argvs.slice(2)[1];
-const target = arg1 === "--force" ? arg2 : arg1;
+const target = process_argvs[2];
 const { platform, arch } = target
   ? { platform: PLATFORM_MAP[target], arch: ARCH_MAP[target] }
   : process;
@@ -59,12 +71,53 @@ const SIDECAR_HOST = target
       .toString()
       .match(/(?<=host: ).+(?=\s*)/g)[0];
 const EXE_SUFFIX = platform === "win32" ? ".exe" : "";
+const PLATFORM_ARCH = `${platform}-${arch}`;
+
+function handleCancel(value) {
+  if (isCancel(value)) {
+    cancel("Operation cancelled");
+    process.exit(0);
+  }
+  return value;
+}
+
+function formatResourcePath(resourcePath) {
+  return path.relative(cwd, resourcePath) || resourcePath;
+}
+
+function sidecarPath(file) {
+  return path.join(SIDECAR_DIR, file);
+}
+
+function resourcePath(file) {
+  return path.join(RESOURCE_DIR, file);
+}
+
+function getFetchOptions() {
+  const httpProxy =
+    process.env.HTTP_PROXY ||
+    process.env.http_proxy ||
+    process.env.HTTPS_PROXY ||
+    process.env.https_proxy;
+  return httpProxy ? { agent: new HttpsProxyAgent(httpProxy) } : {};
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB"];
+  let value = bytes / 1024;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+  return `${value.toFixed(value >= 10 ? 1 : 2)} ${units[unitIndex]}`;
+}
 
 /* ======= mihomo stable ======= */
 const MIHOMO_VERSION_URL =
   "https://github.com/MetaCubeX/mihomo/releases/latest/download/version.txt";
 const MIHOMO_URL_PREFIX = `https://github.com/MetaCubeX/mihomo/releases/download`;
-let MIHOMO_VERSION;
 
 const MIHOMO_MAP = {
   "win32-x64": "mihomo-windows-amd64-v3",
@@ -84,7 +137,6 @@ const MIHOMO_MAP = {
 const MIHOMO_ALPHA_VERSION_URL =
   "https://github.com/MetaCubeX/mihomo/releases/download/Prerelease-Alpha/version.txt";
 const MIHOMO_ALPHA_URL_PREFIX = `https://github.com/MetaCubeX/mihomo/releases/download/Prerelease-Alpha`;
-let MIHOMO_ALPHA_VERSION;
 
 const MIHOMO_ALPHA_MAP = {
   "win32-x64": "mihomo-windows-amd64-v3",
@@ -101,11 +153,11 @@ const MIHOMO_ALPHA_MAP = {
 };
 
 // check available
-if (!MIHOMO_MAP[`${platform}-${arch}`]) {
-  throw new Error(`mihomo unsupported platform "${platform}-${arch}"`);
+if (!MIHOMO_MAP[PLATFORM_ARCH]) {
+  throw new Error(`mihomo unsupported platform "${PLATFORM_ARCH}"`);
 }
-if (!MIHOMO_ALPHA_MAP[`${platform}-${arch}`]) {
-  throw new Error(`mihomo alpha unsupported platform "${platform}-${arch}"`);
+if (!MIHOMO_ALPHA_MAP[PLATFORM_ARCH]) {
+  throw new Error(`mihomo alpha unsupported platform "${PLATFORM_ARCH}"`);
 }
 
 /**
@@ -128,111 +180,52 @@ async function fetchWithTimeout(resource, options = {}) {
     if (error.name === "AbortError") {
       throw new Error(`fetch timeout: ${timeout}ms`);
     } else {
-      throw new Error(error);
+      throw error;
     }
   } finally {
     clearTimeout(id);
   }
 }
 
-/**
- * Fetch the latest release version from the `version.txt` file
- */
-async function getLatestReleaseVersion() {
-  const spinner = ora({
-    text: "get latest mihomo stable version",
-    color: "yellow",
-    spinner: "circle",
-  });
-  spinner.start();
+async function getLatestMihomoVersion(version, logger) {
+  const isAlpha = version === "alpha";
+  const label = isAlpha ? "alpha" : "stable";
+  const versionUrl = isAlpha ? MIHOMO_ALPHA_VERSION_URL : MIHOMO_VERSION_URL;
 
-  const options = {};
-  const httpProxy =
-    process.env.HTTP_PROXY ||
-    process.env.http_proxy ||
-    process.env.HTTPS_PROXY ||
-    process.env.https_proxy;
-  if (httpProxy) {
-    options.agent = new HttpsProxyAgent(httpProxy);
-  }
+  logger.message(`get latest mihomo ${label} version`);
   try {
-    const response = await fetchWithTimeout(MIHOMO_VERSION_URL, {
-      ...options,
+    const response = await fetchWithTimeout(versionUrl, {
+      ...getFetchOptions(),
       method: "GET",
     });
     const v = await response.text();
-    MIHOMO_VERSION = v.trim(); // Trim to remove extra whitespaces
-    spinner.succeed(`Latest release version: ${MIHOMO_VERSION}`);
+    const latestVersion = v.trim();
+    logger.message(`Latest ${label} version: ${latestVersion}`);
+    return latestVersion;
   } catch (error) {
-    spinner.fail(`Error fetching latest release version: ${error.message}`);
-    throw new Error(error);
-  }
-}
-/**
- *  Fetch the latest alpha release version from the `version.txt` file
- */
-async function getLatestAlphaVersion() {
-  const spinner = ora({
-    text: "get latest mihomo alpha version",
-    color: "yellow",
-    spinner: "circle",
-  });
-  spinner.start();
-  const options = {};
-  const httpProxy =
-    process.env.HTTP_PROXY ||
-    process.env.http_proxy ||
-    process.env.HTTPS_PROXY ||
-    process.env.https_proxy;
-  if (httpProxy) {
-    options.agent = new HttpsProxyAgent(httpProxy);
-  }
-  try {
-    const response = await fetchWithTimeout(MIHOMO_ALPHA_VERSION_URL, {
-      ...options,
-      method: "GET",
-    });
-    const v = await response.text();
-    MIHOMO_ALPHA_VERSION = v.trim(); // Trim to remove extra whitespaces
-    spinner.succeed(`Latest alpha version: ${MIHOMO_ALPHA_VERSION}`);
-  } catch (error) {
-    spinner.fail(`Error fetching latest alpha version: ${error.message}`);
-    throw new Error(error);
+    logger.error(`Error fetching latest ${label} version: ${error.message}`);
+    throw error;
   }
 }
 
 /**
- * mihomo stable version info
+ * mihomo version info
  */
-function mihomo() {
-  const name = MIHOMO_MAP[`${platform}-${arch}`];
+function mihomo(version, mihomoVersion) {
+  const isAlpha = version === "alpha";
+  const name = (isAlpha ? MIHOMO_ALPHA_MAP : MIHOMO_MAP)[PLATFORM_ARCH];
   const isWin = platform === "win32";
   const urlExt = isWin ? "zip" : "gz";
-  const downloadURL = `${MIHOMO_URL_PREFIX}/${MIHOMO_VERSION}/${name}-${MIHOMO_VERSION}.${urlExt}`;
+  const binName = isAlpha ? "self-mihomo-alpha" : "self-mihomo";
+  const urlPrefix = isAlpha
+    ? MIHOMO_ALPHA_URL_PREFIX
+    : `${MIHOMO_URL_PREFIX}/${mihomoVersion}`;
+  const downloadURL = `${urlPrefix}/${name}-${mihomoVersion}.${urlExt}`;
   const exeFile = `${name}${EXE_SUFFIX}`;
-  const zipFile = `${name}-${MIHOMO_VERSION}.${urlExt}`;
+  const zipFile = `${name}-${mihomoVersion}.${urlExt}`;
   return {
-    name: "self-mihomo",
-    targetFile: `self-mihomo-${SIDECAR_HOST}${EXE_SUFFIX}`,
-    exeFile,
-    zipFile,
-    downloadURL,
-  };
-}
-
-/**
- * mihomo alpha version info
- */
-function mihomoAlpha() {
-  const name = MIHOMO_ALPHA_MAP[`${platform}-${arch}`];
-  const isWin = platform === "win32";
-  const urlExt = isWin ? "zip" : "gz";
-  const downloadURL = `${MIHOMO_ALPHA_URL_PREFIX}/${name}-${MIHOMO_ALPHA_VERSION}.${urlExt}`;
-  const exeFile = `${name}${EXE_SUFFIX}`;
-  const zipFile = `${name}-${MIHOMO_ALPHA_VERSION}.${urlExt}`;
-  return {
-    name: "self-mihomo-alpha",
-    targetFile: `self-mihomo-alpha-${SIDECAR_HOST}${EXE_SUFFIX}`,
+    name: binName,
+    targetFile: `${binName}-${SIDECAR_HOST}${EXE_SUFFIX}`,
     exeFile,
     zipFile,
     downloadURL,
@@ -242,22 +235,18 @@ function mihomoAlpha() {
 /**
  * download sidecar and rename
  */
-async function resolveSidecar(binInfo) {
+async function resolveSidecar(binInfo, logger) {
   const { name, targetFile, zipFile, exeFile, downloadURL } = binInfo;
+  logger.message(`resolve sidecar ${name}`);
 
-  const spinner = ora({
-    text: `resolve sidecar ${name}`,
-    color: "yellow",
-    spinner: "circle",
-  });
-  spinner.start();
+  const targetPath = sidecarPath(targetFile);
 
-  const sidecarDir = path.join(cwd, "src-tauri", "sidecar");
-  const sidecarPath = path.join(sidecarDir, targetFile);
+  logger.message(`download url: ${downloadURL}`);
+  logger.message(`target path: ${targetPath}`);
 
-  await fs.mkdirp(sidecarDir);
-  if (!FORCE && (await fs.pathExists(sidecarPath))) {
-    spinner.succeed(`${targetFile} has exists`);
+  await fs.mkdirp(SIDECAR_DIR);
+  if (!FORCE && (await fs.pathExists(targetPath))) {
+    logger.message(`result: skipped existing sidecar ${targetFile}`);
     return;
   }
 
@@ -268,18 +257,24 @@ async function resolveSidecar(binInfo) {
   await fs.mkdirp(tempDir);
   try {
     if (!(await fs.pathExists(tempZip))) {
-      await downloadFile(downloadURL, tempZip, spinner);
+      await downloadFile(downloadURL, tempZip, logger);
+    } else {
+      logger.message(
+        `result: using cached archive ${formatResourcePath(tempZip)}`,
+      );
     }
 
     if (zipFile.endsWith(".zip")) {
       const zip = new AdmZip(tempZip);
       zip.getEntries().forEach((entry) => {
-        spinner.text = `"${name}" entry name`;
+        logger.message(`"${name}" entry name ${entry.entryName}`);
       });
-      spinner.text = "extract zip file to temp dir";
+      logger.message("extract zip file to temp dir");
       zip.extractAllTo(tempDir, true);
-      await fs.rename(tempExe, sidecarPath);
-      spinner.succeed(`unzip finished: "${name}"`);
+      await fs.rename(tempExe, targetPath);
+      logger.message(
+        `result: extracted "${name}" to ${formatResourcePath(targetPath)}`,
+      );
     } else if (zipFile.endsWith(".tgz")) {
       // tgz
       await fs.mkdirp(tempDir);
@@ -289,43 +284,47 @@ async function resolveSidecar(binInfo) {
         //strip: 1, // 可能需要根据实际的 .tgz 文件结构调整
       });
       const files = await fs.readdir(tempDir);
-      spinner.text = `"${name}" files in tempDir: ${files}`;
+      logger.message(`"${name}" files in tempDir: ${files}`);
       const extractedFile = files.find((file) => file.startsWith("虚空终端-"));
       if (extractedFile) {
         const extractedFilePath = path.join(tempDir, extractedFile);
-        spinner.text = `"${name}" file renam to "${sidecarPath}"`;
-        await fs.rename(extractedFilePath, sidecarPath);
-        spinner.text = `"chmod 755 to "${sidecarPath}"`;
-        execSync(`chmod 755 ${sidecarPath}`);
-        spinner.succeed(`chmod binary finished: "${name}"`);
+        logger.message(`"${name}" file renam to "${targetPath}"`);
+        await fs.rename(extractedFilePath, targetPath);
+        logger.message(`"chmod 755 to "${targetPath}"`);
+        execSync(`chmod 755 ${targetPath}`);
+        logger.message(
+          `result: extracted and chmod "${name}" at ${formatResourcePath(targetPath)}`,
+        );
       } else {
         throw new Error(`Expected file not found in ${tempDir}`);
       }
     } else {
       // gz
       const readStream = fs.createReadStream(tempZip);
-      const writeStream = fs.createWriteStream(sidecarPath);
+      const writeStream = fs.createWriteStream(targetPath);
       await new Promise((resolve, reject) => {
         const onError = (error) => {
-          spinner.fail(`gz failed ["${name}"]: `, error.message);
+          logger.message(`gz failed ["${name}"]: ${error.message}`);
           reject(error);
         };
         readStream
           .pipe(zlib.createGunzip().on("error", onError))
           .pipe(writeStream)
           .on("finish", () => {
-            spinner.text = `gunzip finished: "${name}"`;
-            execSync(`chmod 755 ${sidecarPath}`);
-            spinner.succeed(`chmod binary finished: "${name}"`);
+            logger.message(`gunzip finished: "${name}"`);
+            execSync(`chmod 755 ${targetPath}`);
+            logger.message(
+              `result: gunzip and chmod "${name}" at ${formatResourcePath(targetPath)}`,
+            );
             resolve();
           })
           .on("error", onError);
       });
     }
   } catch (err) {
-    spinner.fail(`${err}`);
+    logger.message(`${err}`);
     // 需要删除文件
-    await fs.remove(sidecarPath);
+    await fs.remove(targetPath);
     throw err;
   } finally {
     // delete temp dir
@@ -336,68 +335,112 @@ async function resolveSidecar(binInfo) {
 /**
  * download the file to the resources dir
  */
-async function resolveResource(binInfo) {
+async function resolveResource(binInfo, logger) {
   const { file, downloadURL, localPath } = binInfo;
-  const spinner = ora({
-    text: `resolve resource ${file}`,
-    color: "yellow",
-    spinner: "circle",
-  });
-  spinner.start();
 
   try {
-    const resDir = path.join(cwd, "src-tauri/resources");
-    const targetPath = path.join(resDir, file);
+    const targetPath = resourcePath(file);
+    logger.message(`target path: ${formatResourcePath(targetPath)}`);
 
     if (!FORCE && (await fs.pathExists(targetPath))) {
-      spinner.succeed(`${file} has exists`);
+      logger.message(`result: skipped existing resource ${file}`);
       return;
     }
 
-    await fs.mkdirp(resDir);
+    await fs.mkdirp(RESOURCE_DIR);
     if (downloadURL) {
-      spinner.text = `download ${file}...`;
-      await downloadFile(downloadURL, targetPath, spinner);
+      await downloadFile(downloadURL, targetPath, logger);
     }
     if (localPath) {
-      spinner.text = `copy ${file} to ${targetPath}`;
+      const spin = spinner();
+      spin.start("copying...");
+      spin.message(`local path: ${formatResourcePath(localPath)}`);
+      spin.message(`copy ${file} to ${formatResourcePath(targetPath)}`);
       await fs.copyFile(localPath, targetPath);
-      spinner.text = `copy file finished: "${localPath}"`;
+      spin.stop(
+        `result: copied ${formatResourcePath(localPath)} to ${formatResourcePath(targetPath)}`,
+      );
     }
-    spinner.succeed(`resolve finished: ${file}`);
+    logger.message(
+      `result: resolved ${file} at ${formatResourcePath(targetPath)}`,
+    );
   } catch (err) {
-    spinner.fail(`resolve failed: ${file}`);
-    throw new Error(err);
+    logger.error(`resolve failed: ${file}`);
+    throw err;
   }
 }
 
 /**
  * download file and save to `path`
  */
-async function downloadFile(url, path, spinner) {
-  const options = {};
-  const httpProxy =
-    process.env.HTTP_PROXY ||
-    process.env.http_proxy ||
-    process.env.HTTPS_PROXY ||
-    process.env.https_proxy;
-  if (httpProxy) {
-    options.agent = new HttpsProxyAgent(httpProxy);
-  }
-  spinner.text = `downloading: ${url}`;
+async function downloadFile(url, path, logger) {
   const response = await fetchWithTimeout(url, {
-    ...options,
+    ...getFetchOptions(),
     method: "GET",
     headers: { "Content-Type": "application/octet-stream" },
     timeout: 1000 * 60 * 2, // 下载文件默认超时 2 分钟
   });
   if (response.status === 404) {
-    spinner.text = `download failed, file not found: "${url}"`;
+    logger.message(`download failed, file not found: "${url}"`);
     throw new Error(`file not found: ${url}`);
   }
-  const buffer = await response.arrayBuffer();
-  await fs.writeFile(path, new Uint8Array(buffer));
-  spinner.text = `download finished: "${url}"`;
+
+  const contentLength = Number(response.headers.get("content-length") || 0);
+  const hasContentLength = Number.isFinite(contentLength) && contentLength > 0;
+  const downloadProgress = progress({
+    max: hasContentLength ? contentLength : 100,
+  });
+  const chunks = [];
+  let downloaded = 0;
+  let unknownSizeProgress = 0;
+
+  downloadProgress.start(
+    hasContentLength
+      ? `Downloading ${formatBytes(contentLength)}`
+      : "Downloading",
+  );
+
+  try {
+    if (response.body) {
+      for await (const chunk of response.body) {
+        chunks.push(chunk);
+        downloaded += chunk.length;
+
+        if (hasContentLength) {
+          downloadProgress.advance(
+            chunk.length,
+            `Downloading ${formatBytes(downloaded)} / ${formatBytes(contentLength)}`,
+          );
+        } else {
+          const step = unknownSizeProgress < 99 ? 1 : 0;
+          unknownSizeProgress += step;
+          downloadProgress.advance(
+            step,
+            `Downloading ${formatBytes(downloaded)}`,
+          );
+        }
+      }
+    } else {
+      const buffer = await response.arrayBuffer();
+      chunks.push(new Uint8Array(buffer));
+      downloaded = buffer.byteLength;
+      downloadProgress.advance(
+        hasContentLength ? downloaded : 100,
+        `Downloading ${formatBytes(downloaded)}`,
+      );
+    }
+
+    // 下载进度完成后更好的视觉体验
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    await fs.writeFile(path, Buffer.concat(chunks));
+    downloadProgress.stop(`Downloaded ${formatBytes(downloaded)}`);
+  } catch (err) {
+    downloadProgress.error(`Download failed after ${formatBytes(downloaded)}`);
+    throw err;
+  }
+
+  logger.message(`downloaded ${url} to ${formatResourcePath(path)}`);
 }
 
 /**
@@ -405,14 +448,8 @@ async function downloadFile(url, path, spinner) {
  *
  * only for Windows
  */
-const resolvePlugin = async () => {
-  consola.info("Resolve NSIS plugin (SimpleSC)");
-  const spinner = ora({
-    text: "resolve NSIS plugin (SimpleSC)",
-    color: "yellow",
-    spinner: "circle",
-  });
-  spinner.start();
+async function resolvePlugin(logger) {
+  logger.message("Resolve NSIS plugin (SimpleSC)");
 
   const url =
     "https://nsis.sourceforge.io/mediawiki/images/e/ef/NSIS_Simple_Service_Plugin_Unicode_1.30.zip";
@@ -426,235 +463,302 @@ const resolvePlugin = async () => {
   const pluginPath = path.join(pluginDir, "SimpleSC.dll");
   await fs.mkdirp(pluginDir);
   await fs.mkdirp(tempDir);
+  logger.message(`download url: ${url}`);
+  logger.message(`target path: ${pluginPath}`);
   if (!FORCE && (await fs.pathExists(pluginPath))) {
-    spinner.succeed("NSIS plugin (SimpleSC) has exists");
+    logger.message("result: skipped existing NSIS plugin (SimpleSC)");
     return;
   }
   try {
     if (!(await fs.pathExists(tempZip))) {
-      await downloadFile(url, tempZip, spinner);
+      await downloadFile(url, tempZip, logger);
+    } else {
+      logger.message(
+        `result: using cached archive ${formatResourcePath(tempZip)}`,
+      );
     }
     const zip = new AdmZip(tempZip);
-    zip.getEntries().forEach((entry) => {
-      spinner.text = `"SimpleSC" entry name ${entry.entryName}`;
-    });
     zip.extractAllTo(tempDir, true);
+    logger.message(`result: extracted "SimpleSC" to ${tempDir}`);
     await fs.copyFile(tempDll, pluginPath);
-    spinner.succeed(`unzip finished: "SimpleSC"`);
+    logger.message(`result: copied "SimpleSC" to ${pluginPath}`);
   } finally {
     await fs.remove(tempDir);
   }
-};
+}
 
 /**
  * chmod 755 for Clash Verge Self Service
  */
-const resolveServicePermission = async () => {
+async function resolveServicePermission(logger) {
   const serviceExecutable = `clash-verge-self-service${EXE_SUFFIX}`;
-  const resDir = path.join(cwd, "src-tauri", "resources");
-  const targetPath = path.join(resDir, serviceExecutable);
+  const targetPath = resourcePath(serviceExecutable);
+  const spin = spinner();
+  spin.start("chmod...");
   if (await fs.pathExists(targetPath)) {
     execSync(`chmod 755 ${targetPath}`);
-    consola.success(`chmod finished: "${serviceExecutable}"`);
-  }
-};
-
-/**
- * Clash Verge Self Service Latest Version
- *
- * TODO: get Clash Verge Self Service latest version by use request
- */
-async function getLatestClashVergeSelfServices() {
-  // TODO: Github rest api are rate-limited
-  // const GET_LATEST_RELEASE_API =
-  //   "https://api.github.com/repos/oomeow/clash-verge-self-service/releases/latest";
-  // const response = await fetch(GET_LATEST_RELEASE_API);
-  // const json = await response.json();
-  // const version = json.tag_name;
-  // log_info(`Latest Clash Verge Self Service version: ${version}`);
-  // const assets = json.assets;
-  // const downloadItem = assets.find((item) => item.name.includes(SIDECAR_HOST));
-  // return {
-  //   file: downloadItem.name,
-  //   downloadURL: downloadItem.browser_download_url,
-  // };
-  const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
-  const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/${VERGE_SERVICE_VERSION}/${fileName}`;
-  return {
-    file: fileName,
-    downloadURL: downloadURL,
-  };
-}
-
-/**
- * Clash Verge Self Service Latest Alpha Version
- */
-function getAlphaClashVergeSelfServices() {
-  const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
-  const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/alpha/${fileName}`;
-  return {
-    file: fileName,
-    downloadURL: downloadURL,
-  };
-}
-
-const resolveClashVergeSelfService = async () => {
-  const versionTag = useAlphaService ? "Alpha" : "Stable";
-  consola.info(`Download Clash Verge Self Service (${versionTag})`);
-  let downloadItem;
-  if (useAlphaService) {
-    downloadItem = getAlphaClashVergeSelfServices();
+    spin.stop(
+      `result: chmod 755 finished for ${formatResourcePath(targetPath)}`,
+    );
   } else {
-    downloadItem = await getLatestClashVergeSelfServices();
+    spin.error(`result: service executable not found, chmod skipped`);
   }
-  await resolveResource({
-    file: `clash-verge-self-service${EXE_SUFFIX}`,
-    downloadURL: downloadItem.downloadURL,
-  });
-};
+}
 
-const resolveSetDnsScript = async () => {
-  consola.info("Resolve Macos set dns script");
-  await resolveResource({
+function getClashVergeSelfService(version) {
+  const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
+  const releaseTag = version === "alpha" ? "alpha" : VERGE_SERVICE_VERSION;
+  const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/${releaseTag}/${fileName}`;
+
+  return {
+    file: fileName,
+    downloadURL,
+  };
+}
+
+async function resolveClashVergeSelfService(version, logger) {
+  const label = version === "alpha" ? "Alpha" : "Stable";
+  const downloadItem = getClashVergeSelfService(version);
+
+  logger.message(`Download Clash Verge Self Service (${label})`);
+  await resolveResource(
+    {
+      file: `clash-verge-self-service${EXE_SUFFIX}`,
+      downloadURL: downloadItem.downloadURL,
+    },
+    logger,
+  );
+}
+
+const RESOURCE_TASKS = [
+  {
+    name: "Copy set_dns.sh",
+    label: "Resolve Macos set dns script",
     file: "set_dns.sh",
     localPath: path.join(cwd, "scripts/set_dns.sh"),
-  });
-};
-
-const resolveUnSetDnsScript = async () => {
-  consola.info("Resolve Macos unset dns script");
-  await resolveResource({
+    macOnly: true,
+  },
+  {
+    name: "Copy unset_dns.sh",
+    label: "Resolve Macos unset dns script",
     file: "unset_dns.sh",
     localPath: path.join(cwd, "scripts/unset_dns.sh"),
-  });
-};
-
-const resolveMmdb = async () => {
-  consola.info("Resolve Country mmdb");
-  await resolveResource({
+    macOnly: true,
+  },
+  {
+    name: "Download Country mmdb",
+    label: "Resolve Country mmdb",
     file: "Country.mmdb",
-    downloadURL: `https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb`,
-  });
-};
-
-const resolveGeosite = async () => {
-  consola.info("Resolve geosite");
-  await resolveResource({
+    downloadURL:
+      "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb",
+  },
+  {
+    name: "Download geosite",
+    label: "Resolve geosite",
     file: "geosite.dat",
-    downloadURL: `https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat`,
-  });
-};
-
-const resolveGeoIP = async () => {
-  consola.info("Resolve geoip");
-  await resolveResource({
+    downloadURL:
+      "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
+  },
+  {
+    name: "Download geoip",
+    label: "Resolve geoip",
     file: "geoip.dat",
-    downloadURL: `https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat`,
-  });
-};
-
-const resolveASN = async () => {
-  consola.info("Resolve ASN mmdb");
-  await resolveResource({
+    downloadURL:
+      "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat",
+  },
+  {
+    name: "Download ASN mmdb",
+    label: "Resolve ASN mmdb",
     file: "ASN.mmdb",
-    downloadURL: `https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb`,
-  });
-};
-
-const resolveEnableLoopback = async () => {
-  consola.info("Resolve enableLoopback.exe");
-  await resolveResource({
+    downloadURL:
+      "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb",
+  },
+  {
+    name: "Download enableLoopback.exe",
+    label: "Resolve enableLoopback.exe",
     file: "enableLoopback.exe",
-    downloadURL: `https://github.com/Kuingsmile/uwp-tool/releases/download/latest/enableLoopback.exe`,
-  });
-};
-
-const tasks = [
-  {
-    name: "self-mihomo",
-    func: async () => {
-      consola.info("Download and unzip Latest Mihomo Stable Version");
-      await getLatestReleaseVersion();
-      await resolveSidecar(mihomo());
-    },
-    retry: 5,
-  },
-  {
-    name: "self-mihomo-alpha",
-    func: async () => {
-      consola.info("Download and unzip Latest Mihomo Alpha Version");
-      await getLatestAlphaVersion();
-      await resolveSidecar(mihomoAlpha());
-    },
-    retry: 5,
-  },
-  { name: "plugin", func: resolvePlugin, retry: 5, winOnly: true },
-  {
-    name: "clash-verge-self-service",
-    func: resolveClashVergeSelfService,
-    retry: 5,
-  },
-  {
-    name: "set_dns_script",
-    func: resolveSetDnsScript,
-    retry: 5,
-    macOnly: true,
-  },
-  {
-    name: "unset_dns_script",
-    func: resolveUnSetDnsScript,
-    retry: 5,
-    macOnly: true,
-  },
-  { name: "mmdb", func: resolveMmdb, retry: 5 },
-  { name: "geosite", func: resolveGeosite, retry: 5 },
-  { name: "geoip", func: resolveGeoIP, retry: 5 },
-  { name: "asn", func: resolveASN, retry: 5 },
-  {
-    name: "enableLoopback",
-    func: resolveEnableLoopback,
-    retry: 5,
+    downloadURL:
+      "https://github.com/Kuingsmile/uwp-tool/releases/download/latest/enableLoopback.exe",
     winOnly: true,
   },
-  {
-    name: "chmod_service",
-    func: resolveServicePermission,
-    retry: 1,
-    unixOnly: true,
-  },
 ];
+
+function createResourceTask({
+  name,
+  label,
+  file,
+  downloadURL,
+  localPath,
+  ...filters
+}) {
+  return {
+    name,
+    ...filters,
+    retry: 5,
+    targetPath: resourcePath(file),
+    func: async (logger) => {
+      logger.message(label);
+      await resolveResource({ file, downloadURL, localPath }, logger);
+    },
+  };
+}
+
+function createMihomoTask() {
+  return ["stable", "alpha"].map((version) => {
+    const isAlpha = version === "alpha";
+    const name = isAlpha ? "self-mihomo-alpha" : "self-mihomo";
+    const taskName = isAlpha
+      ? "Download self-mihomo-alpha"
+      : "Download self-mihomo";
+    const label = isAlpha ? "Alpha" : "Stable";
+
+    return {
+      name: taskName,
+      func: async (logger) => {
+        logger.message(`Download and unzip Latest Mihomo ${label} Version`);
+        const latestVersion = await getLatestMihomoVersion(version, logger);
+        await resolveSidecar(mihomo(version, latestVersion), logger);
+      },
+      retry: 5,
+      targetPath: sidecarPath(`${name}-${SIDECAR_HOST}${EXE_SUFFIX}`),
+    };
+  });
+}
+
+function createTasks(version) {
+  return [
+    ...createMihomoTask(),
+    {
+      name: "Download clash-verge-self-service",
+      func: (logger) => resolveClashVergeSelfService(version, logger),
+      retry: 5,
+      targetPath: resourcePath(`clash-verge-self-service${EXE_SUFFIX}`),
+    },
+    ...RESOURCE_TASKS.map(createResourceTask),
+    {
+      name: "Download SimpleSC plugin",
+      func: resolvePlugin,
+      retry: 5,
+      winOnly: true,
+      targetPath: process.env.APPDATA
+        ? path.join(process.env.APPDATA, "Local/NSIS", "SimpleSC.dll")
+        : undefined,
+    },
+    {
+      name: "Chmod clash-verge-self-service",
+      func: resolveServicePermission,
+      retry: 1,
+      unixOnly: true,
+      targetPath: resourcePath(`clash-verge-self-service${EXE_SUFFIX}`),
+    },
+  ];
+}
+
+function shouldRunTask(task) {
+  if (task.winOnly && platform !== "win32") return false;
+  if (task.linuxOnly && platform !== "linux") return false;
+  if (task.unixOnly && platform === "win32") return false;
+  if (task.macOnly && platform !== "darwin") return false;
+  return true;
+}
+
+async function chooseVersion() {
+  if (useAlphaService) {
+    log.info("Use alpha resource version from --alpha");
+    return "alpha";
+  }
+
+  if (NO_CONFIRM) {
+    log.info("Use default stable resource version from --no-confirm");
+    return "stable";
+  }
+
+  const version = await select({
+    message: "Select resource version",
+    options: [
+      { value: "stable", label: "Stable" },
+      { value: "alpha", label: "Alpha" },
+    ],
+    initialValue: "stable",
+  });
+
+  return handleCancel(version);
+}
+
+async function confirmOverwriteIfNeeded(tasks) {
+  if (FORCE) return;
+
+  const existingResources = new Set();
+  for (const task of tasks) {
+    if (!task.targetPath) continue;
+    if (await fs.pathExists(task.targetPath)) {
+      existingResources.add(formatResourcePath(task.targetPath));
+    }
+  }
+
+  if (existingResources.size === 0) return;
+
+  log.warn(
+    [
+      "Existing resources found:",
+      ...[...existingResources].map((resource) => `  - ${resource}`),
+    ].join("\n"),
+  );
+
+  if (NO_CONFIRM) {
+    FORCE = true;
+    log.info("Use default overwrite confirmation from --no-confirm");
+    return;
+  }
+
+  const overwrite = await confirm({
+    message: "Force overwrite existing resources?",
+    initialValue: true,
+  });
+
+  FORCE = handleCancel(overwrite);
+}
+
+async function runTaskWithRetry(task) {
+  const taskName = pc.bgBlue(pc.white(` ${task.name} `));
+  const logger = taskLog({
+    title: taskName,
+    retainLog: true,
+  });
+
+  for (let i = 0; i < task.retry; i++) {
+    const attempt = i + 1;
+    try {
+      logger.message(`attempt ${attempt}/${task.retry}`);
+      await task.func(logger);
+      logger.success(`task::${task.name} Done!`, { showLog: false });
+      return;
+    } catch (err) {
+      const message = `task::${task.name} attempt ${attempt}/${task.retry}, error message: ${err.message}`;
+      logger.message(message);
+      if (attempt === task.retry) {
+        logger.error(`task::${task.name} failed`, { showLog: true });
+        throw err;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+}
 
 /**
  * main function for run tasks
  */
 async function runTask() {
-  consola.box("Check and download files");
-  while (tasks.length > 0) {
-    const task = tasks.shift();
-    if (!task) {
-      consola.success("all tasks has run finished");
-      return;
-    }
-    if (task.winOnly && platform !== "win32") continue;
-    if (task.linuxOnly && platform !== "linux") continue;
-    if (task.unixOnly && platform === "win32") continue;
-    if (task.macOnly && platform !== "darwin") continue;
+  intro(pc.bgCyan(pc.white(" Check and download files ")));
+  const version = await chooseVersion();
+  const tasks = createTasks(version).filter(shouldRunTask);
+  await confirmOverwriteIfNeeded(tasks);
 
-    for (let i = 0; i < task.retry; i++) {
-      try {
-        await task.func();
-        break;
-      } catch (err) {
-        consola.error(
-          `task::${task.name} attempt ${i}/${task.retry}, error message: `,
-          err.message,
-        );
-        // wait 1s
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        if (i === task.retry - 1) throw err;
-      }
-    }
+  for (const task of tasks) {
+    await runTaskWithRetry(task);
   }
+
+  outro(pc.bgGreen(pc.white("all tasks has run finished")));
 }
 
 // run
