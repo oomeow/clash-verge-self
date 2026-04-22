@@ -180,7 +180,7 @@ async function fetchWithTimeout(resource, options = {}) {
     if (error.name === "AbortError") {
       throw new Error(`fetch timeout: ${timeout}ms`);
     } else {
-      throw new Error(error);
+      throw error;
     }
   } finally {
     clearTimeout(id);
@@ -203,8 +203,8 @@ async function getLatestMihomoVersion(version, logger) {
     logger.message(`Latest ${label} version: ${latestVersion}`);
     return latestVersion;
   } catch (error) {
-    logger.message(`Error fetching latest ${label} version: ${error.message}`);
-    throw new Error(error);
+    logger.error(`Error fetching latest ${label} version: ${error.message}`);
+    throw error;
   }
 }
 
@@ -365,8 +365,8 @@ async function resolveResource(binInfo, logger) {
       `result: resolved ${file} at ${formatResourcePath(targetPath)}`,
     );
   } catch (err) {
-    logger.message(`resolve failed: ${file}`);
-    throw new Error(err);
+    logger.error(`resolve failed: ${file}`);
+    throw err;
   }
 }
 
