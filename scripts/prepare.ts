@@ -44,9 +44,7 @@ async function cargoInstall(
 const isGithubAction = process.env.GITHUB_TOKEN !== undefined;
 if (!isGithubAction) {
   const installedBins = execSync(`cargo install --list`).toString();
-  await Promise.all([
-    cargoInstall("prek", ["--locked", "prek"], installedBins),
-    cargoInstall("just", ["just"], installedBins),
-  ]);
+  await cargoInstall("prek", ["--locked", "prek"], installedBins);
+  await cargoInstall("just", ["just"], installedBins);
   console.log("`prek` and `just` have been installed");
 }
