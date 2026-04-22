@@ -448,7 +448,7 @@ async function downloadFile(url, path, logger) {
  *
  * only for Windows
  */
-const resolvePlugin = async (logger) => {
+async function resolvePlugin(logger) {
   logger.message("Resolve NSIS plugin (SimpleSC)");
 
   const url =
@@ -478,21 +478,19 @@ const resolvePlugin = async (logger) => {
       );
     }
     const zip = new AdmZip(tempZip);
-    zip.getEntries().forEach((entry) => {
-      logger.message(`"SimpleSC" entry name ${entry.entryName}`);
-    });
     zip.extractAllTo(tempDir, true);
+    logger.message(`result: extracted "SimpleSC" to ${tempDir}`);
     await fs.copyFile(tempDll, pluginPath);
-    logger.message(`result: extracted "SimpleSC" to ${pluginPath}`);
+    logger.message(`result: copied "SimpleSC" to ${pluginPath}`);
   } finally {
     await fs.remove(tempDir);
   }
-};
+}
 
 /**
  * chmod 755 for Clash Verge Self Service
  */
-const resolveServicePermission = async (logger) => {
+async function resolveServicePermission(logger) {
   const serviceExecutable = `clash-verge-self-service${EXE_SUFFIX}`;
   const targetPath = resourcePath(serviceExecutable);
   const spin = spinner();
@@ -505,7 +503,7 @@ const resolveServicePermission = async (logger) => {
   } else {
     spin.error(`result: service executable not found, chmod skipped`);
   }
-};
+}
 
 function getClashVergeSelfService(version) {
   const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
@@ -518,7 +516,7 @@ function getClashVergeSelfService(version) {
   };
 }
 
-const resolveClashVergeSelfService = async (version, logger) => {
+async function resolveClashVergeSelfService(version, logger) {
   const label = version === "alpha" ? "Alpha" : "Stable";
   const downloadItem = getClashVergeSelfService(version);
 
@@ -530,7 +528,7 @@ const resolveClashVergeSelfService = async (version, logger) => {
     },
     logger,
   );
-};
+}
 
 const RESOURCE_TASKS = [
   {
@@ -631,6 +629,13 @@ function createTasks(version) {
   return [
     ...createMihomoTask(),
     {
+      name: "Download clash-verge-self-service",
+      func: (logger) => resolveClashVergeSelfService(version, logger),
+      retry: 5,
+      targetPath: resourcePath(`clash-verge-self-service${EXE_SUFFIX}`),
+    },
+    ...RESOURCE_TASKS.map(createResourceTask),
+    {
       name: "Download SimpleSC plugin",
       func: resolvePlugin,
       retry: 5,
@@ -639,13 +644,6 @@ function createTasks(version) {
         ? path.join(process.env.APPDATA, "Local/NSIS", "SimpleSC.dll")
         : undefined,
     },
-    {
-      name: "Download clash-verge-self-service",
-      func: (logger) => resolveClashVergeSelfService(version, logger),
-      retry: 5,
-      targetPath: resourcePath(`clash-verge-self-service${EXE_SUFFIX}`),
-    },
-    ...RESOURCE_TASKS.map(createResourceTask),
     {
       name: "Chmod clash-verge-self-service",
       func: resolveServicePermission,
@@ -725,6 +723,7 @@ async function runTaskWithRetry(task) {
   const taskName = pc.bgBlue(pc.white(` ${task.name} `));
   const logger = taskLog({
     title: taskName,
+    retainLog: true,
   });
 
   for (let i = 0; i < task.retry; i++) {
