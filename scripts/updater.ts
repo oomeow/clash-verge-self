@@ -17,13 +17,30 @@ const UPDATE_LOG = "UPDATELOG.md";
 const update_log_file = path.join(cwd, UPDATE_LOG);
 const change_log_file = path.join(cwd, CHANGE_LOG);
 
-export async function getLatestTag() {
-  if (process.env.GITHUB_TOKEN === undefined) {
+type PlatformUpdate = {
+  signature: string;
+  url: string;
+};
+
+type UpdateData = {
+  name: string;
+  notes: string;
+  pub_date: string;
+  platforms: Record<string, PlatformUpdate>;
+};
+
+function getGithubToken(): string {
+  const token = process.env.GITHUB_TOKEN;
+  if (token === undefined) {
     throw new Error("GITHUB_TOKEN is required");
   }
+  return token;
+}
 
+export async function getLatestTag(): Promise<{ name: string }> {
+  const token = getGithubToken();
   const options = { owner: context.repo.owner, repo: context.repo.repo };
-  const github = getOctokit(process.env.GITHUB_TOKEN);
+  const github = getOctokit(token);
 
   const { data: tags } = await github.rest.repos.listTags({
     ...options,
@@ -33,6 +50,9 @@ export async function getLatestTag() {
 
   // get the latest publish tag
   const tag = tags.find((t) => t.name.startsWith("v"));
+  if (!tag) {
+    throw new Error("could not found latest version tag");
+  }
 
   console.log(tag);
   console.log();
@@ -44,14 +64,15 @@ export async function getLatestTag() {
 /// upload to update tag's release asset
 async function resolveUpdater() {
   const tag = await getLatestTag();
+  const token = getGithubToken();
   const options = { owner: context.repo.owner, repo: context.repo.repo };
-  const github = getOctokit(process.env.GITHUB_TOKEN);
+  const github = getOctokit(token);
   const { data: latestRelease } = await github.rest.repos.getReleaseByTag({
     ...options,
     tag: tag.name,
   });
 
-  const updateData = {
+  const updateData: UpdateData = {
     name: tag.name,
     notes: await resolveUpdateLog(tag.name), // use updatelog.md
     pub_date: new Date().toISOString(),
@@ -163,7 +184,7 @@ async function resolveUpdater() {
 
   // 生成一个代理github的更新文件
   // 使用 https://hub.fastgit.xyz/ 做github资源的加速
-  const updateDataNew = JSON.parse(JSON.stringify(updateData));
+  const updateDataNew = JSON.parse(JSON.stringify(updateData)) as UpdateData;
 
   Object.entries(updateDataNew.platforms).forEach(([key, value]) => {
     if (value.url) {
@@ -181,7 +202,7 @@ async function resolveUpdater() {
   });
 
   // delete the old assets
-  for (let asset of updateRelease.assets) {
+  for (const asset of updateRelease.assets) {
     if (asset.name === UPDATE_JSON_FILE) {
       await github.rest.repos.deleteReleaseAsset({
         ...options,
@@ -213,7 +234,7 @@ async function resolveUpdater() {
 }
 
 // get the signature file content
-async function getSignature(url) {
+async function getSignature(url: string): Promise<string> {
   const response = await fetch(url, {
     method: "GET",
     headers: { "Content-Type": "application/octet-stream" },
@@ -223,8 +244,8 @@ async function getSignature(url) {
 }
 
 // parse the UPDATELOG.md
-export async function resolveUpdateLog(tag) {
-  const reTitle = /^## v[\d\.]+/;
+export async function resolveUpdateLog(tag: string): Promise<string> {
+  const reTitle = /^## v[\d.]+/;
   const reEnd = /^---/;
 
   if (!(await fs.pathExists(update_log_file))) {
@@ -235,7 +256,7 @@ export async function resolveUpdateLog(tag) {
     .readFile(update_log_file)
     .then((d) => d.toString("utf8"));
 
-  const map = {};
+  const map: Record<string, string[]> = {};
   let p = "";
 
   data.split("\n").forEach((line) => {
@@ -271,7 +292,7 @@ export async function updateUpdateLog() {
     .readFile(update_log_file)
     .then((d) => d.toString("utf8"));
   const regexp = new RegExp("## (v.*)", "g");
-  let allVersions = [...updateLogContent.matchAll(regexp)].map((match) =>
+  const allVersions = [...updateLogContent.matchAll(regexp)].map((match) =>
     match[1].trim(),
   );
   console.log(allVersions);

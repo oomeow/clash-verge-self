@@ -1,4 +1,3 @@
-import AdmZip from "adm-zip";
 import {
   cancel,
   confirm,
@@ -8,8 +7,10 @@ import {
   outro,
   progress,
   select,
+  spinner,
   taskLog,
 } from "@clack/prompts";
+import AdmZip from "adm-zip";
 import { execSync } from "child_process";
 import fs from "fs-extra";
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -18,7 +19,42 @@ import path from "path";
 import pc from "picocolors";
 import * as tar from "tar";
 import zlib from "zlib";
-import { spinner } from "@clack/prompts";
+
+type Version = "stable" | "alpha";
+type TaskLogger = {
+  message: (message: string, options?: any) => void;
+  success: (message: string, options?: { showLog?: boolean }) => void;
+  error: (message: string, options?: { showLog?: boolean }) => void;
+};
+type FetchOptions = Record<string, unknown> & { timeout?: number };
+type BinInfo = {
+  name: string;
+  targetFile: string;
+  exeFile: string;
+  zipFile: string;
+  downloadURL: string;
+};
+type ResourceInfo = {
+  file: string;
+  downloadURL?: string;
+  localPath?: string;
+};
+type Task = {
+  name: string;
+  func: (logger: TaskLogger) => Promise<void>;
+  retry: number;
+  targetPath?: string;
+  winOnly?: boolean;
+  linuxOnly?: boolean;
+  unixOnly?: boolean;
+  macOnly?: boolean;
+};
+type ResourceTaskConfig = ResourceInfo & {
+  name: string;
+  label: string;
+  winOnly?: boolean;
+  macOnly?: boolean;
+};
 
 const VERGE_SERVICE_VERSION = "v2.0.0";
 const cwd = process.cwd();
@@ -33,7 +69,7 @@ const process_argvs = rawArgvs.filter(
   (item) => !["--alpha", "--force", "--no-confirm"].includes(item),
 );
 
-const PLATFORM_MAP = {
+const PLATFORM_MAP: Record<string, NodeJS.Platform> = {
   "x86_64-pc-windows-msvc": "win32",
   "i686-pc-windows-msvc": "win32",
   "aarch64-pc-windows-msvc": "win32",
@@ -46,7 +82,7 @@ const PLATFORM_MAP = {
   "riscv64gc-unknown-linux-gnu": "linux",
   "loongarch64-unknown-linux-gnu": "linux",
 };
-const ARCH_MAP = {
+const ARCH_MAP: Record<string, string> = {
   "x86_64-pc-windows-msvc": "x64",
   "i686-pc-windows-msvc": "ia32",
   "aarch64-pc-windows-msvc": "arm64",
@@ -61,19 +97,24 @@ const ARCH_MAP = {
 };
 
 const target = process_argvs[2];
-const { platform, arch } = target
-  ? { platform: PLATFORM_MAP[target], arch: ARCH_MAP[target] }
-  : process;
+const platform = target ? PLATFORM_MAP[target] : process.platform;
+const arch = target ? ARCH_MAP[target] : process.arch;
 
-const SIDECAR_HOST = target
-  ? target
-  : execSync("rustc -vV")
-      .toString()
-      .match(/(?<=host: ).+(?=\s*)/g)[0];
+function getRustHost() {
+  const host = execSync("rustc -vV")
+    .toString()
+    .match(/(?<=host: ).+(?=\s*)/g)?.[0];
+  if (!host) {
+    throw new Error("could not resolve rust host");
+  }
+  return host;
+}
+
+const SIDECAR_HOST = target ? target : getRustHost();
 const EXE_SUFFIX = platform === "win32" ? ".exe" : "";
 const PLATFORM_ARCH = `${platform}-${arch}`;
 
-function handleCancel(value) {
+function handleCancel<T>(value: T) {
   if (isCancel(value)) {
     cancel("Operation cancelled");
     process.exit(0);
@@ -81,19 +122,19 @@ function handleCancel(value) {
   return value;
 }
 
-function formatResourcePath(resourcePath) {
+function formatResourcePath(resourcePath: string) {
   return path.relative(cwd, resourcePath) || resourcePath;
 }
 
-function sidecarPath(file) {
+function sidecarPath(file: string) {
   return path.join(SIDECAR_DIR, file);
 }
 
-function resourcePath(file) {
+function resourcePath(file: string) {
   return path.join(RESOURCE_DIR, file);
 }
 
-function getFetchOptions() {
+function getFetchOptions(): FetchOptions {
   const httpProxy =
     process.env.HTTP_PROXY ||
     process.env.http_proxy ||
@@ -102,7 +143,7 @@ function getFetchOptions() {
   return httpProxy ? { agent: new HttpsProxyAgent(httpProxy) } : {};
 }
 
-function formatBytes(bytes) {
+function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   const units = ["KB", "MB", "GB"];
   let value = bytes / 1024;
@@ -119,7 +160,7 @@ const MIHOMO_VERSION_URL =
   "https://github.com/MetaCubeX/mihomo/releases/latest/download/version.txt";
 const MIHOMO_URL_PREFIX = `https://github.com/MetaCubeX/mihomo/releases/download`;
 
-const MIHOMO_MAP = {
+const MIHOMO_MAP: Record<string, string> = {
   "win32-x64": "mihomo-windows-amd64-v3",
   "win32-ia32": "mihomo-windows-386",
   "win32-arm64": "mihomo-windows-arm64",
@@ -138,7 +179,7 @@ const MIHOMO_ALPHA_VERSION_URL =
   "https://github.com/MetaCubeX/mihomo/releases/download/Prerelease-Alpha/version.txt";
 const MIHOMO_ALPHA_URL_PREFIX = `https://github.com/MetaCubeX/mihomo/releases/download/Prerelease-Alpha`;
 
-const MIHOMO_ALPHA_MAP = {
+const MIHOMO_ALPHA_MAP: Record<string, string> = {
   "win32-x64": "mihomo-windows-amd64-v3",
   "win32-ia32": "mihomo-windows-386",
   "win32-arm64": "mihomo-windows-arm64",
@@ -163,7 +204,7 @@ if (!MIHOMO_ALPHA_MAP[PLATFORM_ARCH]) {
 /**
  * fetch with timeout (default timeout: 8000ms)
  */
-async function fetchWithTimeout(resource, options = {}) {
+async function fetchWithTimeout(resource: string, options: FetchOptions = {}) {
   const { timeout = 8000 } = options; // 默认超时时间为 8 秒
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
@@ -177,7 +218,7 @@ async function fetchWithTimeout(resource, options = {}) {
     }
     return response;
   } catch (error) {
-    if (error.name === "AbortError") {
+    if (error instanceof Error && error.name === "AbortError") {
       throw new Error(`fetch timeout: ${timeout}ms`);
     } else {
       throw error;
@@ -187,7 +228,10 @@ async function fetchWithTimeout(resource, options = {}) {
   }
 }
 
-async function getLatestMihomoVersion(version, logger) {
+async function getLatestMihomoVersion(
+  version: Version,
+  logger: TaskLogger,
+): Promise<string> {
   const isAlpha = version === "alpha";
   const label = isAlpha ? "alpha" : "stable";
   const versionUrl = isAlpha ? MIHOMO_ALPHA_VERSION_URL : MIHOMO_VERSION_URL;
@@ -203,7 +247,8 @@ async function getLatestMihomoVersion(version, logger) {
     logger.message(`Latest ${label} version: ${latestVersion}`);
     return latestVersion;
   } catch (error) {
-    logger.error(`Error fetching latest ${label} version: ${error.message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Error fetching latest ${label} version: ${message}`);
     throw error;
   }
 }
@@ -211,7 +256,7 @@ async function getLatestMihomoVersion(version, logger) {
 /**
  * mihomo version info
  */
-function mihomo(version, mihomoVersion) {
+function mihomo(version: Version, mihomoVersion: string): BinInfo {
   const isAlpha = version === "alpha";
   const name = (isAlpha ? MIHOMO_ALPHA_MAP : MIHOMO_MAP)[PLATFORM_ARCH];
   const isWin = platform === "win32";
@@ -235,7 +280,7 @@ function mihomo(version, mihomoVersion) {
 /**
  * download sidecar and rename
  */
-async function resolveSidecar(binInfo, logger) {
+async function resolveSidecar(binInfo: BinInfo, logger: TaskLogger) {
   const { name, targetFile, zipFile, exeFile, downloadURL } = binInfo;
   logger.message(`resolve sidecar ${name}`);
 
@@ -302,8 +347,8 @@ async function resolveSidecar(binInfo, logger) {
       // gz
       const readStream = fs.createReadStream(tempZip);
       const writeStream = fs.createWriteStream(targetPath);
-      await new Promise((resolve, reject) => {
-        const onError = (error) => {
+      await new Promise<void>((resolve, reject) => {
+        const onError = (error: Error) => {
           logger.message(`gz failed ["${name}"]: ${error.message}`);
           reject(error);
         };
@@ -335,7 +380,7 @@ async function resolveSidecar(binInfo, logger) {
 /**
  * download the file to the resources dir
  */
-async function resolveResource(binInfo, logger) {
+async function resolveResource(binInfo: ResourceInfo, logger: TaskLogger) {
   const { file, downloadURL, localPath } = binInfo;
 
   try {
@@ -373,7 +418,7 @@ async function resolveResource(binInfo, logger) {
 /**
  * download file and save to `path`
  */
-async function downloadFile(url, path, logger) {
+async function downloadFile(url: string, path: string, logger: TaskLogger) {
   const response = await fetchWithTimeout(url, {
     ...getFetchOptions(),
     method: "GET",
@@ -390,7 +435,7 @@ async function downloadFile(url, path, logger) {
   const downloadProgress = progress({
     max: hasContentLength ? contentLength : 100,
   });
-  const chunks = [];
+  const chunks: Uint8Array[] = [];
   let downloaded = 0;
   let unknownSizeProgress = 0;
 
@@ -403,12 +448,13 @@ async function downloadFile(url, path, logger) {
   try {
     if (response.body) {
       for await (const chunk of response.body) {
-        chunks.push(chunk);
-        downloaded += chunk.length;
+        const chunkBuffer = Buffer.from(chunk);
+        chunks.push(chunkBuffer);
+        downloaded += chunkBuffer.length;
 
         if (hasContentLength) {
           downloadProgress.advance(
-            chunk.length,
+            chunkBuffer.length,
             `Downloading ${formatBytes(downloaded)} / ${formatBytes(contentLength)}`,
           );
         } else {
@@ -431,7 +477,7 @@ async function downloadFile(url, path, logger) {
     }
 
     // 下载进度完成后更好的视觉体验
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise<void>((resolve) => setTimeout(resolve, 500));
 
     await fs.writeFile(path, Buffer.concat(chunks));
     downloadProgress.stop(`Downloaded ${formatBytes(downloaded)}`);
@@ -448,7 +494,7 @@ async function downloadFile(url, path, logger) {
  *
  * only for Windows
  */
-async function resolvePlugin(logger) {
+async function resolvePlugin(logger: TaskLogger) {
   logger.message("Resolve NSIS plugin (SimpleSC)");
 
   const url =
@@ -459,7 +505,11 @@ async function resolvePlugin(logger) {
     "NSIS_Simple_Service_Plugin_Unicode_1.30.zip",
   );
   const tempDll = path.join(tempDir, "SimpleSC.dll");
-  const pluginDir = path.join(process.env.APPDATA, "Local/NSIS");
+  const appData = process.env.APPDATA;
+  if (!appData) {
+    throw new Error("APPDATA is required to resolve NSIS plugin");
+  }
+  const pluginDir = path.join(appData, "Local/NSIS");
   const pluginPath = path.join(pluginDir, "SimpleSC.dll");
   await fs.mkdirp(pluginDir);
   await fs.mkdirp(tempDir);
@@ -490,7 +540,7 @@ async function resolvePlugin(logger) {
 /**
  * chmod 755 for Clash Verge Self Service
  */
-async function resolveServicePermission(logger) {
+async function resolveServicePermission(_logger: TaskLogger) {
   const serviceExecutable = `clash-verge-self-service${EXE_SUFFIX}`;
   const targetPath = resourcePath(serviceExecutable);
   const spin = spinner();
@@ -505,7 +555,7 @@ async function resolveServicePermission(logger) {
   }
 }
 
-function getClashVergeSelfService(version) {
+function getClashVergeSelfService(version: Version): ResourceInfo {
   const fileName = `clash-verge-self-service-${SIDECAR_HOST}${EXE_SUFFIX}`;
   const releaseTag = version === "alpha" ? "alpha" : VERGE_SERVICE_VERSION;
   const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/${releaseTag}/${fileName}`;
@@ -516,7 +566,10 @@ function getClashVergeSelfService(version) {
   };
 }
 
-async function resolveClashVergeSelfService(version, logger) {
+async function resolveClashVergeSelfService(
+  version: Version,
+  logger: TaskLogger,
+) {
   const label = version === "alpha" ? "Alpha" : "Stable";
   const downloadItem = getClashVergeSelfService(version);
 
@@ -530,7 +583,7 @@ async function resolveClashVergeSelfService(version, logger) {
   );
 }
 
-const RESOURCE_TASKS = [
+const RESOURCE_TASKS: ResourceTaskConfig[] = [
   {
     name: "Copy set_dns.sh",
     label: "Resolve Macos set dns script",
@@ -590,21 +643,21 @@ function createResourceTask({
   downloadURL,
   localPath,
   ...filters
-}) {
+}: ResourceTaskConfig): Task {
   return {
     name,
     ...filters,
     retry: 5,
     targetPath: resourcePath(file),
-    func: async (logger) => {
+    func: async (logger: TaskLogger) => {
       logger.message(label);
       await resolveResource({ file, downloadURL, localPath }, logger);
     },
   };
 }
 
-function createMihomoTask() {
-  return ["stable", "alpha"].map((version) => {
+function createMihomoTask(): Task[] {
+  return (["stable", "alpha"] as const).map((version) => {
     const isAlpha = version === "alpha";
     const name = isAlpha ? "self-mihomo-alpha" : "self-mihomo";
     const taskName = isAlpha
@@ -614,7 +667,7 @@ function createMihomoTask() {
 
     return {
       name: taskName,
-      func: async (logger) => {
+      func: async (logger: TaskLogger) => {
         logger.message(`Download and unzip Latest Mihomo ${label} Version`);
         const latestVersion = await getLatestMihomoVersion(version, logger);
         await resolveSidecar(mihomo(version, latestVersion), logger);
@@ -625,12 +678,13 @@ function createMihomoTask() {
   });
 }
 
-function createTasks(version) {
+function createTasks(version: Version): Task[] {
   return [
     ...createMihomoTask(),
     {
       name: "Download clash-verge-self-service",
-      func: (logger) => resolveClashVergeSelfService(version, logger),
+      func: (logger: TaskLogger) =>
+        resolveClashVergeSelfService(version, logger),
       retry: 5,
       targetPath: resourcePath(`clash-verge-self-service${EXE_SUFFIX}`),
     },
@@ -654,7 +708,7 @@ function createTasks(version) {
   ];
 }
 
-function shouldRunTask(task) {
+function shouldRunTask(task: Task) {
   if (task.winOnly && platform !== "win32") return false;
   if (task.linuxOnly && platform !== "linux") return false;
   if (task.unixOnly && platform === "win32") return false;
@@ -662,7 +716,7 @@ function shouldRunTask(task) {
   return true;
 }
 
-async function chooseVersion() {
+async function chooseVersion(): Promise<Version> {
   if (useAlphaService) {
     log.info("Use alpha resource version from --alpha");
     return "alpha";
@@ -682,13 +736,13 @@ async function chooseVersion() {
     initialValue: "stable",
   });
 
-  return handleCancel(version);
+  return handleCancel(version) as Version;
 }
 
-async function confirmOverwriteIfNeeded(tasks) {
+async function confirmOverwriteIfNeeded(tasks: Task[]) {
   if (FORCE) return;
 
-  const existingResources = new Set();
+  const existingResources = new Set<string>();
   for (const task of tasks) {
     if (!task.targetPath) continue;
     if (await fs.pathExists(task.targetPath)) {
@@ -716,10 +770,10 @@ async function confirmOverwriteIfNeeded(tasks) {
     initialValue: true,
   });
 
-  FORCE = handleCancel(overwrite);
+  FORCE = handleCancel(overwrite) as boolean;
 }
 
-async function runTaskWithRetry(task) {
+async function runTaskWithRetry(task: Task) {
   const taskName = pc.bgBlue(pc.white(` ${task.name} `));
   const logger = taskLog({
     title: taskName,
@@ -733,13 +787,14 @@ async function runTaskWithRetry(task) {
       return;
     } catch (err) {
       const attempt = i + 1;
-      const message = `task::${task.name} attempt ${attempt}/${task.retry}, error message: ${err.message}`;
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      const message = `task::${task.name} attempt ${attempt}/${task.retry}, error message: ${errorMessage}`;
       logger.message(message);
       if (attempt === task.retry) {
         logger.error(`task::${task.name} failed`, { showLog: true });
         throw err;
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise<void>((resolve) => setTimeout(resolve, 1000));
     }
   }
 }

@@ -16,7 +16,7 @@ export default defineConfig(
     ],
   },
   {
-    files: ["src/**/*.{js,mjs,ts,tsx}", "vite.config.ts"],
+    files: ["scripts/*.ts", "src/**/*.{js,mjs,ts,tsx}", "vite.config.ts"],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: "latest",

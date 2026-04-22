@@ -1,14 +1,14 @@
-import fs from "fs-extra";
-import path from "path";
+import { context, getOctokit } from "@actions/github";
 import AdmZip from "adm-zip";
-import * as tar from "tar";
+import fs from "fs-extra";
 import { createRequire } from "module";
-import { getOctokit, context } from "@actions/github";
+import path from "path";
+import * as tar from "tar";
 
 const target = process.argv.slice(2)[0];
 const alpha = process.argv.slice(2)[1];
 
-const ARCH_MAP = {
+const ARCH_MAP: Record<string, string> = {
   // Windows
   "x86_64-pc-windows-msvc": "x64",
   "i686-pc-windows-msvc": "x86",
@@ -20,7 +20,7 @@ const ARCH_MAP = {
   "armv7-unknown-linux-gnueabihf": "armhf",
 };
 
-const PROCESS_MAP = {
+const PROCESS_MAP: Record<string, string> = {
   x64: "x64",
   ia32: "x86",
   arm64: "arm64",
@@ -67,12 +67,12 @@ async function resolvePortable() {
     tag,
   });
 
-  let assets = release.assets.filter((x) => {
+  const assets = release.assets.filter((x) => {
     return x.name === zipFile;
   });
   if (assets.length > 0) {
     console.log(`🗑️ Deleting old ${zipFile}...`);
-    let id = assets[0].id;
+    const id = assets[0].id;
     await github.rest.repos.deleteReleaseAsset({
       ...options,
       asset_id: id,
@@ -80,18 +80,18 @@ async function resolvePortable() {
     console.log(`🗑️ Deleted old ${zipFile}`);
   }
 
-  let zipBuffer = await fs.readFile(zipFile);
+  const zipBuffer = await fs.readFile(zipFile);
   await github.rest.repos.uploadReleaseAsset({
     ...options,
     release_id: release.id,
     name: zipFile,
-    data: zipBuffer,
+    data: zipBuffer as unknown as string,
   });
 
   console.log(`✅ Uploaded ${zipFile}`);
 }
 
-async function bundlePortableForWindows(releaseDir, zipFile) {
+async function bundlePortableForWindows(releaseDir: string, zipFile: string) {
   const configDir = path.join(releaseDir, ".config");
   if (!(await fs.pathExists(releaseDir))) {
     throw new Error(`could not found the release dir [${releaseDir}]`);
@@ -110,7 +110,7 @@ async function bundlePortableForWindows(releaseDir, zipFile) {
   zip.writeZip(zipFile);
 }
 
-async function bundlePortableForLinux(releaseDir, zipFile) {
+async function bundlePortableForLinux(releaseDir: string, zipFile: string) {
   const configDir = path.join(releaseDir, ".config");
   if (!(await fs.pathExists(releaseDir))) {
     throw new Error(`could not found the release dir [${releaseDir}]`);
