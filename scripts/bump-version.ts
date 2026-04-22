@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 
 const cwd = process.cwd();
-let process_argvs = process.argv;
+const process_argvs = process.argv;
 if (process_argvs.length !== 3) {
   throw new Error("invalid arguments, please provide a version");
 }
@@ -25,8 +25,8 @@ if (!versionExp.test(version)) {
 
 for (const file of changeJsonFile) {
   const filePath = path.join(cwd, file);
-  let data = fs.readFileSync(filePath, "utf8");
-  let jsonData = JSON.parse(data);
+  const data = fs.readFileSync(filePath, "utf8");
+  const jsonData = JSON.parse(data);
   jsonData.version = version;
   fs.writeFileSync(file, JSON.stringify(jsonData, null, 2));
 }
