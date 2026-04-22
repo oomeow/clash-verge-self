@@ -85,7 +85,7 @@ async function resolvePortable() {
     ...options,
     release_id: release.id,
     name: zipFile,
-    data: zipBuffer as unknown as string,
+    data: zipBuffer.toString(),
   });
 
   console.log(`✅ Uploaded ${zipFile}`);
