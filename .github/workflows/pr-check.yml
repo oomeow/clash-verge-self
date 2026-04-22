@@ -53,7 +53,7 @@ jobs:
       - name: Pnpm install and check
         run: |
           pnpm i
-          pnpm check --alpha
+          pnpm check --alpha --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
