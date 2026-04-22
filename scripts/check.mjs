@@ -727,13 +727,12 @@ async function runTaskWithRetry(task) {
   });
 
   for (let i = 0; i < task.retry; i++) {
-    const attempt = i + 1;
     try {
-      logger.message(`attempt ${attempt}/${task.retry}`);
       await task.func(logger);
       logger.success(`task::${task.name} Done!`, { showLog: false });
       return;
     } catch (err) {
+      const attempt = i + 1;
       const message = `task::${task.name} attempt ${attempt}/${task.retry}, error message: ${err.message}`;
       logger.message(message);
       if (attempt === task.retry) {
@@ -758,7 +757,7 @@ async function runTask() {
     await runTaskWithRetry(task);
   }
 
-  outro(pc.bgGreen(pc.white("all tasks has run finished")));
+  outro(pc.bgGreen(pc.white(" all tasks has run finished ")));
 }
 
 // run
