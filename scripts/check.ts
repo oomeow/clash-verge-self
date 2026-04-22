@@ -448,7 +448,7 @@ async function downloadFile(url: string, path: string, logger: TaskLogger) {
   try {
     if (response.body) {
       for await (const chunk of response.body) {
-        const chunkBuffer = Buffer.from(chunk);
+        const chunkBuffer = chunk as Uint8Array;
         chunks.push(chunkBuffer);
         downloaded += chunkBuffer.length;
 
