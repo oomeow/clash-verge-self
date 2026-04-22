@@ -51,7 +51,7 @@ export async function getLatestTag(): Promise<{ name: string }> {
   // get the latest publish tag
   const tag = tags.find((t) => t.name.startsWith("v"));
   if (!tag) {
-    throw new Error("could not found latest version tag");
+    throw new Error("could not find latest version tag");
   }
 
   console.log(tag);
