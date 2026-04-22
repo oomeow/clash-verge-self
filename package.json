@@ -68,6 +68,7 @@
   },
   "devDependencies": {
     "@actions/github": "9.1.0",
+    "@clack/prompts": "^1.2.0",
     "@eslint/js": "9.39.4",
     "@tailwindcss/vite": "4.2.2",
     "@tanstack/router-cli": "1.166.33",
@@ -98,6 +99,7 @@
     "meta-json-schema": "1.19.23",
     "node-fetch": "3.3.2",
     "ora": "9.3.0",
+    "picocolors": "^1.1.1",
     "postcss": "8.5.10",
     "prettier": "3.8.3",
     "prettier-plugin-tailwindcss": "0.7.2",
