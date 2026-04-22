@@ -17,9 +17,7 @@
     "lint": "eslint scripts src vite.config.ts --max-warnings=0",
     "lint:fix": "eslint scripts src vite.config.ts --fix",
     "updater": "tsx scripts/updater.ts",
-    "updater-fixed-webview2": "tsx scripts/updater-fixed-webview2.ts",
     "portable": "tsx scripts/portable.ts",
-    "portable-fixed-webview2": "tsx scripts/portable-fixed-webview2.ts",
     "generate-routes": "tsr generate",
     "watch-routes": "tsr watch",
     "bump": "tsx scripts/bump-version.ts"
