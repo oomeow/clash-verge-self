@@ -625,6 +625,18 @@ impl Mihomo {
         Ok(response.json::<Rules>().await?)
     }
 
+    pub async fn update_rules_disable(&self, rules: HashMap<isize, bool>) -> Result<()> {
+        let response = self
+            .build_request(Method::PATCH, "/rules/disable")?
+            .json(&rules)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            ret_failed_resp!("update rules disabled failed, {}", response.text().await?);
+        }
+        Ok(())
+    }
+
     /// 获取所有规则提供者信息
     pub async fn get_rule_providers(&self) -> Result<RuleProviders> {
         let response = self.build_request(Method::GET, "/providers/rules")?.send().await?;

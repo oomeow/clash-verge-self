@@ -129,6 +129,7 @@ impl Builder {
                 commands::delay_proxy_by_name,
                 // rules
                 commands::get_rules,
+                commands::update_rules_disable,
                 commands::get_rule_providers,
                 commands::update_rule_provider,
                 // runtime config

@@ -173,6 +173,11 @@ pub(crate) async fn get_rules(state: State<'_, RwLock<Mihomo>>) -> Result<Rules>
 }
 
 #[command]
+pub(crate) async fn update_rules_disable(state: State<'_, RwLock<Mihomo>>, rules: HashMap<isize, bool>) -> Result<()> {
+    state.read().await.update_rules_disable(rules).await
+}
+
+#[command]
 pub(crate) async fn get_rule_providers(state: State<'_, RwLock<Mihomo>>) -> Result<RuleProviders> {
     state.read().await.get_rule_providers().await
 }
