@@ -121,7 +121,9 @@ export const RuleItem = (props: Props) => {
                 e.stopPropagation();
                 await disableRules({ [value.index]: !value.extra?.disabled });
               }}>
-              <Tooltip placement="top" title={t!("pages.rules.toggleDisable")}>
+              <Tooltip
+                placement="top"
+                title={t!("pages.rules.actions.toggleDisable")}>
                 {value.extra?.disabled ? <BlockIcon /> : <CheckCircleIcon />}
               </Tooltip>
             </IconButton>
