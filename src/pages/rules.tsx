@@ -1,7 +1,7 @@
 import ExpandIcon from "@mui/icons-material/Expand";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 import { Box, IconButton } from "@mui/material";
-import { useAsyncEffect } from "ahooks";
+import { useAsyncEffect, useInterval } from "ahooks";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
@@ -103,6 +103,8 @@ const RulesPage = () => {
         return item.matchPayloadItems && item.matchPayloadItems.length > 0;
       });
   }, [rules, payloadRules, match]);
+
+  useInterval(async () => await fetchRules(), 5000);
 
   return (
     <BasePage
