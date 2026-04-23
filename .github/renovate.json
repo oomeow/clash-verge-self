@@ -6,7 +6,8 @@
     ":prHourlyLimitNone",
     ":rebaseStalePrs",
     ":automergeMinor",
-    "docker:disable"
+    "docker:disable",
+    ":maintainLockFilesDisabled"
   ],
   "labels": ["dependencies"],
   "packageRules": [
