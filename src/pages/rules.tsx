@@ -1,137 +1,108 @@
 import ExpandIcon from "@mui/icons-material/Expand";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 import { Box, IconButton } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { useAsyncEffect } from "ahooks";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
-import useSWR from "swr";
-import {
-  getRuleProviders,
-  getRules,
-  Rule,
-  RuleBehavior,
-  RuleFormat,
-} from "tauri-plugin-mihomo-api";
+import { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
+import { useShallow } from "zustand/react/shallow";
 
 import { BaseEmpty, BasePage, BaseSearchBox } from "@/components/base";
 import { ProviderButton } from "@/components/rule/provider-button";
 import { RuleItem } from "@/components/rule/rule-item";
 import { getRuleProviderPayload } from "@/services/cmds";
 import { useRulesStateStore } from "@/stores";
+import { CustomRule } from "@/stores/rulesStateStore";
 
 import LoadingPage from "./loading";
 
-export type CustomRule = Rule &
-  RulePayload & {
-    updateAt?: string;
-    behavior?: RuleBehavior;
-    format?: RuleFormat;
-    count?: number;
-    expanded: boolean;
-    matchPayloadItems: string[];
-  };
+type RulePayloadInfo = {
+  providerName: string;
+  behavior: RuleBehavior;
+  format: RuleFormat;
+};
+
+type CustomRuleWithPayload = CustomRule & {
+  payloadContent: string[];
+  matchPayloadItems?: string[];
+};
 
 const RulesPage = () => {
   const { t } = useTranslation();
 
-  const { data } = useSWR(
-    "getRules",
-    async () => {
-      const rules = await getRules();
-      const customRules = rules.rules.map((item) => {
-        return item as CustomRule;
-      });
-      return customRules;
-    },
-    {
-      revalidateOnFocus: false,
-    },
+  const rules = useRulesStateStore((s) => s.rules);
+  const hasRuleSet = rules.findIndex((item) => item.type === "RuleSet") !== -1;
+  const ruleNames = useRulesStateStore(
+    useShallow((s) =>
+      s.rules.filter((i) => i.type === "RuleSet").map((i) => i.payload),
+    ),
   );
+  const fetchRules = useRulesStateStore((s) => s.fetchRules);
+  const expandAllRules = useRulesStateStore((s) => s.expandAllRules);
+  const collapseAllRules = useRulesStateStore((s) => s.collapseAllRules);
 
-  const customRules = useRulesStateStore((s) => s.customRules);
-  const setCustomRules = useRulesStateStore((s) => s.setCustomRules);
+  const rulePayloadInfoList = useMemo(() => {
+    return rules
+      .filter((i) => i.type === "RuleSet")
+      .map(
+        (item) =>
+          ({
+            providerName: item.payload,
+            behavior: item.behavior,
+            format: item.format,
+          }) as RulePayloadInfo,
+      );
+  }, [ruleNames]);
+
+  const [payloadRules, setPayloadRules] = useState<Map<
+    string,
+    RulePayload
+  > | null>(null);
+
+  useAsyncEffect(async () => {
+    const map = new Map<string, RulePayload>();
+    for (const provider of rulePayloadInfoList) {
+      const payload = await getRuleProviderPayload(
+        provider.providerName,
+        provider.behavior,
+        provider.format,
+      );
+      map.set(provider.providerName, payload);
+    }
+    setPayloadRules(map);
+  }, [rulePayloadInfoList]);
+
+  useAsyncEffect(async () => {
+    await fetchRules();
+  }, [fetchRules]);
 
   const [match, setMatch] = useState(() => (_: string) => true);
-  const [expandedRules, setExpandedRules] = useState<Record<string, boolean>>(
-    {},
-  );
 
-  useEffect(() => {
-    if (!data) return;
-    getRuleProviders().then(async (ruleProviders) => {
-      const res: CustomRule[] = [];
-      for (const rule of data) {
-        const provider = ruleProviders.providers[rule.payload];
-        if (provider) {
-          const payload = await getRuleProviderPayload(
-            provider.name,
-            provider.behavior,
-            provider.format,
-          );
-          res.push({
-            ...rule,
-            ...payload,
-            behavior: provider.behavior,
-            format: provider.format,
-            count: provider.ruleCount,
-            updateAt: provider.updatedAt,
-          } as CustomRule);
-        } else {
-          res.push(rule as CustomRule);
-        }
-      }
-      setCustomRules(res);
-    });
-  }, [data, setCustomRules]);
+  const filterRules = useMemo(() => {
+    // 先渲染列表，后续等待 payload 内容加载完后再执行下面操作重新生成包含所有规则的文件
+    if (!payloadRules) return rules as CustomRuleWithPayload[];
 
-  const rules = useMemo(() => {
-    if (!customRules) return [];
-
-    return customRules
+    return rules
       .map((item) => {
-        const newItem: CustomRule = {
+        const payloadItem = payloadRules.get(item.payload);
+        const newItem: CustomRuleWithPayload = {
           ...item,
-          expanded: expandedRules[item.payload] ?? item.expanded,
+          ...payloadItem,
+          payloadContent: payloadItem?.rules ?? [item.payload],
           matchPayloadItems: [],
         };
         return newItem;
       })
       .filter((item) => {
-        if (item.rules && item.rules.length > 0) {
-          item.rules.forEach((rule) => {
-            if (match(rule)) {
-              item.matchPayloadItems.push(rule);
-            }
-          });
-        }
-        if (item.type === "RuleSet") {
-          return item.matchPayloadItems && item.matchPayloadItems.length > 0;
-        } else {
-          return match(item.payload);
-        }
+        item.payloadContent.forEach((rule) => {
+          if (match(rule)) {
+            item.matchPayloadItems?.push(rule);
+          }
+        });
+        return item.matchPayloadItems && item.matchPayloadItems.length > 0;
       });
-  }, [customRules, expandedRules, match]);
-
-  const hasRuleSet = rules.findIndex((item) => item.type === "RuleSet") !== -1;
-
-  const updateRuleExpanded = (payload: string, expanded: boolean) => {
-    setExpandedRules((prev) => ({
-      ...prev,
-      [payload]: expanded,
-    }));
-  };
-
-  const expandAllRules = () => {
-    setExpandedRules(
-      Object.fromEntries(rules.map((rule) => [rule.payload, true])),
-    );
-  };
-
-  const collapseAllRules = () => {
-    setExpandedRules(
-      Object.fromEntries(rules.map((rule) => [rule.payload, false])),
-    );
-  };
+  }, [rules, payloadRules, match]);
 
   return (
     <BasePage
@@ -146,18 +117,14 @@ const RulesPage = () => {
                 title={t("common.actions.expandAll")}
                 color="primary"
                 size="small"
-                onClick={() => {
-                  expandAllRules();
-                }}>
+                onClick={() => expandAllRules()}>
                 <ExpandIcon />
               </IconButton>
               <IconButton
                 title={t("common.actions.collapseAll")}
                 color="primary"
                 size="small"
-                onClick={() => {
-                  collapseAllRules();
-                }}>
+                onClick={() => collapseAllRules()}>
                 <VerticalAlignCenterIcon />
               </IconButton>
             </>
@@ -186,20 +153,18 @@ const RulesPage = () => {
           marginLeft: "10px",
           borderRadius: "8px",
         }}>
-        {customRules === null ? (
+        {filterRules === null ? (
           <LoadingPage />
-        ) : rules.length > 0 ? (
+        ) : filterRules.length > 0 ? (
           <Virtuoso
-            data={rules}
+            data={filterRules}
             totalCount={rules.length}
             itemContent={(index, item) => (
               <RuleItem
-                key={item.payload}
+                key={item.index}
                 index={index + 1}
                 value={item}
-                onExpand={(expanded) => {
-                  updateRuleExpanded(item.payload, !expanded);
-                }}
+                matchPayloadItems={item.matchPayloadItems}
               />
             )}
           />

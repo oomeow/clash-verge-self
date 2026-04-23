@@ -210,6 +210,11 @@ async function delayProxyByName(proxyName, testUrl, timeout) {
 async function getRules() {
     return await core.invoke("plugin:mihomo|get_rules");
 }
+async function updateRulesDisable(rules) {
+    return await core.invoke("plugin:mihomo|update_rules_disable", {
+        rules,
+    });
+}
 /**
  * 获取所有规则提供者信息
  * @returns 所有规则提供者信息
@@ -469,6 +474,7 @@ exports.updateController = updateController;
 exports.updateGeo = updateGeo;
 exports.updateProxyProvider = updateProxyProvider;
 exports.updateRuleProvider = updateRuleProvider;
+exports.updateRulesDisable = updateRulesDisable;
 exports.updateSecret = updateSecret;
 exports.upgradeCore = upgradeCore;
 exports.upgradeGeo = upgradeGeo;

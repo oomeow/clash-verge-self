@@ -208,6 +208,11 @@ async function delayProxyByName(proxyName, testUrl, timeout) {
 async function getRules() {
     return await invoke("plugin:mihomo|get_rules");
 }
+async function updateRulesDisable(rules) {
+    return await invoke("plugin:mihomo|update_rules_disable", {
+        rules,
+    });
+}
 /**
  * 获取所有规则提供者信息
  * @returns 所有规则提供者信息
@@ -437,4 +442,4 @@ class MihomoWebSocket {
 }
 MihomoWebSocket.instances = new Set();
 
-export { MihomoWebSocket, clearAllWsConnections, closeAllConnections, closeConnection, delayGroup, delayProxyByName, flushDNS, flushFakeIp, getBaseConfig, getConnections, getGroupByName, getGroups, getProxies, getProxyByName, getProxyProviderByName, getProxyProviders, getRuleProviders, getRules, getVersion, healthcheckNodeInProvider, healthcheckProxyProvider, patchBaseConfig, reloadConfig, restart, selectNodeForGroup, unfixedProxy, updateController, updateGeo, updateProxyProvider, updateRuleProvider, updateSecret, upgradeCore, upgradeGeo, upgradeUi };
+export { MihomoWebSocket, clearAllWsConnections, closeAllConnections, closeConnection, delayGroup, delayProxyByName, flushDNS, flushFakeIp, getBaseConfig, getConnections, getGroupByName, getGroups, getProxies, getProxyByName, getProxyProviderByName, getProxyProviders, getRuleProviders, getRules, getVersion, healthcheckNodeInProvider, healthcheckProxyProvider, patchBaseConfig, reloadConfig, restart, selectNodeForGroup, unfixedProxy, updateController, updateGeo, updateProxyProvider, updateRuleProvider, updateRulesDisable, updateSecret, upgradeCore, upgradeGeo, upgradeUi };

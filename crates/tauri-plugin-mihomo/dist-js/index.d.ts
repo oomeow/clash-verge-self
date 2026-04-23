@@ -130,6 +130,7 @@ export declare function delayProxyByName(proxyName: string, testUrl: string, tim
  * @returns 所有规则信息
  */
 export declare function getRules(): Promise<Rules>;
+export declare function updateRulesDisable(rules: Record<number, boolean>): Promise<void>;
 /**
  * 获取所有规则提供者信息
  * @returns 所有规则提供者信息

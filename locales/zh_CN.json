@@ -204,7 +204,8 @@
     },
     "rules": {
       "title": "规则",
-      "provider": "规则集合"
+      "provider": "规则集合",
+      "toggleDisable": "启用/禁用规则"
     },
     "logs": {
       "title": "日志"
