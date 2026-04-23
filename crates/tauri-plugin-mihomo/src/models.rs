@@ -619,12 +619,26 @@ pub struct Rules {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/rules.go
 pub struct Rule {
+    pub index: isize,
     #[serde(rename = "type")]
     pub rule_type: RuleType,
     pub payload: String,
     pub proxy: String,
-    pub size: i32,
+    pub size: isize,
+    pub extra: Option<RuleExtra>,
+}
+
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct RuleExtra {
+    pub disabled: bool,
+    pub hit_count: u64,
+    pub hit_at: String,
+    pub miss_count: u64,
+    pub miss_at: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -634,6 +648,7 @@ pub enum RuleType {
     DomainSuffix,
     DomainKeyword,
     DomainRegex,
+    DomainWildcard,
     GeoSite,
     GeoIP,
     SrcGeoIP,
@@ -653,6 +668,8 @@ pub enum RuleType {
     ProcessPath,
     ProcessNameRegex,
     ProcessPathRegex,
+    ProcessNameWildcard,
+    ProcessPathWildcard,
     Match,
     RuleSet,
     Network,

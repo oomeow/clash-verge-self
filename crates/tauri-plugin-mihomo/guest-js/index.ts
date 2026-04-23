@@ -276,6 +276,14 @@ export async function getRules(): Promise<Rules> {
   return await invoke<Rules>("plugin:mihomo|get_rules");
 }
 
+export async function updateRulesDisable(
+  rules: Record<number, boolean>,
+): Promise<void> {
+  return await invoke<void>("plugin:mihomo|update_rules_disable", {
+    rules,
+  });
+}
+
 /**
  * 获取所有规则提供者信息
  * @returns 所有规则提供者信息
