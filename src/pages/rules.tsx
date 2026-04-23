@@ -32,8 +32,7 @@ const RulesPage = () => {
   const { t } = useTranslation();
 
   const rules = useRulesStateStore((s) => s.rules);
-  const hasRuleSet = rules.findIndex((item) => item.type === "RuleSet") !== -1;
-  const ruleNames = useRulesStateStore(
+  const ruleSetNames = useRulesStateStore(
     useShallow((s) =>
       s.rules.filter((i) => i.type === "RuleSet").map((i) => i.payload),
     ),
@@ -42,6 +41,7 @@ const RulesPage = () => {
   const expandAllRules = useRulesStateStore((s) => s.expandAllRules);
   const collapseAllRules = useRulesStateStore((s) => s.collapseAllRules);
 
+  const hasRuleSet = ruleSetNames.length > 0;
   const rulePayloadInfoList = useMemo(() => {
     return rules
       .filter((i) => i.type === "RuleSet")
@@ -53,7 +53,7 @@ const RulesPage = () => {
             format: item.format,
           }) as RulePayloadInfo,
       );
-  }, [ruleNames]);
+  }, [ruleSetNames]);
 
   const [payloadRules, setPayloadRules] = useState<Map<
     string,

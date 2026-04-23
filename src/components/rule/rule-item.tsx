@@ -143,25 +143,27 @@ export const RuleItem = (props: Props) => {
                 </Typography>
               </div>
 
-              <Typography
-                component="span"
-                variant="body2"
-                color="text.secondary"
-                sx={{ mr: 3, minWidth: 120, display: "inline-block" }}>
-                {value.type}
-                {isRuleSet && (
-                  <span className="text-primary-main bg-primary-alpha-20 ml-2 inline-block rounded-full px-2 text-xs">
-                    {value.behavior}
-                  </span>
-                )}
-              </Typography>
+              <div className="grid sm:grid-cols-1 md:grid-cols-2">
+                <Typography
+                  component="span"
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mr: 3, minWidth: 120, display: "inline-block" }}>
+                  {value.type}
+                  {isRuleSet && (
+                    <span className="text-primary-main bg-primary-alpha-20 ml-2 inline-block rounded-full px-2 text-xs">
+                      {value.behavior}
+                    </span>
+                  )}
+                </Typography>
 
-              <Typography
-                component="span"
-                variant="body2"
-                color={parseColor(value.proxy)}>
-                {value.proxy}
-              </Typography>
+                <Typography
+                  component="span"
+                  variant="body2"
+                  color={parseColor(value.proxy)}>
+                  {value.proxy}
+                </Typography>
+              </div>
             </div>
 
             <div className="h-full w-full items-center justify-end space-y-2">
@@ -177,19 +179,23 @@ export const RuleItem = (props: Props) => {
                 </div>
               )}
               {(showHit || showMiss) && (
-                <div className="flex items-center justify-end gap-2 text-xs text-gray-400">
+                <div className="flex items-center justify-end text-xs text-gray-400">
                   {showHit && (
-                    <div>
-                      Hit:
-                      <span className="text-primary-main inline-block h-fit w-fit rounded-full px-1">
-                        {value.extra?.hitCount}
-                      </span>
-                      At:
-                      <span className="text-primary-main inline-block h-fit w-fit rounded-full px-1">
-                        {dayjs(value.extra?.hitAt).format(
-                          "YYYY-MM-DD HH:mm:ss",
-                        )}
-                      </span>
+                    <div className="md:flex">
+                      <div>
+                        Hit:
+                        <span className="text-primary-main inline-block h-fit w-fit px-1">
+                          {value.extra?.hitCount}
+                        </span>
+                      </div>
+                      <div>
+                        At:
+                        <span className="text-primary-main inline-block h-fit w-fit px-1">
+                          {dayjs(value.extra?.hitAt).format(
+                            "YYYY-MM-DD HH:mm:ss",
+                          )}
+                        </span>
+                      </div>
                     </div>
                   )}
 
@@ -211,15 +217,17 @@ export const RuleItem = (props: Props) => {
               )}
             </div>
 
-            {isRuleSet && (
-              <ExpandMore
-                color="primary"
-                expand={expanded}
-                aria-expanded={expanded}
-                aria-label="show more">
-                <ExpandMoreIcon />
-              </ExpandMore>
-            )}
+            <div className="flex w-20 items-center justify-center px-1">
+              {isRuleSet && (
+                <ExpandMore
+                  color="primary"
+                  expand={expanded}
+                  aria-expanded={expanded}
+                  aria-label="show more">
+                  <ExpandMoreIcon />
+                </ExpandMore>
+              )}
+            </div>
           </div>
         </div>
       </ListItemButton>
