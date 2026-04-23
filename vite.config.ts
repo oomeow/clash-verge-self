@@ -64,7 +64,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve("./src"),
-      "@root": path.resolve("."),
+      // "@root": path.resolve("."),
     },
     conditions: ["mui-modern", "module", "browser", "development|production"],
   },

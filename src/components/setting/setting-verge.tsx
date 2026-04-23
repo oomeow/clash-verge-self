@@ -21,13 +21,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { version } from "@root/package.json";
 import { open } from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
+import { version } from "@/../package.json";
 import { DialogRef } from "@/components/base";
 import BackupFilesViewer, {
   BackupFilesViewerRef,
