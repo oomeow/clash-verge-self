@@ -174,6 +174,16 @@
         "console": "控制台",
         "restoreChanges": "还原更改",
         "runCheck": "运行检查{{keymap}}"
+      },
+      "dragImport": {
+        "title": "拖放导入订阅",
+        "description": "将本地订阅文件拖入当前窗口任意位置，松开后立即导入",
+        "ready": "松开即可导入 {{count}} 个订阅文件",
+        "waiting": "等待识别可导入的订阅文件",
+        "importable": "可导入",
+        "notImportable": "不支持",
+        "hint": "支持 `.yaml` / `.yml`，整个窗口区域均可作为投放区域",
+        "hintWithInvalid": "支持 `.yaml` / `.yml`，非 YAML 文件会被忽略"
       }
     },
     "connections": {
@@ -479,6 +489,8 @@
       "switched": "订阅已切换",
       "reactivated": "订阅已激活",
       "onlyYamlSupported": "仅支持 YAML 文件",
+      "unsupportedFiles": "以下文件不支持导入：{{files}}",
+      "importFileFailed": "导入文件失败：{{file}}",
       "scriptRunCheckFailed": "脚本运行检查失败, 请检查脚本是否正确",
       "scriptRunCheckSuccessful": "脚本运行检查成功, 可正常运行",
       "contentSaved": "内容保存成功",
