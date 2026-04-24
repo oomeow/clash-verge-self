@@ -33,20 +33,18 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
     rules: [],
     fetchRules: async () => {
       const rules = await getRules();
-      const newRules: CustomRule[] = [];
-      for (const rule of rules.rules) {
-        newRules.push({
-          ...rule,
-          expanded: false,
-        } as CustomRule);
-      }
+      const newRules = rules.rules.map(
+        (rule) => ({ ...rule, expanded: false }) as CustomRule,
+      );
 
       set((state) => {
+        const existingRulesByPayload = new Map(
+          state.rules.map((rule) => [rule.payload, rule]),
+        );
+
         // 基于旧数据合并 expanded 状态
         const mergedRules = newRules.map((newRule) => {
-          const existingRule = state.rules.find(
-            (old) => old.payload === newRule.payload,
-          );
+          const existingRule = existingRulesByPayload.get(newRule.payload);
           return {
             ...existingRule,
             ...newRule,
@@ -86,10 +84,12 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
       );
 
       set((state) => {
+        const providerRulesByPayload = new Map(
+          newProviderRules.map((rule) => [rule.payload, rule]),
+        );
+
         const mergedRules = state.rules.map((rule) => {
-          const mergedProviderRule = newProviderRules.find(
-            (old) => old.payload === rule.payload,
-          );
+          const mergedProviderRule = providerRulesByPayload.get(rule.payload);
           return mergedProviderRule ? { ...rule, ...mergedProviderRule } : rule;
         });
 
