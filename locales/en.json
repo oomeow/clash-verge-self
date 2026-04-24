@@ -174,6 +174,16 @@
         "console": "Console",
         "restoreChanges": "Restore Changes",
         "runCheck": "Run Check{{keymap}}"
+      },
+      "dragImport": {
+        "title": "Drag and Drop to Import Profiles",
+        "description": "Drop local profile files anywhere in this window to import them immediately.",
+        "ready": "Release to import {{count}} profile files",
+        "waiting": "Waiting for importable profile files",
+        "importable": "Importable",
+        "notImportable": "Unsupported",
+        "hint": "Supports `.yaml` / `.yml`, and the entire window can be used as the drop zone",
+        "hintWithInvalid": "Supports `.yaml` / `.yml`, non-YAML files will be ignored"
       }
     },
     "connections": {
@@ -479,6 +489,7 @@
       "switched": "Profile Switched",
       "reactivated": "Profile Reactivated",
       "onlyYamlSupported": "Only YAML Files Supported",
+      "unsupportedFiles": "Unsupported files: {{files}}",
       "scriptRunCheckFailed": "Script run check failed, Please check the script content is correct",
       "scriptRunCheckSuccessful": "Script run check successful, This script can be run normally",
       "contentSaved": "Save Content Successfully",

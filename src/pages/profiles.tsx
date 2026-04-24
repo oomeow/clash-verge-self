@@ -20,9 +20,7 @@ import LocalFireDepartmentRounded from "@mui/icons-material/LocalFireDepartmentR
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import TextSnippetOutlined from "@mui/icons-material/TextSnippetOutlined";
 import { Box, Button, Divider, IconButton } from "@mui/material";
-import { listen, TauriEvent } from "@tauri-apps/api/event";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useLockFn, useMemoizedFn } from "ahooks";
 import { isEqual, throttle } from "lodash-es";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -46,7 +44,6 @@ import {
 import { ConfigViewer } from "@/components/setting/mods/config-viewer";
 import { useProfiles } from "@/hooks/use-profiles";
 import {
-  createProfile,
   deleteProfile,
   enhanceProfiles,
   getProfiles,
@@ -128,39 +125,6 @@ const ProfilePage = () => {
   };
   const [draggingItem, setDraggingItem] = useState<IProfileItem | null>(null);
   const [overItemWidth, setOverItemWidth] = useState(260);
-
-  useEffect(() => {
-    const dragUnlisten = listen(TauriEvent.DRAG_DROP, async (event) => {
-      const payload = event.payload as FileDragDropPayload;
-      const fileList = payload.paths;
-      for (const file of fileList) {
-        if (!file.endsWith(".yaml") && !file.endsWith(".yml")) {
-          notice("error", t("messages.profiles.onlyYamlSupported"));
-          continue;
-        }
-        const filename =
-          file.split(/\/|\\/).pop()?.replace(RegExp(".yaml|.yml"), "") ??
-          "New Profile";
-        const item = {
-          type: "local",
-          name: filename,
-          desc: "",
-          url: "",
-          option: {
-            with_proxy: false,
-            self_proxy: false,
-          },
-        } as IProfileItem;
-        const data = await readTextFile(file);
-        await createProfile(item, data);
-        await mutateProfiles();
-      }
-    });
-
-    return () => {
-      dragUnlisten.then((fn) => fn());
-    };
-  }, []);
 
   useEffect(() => {
     setProfileList(profileItems);

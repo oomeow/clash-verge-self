@@ -1,5 +1,5 @@
 import { StyledEngineProvider, ThemeProvider } from "@mui/material";
-import { createRouter, RouterProvider } from "@tanstack/react-router";
+import { RouterProvider } from "@tanstack/react-router";
 import { SnackbarProvider } from "notistack";
 import { useEffect } from "react";
 
@@ -8,18 +8,10 @@ import {
   MyNoticeContainer,
   NoticeProvider,
 } from "./components/base";
+import { DragImportOverlay } from "./components/layout/drag-import-overlay";
 import { useCustomTheme } from "./components/layout/use-custom-theme";
-import { routeTree } from "./routeTree.gen";
+import { router } from "./router";
 import { useThemeSettingsStore, useVergeStore } from "./stores";
-
-// Create a new router instance
-const router = createRouter({ routeTree });
-// Register the router instance for type safety
-declare module "@tanstack/react-router" {
-  interface Register {
-    router: typeof router;
-  }
-}
 
 function App() {
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
@@ -49,6 +41,7 @@ function App() {
             }}>
             <NoticeProvider>
               <RouterProvider router={router} />
+              <DragImportOverlay />
             </NoticeProvider>
           </SnackbarProvider>
         </BaseErrorBoundary>
