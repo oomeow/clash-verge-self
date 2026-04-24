@@ -13,7 +13,7 @@ import { RuleItem } from "@/components/rule/rule-item";
 import { useRulesStateStore } from "@/stores";
 import { CustomRule } from "@/stores/rulesStateStore";
 
-type CustomRuleWithPayload = CustomRule & {
+type CustomRuleWithMatch = CustomRule & {
   matchPayloadItems: string[];
 };
 
@@ -35,7 +35,7 @@ const RulesPage = () => {
   const filterRules = useMemo(() => {
     return rules
       .map((item) => {
-        const newItem: CustomRuleWithPayload = {
+        const newItem: CustomRuleWithMatch = {
           ...item,
           matchPayloadItems: [],
         };
