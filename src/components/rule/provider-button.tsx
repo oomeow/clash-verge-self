@@ -2,7 +2,6 @@ import Error from "@mui/icons-material/Error";
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import {
   alpha,
-  Box,
   Button,
   Divider,
   IconButton,
@@ -13,27 +12,26 @@ import dayjs from "dayjs";
 import { throttle } from "lodash-es";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import useSWR, { mutate } from "swr";
 import { updateRuleProvider } from "tauri-plugin-mihomo-api";
 
 import { BaseDialog } from "@/components/base";
-import { calcuRuleProviders } from "@/services/api";
+import { useRulesStateStore } from "@/stores";
 import { cn } from "@/utils";
 
 export const ProviderButton = () => {
   const { t } = useTranslation();
-  const { data, mutate: mutateRuleProviders } = useSWR(
-    "getRuleProviders",
-    calcuRuleProviders,
+  const rules = useRulesStateStore((s) => s.rules);
+  const fetchRules = useRulesStateStore((s) => s.fetchRules);
+  const loadPayload = useRulesStateStore((s) => s.loadPayload);
+  const providers = rules.filter(
+    (i) => i.vehicleType === "HTTP" || i.vehicleType === "File",
   );
-  const entries = Object.entries(data || {});
-  const keys = entries.map(([key]) => key);
+
+  const names = providers.map((i) => i.payload);
+  const hasProvider = names.length > 0;
 
   const [open, setOpen] = useState(false);
-  const [needRefresh, setNeedRefresh] = useState(false);
-
-  const hasProvider = keys.length > 0;
-  const [updating, setUpdating] = useState(keys.map(() => false));
+  const [updating, setUpdating] = useState(names.map(() => false));
   const [errorItems, setErrorItems] = useState<string[]>([]);
 
   const setUpdatingAt = (status: boolean, index: number) => {
@@ -44,28 +42,28 @@ export const ProviderButton = () => {
     });
   };
 
-  const handleUpdate = async (key: string, index: number, retryCount = 5) => {
+  const handleUpdate = async (name: string, index: number, retryCount = 5) => {
     setUpdatingAt(true, index);
     try {
-      await updateRuleProvider(key);
-      setErrorItems((pre) => {
-        if (pre?.includes(key)) {
-          return pre.filter((item) => item !== key);
+      await updateRuleProvider(name);
+      setErrorItems((prev) => {
+        if (prev?.includes(name)) {
+          return prev.filter((item) => item !== name);
         }
-        return pre;
+        return prev;
       });
     } catch (ignore) {
       if (retryCount < 0) {
-        setErrorItems((pre) => {
-          if (pre?.includes(key)) {
-            return pre;
+        setErrorItems((prev) => {
+          if (prev?.includes(name)) {
+            return prev;
           }
-          return [...pre, key];
+          return [...prev, name];
         });
       } else {
         // retry after 1 second
         setTimeout(async () => {
-          await handleUpdate(key, index, retryCount - 1);
+          await handleUpdate(name, index, retryCount - 1);
         }, 1000);
       }
     } finally {
@@ -74,20 +72,16 @@ export const ProviderButton = () => {
   };
 
   const updateAll = throttle(async () => {
-    const tasks = keys.map((key, index) => handleUpdate(key, index));
+    const tasks = names.map((name, index) => handleUpdate(name, index));
     await Promise.all(tasks);
-    mutateRuleProviders();
-    if (!needRefresh) {
-      setNeedRefresh(true);
-    }
+    await fetchRules();
+    await loadPayload();
   }, 1000);
 
-  const updateOne = throttle(async (key: string) => {
-    await handleUpdate(key, keys.indexOf(key));
-    mutateRuleProviders();
-    if (!needRefresh) {
-      setNeedRefresh(true);
-    }
+  const updateOne = throttle(async (name: string) => {
+    await handleUpdate(name, names.indexOf(name));
+    await fetchRules();
+    await loadPayload();
   }, 1000);
 
   if (!hasProvider) return null;
@@ -105,36 +99,33 @@ export const ProviderButton = () => {
       <BaseDialog
         open={open}
         title={
-          <Box display="flex" justifyContent={"space-between"} gap={1}>
-            <Box display={"flex"} alignItems={"center"}>
+          <div className="flex items-center justify-between gap-1">
+            <div className="flex items-center">
               <Typography variant="h6">{t("pages.rules.provider")}</Typography>
-              <TypeSpan sx={{ ml: 1, fontSize: 14 }}>{entries.length}</TypeSpan>
-            </Box>
+              <TypeSpan sx={{ ml: 1, fontSize: 14 }}>
+                {providers.length}
+              </TypeSpan>
+            </div>
             <Button
               variant="contained"
               size="small"
               onClick={async () => await updateAll()}>
               {t("common.actions.updateAll")}
             </Button>
-          </Box>
+          </div>
         }
         contentStyle={{ width: 400 }}
         hideOkBtn
         hideCancelBtn
-        onClose={() => {
-          setOpen(false);
-          if (needRefresh) {
-            mutate("getRules");
-            setNeedRefresh(false);
-          }
-        }}>
+        onClose={() => setOpen(false)}>
         <div>
-          {entries.map(([key, item], index) => {
+          {providers.map((item, index) => {
+            const name = item.payload;
             const time = dayjs(item?.updatedAt);
-            const error = errorItems?.includes(key);
+            const error = errorItems?.includes(name);
             return (
               <div
-                key={key}
+                key={name}
                 className="mb-2 flex items-center rounded-sm bg-white p-2 shadow-sm dark:bg-[#282A36]">
                 <div className="w-full overflow-hidden">
                   <div className="flex items-center">
@@ -145,7 +136,7 @@ export const ProviderButton = () => {
                         sx={{ marginRight: "8px" }}
                       />
                     )}
-                    <p className="text-primary-text text-xl">{key}</p>
+                    <p className="text-primary-text text-xl">{name}</p>
                     <TypeSpan sx={{ marginLeft: "8px" }}>
                       {item?.ruleCount}
                     </TypeSpan>
@@ -161,7 +152,7 @@ export const ProviderButton = () => {
                   size="small"
                   color="inherit"
                   title={`${t("common.actions.update")}${t("pages.rules.provider")}`}
-                  onClick={async () => await updateOne(key)}>
+                  onClick={async () => await updateOne(name)}>
                   <RefreshRounded
                     className={cn({
                       "animate-spin": updating[index],

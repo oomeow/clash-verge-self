@@ -2,31 +2,26 @@ import {
   getRuleProviders,
   getRules,
   Rule,
-  RuleBehavior,
-  RuleFormat,
+  RuleProvider,
   updateRulesDisable,
-  VehicleType,
 } from "tauri-plugin-mihomo-api";
 import { create } from "zustand";
 
-export type CustomRule = Rule & {
-  behavior: RuleBehavior;
-  format: RuleFormat;
-  name: string;
-  ruleCount: number;
-  updatedAt: string;
-  vehicleType: VehicleType;
-  expanded: boolean;
-  // matchPayloadItems: string[];
-};
+import { getRuleProviderPayload } from "@/services/cmds";
+
+export type CustomRule = Rule &
+  Omit<RuleProvider, "type"> & {
+    expanded: boolean;
+    payloadContent: string[];
+  };
 
 type RulesState = {
   rules: CustomRule[];
 };
 
 type RulesActions = {
-  setCustomRules: (rules: CustomRule[]) => void;
   fetchRules: () => Promise<void>;
+  loadPayload: () => Promise<void>;
   expandAllRules: () => void;
   collapseAllRules: () => void;
   toggleRuleExpanded: (payload: string) => void;
@@ -36,29 +31,66 @@ type RulesActions = {
 export const useRulesStateStore = create<RulesState & RulesActions>()(
   (set, get) => ({
     rules: [],
-    setCustomRules: (rules) => set({ rules: rules }),
     fetchRules: async () => {
       const rules = await getRules();
-      const ruleProviders = await getRuleProviders();
-      const newRules = rules.rules.map((rule) => {
-        const provider = ruleProviders.providers[rule.payload];
-        return {
-          ...provider,
-          ...rule,
-          expanded: false,
-        } as CustomRule;
-      });
+      const newRules = rules.rules.map(
+        (rule) => ({ ...rule, expanded: false }) as CustomRule,
+      );
 
       set((state) => {
+        const existingRulesByPayload = new Map(
+          state.rules.map((rule) => [rule.payload, rule]),
+        );
+
         // 基于旧数据合并 expanded 状态
         const mergedRules = newRules.map((newRule) => {
-          const existingRule = state.rules.find(
-            (old) => old.payload === newRule.payload,
-          );
+          const existingRule = existingRulesByPayload.get(newRule.payload);
           return {
+            ...existingRule,
             ...newRule,
             expanded: existingRule ? existingRule.expanded : newRule.expanded,
           };
+        });
+
+        return { rules: mergedRules };
+      });
+    },
+
+    loadPayload: async () => {
+      const ruleProviders = await getRuleProviders();
+      const rules = get().rules;
+
+      const payloadPromises = rules.map(async (rule) => {
+        const providerName = rule.payload;
+        const provider = ruleProviders.providers[providerName];
+        if (provider) {
+          const payload = await getRuleProviderPayload(
+            providerName,
+            provider.behavior,
+            provider.format,
+          );
+          return {
+            ...rule,
+            ...provider,
+            type: rule.type,
+            payloadContent: payload.rules,
+          } as CustomRule;
+        }
+        return null;
+      });
+      const results = await Promise.all(payloadPromises);
+      const newProviderRules = results.filter(
+        (r): r is CustomRule => r !== null,
+      );
+
+      set((state) => {
+        const providerRulesByPayload = new Map(
+          newProviderRules.map((rule) => [rule.payload, rule]),
+        );
+
+        const mergedRules = state.rules.map((rule) => {
+          const mergedProviderRule = providerRulesByPayload.get(rule.payload);
+          return mergedProviderRule ? { ...rule, ...mergedProviderRule } : rule;
         });
 
         return { rules: mergedRules };

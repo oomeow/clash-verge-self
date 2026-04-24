@@ -114,19 +114,19 @@ export const RuleItem = (props: Props) => {
         }}>
         <div className="w-full">
           <div className="flex w-full items-center justify-center">
-            <IconButton
-              color="primary"
-              size="small"
-              onClick={async (e) => {
-                e.stopPropagation();
-                await disableRules({ [value.index]: !value.extra?.disabled });
-              }}>
-              <Tooltip
-                placement="top"
-                title={t!("pages.rules.actions.toggleDisable")}>
+            <Tooltip
+              placement="top"
+              title={t!("pages.rules.actions.toggleDisable")}>
+              <IconButton
+                color="primary"
+                size="small"
+                onClick={async (e) => {
+                  e.stopPropagation();
+                  await disableRules({ [value.index]: !value.extra?.disabled });
+                }}>
                 {value.extra?.disabled ? <BlockIcon /> : <CheckCircleIcon />}
-              </Tooltip>
-            </IconButton>
+              </IconButton>
+            </Tooltip>
 
             <Typography
               color="text.secondary"
