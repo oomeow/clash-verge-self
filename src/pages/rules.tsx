@@ -13,8 +13,6 @@ import { RuleItem } from "@/components/rule/rule-item";
 import { useRulesStateStore } from "@/stores";
 import { CustomRule } from "@/stores/rulesStateStore";
 
-import LoadingPage from "./loading";
-
 type CustomRuleWithPayload = CustomRule & {
   matchPayloadItems: string[];
 };
@@ -115,9 +113,7 @@ const RulesPage = () => {
           marginLeft: "10px",
           borderRadius: "8px",
         }}>
-        {filterRules === null ? (
-          <LoadingPage />
-        ) : filterRules.length > 0 ? (
+        {filterRules.length > 0 ? (
           <Virtuoso
             data={filterRules}
             totalCount={rules.length}

@@ -59,10 +59,10 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
     },
 
     loadPayload: async () => {
-      const newProviderRules: CustomRule[] = [];
       const ruleProviders = await getRuleProviders();
       const rules = get().rules;
-      for (const rule of rules) {
+
+      const payloadPromises = rules.map(async (rule) => {
         const providerName = rule.payload;
         const provider = ruleProviders.providers[providerName];
         if (provider) {
@@ -71,26 +71,26 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
             provider.behavior,
             provider.format,
           );
-          newProviderRules.push({
+          return {
             ...rule,
             ...provider,
             type: rule.type,
             payloadContent: payload.rules,
-          } as CustomRule);
+          } as CustomRule;
         }
-      }
+        return null;
+      });
+      const results = await Promise.all(payloadPromises);
+      const newProviderRules = results.filter(
+        (r): r is CustomRule => r !== null,
+      );
 
       set((state) => {
         const mergedRules = state.rules.map((rule) => {
           const mergedProviderRule = newProviderRules.find(
             (old) => old.payload === rule.payload,
           );
-          return {
-            ...rule,
-            ...mergedProviderRule,
-            ruleCount: mergedProviderRule?.ruleCount,
-            payloadContent: mergedProviderRule?.payloadContent,
-          } as CustomRule;
+          return mergedProviderRule ? { ...rule, ...mergedProviderRule } : rule;
         });
 
         return { rules: mergedRules };
