@@ -1,7 +1,7 @@
 import ExpandIcon from "@mui/icons-material/Expand";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 import { Box, IconButton } from "@mui/material";
-import { useAsyncEffect, useInterval, useMount } from "ahooks";
+import { useAsyncEffect, useInterval } from "ahooks";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
@@ -56,11 +56,8 @@ const RulesPage = () => {
 
   useAsyncEffect(async () => {
     await fetchRules();
-  }, [fetchRules]);
-
-  useMount(async () => {
     await loadPayload();
-  });
+  }, [fetchRules, loadPayload]);
 
   useInterval(async () => await fetchRules(), 5000);
 
