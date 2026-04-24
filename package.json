@@ -65,7 +65,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@actions/github": "9.1.0",
+    "@actions/github": "9.1.1",
     "@clack/prompts": "1.2.0",
     "@eslint/js": "9.39.4",
     "@tailwindcss/vite": "4.2.3",
