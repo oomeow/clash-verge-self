@@ -204,7 +204,10 @@
     },
     "rules": {
       "title": "Rules",
-      "provider": "Rule Provider"
+      "provider": "Rule Provider",
+      "actions": {
+        "toggleDisable": "Enable/Disable Rule"
+      }
     },
     "logs": {
       "title": "Logs"

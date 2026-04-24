@@ -204,7 +204,10 @@
     },
     "rules": {
       "title": "قوانین",
-      "provider": "مجموعه قوانین"
+      "provider": "مجموعه قوانین",
+      "actions": {
+        "toggleDisable": "فعال/غیرفعال کردن قانون"
+      }
     },
     "logs": {
       "title": "لاگ‌ها"
