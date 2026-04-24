@@ -2,31 +2,26 @@ import {
   getRuleProviders,
   getRules,
   Rule,
-  RuleBehavior,
-  RuleFormat,
+  RuleProvider,
   updateRulesDisable,
-  VehicleType,
 } from "tauri-plugin-mihomo-api";
 import { create } from "zustand";
 
-export type CustomRule = Rule & {
-  behavior: RuleBehavior;
-  format: RuleFormat;
-  name: string;
-  ruleCount: number;
-  updatedAt: string;
-  vehicleType: VehicleType;
-  expanded: boolean;
-  // matchPayloadItems: string[];
-};
+import { getRuleProviderPayload } from "@/services/cmds";
+
+export type CustomRule = Rule &
+  Omit<RuleProvider, "type"> & {
+    expanded: boolean;
+    payloadContent: string[];
+  };
 
 type RulesState = {
   rules: CustomRule[];
 };
 
 type RulesActions = {
-  setCustomRules: (rules: CustomRule[]) => void;
   fetchRules: () => Promise<void>;
+  loadPayload: () => Promise<void>;
   expandAllRules: () => void;
   collapseAllRules: () => void;
   toggleRuleExpanded: (payload: string) => void;
@@ -36,18 +31,15 @@ type RulesActions = {
 export const useRulesStateStore = create<RulesState & RulesActions>()(
   (set, get) => ({
     rules: [],
-    setCustomRules: (rules) => set({ rules: rules }),
     fetchRules: async () => {
       const rules = await getRules();
-      const ruleProviders = await getRuleProviders();
-      const newRules = rules.rules.map((rule) => {
-        const provider = ruleProviders.providers[rule.payload];
-        return {
-          ...provider,
+      const newRules: CustomRule[] = [];
+      for (const rule of rules.rules) {
+        newRules.push({
           ...rule,
           expanded: false,
-        } as CustomRule;
-      });
+        } as CustomRule);
+      }
 
       set((state) => {
         // 基于旧数据合并 expanded 状态
@@ -56,9 +48,49 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
             (old) => old.payload === newRule.payload,
           );
           return {
+            ...existingRule,
             ...newRule,
             expanded: existingRule ? existingRule.expanded : newRule.expanded,
           };
+        });
+
+        return { rules: mergedRules };
+      });
+    },
+
+    loadPayload: async () => {
+      const newProviderRules: CustomRule[] = [];
+      const ruleProviders = await getRuleProviders();
+      const rules = get().rules;
+      for (const rule of rules) {
+        const providerName = rule.payload;
+        const provider = ruleProviders.providers[providerName];
+        if (provider) {
+          const payload = await getRuleProviderPayload(
+            providerName,
+            provider.behavior,
+            provider.format,
+          );
+          newProviderRules.push({
+            ...rule,
+            ...provider,
+            type: rule.type,
+            payloadContent: payload.rules,
+          } as CustomRule);
+        }
+      }
+
+      set((state) => {
+        const mergedRules = state.rules.map((rule) => {
+          const mergedProviderRule = newProviderRules.find(
+            (old) => old.payload === rule.payload,
+          );
+          return {
+            ...rule,
+            ...mergedProviderRule,
+            ruleCount: mergedProviderRule?.ruleCount,
+            payloadContent: mergedProviderRule?.payloadContent,
+          } as CustomRule;
         });
 
         return { rules: mergedRules };

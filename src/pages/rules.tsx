@@ -1,108 +1,68 @@
 import ExpandIcon from "@mui/icons-material/Expand";
 import VerticalAlignCenterIcon from "@mui/icons-material/VerticalAlignCenter";
 import { Box, IconButton } from "@mui/material";
-import { useAsyncEffect, useInterval } from "ahooks";
+import { useAsyncEffect, useInterval, useMount } from "ahooks";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
-import { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
 import { useShallow } from "zustand/react/shallow";
 
 import { BaseEmpty, BasePage, BaseSearchBox } from "@/components/base";
 import { ProviderButton } from "@/components/rule/provider-button";
 import { RuleItem } from "@/components/rule/rule-item";
-import { getRuleProviderPayload } from "@/services/cmds";
 import { useRulesStateStore } from "@/stores";
 import { CustomRule } from "@/stores/rulesStateStore";
 
 import LoadingPage from "./loading";
 
-type RulePayloadInfo = {
-  providerName: string;
-  behavior: RuleBehavior;
-  format: RuleFormat;
-};
-
 type CustomRuleWithPayload = CustomRule & {
-  payloadContent: string[];
-  matchPayloadItems?: string[];
+  matchPayloadItems: string[];
 };
 
 const RulesPage = () => {
   const { t } = useTranslation();
 
   const rules = useRulesStateStore((s) => s.rules);
-  const ruleSetNames = useRulesStateStore(
-    useShallow((s) =>
-      s.rules.filter((i) => i.type === "RuleSet").map((i) => i.payload),
-    ),
+  const hasRuleSet = useRulesStateStore(
+    useShallow((s) => s.rules.some((i) => i.type === "RuleSet")),
   );
+
   const fetchRules = useRulesStateStore((s) => s.fetchRules);
+  const loadPayload = useRulesStateStore((s) => s.loadPayload);
   const expandAllRules = useRulesStateStore((s) => s.expandAllRules);
   const collapseAllRules = useRulesStateStore((s) => s.collapseAllRules);
-
-  const hasRuleSet = ruleSetNames.length > 0;
-  const rulePayloadInfoList = useMemo(() => {
-    return rules
-      .filter((i) => i.type === "RuleSet")
-      .map(
-        (item) =>
-          ({
-            providerName: item.payload,
-            behavior: item.behavior,
-            format: item.format,
-          }) as RulePayloadInfo,
-      );
-  }, [ruleSetNames]);
-
-  const [payloadRules, setPayloadRules] = useState<Map<
-    string,
-    RulePayload
-  > | null>(null);
-
-  useAsyncEffect(async () => {
-    const map = new Map<string, RulePayload>();
-    for (const provider of rulePayloadInfoList) {
-      const payload = await getRuleProviderPayload(
-        provider.providerName,
-        provider.behavior,
-        provider.format,
-      );
-      map.set(provider.providerName, payload);
-    }
-    setPayloadRules(map);
-  }, [rulePayloadInfoList]);
-
-  useAsyncEffect(async () => {
-    await fetchRules();
-  }, [fetchRules]);
 
   const [match, setMatch] = useState(() => (_: string) => true);
 
   const filterRules = useMemo(() => {
-    // 先渲染列表，后续等待 payload 内容加载完后再执行下面操作重新生成包含所有规则的文件
-    if (!payloadRules) return rules as CustomRuleWithPayload[];
-
     return rules
       .map((item) => {
-        const payloadItem = payloadRules.get(item.payload);
         const newItem: CustomRuleWithPayload = {
           ...item,
-          ...payloadItem,
-          payloadContent: payloadItem?.rules ?? [item.payload],
           matchPayloadItems: [],
         };
         return newItem;
       })
       .filter((item) => {
-        item.payloadContent.forEach((rule) => {
-          if (match(rule)) {
-            item.matchPayloadItems?.push(rule);
-          }
-        });
-        return item.matchPayloadItems && item.matchPayloadItems.length > 0;
+        if (item.payloadContent) {
+          item.payloadContent.forEach((rule) => {
+            if (match(rule)) {
+              item.matchPayloadItems?.push(rule);
+            }
+          });
+          return item.matchPayloadItems && item.matchPayloadItems.length > 0;
+        }
+        return match(item.payload);
       });
-  }, [rules, payloadRules, match]);
+  }, [rules, match]);
+
+  useAsyncEffect(async () => {
+    await fetchRules();
+  }, [fetchRules]);
+
+  useMount(async () => {
+    await loadPayload();
+  });
 
   useInterval(async () => await fetchRules(), 5000);
 
