@@ -1,5 +1,4 @@
 import { listen, TauriEvent } from "@tauri-apps/api/event";
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -104,7 +103,6 @@ export function DragImportOverlay() {
     };
 
     const unlistenDragEnter = listen(TauriEvent.DRAG_ENTER, (event) => {
-      getCurrentWebviewWindow().setFocus();
       handleDragState(event.payload);
     });
 
@@ -144,15 +142,17 @@ export function DragImportOverlay() {
             with_proxy: false,
             self_proxy: false,
           },
-        } as IProfileItem;
+        } as Partial<IProfileItem>;
         try {
           const data = await readTextFile(file);
           await createProfile(item, data);
           hasImported = true;
         } catch (error: any) {
+          const errorMessage =
+            typeof error === "string" ? error : error?.message;
           notice(
             "error",
-            error?.message ||
+            errorMessage ||
               t("messages.profiles.importFileFailed", {
                 file: getFileName(file),
               }),
@@ -184,7 +184,7 @@ export function DragImportOverlay() {
   if (!isDragImportActive) return null;
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-40 overflow-hidden bg-black/24 backdrop-blur-md">
+    <div className="pointer-events-none absolute inset-0 z-1500 overflow-hidden bg-black/24 backdrop-blur-md">
       <div className="border-primary/30 absolute inset-3 rounded-[22px] border bg-(--background-color-alpha) shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]" />
       <div className="bg-primary/10 absolute top-[-10%] left-[8%] h-72 w-72 rounded-full blur-3xl" />
       <div className="bg-primary/12 absolute right-[10%] bottom-[-12%] h-80 w-80 rounded-full blur-3xl" />
