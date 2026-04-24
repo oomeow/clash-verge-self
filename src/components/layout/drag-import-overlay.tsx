@@ -21,8 +21,7 @@ const EMPTY_VALIDATION: DragImportValidation = {
   invalidPaths: [],
 };
 
-const isYamlFile = (file: string) =>
-  file.endsWith(".yaml") || file.endsWith(".yml");
+const isYamlFile = (file: string) => /\.ya?ml$/i.test(file);
 
 const getFileName = (path: string) => path.split(/\/|\\/).pop() ?? path;
 
