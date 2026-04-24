@@ -133,6 +133,7 @@ export function DragImportOverlay() {
         );
       }
 
+      let hasImported = false;
       for (const file of currentValidation.validPaths) {
         const filename = getFileName(file).replace(/\.ya?ml$/i, "");
         const item = {
@@ -145,11 +146,22 @@ export function DragImportOverlay() {
             self_proxy: false,
           },
         } as IProfileItem;
-        const data = await readTextFile(file);
-        await createProfile(item, data);
+        try {
+          const data = await readTextFile(file);
+          await createProfile(item, data);
+          hasImported = true;
+        } catch (error: any) {
+          notice(
+            "error",
+            error?.message ||
+              t("messages.profiles.importFileFailed", {
+                file: getFileName(file),
+              }),
+          );
+        }
       }
 
-      if (currentValidation.validPaths.length > 0) {
+      if (hasImported) {
         mutate("getProfiles");
         router.navigate({ to: "/profiles" });
       }

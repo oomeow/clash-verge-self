@@ -490,6 +490,7 @@
       "reactivated": "订阅已激活",
       "onlyYamlSupported": "仅支持 YAML 文件",
       "unsupportedFiles": "以下文件不支持导入：{{files}}",
+      "importFileFailed": "导入文件失败：{{file}}",
       "scriptRunCheckFailed": "脚本运行检查失败, 请检查脚本是否正确",
       "scriptRunCheckSuccessful": "脚本运行检查成功, 可正常运行",
       "contentSaved": "内容保存成功",

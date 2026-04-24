@@ -490,6 +490,7 @@
       "reactivated": "Профиль повторно активирован",
       "onlyYamlSupported": "Поддерживаются только файлы YAML",
       "unsupportedFiles": "Неподдерживаемые файлы: {{files}}",
+      "importFileFailed": "Не удалось импортировать файл: {{file}}",
       "scriptRunCheckFailed": "Проверка запуска скрипта не удалась, проверьте корректность скрипта",
       "scriptRunCheckSuccessful": "Проверка запуска скрипта выполнена успешно",
       "contentSaved": "Содержимое успешно сохранено",
