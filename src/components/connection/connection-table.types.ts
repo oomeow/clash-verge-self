@@ -20,8 +20,6 @@ export type ConnectionRow = {
 
 export type ColumnMeta = {
   align?: "left" | "center" | "right";
-  width: number;
-  minWidth?: number;
 };
 
 export type ColumnOption = {

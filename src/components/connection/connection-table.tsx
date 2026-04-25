@@ -7,20 +7,24 @@ import UnfoldMoreRounded from "@mui/icons-material/UnfoldMoreRounded";
 import ViewColumnRounded from "@mui/icons-material/ViewColumnRounded";
 import { Box, IconButton, Tooltip } from "@mui/material";
 import {
-  ColumnDef,
+  type Cell,
+  type ColumnDef,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  SortingState,
+  type Row,
+  type SortingState,
   useReactTable,
-  VisibilityState,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import dayjs from "dayjs";
 import {
-  MouseEvent as ReactMouseEvent,
+  type CSSProperties,
+  memo,
+  type MouseEvent as ReactMouseEvent,
   RefObject,
-  useDeferredValue,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -33,7 +37,7 @@ import { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import { useConnectionsStore } from "@/stores";
 import parseTraffic from "@/utils/parse-traffic";
 
-import { ColumnMeta, ConnectionRow } from "./connection-table.types";
+import { type ColumnMeta, type ConnectionRow } from "./connection-table.types";
 import { ConnectionTableColumnSelector } from "./connection-table-column-selector";
 import {
   getConnectionCellTooltipText,
@@ -50,12 +54,154 @@ interface Props {
   onShowDetail: (data: IClosedConnectionItem) => void;
 }
 
+interface ConnectionTableBodyProps {
+  rows: Row<ConnectionRow>[];
+  tableContainerElement: HTMLDivElement | null;
+  onShowDetail: (data: IClosedConnectionItem) => void;
+  getCellTooltipText: (cell: Cell<ConnectionRow, unknown>) => string;
+}
+
+interface ConnectionTableBodyRowProps {
+  row: Row<ConnectionRow>;
+  virtualRow: VirtualItem;
+  onShowDetail: (data: IClosedConnectionItem) => void;
+  getCellTooltipText: (cell: Cell<ConnectionRow, unknown>) => string;
+}
+
 const ROW_HEIGHT = 37;
+
+const getColumnVarName = (columnId: string) =>
+  `--connection-col-${columnId}-width`;
+
+const getColumnJustifyContent = (
+  align?: ColumnMeta["align"],
+): CSSProperties["justifyContent"] => {
+  if (align === "center") return "center";
+  if (align === "right") return "flex-end";
+  return "flex-start";
+};
+
+const ConnectionTableBodyRow = memo(
+  ({
+    row,
+    virtualRow,
+    onShowDetail,
+    getCellTooltipText,
+  }: ConnectionTableBodyRowProps) => {
+    return (
+      <tr
+        data-body-row="true"
+        onClick={() => onShowDetail(row.original.connectionData)}
+        style={{
+          display: "flex",
+          position: "absolute",
+          transform: `translateY(${virtualRow.start}px)`,
+          width: "100%",
+          height: `${virtualRow.size}px`,
+        }}>
+        {row.getVisibleCells().map((cell) => {
+          const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
+          const justifyContent = getColumnJustifyContent(meta?.align);
+          const renderedCell = flexRender(
+            cell.column.columnDef.cell,
+            cell.getContext(),
+          );
+          const tooltipText = getCellTooltipText(cell);
+
+          return (
+            <td
+              key={cell.id}
+              data-column-id={cell.column.id}
+              data-body-cell="true"
+              style={{
+                display: "flex",
+                width: `var(${getColumnVarName(cell.column.id)})`,
+                minWidth: cell.column.columnDef.minSize,
+                textAlign: meta?.align ?? "left",
+                position: "relative",
+                justifyContent,
+              }}>
+              <Tooltip
+                followCursor
+                title={tooltipText}
+                disableHoverListener={!tooltipText}>
+                <span
+                  className="flex h-full w-full items-center overflow-hidden text-ellipsis whitespace-nowrap"
+                  style={{ justifyContent }}
+                  data-column-content="true">
+                  <span className="min-w-0 overflow-hidden leading-tight text-ellipsis whitespace-nowrap">
+                    {renderedCell}
+                  </span>
+                </span>
+              </Tooltip>
+              <span
+                className="pointer-events-none invisible absolute whitespace-nowrap"
+                data-column-measure="true">
+                {renderedCell}
+              </span>
+            </td>
+          );
+        })}
+      </tr>
+    );
+  },
+  (prev, next) =>
+    prev.row.id === next.row.id &&
+    prev.row.original === next.row.original &&
+    prev.virtualRow.start === next.virtualRow.start &&
+    prev.virtualRow.size === next.virtualRow.size &&
+    prev.getCellTooltipText === next.getCellTooltipText &&
+    prev.onShowDetail === next.onShowDetail,
+);
+
+const ConnectionTableBody = memo(
+  ({
+    rows,
+    tableContainerElement,
+    onShowDetail,
+    getCellTooltipText,
+  }: ConnectionTableBodyProps) => {
+    const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
+      count: rows.length,
+      estimateSize: () => ROW_HEIGHT,
+      getScrollElement: () => tableContainerElement,
+      getItemKey: (index) => rows[index]?.id ?? index,
+      overscan: 5,
+    });
+
+    return (
+      <tbody
+        style={{
+          display: "grid",
+          height: `${rowVirtualizer.getTotalSize()}px`,
+          position: "relative",
+        }}>
+        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+          const row = rows[virtualRow.index];
+
+          return (
+            <ConnectionTableBodyRow
+              key={row.id}
+              row={row}
+              virtualRow={virtualRow}
+              onShowDetail={onShowDetail}
+              getCellTooltipText={getCellTooltipText}
+            />
+          );
+        })}
+      </tbody>
+    );
+  },
+  (prev, next) =>
+    prev.rows === next.rows &&
+    prev.tableContainerElement === next.tableContainerElement &&
+    prev.onShowDetail === next.onShowDetail &&
+    prev.getCellTooltipText === next.getCellTooltipText,
+);
 
 export const ConnectionTable = (props: Props) => {
   const { t } = useTranslation();
   const { tableContainerRef, connections, isActive, onShowDetail } = props;
-  const deferredConnections = useDeferredValue(connections);
   const tabColumnsWidths = useConnectionsStore(
     (state) => state.tabColumnsWidths,
   );
@@ -71,10 +217,20 @@ export const ConnectionTable = (props: Props) => {
 
   const [columnVisible, setColumnVisible] = useState<VisibilityState>({});
   const [isColumnSelectorOpen, setIsColumnSelectorOpen] = useState(false);
+  const [tableContainerElement, setTableContainerElement] =
+    useState<HTMLDivElement | null>(null);
   const columnWidthsRef = useRef<Record<string, number>>({});
   const resizeFrameRef = useRef<number | null>(null);
   const resizeDraftRef = useRef<{ columnId: string; width: number } | null>(
     null,
+  );
+
+  const handleTableContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      tableContainerRef.current = node;
+      setTableContainerElement(node);
+    },
+    [tableContainerRef],
   );
 
   const sorting = useMemo<SortingState>(
@@ -82,10 +238,26 @@ export const ConnectionTable = (props: Props) => {
     [tabSortModel],
   );
 
-  const getColumnWidth = (columnId: string, fallback: number) =>
-    tabColumnsWidths[columnId] ?? fallback;
+  const normalizedTabColumnOrder = useMemo(
+    () => getNormalizedConnectionColumnOrder(tabColumnOrder),
+    [tabColumnOrder],
+  );
+
+  useEffect(() => {
+    if (
+      normalizedTabColumnOrder.length !== tabColumnOrder.length ||
+      normalizedTabColumnOrder.some(
+        (columnId, index) => columnId !== tabColumnOrder[index],
+      )
+    ) {
+      setTabColumnOrder(normalizedTabColumnOrder);
+    }
+  }, [normalizedTabColumnOrder, setTabColumnOrder, tabColumnOrder]);
 
   const columns = useMemo<ColumnDef<ConnectionRow>[]>(() => {
+    const getColumnWidth = (columnId: string, fallback: number) =>
+      tabColumnsWidths[columnId] ?? fallback;
+
     const leadingColumns = isActive
       ? [
           {
@@ -93,7 +265,7 @@ export const ConnectionTable = (props: Props) => {
             header: "",
             cell: ({ row }) => (
               <button
-                className="rounded-full text-xs hover:bg-gray-200"
+                className="cursor-pointer rounded-full text-xs hover:bg-gray-200"
                 onClick={(event) => {
                   event.stopPropagation();
                   closeConnection(row.original.id);
@@ -103,7 +275,10 @@ export const ConnectionTable = (props: Props) => {
             ),
             enableSorting: false,
             enableHiding: false,
-            meta: { align: "center", width: 55 } satisfies ColumnMeta,
+            enableResizing: false,
+            size: 50,
+            minSize: 50,
+            meta: { align: "center" } satisfies ColumnMeta,
           } satisfies ColumnDef<ConnectionRow>,
         ]
       : [
@@ -113,7 +288,10 @@ export const ConnectionTable = (props: Props) => {
             cell: ({ getValue }) => dayjs(getValue<number>()).fromNow(),
             sortingFn: (rowA, rowB, columnId) =>
               rowA.getValue<number>(columnId) - rowB.getValue<number>(columnId),
-            meta: { width: 110 } satisfies ColumnMeta,
+            enableHiding: false,
+            size: getColumnWidth("closedTime", 110),
+            minSize: 100,
+            meta: {} satisfies ColumnMeta,
           } satisfies ColumnDef<ConnectionRow>,
         ];
 
@@ -121,92 +299,85 @@ export const ConnectionTable = (props: Props) => {
       {
         accessorKey: "type",
         header: t("common.fields.type"),
-        meta: {
-          width: getColumnWidth("type", 160),
-          minWidth: 100,
-        } satisfies ColumnMeta,
+        size: getColumnWidth("type", 160),
+        minSize: 100,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "host",
         header: t("common.fields.host"),
-        meta: {
-          width: getColumnWidth("host", 220),
-          minWidth: 120,
-        } satisfies ColumnMeta,
+        size: getColumnWidth("host", 220),
+        minSize: 120,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "ulSpeed",
         header: t("pages.connections.columns.ulSpeed"),
         cell: ({ getValue }) =>
           `${parseTraffic(getValue<number>()).join(" ")}/s`,
-        meta: {
-          width: getColumnWidth("ulSpeed", 100),
-        } satisfies ColumnMeta,
+        size: getColumnWidth("ulSpeed", 100),
+        minSize: 100,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "dlSpeed",
         header: t("pages.connections.columns.dlSpeed"),
         cell: ({ getValue }) =>
           `${parseTraffic(getValue<number>()).join(" ")}/s`,
-        meta: {
-          width: getColumnWidth("dlSpeed", 100),
-        } satisfies ColumnMeta,
+        size: getColumnWidth("dlSpeed", 100),
+        minSize: 100,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "chains",
         header: t("pages.connections.columns.chains"),
-        meta: {
-          width: getColumnWidth("chains", 260),
-          minWidth: 260,
-        } satisfies ColumnMeta,
+        size: getColumnWidth("chains", 260),
+        minSize: 260,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "rule",
         header: t("pages.connections.columns.rule"),
-        meta: {
-          width: getColumnWidth("rule", 300),
-          minWidth: 230,
-        } satisfies ColumnMeta,
+        size: getColumnWidth("rule", 300),
+        minSize: 230,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "process",
         header: t("common.fields.process"),
-        meta: {
-          width: getColumnWidth("process", 240),
-          minWidth: 120,
-        } satisfies ColumnMeta,
+        size: getColumnWidth("process", 240),
+        minSize: 120,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "source",
         header: t("common.fields.source"),
-        meta: {
-          width: getColumnWidth("source", 200),
-          minWidth: 150,
-        } satisfies ColumnMeta,
+        size: getColumnWidth("source", 200),
+        minSize: 150,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "remoteDestination",
         header: t("common.fields.destination"),
-        meta: {
-          width: getColumnWidth("remoteDestination", 200),
-          minWidth: 150,
-        } satisfies ColumnMeta,
+        size: getColumnWidth("remoteDestination", 200),
+        minSize: 150,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "upload",
         header: t("pages.connections.columns.uploaded"),
         cell: ({ getValue }) => parseTraffic(getValue<number>()).join(" "),
-        meta: {
-          width: getColumnWidth("upload", 100),
-        } satisfies ColumnMeta,
+        size: getColumnWidth("upload", 100),
+        minSize: 100,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "download",
         header: t("pages.connections.columns.downloaded"),
         cell: ({ getValue }) => parseTraffic(getValue<number>()).join(" "),
-        meta: {
-          width: getColumnWidth("download", 100),
-        } satisfies ColumnMeta,
+        size: getColumnWidth("download", 100),
+        minSize: 100,
+        meta: {} satisfies ColumnMeta,
       },
       {
         accessorKey: "time",
@@ -215,10 +386,10 @@ export const ConnectionTable = (props: Props) => {
         sortingFn: (rowA, rowB, columnId) =>
           dayjs(rowA.getValue<string>(columnId)).valueOf() -
           dayjs(rowB.getValue<string>(columnId)).valueOf(),
+        size: getColumnWidth("time", 120),
+        minSize: 100,
         meta: {
           align: "center",
-          width: getColumnWidth("time", 120),
-          minWidth: 100,
         } satisfies ColumnMeta,
       },
     ] satisfies ColumnDef<ConnectionRow>[];
@@ -227,12 +398,7 @@ export const ConnectionTable = (props: Props) => {
       ...leadingColumns,
       ...getOrderedConnectionColumns(sharedColumns, tabColumnOrder),
     ];
-  }, [getColumnWidth, isActive, t, tabColumnOrder]);
-
-  const connRows = useMemo<ConnectionRow[]>(
-    () => mapConnectionsToRows(deferredConnections),
-    [deferredConnections],
-  );
+  }, [isActive, t, tabColumnOrder, tabColumnsWidths]);
 
   useEffect(() => {
     return () => {
@@ -241,6 +407,11 @@ export const ConnectionTable = (props: Props) => {
       }
     };
   }, []);
+
+  const connRows = useMemo<ConnectionRow[]>(
+    () => mapConnectionsToRows(connections),
+    [connections],
+  );
 
   const table = useReactTable({
     data: connRows,
@@ -260,137 +431,144 @@ export const ConnectionTable = (props: Props) => {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  const rows = table.getRowModel().rows;
-  const rowVirtualizer = useVirtualizer({
-    count: rows.length,
-    getScrollElement: () => tableContainerRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 12,
-  });
-
   const tableWidth = useMemo(
     () =>
       table.getVisibleLeafColumns().reduce((total, column) => {
-        const meta = column.columnDef.meta as ColumnMeta | undefined;
-        return total + (meta?.width ?? meta?.minWidth ?? 0);
+        const width =
+          columnWidthsRef.current[column.id] ??
+          tabColumnsWidths[column.id] ??
+          column.getSize();
+        return total + width;
       }, 0),
-    [table, columns, columnVisible],
+    [columnVisible, tabColumnsWidths, table],
   );
 
-  const getColumnVarName = (columnId: string) =>
-    `--connection-col-${columnId}-width`;
-
-  const syncTableWidthStyles = () => {
+  const syncTableWidthStyles = useCallback(() => {
     const container = tableContainerRef.current;
     if (!container) return;
 
     let nextWidth = 0;
     table.getVisibleLeafColumns().forEach((column) => {
-      const meta = column.columnDef.meta as ColumnMeta | undefined;
       nextWidth +=
         columnWidthsRef.current[column.id] ??
-        meta?.width ??
-        meta?.minWidth ??
-        0;
+        tabColumnsWidths[column.id] ??
+        column.getSize();
     });
 
     container.style.setProperty("--connection-table-width", `${nextWidth}px`);
-  };
+  }, [tabColumnsWidths, table, tableContainerRef]);
 
-  const applyColumnWidthToDom = (columnId: string, width: number) => {
-    const container = tableContainerRef.current;
-    if (!container) return;
+  const applyColumnWidthToDom = useCallback(
+    (columnId: string, width: number) => {
+      const container = tableContainerRef.current;
+      if (!container) return;
 
-    columnWidthsRef.current[columnId] = width;
-    container.style.setProperty(getColumnVarName(columnId), `${width}px`);
-    syncTableWidthStyles();
-  };
+      columnWidthsRef.current[columnId] = width;
+      container.style.setProperty(getColumnVarName(columnId), `${width}px`);
+      syncTableWidthStyles();
+    },
+    [syncTableWidthStyles, tableContainerRef],
+  );
 
   useEffect(() => {
     table.getAllLeafColumns().forEach((column) => {
-      const meta = column.columnDef.meta as ColumnMeta | undefined;
-      columnWidthsRef.current[column.id] = meta?.width ?? meta?.minWidth ?? 0;
+      columnWidthsRef.current[column.id] =
+        tabColumnsWidths[column.id] ?? column.getSize();
     });
     syncTableWidthStyles();
-  }, [columns, table]);
+  }, [columns, syncTableWidthStyles, tabColumnsWidths, table]);
 
-  const startResize = (
-    event: ReactMouseEvent<HTMLSpanElement>,
-    columnId: string,
-    initialWidth: number,
-    minWidth = 80,
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const getCellTooltipText = useCallback(
+    (cell: Cell<ConnectionRow, unknown>) =>
+      getConnectionCellTooltipText(cell, t),
+    [t],
+  );
 
-    const startX = event.clientX;
-    const queueResizeWidth = (width: number) => {
-      resizeDraftRef.current = { columnId, width };
-      if (resizeFrameRef.current !== null) return;
+  const autoResizeColumn = useCallback(
+    (columnId: string, minWidth = 80) => {
+      const container = tableContainerRef.current;
+      if (!container) return;
 
-      resizeFrameRef.current = requestAnimationFrame(() => {
-        resizeFrameRef.current = null;
-        const draft = resizeDraftRef.current;
-        if (!draft) return;
-        applyColumnWidthToDom(draft.columnId, draft.width);
+      const selectorColumnId =
+        typeof CSS !== "undefined" && typeof CSS.escape === "function"
+          ? CSS.escape(columnId)
+          : columnId;
+      const contents = container.querySelectorAll<HTMLElement>(
+        `[data-column-id="${selectorColumnId}"] [data-column-measure="true"]`,
+      );
+      if (contents.length === 0) return;
+
+      let nextWidth = minWidth;
+      contents.forEach((content) => {
+        const contentWidth = Math.ceil(
+          Math.max(content.scrollWidth, content.getBoundingClientRect().width),
+        );
+        const cell = content.closest<HTMLElement>("[data-column-id]");
+        const style = cell ? window.getComputedStyle(cell) : null;
+        const cellPadding = style
+          ? parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+          : 0;
+        nextWidth = Math.max(nextWidth, contentWidth + cellPadding);
       });
-    };
-    const onMouseMove = (moveEvent: MouseEvent) => {
-      const width = Math.max(
-        minWidth,
-        initialWidth + moveEvent.clientX - startX,
-      );
-      queueResizeWidth(width);
-    };
-    const onMouseUp = () => {
-      const draftWidth =
-        resizeDraftRef.current?.columnId === columnId
-          ? resizeDraftRef.current.width
-          : initialWidth;
-      if (resizeFrameRef.current !== null) {
-        cancelAnimationFrame(resizeFrameRef.current);
-        resizeFrameRef.current = null;
-      }
-      applyColumnWidthToDom(columnId, draftWidth);
-      resizeDraftRef.current = null;
-      setTabColumnWidth(columnId, draftWidth);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
 
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-  };
+      applyColumnWidthToDom(columnId, nextWidth);
+      setTabColumnWidth(columnId, nextWidth);
+    },
+    [applyColumnWidthToDom, setTabColumnWidth, tableContainerRef],
+  );
 
-  const autoResizeColumn = (columnId: string, minWidth = 80) => {
-    const container = tableContainerRef.current;
-    if (!container) return;
+  const startResize = useCallback(
+    (
+      event: ReactMouseEvent<HTMLSpanElement>,
+      columnId: string,
+      initialWidth: number,
+      minWidth = 80,
+    ) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-    const selectorColumnId =
-      typeof CSS !== "undefined" && typeof CSS.escape === "function"
-        ? CSS.escape(columnId)
-        : columnId;
-    const contents = container.querySelectorAll<HTMLElement>(
-      `[data-column-id="${selectorColumnId}"] [data-column-measure="true"]`,
-    );
-    if (contents.length === 0) return;
+      const startX = event.clientX;
+      const queueResizeWidth = (width: number) => {
+        resizeDraftRef.current = { columnId, width };
+        if (resizeFrameRef.current !== null) return;
 
-    let nextWidth = minWidth;
-    contents.forEach((content) => {
-      const contentWidth = Math.ceil(
-        Math.max(content.scrollWidth, content.getBoundingClientRect().width),
-      );
-      const cell = content.closest<HTMLElement>("[data-column-id]");
-      const style = cell ? window.getComputedStyle(cell) : null;
-      const cellPadding = style
-        ? parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
-        : 0;
-      nextWidth = Math.max(nextWidth, contentWidth + cellPadding);
-    });
+        resizeFrameRef.current = requestAnimationFrame(() => {
+          resizeFrameRef.current = null;
+          const draft = resizeDraftRef.current;
+          if (!draft) return;
+          applyColumnWidthToDom(draft.columnId, draft.width);
+        });
+      };
 
-    applyColumnWidthToDom(columnId, nextWidth);
-    setTabColumnWidth(columnId, nextWidth);
-  };
+      const onMouseMove = (moveEvent: MouseEvent) => {
+        const width = Math.max(
+          minWidth,
+          initialWidth + moveEvent.clientX - startX,
+        );
+        queueResizeWidth(width);
+      };
+
+      const onMouseUp = () => {
+        const draftWidth =
+          resizeDraftRef.current?.columnId === columnId
+            ? resizeDraftRef.current.width
+            : initialWidth;
+        if (resizeFrameRef.current !== null) {
+          cancelAnimationFrame(resizeFrameRef.current);
+          resizeFrameRef.current = null;
+        }
+        applyColumnWidthToDom(columnId, draftWidth);
+        resizeDraftRef.current = null;
+        setTabColumnWidth(columnId, draftWidth);
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+      };
+
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
+    },
+    [applyColumnWidthToDom, setTabColumnWidth],
+  );
 
   const tableStyleVars = useMemo(() => {
     const styleVars: Record<string, string> = {
@@ -398,134 +576,132 @@ export const ConnectionTable = (props: Props) => {
     };
 
     table.getAllLeafColumns().forEach((column) => {
-      const meta = column.columnDef.meta as ColumnMeta | undefined;
-      styleVars[getColumnVarName(column.id)] =
-        `${meta?.width ?? meta?.minWidth ?? 0}px`;
+      styleVars[getColumnVarName(column.id)] = `${
+        tabColumnsWidths[column.id] ?? column.getSize()
+      }px`;
     });
 
     return styleVars;
-  }, [table, tableWidth]);
+  }, [tabColumnsWidths, table, tableWidth]);
 
-  const getColumnJustifyContent = (align?: ColumnMeta["align"]) => {
-    if (align === "center") return "center";
-    if (align === "right") return "flex-end";
-    return "flex-start";
-  };
+  const headerContent = useMemo(
+    () =>
+      table.getHeaderGroups().map((headerGroup) => (
+        <tr key={headerGroup.id} style={{ display: "flex", width: "100%" }}>
+          {headerGroup.headers.map((header) => {
+            const meta = header.column.columnDef.meta as ColumnMeta | undefined;
+            const sorted = header.column.getIsSorted();
+            const justifyContent = getColumnJustifyContent(meta?.align);
 
-  const renderHeaderContent = () => {
-    return table.getHeaderGroups().map((headerGroup) => (
-      <Box key={headerGroup.id} className="flex">
-        {headerGroup.headers.map((header) => {
-          const meta = header.column.columnDef.meta as ColumnMeta | undefined;
-          const sorted = header.column.getIsSorted();
-          const textAlign = meta?.align ?? "left";
-          const justifyContent = getColumnJustifyContent(meta?.align);
-
-          return (
-            <Box
-              key={header.id}
-              data-column-id={header.column.id}
-              data-header-cell="true"
-              style={{
-                width: `var(${getColumnVarName(header.column.id)})`,
-                minWidth: meta?.minWidth,
-                textAlign,
-                flexShrink: 0,
-              }}>
-              <div
-                className="relative flex h-full w-full items-center"
+            return (
+              <th
+                key={header.id}
+                data-column-id={header.column.id}
+                data-header-cell="true"
                 style={{
+                  display: "flex",
+                  width: `var(${getColumnVarName(header.column.id)})`,
+                  minWidth: header.column.columnDef.minSize,
+                  textAlign: meta?.align ?? "left",
+                  position: "relative",
                   justifyContent,
                 }}>
-                <button
-                  type="button"
-                  className="flex min-w-0 items-center gap-1 bg-transparent pr-3 text-inherit"
-                  style={{
-                    cursor: header.column.getCanSort() ? "pointer" : "default",
-                    justifyContent,
-                    width: meta?.width ? "calc(100% - 4px)" : "100%",
-                  }}
-                  onClick={header.column.getToggleSortingHandler()}>
-                  <span className="truncate" data-column-content="true">
-                    <span
-                      className="inline-block max-w-none"
-                      data-column-measure="true">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </span>
-                  </span>
-                  {sorted === "asc" ? (
-                    <ArrowUpwardRounded sx={{ fontSize: 14 }} />
-                  ) : sorted === "desc" ? (
-                    <ArrowDownwardRounded sx={{ fontSize: 14 }} />
-                  ) : header.column.getCanSort() ? (
-                    <UnfoldMoreRounded sx={{ fontSize: 14, opacity: 0.6 }} />
-                  ) : null}
-                </button>
-                {meta?.width ? (
-                  <span
-                    className="absolute top-0 right-0 h-full w-1 cursor-col-resize bg-[rgba(0,0,0,0.08)] opacity-45 transition-[opacity,background-color,width] hover:w-1.5 hover:bg-[rgba(0,0,0,0.22)] hover:opacity-100"
-                    onDoubleClick={(event) => {
-                      event.preventDefault();
-                      event.stopPropagation();
-                      autoResizeColumn(header.column.id, meta.minWidth);
+                <div
+                  className="relative flex h-full w-full items-center"
+                  style={{ justifyContent }}>
+                  <button
+                    type="button"
+                    className="flex min-w-0 items-center gap-1 bg-transparent pr-3 text-inherit"
+                    style={{
+                      cursor: header.column.getCanSort()
+                        ? "pointer"
+                        : "default",
+                      justifyContent,
+                      width: header.column.getCanResize()
+                        ? "calc(100% - 4px)"
+                        : "100%",
                     }}
-                    onMouseDown={(event) =>
-                      startResize(
-                        event,
-                        header.column.id,
-                        meta.width,
-                        meta.minWidth,
-                      )
-                    }
-                  />
-                ) : null}
-              </div>
-            </Box>
-          );
-        })}
-      </Box>
-    ));
-  };
-
-  const selectorColumns = useMemo(
-    () => getConnectionSelectorColumns(columns, table),
-    [columnVisible, columns, table],
+                    onClick={header.column.getToggleSortingHandler()}>
+                    <span className="truncate" data-column-content="true">
+                      <span
+                        className="inline-block max-w-none"
+                        data-column-measure="true">
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </span>
+                    </span>
+                    {sorted === "asc" ? (
+                      <ArrowUpwardRounded sx={{ fontSize: 14 }} />
+                    ) : sorted === "desc" ? (
+                      <ArrowDownwardRounded sx={{ fontSize: 14 }} />
+                    ) : header.column.getCanSort() ? (
+                      <UnfoldMoreRounded sx={{ fontSize: 14, opacity: 0.6 }} />
+                    ) : null}
+                  </button>
+                  {header.column.getCanResize() ? (
+                    <span
+                      className="absolute top-0 right-0 h-full w-1 cursor-col-resize bg-[rgba(0,0,0,0.08)] opacity-45 transition-[opacity,background-color,width] hover:w-1.5 hover:bg-[rgba(0,0,0,0.22)] hover:opacity-100"
+                      onDoubleClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        autoResizeColumn(
+                          header.column.id,
+                          header.column.columnDef.minSize,
+                        );
+                      }}
+                      onMouseDown={(event) =>
+                        startResize(
+                          event,
+                          header.column.id,
+                          columnWidthsRef.current[header.column.id] ??
+                            tabColumnsWidths[header.column.id] ??
+                            header.getSize(),
+                          header.column.columnDef.minSize,
+                        )
+                      }
+                    />
+                  ) : null}
+                </div>
+              </th>
+            );
+          })}
+        </tr>
+      )),
+    [autoResizeColumn, columns, sorting, startResize, tabColumnsWidths, table],
   );
 
-  useEffect(() => {
-    const normalizedOrder = getNormalizedConnectionColumnOrder(tabColumnOrder);
+  const selectorColumns = useMemo(
+    () =>
+      isColumnSelectorOpen ? getConnectionSelectorColumns(columns, table) : [],
+    [columnVisible, columns, isColumnSelectorOpen, table],
+  );
 
-    if (
-      normalizedOrder.length !== tabColumnOrder.length ||
-      normalizedOrder.some(
-        (columnId, index) => columnId !== tabColumnOrder[index],
-      )
-    ) {
-      setTabColumnOrder(normalizedOrder);
-    }
-  }, [setTabColumnOrder, tabColumnOrder]);
+  const handleToggleColumnVisible = useCallback(
+    (columnId: string) => {
+      const column = table.getColumn(columnId);
+      if (!column) return;
+      column.toggleVisibility(!column.getIsVisible());
+    },
+    [table],
+  );
 
-  const handleToggleColumnVisible = (columnId: string) => {
-    const column = table.getColumn(columnId);
-    if (!column) return;
-    column.toggleVisibility(!column.getIsVisible());
-  };
+  const handleColumnOrderDragEnd = useCallback(
+    ({ active, over }: DragEndEvent) => {
+      if (!over || active.id === over.id) return;
 
-  const handleColumnOrderDragEnd = ({ active, over }: DragEndEvent) => {
-    if (!over || active.id === over.id) return;
+      const currentOrder = selectorColumns.map((column) => column.id);
+      const oldIndex = currentOrder.indexOf(String(active.id));
+      const newIndex = currentOrder.indexOf(String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return;
 
-    const currentOrder = selectorColumns.map((column) => column.id);
-    const oldIndex = currentOrder.indexOf(String(active.id));
-    const newIndex = currentOrder.indexOf(String(over.id));
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    setTabColumnOrder(arrayMove(currentOrder, oldIndex, newIndex));
-  };
+      setTabColumnOrder(arrayMove(currentOrder, oldIndex, newIndex));
+    },
+    [selectorColumns, setTabColumnOrder],
+  );
 
   return (
     <Box className="flex h-full min-h-0 flex-col">
@@ -539,131 +715,76 @@ export const ConnectionTable = (props: Props) => {
         </Tooltip>
       </Box>
 
-      <ConnectionTableColumnSelector
-        open={isColumnSelectorOpen}
-        title={t("pages.connections.columns.actions")}
-        description={t("pages.connections.columns.dragToReorder")}
-        columns={selectorColumns}
-        onClose={() => setIsColumnSelectorOpen(false)}
-        onToggleVisible={handleToggleColumnVisible}
-        onDragEnd={handleColumnOrderDragEnd}
-      />
+      {isColumnSelectorOpen ? (
+        <ConnectionTableColumnSelector
+          open
+          title={t("pages.connections.columns.actions")}
+          description={t("pages.connections.columns.dragToReorder")}
+          columns={selectorColumns}
+          onClose={() => setIsColumnSelectorOpen(false)}
+          onToggleVisible={handleToggleColumnVisible}
+          onDragEnd={handleColumnOrderDragEnd}
+        />
+      ) : null}
 
       <Box
-        ref={tableContainerRef}
+        ref={handleTableContainerRef}
         style={tableStyleVars}
         className="min-h-0 flex-1 overflow-auto"
         sx={(theme) => ({
+          overflow: "auto",
+          position: "relative",
           borderTop: `1px solid ${theme.palette.divider}`,
           "div:focus, button:focus": { outline: "none !important" },
+          "& thead": {
+            display: "grid",
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            backgroundColor: "#ffffff",
+          },
+          "& th, & td": {
+            margin: 0,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            padding: "6px 12px",
+            fontSize: 13,
+            lineHeight: 1.2,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            boxSizing: "border-box",
+            alignItems: "center",
+          },
+          "& th": {
+            backgroundColor: "#ffffff",
+            fontWeight: 500,
+          },
+          "& tr[data-body-row='true']": {
+            cursor: "pointer",
+          },
+          "& tr[data-body-row='true']:hover": {
+            backgroundColor: theme.palette.action.hover,
+          },
+          ...theme.applyStyles("dark", {
+            "& thead, & th": {
+              backgroundColor: "#282a36",
+            },
+          }),
         })}>
-        <Box
-          sx={(theme) => ({
+        <table
+          style={{
+            display: "grid",
             width: "var(--connection-table-width)",
             minWidth: "100%",
-            position: "relative",
-            "& [data-header-cell='true'], & [data-body-cell='true']": {
-              borderBottom: `1px solid ${theme.palette.divider}`,
-              padding: "6px 12px",
-              fontSize: 13,
-              lineHeight: 1.2,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              display: "flex",
-              alignItems: "center",
-              boxSizing: "border-box",
-            },
-          })}>
-          <Box
-            sx={(theme) => ({
-              position: "sticky",
-              top: 0,
-              zIndex: 2,
-              bgcolor: "#ffffff",
-              ...theme.applyStyles("dark", {
-                bgcolor: "#282a36",
-              }),
-            })}>
-            {renderHeaderContent()}
-          </Box>
-
-          <Box
-            style={{
-              height: rowVirtualizer.getTotalSize(),
-              position: "relative",
-            }}>
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const row = rows[virtualRow.index];
-
-              return (
-                <Box
-                  key={row.id}
-                  className="flex"
-                  onClick={() => onShowDetail(row.original.connectionData)}
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    transform: `translateY(${virtualRow.start}px)`,
-                    height: `${virtualRow.size}px`,
-                  }}
-                  sx={(theme) => ({
-                    cursor: "pointer",
-                    "&:hover": {
-                      bgcolor: theme.palette.action.hover,
-                    },
-                  })}>
-                  {row.getVisibleCells().map((cell) => {
-                    const meta = cell.column.columnDef.meta as
-                      | ColumnMeta
-                      | undefined;
-                    const justifyContent = getColumnJustifyContent(meta?.align);
-                    const renderedCell = flexRender(
-                      cell.column.columnDef.cell,
-                      cell.getContext(),
-                    );
-                    const tooltipText = getConnectionCellTooltipText(cell, t);
-
-                    return (
-                      <Box
-                        key={cell.id}
-                        data-column-id={cell.column.id}
-                        data-body-cell="true"
-                        style={{
-                          width: `var(${getColumnVarName(cell.column.id)})`,
-                          minWidth: meta?.minWidth,
-                          textAlign: meta?.align ?? "left",
-                          position: "relative",
-                          flexShrink: 0,
-                        }}>
-                        <Tooltip
-                          followCursor
-                          title={tooltipText}
-                          disableHoverListener={!tooltipText}>
-                          <span
-                            className="flex h-full w-full items-center overflow-hidden text-ellipsis whitespace-nowrap"
-                            style={{ justifyContent }}
-                            data-column-content="true">
-                            <span className="min-w-0 overflow-hidden leading-tight text-ellipsis whitespace-nowrap">
-                              {renderedCell}
-                            </span>
-                          </span>
-                        </Tooltip>
-                        <span
-                          className="pointer-events-none invisible absolute whitespace-nowrap"
-                          data-column-measure="true">
-                          {renderedCell}
-                        </span>
-                      </Box>
-                    );
-                  })}
-                </Box>
-              );
-            })}
-          </Box>
-        </Box>
+          }}>
+          <thead>{headerContent}</thead>
+          <ConnectionTableBody
+            rows={table.getRowModel().rows}
+            tableContainerElement={tableContainerElement}
+            onShowDetail={onShowDetail}
+            getCellTooltipText={getCellTooltipText}
+          />
+        </table>
       </Box>
     </Box>
   );

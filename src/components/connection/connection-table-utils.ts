@@ -80,6 +80,17 @@ export const getConnectionCellTooltipText = (
   }
 };
 
+export const getNormalizedConnectionColumnOrder = (columnOrder: string[]) => {
+  return [
+    ...columnOrder.filter((columnId) =>
+      DEFAULT_COLUMN_ORDER.includes(columnId as never),
+    ),
+    ...DEFAULT_COLUMN_ORDER.filter(
+      (columnId) => !columnOrder.includes(columnId),
+    ),
+  ];
+};
+
 export const getConnectionColumnId = (column: ColumnDef<ConnectionRow>) => {
   if ("accessorKey" in column && column.accessorKey) {
     return String(column.accessorKey);
@@ -103,17 +114,6 @@ export const getOrderedConnectionColumns = (
   ];
 
   return orderedIds.map((columnId) => columnMap.get(columnId)!);
-};
-
-export const getNormalizedConnectionColumnOrder = (columnOrder: string[]) => {
-  return [
-    ...columnOrder.filter((columnId) =>
-      DEFAULT_COLUMN_ORDER.includes(columnId as never),
-    ),
-    ...DEFAULT_COLUMN_ORDER.filter(
-      (columnId) => !columnOrder.includes(columnId),
-    ),
-  ];
 };
 
 export const getConnectionSelectorColumns = (
