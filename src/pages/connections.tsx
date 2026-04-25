@@ -13,7 +13,6 @@ import {
   Tooltip,
   Zoom,
 } from "@mui/material";
-import { useGridApiRef } from "@mui/x-data-grid";
 import { useLockFn } from "ahooks";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -52,7 +51,7 @@ const ConnectionsPage = () => {
   const curOrderOpt = useConnectionsStore((s) => s.curOrderOpt);
   const setOrderType = useConnectionsStore((s) => s.setOrderType);
   const [tabName, setTabName] = useState("active");
-  const gridApiRef = useGridApiRef();
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
@@ -185,8 +184,8 @@ const ConnectionsPage = () => {
               variant={isActiveTab ? "contained" : "outlined"}
               onClick={() => {
                 setTabName("active");
-                if (isTableLayout && gridApiRef.current) {
-                  gridApiRef.current.scroll({ top: 0 });
+                if (isTableLayout && tableContainerRef.current) {
+                  tableContainerRef.current.scrollTo({ top: 0 });
                 }
               }}>
               {t("common.status.active")} {activeConns.length}
@@ -195,8 +194,8 @@ const ConnectionsPage = () => {
               variant={!isActiveTab ? "contained" : "outlined"}
               onClick={() => {
                 setTabName("closed");
-                if (isTableLayout && gridApiRef.current) {
-                  gridApiRef.current.scroll({ top: 0 });
+                if (isTableLayout && tableContainerRef.current) {
+                  tableContainerRef.current.scrollTo({ top: 0 });
                 }
               }}>
               {t("common.status.closed")} {closedConns.length}
@@ -235,7 +234,7 @@ const ConnectionsPage = () => {
             <BaseEmpty text={t("common.empty.noConnections")} />
           ) : isTableLayout ? (
             <ConnectionTable
-              gridApiRef={gridApiRef}
+              tableContainerRef={tableContainerRef}
               connections={filterConn}
               isActive={isActiveTab}
               onShowDetail={(detail) =>
@@ -266,7 +265,7 @@ const ConnectionsPage = () => {
             sx={{
               position: "absolute",
               right: 16,
-              bottom: isTableLayout ? 70 : 16,
+              bottom: 16,
             }}
             color="primary"
             onClick={() => clearClosedConnections()}>

@@ -6,7 +6,6 @@ import {
   Theme,
   ThemeOptions,
 } from "@mui/material";
-import { enUS, zhCN } from "@mui/x-data-grid/locales";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useMemo } from "react";
 
@@ -71,7 +70,6 @@ export const useCustomTheme = () => {
     );
     const isDark = currentThemeMode === "dark";
 
-    const muiDataGridLocale = language === "zh_CN" ? zhCN : enUS;
     const rootElement = document.getElementById("root");
 
     const defaultThemeObj: CustomThemeOptions = {
@@ -139,10 +137,10 @@ export const useCustomTheme = () => {
 
     let theme: Theme;
     try {
-      theme = createTheme(customThemeObj, muiDataGridLocale);
+      theme = createTheme(customThemeObj);
     } catch {
       // fix #294
-      theme = createTheme(defaultThemeObj, muiDataGridLocale);
+      theme = createTheme(defaultThemeObj);
     }
 
     // css

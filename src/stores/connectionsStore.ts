@@ -1,4 +1,3 @@
-import { GridSortItem } from "@mui/x-data-grid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -11,20 +10,27 @@ export type ConnectionsOrderType =
   | "Upload Speed"
   | "Download Speed";
 
+export type ConnectionSortItem = {
+  id: string;
+  desc: boolean;
+};
+
 type ConnectionsState = {
   layout: ConnectionsLayout;
   curOrderOpt: ConnectionsOrderType;
   // tabName: ConnectionsTabName;
-  tabSortModel: GridSortItem[];
+  tabSortModel: ConnectionSortItem[];
   tabColumnsWidths: Record<string, number>;
+  tabColumnOrder: string[];
 };
 
 type ConnectionsActions = {
   setConnectionsLayout: (layout: ConnectionsLayout) => void;
   setOrderType: (orderType: ConnectionsOrderType) => void;
   // setTabName: (tabName: ConnectionsTabName) => void;
-  setTabSortModel: (sortModel: GridSortItem[]) => void;
+  setTabSortModel: (sortModel: ConnectionSortItem[]) => void;
   setTabColumnWidth: (tabColumn: string, width: number) => void;
+  setTabColumnOrder: (columnOrder: string[]) => void;
 };
 
 export const useConnectionsStore = create<
@@ -37,6 +43,7 @@ export const useConnectionsStore = create<
       // tabName: "active",
       tabSortModel: [],
       tabColumnsWidths: {},
+      tabColumnOrder: [],
       setConnectionsLayout: (layout) => set({ layout }),
       setOrderType: (orderType) => set({ curOrderOpt: orderType }),
       // setTabName: (tabName) => set({ tabName }),
@@ -45,6 +52,7 @@ export const useConnectionsStore = create<
         set((state) => ({
           tabColumnsWidths: { ...state.tabColumnsWidths, [tabColumn]: width },
         })),
+      setTabColumnOrder: (tabColumnOrder) => set({ tabColumnOrder }),
     }),
     {
       name: "connections-settings",

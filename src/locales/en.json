@@ -209,6 +209,7 @@
         "ulSpeed": "UL Speed",
         "chains": "Chains",
         "rule": "Rule",
+        "dragToReorder": "Drag to reorder columns",
         "startAt": "Start at {{time}}"
       }
     },
