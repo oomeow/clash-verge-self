@@ -209,6 +209,7 @@
         "ulSpeed": "上传速度",
         "chains": "链路",
         "rule": "规则",
+        "dragToReorder": "拖动以调整列顺序",
         "startAt": "开始于{{time}}"
       }
     },
