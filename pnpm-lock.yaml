@@ -28,9 +28,6 @@ importers:
       "@mui/material":
         specifier: ^7.3.9
         version: 7.3.10(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      "@mui/x-data-grid":
-        specifier: ^7.29.12
-        version: 7.29.12(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@mui/material@7.3.10(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@mui/system@7.3.10(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
       "@tanstack/react-router":
         specifier: ^1.168.10
         version: 1.168.23(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
@@ -1763,47 +1760,6 @@ packages:
     peerDependenciesMeta:
       "@types/react":
         optional: true
-
-  "@mui/utils@7.3.9":
-    resolution:
-      {
-        integrity: sha512-U6SdZaGbfb65fqTsH3V5oJdFj9uYwyLE2WVuNvmbggTSDBb8QHrFsqY8BN3taK9t3yJ8/BPHD/kNvLNyjwM7Yw==,
-      }
-    engines: { node: ">=14.0.0" }
-    peerDependencies:
-      "@types/react": ^17.0.0 || ^18.0.0 || ^19.0.0
-      react: ^17.0.0 || ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      "@types/react":
-        optional: true
-
-  "@mui/x-data-grid@7.29.12":
-    resolution:
-      {
-        integrity: sha512-MaEC7ubr/je8jVWjdRU7LxBXAzlOZwFEdNdvlDUJIYkRa3TRCQ1HsY8Gd8Od0jnlnMYn9M4BrEfOrq9VRnt4bw==,
-      }
-    engines: { node: ">=14.0.0" }
-    peerDependencies:
-      "@emotion/react": ^11.9.0
-      "@emotion/styled": ^11.8.1
-      "@mui/material": ^5.15.14 || ^6.0.0 || ^7.0.0
-      "@mui/system": ^5.15.14 || ^6.0.0 || ^7.0.0
-      react: ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      "@emotion/react":
-        optional: true
-      "@emotion/styled":
-        optional: true
-
-  "@mui/x-internals@7.29.0":
-    resolution:
-      {
-        integrity: sha512-+Gk6VTZIFD70XreWvdXBwKd8GZ2FlSCuecQFzm6znwqXg1ZsndavrhG9tkxpxo2fM1Zf7Tk8+HcOO0hCbhTQFA==,
-      }
-    engines: { node: ">=14.0.0" }
-    peerDependencies:
-      react: ^17.0.0 || ^18.0.0 || ^19.0.0
 
   "@napi-rs/wasm-runtime@1.1.4":
     resolution:
@@ -5533,12 +5489,6 @@ packages:
         integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==,
       }
 
-  react-is@19.2.4:
-    resolution:
-      {
-        integrity: sha512-W+EWGn2v0ApPKgKKCy/7s7WHXkboGcsrXE+2joLyVxkbyVQfO3MUEaUQDHoSmb8TFFrSKYa9mw64WZHNHSDzYA==,
-      }
-
   react-is@19.2.5:
     resolution:
       {
@@ -5735,12 +5685,6 @@ packages:
         integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==,
       }
     engines: { node: ">=0.10.0" }
-
-  reselect@5.1.1:
-    resolution:
-      {
-        integrity: sha512-K/BG6eIky/SBpzfHZv/dd+9JBFiS4SWV7FIujVyJRux6e45+73RaUHXLmIR1f7WOMaQ0U1km6qwklRQxpJJY0w==,
-      }
 
   resize-observer-polyfill@1.5.1:
     resolution:
@@ -7619,45 +7563,6 @@ snapshots:
       react-is: 19.2.5
     optionalDependencies:
       "@types/react": 19.2.14
-
-  "@mui/utils@7.3.9(@types/react@19.2.14)(react@19.2.5)":
-    dependencies:
-      "@babel/runtime": 7.29.2
-      "@mui/types": 7.4.12(@types/react@19.2.14)
-      "@types/prop-types": 15.7.15
-      clsx: 2.1.1
-      prop-types: 15.8.1
-      react: 19.2.5
-      react-is: 19.2.4
-    optionalDependencies:
-      "@types/react": 19.2.14
-
-  "@mui/x-data-grid@7.29.12(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@mui/material@7.3.10(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(@mui/system@7.3.10(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)":
-    dependencies:
-      "@babel/runtime": 7.29.2
-      "@mui/material": 7.3.10(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
-      "@mui/system": 7.3.10(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5)
-      "@mui/utils": 7.3.9(@types/react@19.2.14)(react@19.2.5)
-      "@mui/x-internals": 7.29.0(@types/react@19.2.14)(react@19.2.5)
-      clsx: 2.1.1
-      prop-types: 15.8.1
-      react: 19.2.5
-      react-dom: 19.2.5(react@19.2.5)
-      reselect: 5.1.1
-      use-sync-external-store: 1.6.0(react@19.2.5)
-    optionalDependencies:
-      "@emotion/react": 11.13.0(@types/react@19.2.14)(react@19.2.5)
-      "@emotion/styled": 11.13.0(@emotion/react@11.13.0(@types/react@19.2.14)(react@19.2.5))(@types/react@19.2.14)(react@19.2.5)
-    transitivePeerDependencies:
-      - "@types/react"
-
-  "@mui/x-internals@7.29.0(@types/react@19.2.14)(react@19.2.5)":
-    dependencies:
-      "@babel/runtime": 7.29.2
-      "@mui/utils": 7.3.9(@types/react@19.2.14)(react@19.2.5)
-      react: 19.2.5
-    transitivePeerDependencies:
-      - "@types/react"
 
   "@napi-rs/wasm-runtime@1.1.4(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)":
     dependencies:
@@ -9951,8 +9856,6 @@ snapshots:
 
   react-is@16.13.1: {}
 
-  react-is@19.2.4: {}
-
   react-is@19.2.5: {}
 
   react-markdown@10.1.0(@types/react@19.2.14)(react@19.2.5):
@@ -10125,8 +10028,6 @@ snapshots:
       unified: 11.0.5
 
   require-directory@2.1.1: {}
-
-  reselect@5.1.1: {}
 
   resize-observer-polyfill@1.5.1: {}
 
