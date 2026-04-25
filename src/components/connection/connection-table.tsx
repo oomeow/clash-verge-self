@@ -406,6 +406,12 @@ export const ConnectionTable = (props: Props) => {
     return styleVars;
   }, [table, tableWidth]);
 
+  const getColumnJustifyContent = (align?: ColumnMeta["align"]) => {
+    if (align === "center") return "center";
+    if (align === "right") return "flex-end";
+    return "flex-start";
+  };
+
   const renderHeaderContent = () => {
     return table.getHeaderGroups().map((headerGroup) => (
       <Box key={headerGroup.id} className="flex">
@@ -413,6 +419,7 @@ export const ConnectionTable = (props: Props) => {
           const meta = header.column.columnDef.meta as ColumnMeta | undefined;
           const sorted = header.column.getIsSorted();
           const textAlign = meta?.align ?? "left";
+          const justifyContent = getColumnJustifyContent(meta?.align);
 
           return (
             <Box
@@ -426,20 +433,17 @@ export const ConnectionTable = (props: Props) => {
                 flexShrink: 0,
               }}>
               <div
-                className="relative flex items-center"
+                className="relative flex h-full w-full items-center"
                 style={{
-                  justifyContent:
-                    textAlign === "center"
-                      ? "center"
-                      : textAlign === "right"
-                        ? "flex-end"
-                        : "flex-start",
+                  justifyContent,
                 }}>
                 <button
                   type="button"
-                  className="flex min-w-0 flex-1 items-center gap-1 bg-transparent pr-3 text-inherit"
+                  className="flex min-w-0 items-center gap-1 bg-transparent pr-3 text-inherit"
                   style={{
                     cursor: header.column.getCanSort() ? "pointer" : "default",
+                    justifyContent,
+                    width: meta?.width ? "calc(100% - 4px)" : "100%",
                   }}
                   onClick={header.column.getToggleSortingHandler()}>
                   <span className="truncate" data-column-content="true">
@@ -562,9 +566,13 @@ export const ConnectionTable = (props: Props) => {
               borderBottom: `1px solid ${theme.palette.divider}`,
               padding: "6px 12px",
               fontSize: 13,
+              lineHeight: 1.2,
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              display: "flex",
+              alignItems: "center",
+              boxSizing: "border-box",
             },
           })}>
           <Box
@@ -611,6 +619,7 @@ export const ConnectionTable = (props: Props) => {
                     const meta = cell.column.columnDef.meta as
                       | ColumnMeta
                       | undefined;
+                    const justifyContent = getColumnJustifyContent(meta?.align);
                     const renderedCell = flexRender(
                       cell.column.columnDef.cell,
                       cell.getContext(),
@@ -634,9 +643,12 @@ export const ConnectionTable = (props: Props) => {
                           title={tooltipText}
                           disableHoverListener={!tooltipText}>
                           <span
-                            className="block overflow-hidden text-ellipsis whitespace-nowrap"
+                            className="flex h-full w-full items-center overflow-hidden text-ellipsis whitespace-nowrap"
+                            style={{ justifyContent }}
                             data-column-content="true">
-                            {renderedCell}
+                            <span className="min-w-0 overflow-hidden leading-tight text-ellipsis whitespace-nowrap">
+                              {renderedCell}
+                            </span>
                           </span>
                         </Tooltip>
                         <span
