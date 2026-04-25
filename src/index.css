@@ -9,7 +9,7 @@
 
 @layer utilities {
   @font-face {
-    font-family: "twemoji mozilla";
+    font-family: "Twemoji Mozilla";
     src: url("./assets/fonts/Twemoji.Mozilla.ttf");
   }
 }
@@ -109,7 +109,7 @@
     font-family:
       -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
       "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-      sans-serif;
+      sans-serif, "Twemoji Mozilla";
     -webkit-font-smoothing: antialiased;
     user-select: none;
     -webkit-user-select: none;

@@ -126,7 +126,7 @@ const ConnectionTableBodyRow = memo(
                 title={tooltipText}
                 disableHoverListener={!tooltipText}>
                 <span
-                  className="flex h-full w-full items-center overflow-hidden text-ellipsis whitespace-nowrap"
+                  className="flex h-full w-full items-center overflow-hidden text-sm text-ellipsis whitespace-nowrap"
                   style={{ justifyContent }}
                   data-column-content="true">
                   <span className="min-w-0 overflow-hidden leading-tight text-ellipsis whitespace-nowrap">
