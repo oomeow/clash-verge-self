@@ -2,7 +2,6 @@ import { type DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import ArrowDownwardRounded from "@mui/icons-material/ArrowDownwardRounded";
 import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
-import CancelIcon from "@mui/icons-material/Close";
 import UnfoldMoreRounded from "@mui/icons-material/UnfoldMoreRounded";
 import ViewColumnRounded from "@mui/icons-material/ViewColumnRounded";
 import { Box, IconButton, Tooltip } from "@mui/material";
@@ -18,12 +17,11 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
-import dayjs from "dayjs";
 import {
   type CSSProperties,
   memo,
   type MouseEvent as ReactMouseEvent,
-  RefObject,
+  type RefObject,
   useCallback,
   useEffect,
   useMemo,
@@ -31,19 +29,17 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { closeConnection } from "tauri-plugin-mihomo-api";
 
 import { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import { useConnectionsStore } from "@/stores";
-import parseTraffic from "@/utils/parse-traffic";
 
 import { type ColumnMeta, type ConnectionRow } from "./connection-table.types";
 import { ConnectionTableColumnSelector } from "./connection-table-column-selector";
+import { createConnectionColumns } from "./connection-table-columns";
 import {
   getConnectionCellTooltipText,
   getConnectionSelectorColumns,
   getNormalizedConnectionColumnOrder,
-  getOrderedConnectionColumns,
   mapConnectionsToRows,
 } from "./connection-table-utils";
 
@@ -57,6 +53,7 @@ interface Props {
 interface ConnectionTableBodyProps {
   rows: Row<ConnectionRow>[];
   tableContainerElement: HTMLDivElement | null;
+  columnLayoutKey: string;
   onShowDetail: (data: IClosedConnectionItem) => void;
   getCellTooltipText: (cell: Cell<ConnectionRow, unknown>) => string;
 }
@@ -64,6 +61,7 @@ interface ConnectionTableBodyProps {
 interface ConnectionTableBodyRowProps {
   row: Row<ConnectionRow>;
   virtualRow: VirtualItem;
+  columnLayoutKey: string;
   onShowDetail: (data: IClosedConnectionItem) => void;
   getCellTooltipText: (cell: Cell<ConnectionRow, unknown>) => string;
 }
@@ -85,6 +83,7 @@ const ConnectionTableBodyRow = memo(
   ({
     row,
     virtualRow,
+    columnLayoutKey: _columnLayoutKey,
     onShowDetail,
     getCellTooltipText,
   }: ConnectionTableBodyRowProps) => {
@@ -135,7 +134,7 @@ const ConnectionTableBodyRow = memo(
                 </span>
               </Tooltip>
               <span
-                className="pointer-events-none invisible absolute whitespace-nowrap"
+                className="pointer-events-none invisible absolute px-3 whitespace-nowrap"
                 data-column-measure="true">
                 {renderedCell}
               </span>
@@ -150,6 +149,7 @@ const ConnectionTableBodyRow = memo(
     prev.row.original === next.row.original &&
     prev.virtualRow.start === next.virtualRow.start &&
     prev.virtualRow.size === next.virtualRow.size &&
+    prev.columnLayoutKey === next.columnLayoutKey &&
     prev.getCellTooltipText === next.getCellTooltipText &&
     prev.onShowDetail === next.onShowDetail,
 );
@@ -158,6 +158,7 @@ const ConnectionTableBody = memo(
   ({
     rows,
     tableContainerElement,
+    columnLayoutKey,
     onShowDetail,
     getCellTooltipText,
   }: ConnectionTableBodyProps) => {
@@ -184,6 +185,7 @@ const ConnectionTableBody = memo(
               key={row.id}
               row={row}
               virtualRow={virtualRow}
+              columnLayoutKey={columnLayoutKey}
               onShowDetail={onShowDetail}
               getCellTooltipText={getCellTooltipText}
             />
@@ -195,6 +197,7 @@ const ConnectionTableBody = memo(
   (prev, next) =>
     prev.rows === next.rows &&
     prev.tableContainerElement === next.tableContainerElement &&
+    prev.columnLayoutKey === next.columnLayoutKey &&
     prev.onShowDetail === next.onShowDetail &&
     prev.getCellTooltipText === next.getCellTooltipText,
 );
@@ -254,151 +257,22 @@ export const ConnectionTable = (props: Props) => {
     }
   }, [normalizedTabColumnOrder, setTabColumnOrder, tabColumnOrder]);
 
-  const columns = useMemo<ColumnDef<ConnectionRow>[]>(() => {
-    const getColumnWidth = (columnId: string, fallback: number) =>
-      tabColumnsWidths[columnId] ?? fallback;
+  const getColumnWidth = useCallback(
+    (columnId: string, fallback: number) =>
+      tabColumnsWidths[columnId] ?? fallback,
+    [tabColumnsWidths],
+  );
 
-    const leadingColumns = isActive
-      ? [
-          {
-            id: "actions",
-            header: "",
-            cell: ({ row }) => (
-              <button
-                className="cursor-pointer rounded-full text-xs hover:bg-gray-200"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  closeConnection(row.original.id);
-                }}>
-                <CancelIcon fontSize="small" />
-              </button>
-            ),
-            enableSorting: false,
-            enableHiding: false,
-            enableResizing: false,
-            size: 50,
-            minSize: 50,
-            meta: { align: "center" } satisfies ColumnMeta,
-          } satisfies ColumnDef<ConnectionRow>,
-        ]
-      : [
-          {
-            accessorKey: "closedTime",
-            header: t("pages.connections.columns.closedTime"),
-            cell: ({ getValue }) => dayjs(getValue<number>()).fromNow(),
-            sortingFn: (rowA, rowB, columnId) =>
-              rowA.getValue<number>(columnId) - rowB.getValue<number>(columnId),
-            enableHiding: false,
-            size: getColumnWidth("closedTime", 110),
-            minSize: 100,
-            meta: {} satisfies ColumnMeta,
-          } satisfies ColumnDef<ConnectionRow>,
-        ];
-
-    const sharedColumns = [
-      {
-        accessorKey: "type",
-        header: t("common.fields.type"),
-        size: getColumnWidth("type", 160),
-        minSize: 100,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "host",
-        header: t("common.fields.host"),
-        size: getColumnWidth("host", 220),
-        minSize: 120,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "ulSpeed",
-        header: t("pages.connections.columns.ulSpeed"),
-        cell: ({ getValue }) =>
-          `${parseTraffic(getValue<number>()).join(" ")}/s`,
-        size: getColumnWidth("ulSpeed", 100),
-        minSize: 100,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "dlSpeed",
-        header: t("pages.connections.columns.dlSpeed"),
-        cell: ({ getValue }) =>
-          `${parseTraffic(getValue<number>()).join(" ")}/s`,
-        size: getColumnWidth("dlSpeed", 100),
-        minSize: 100,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "chains",
-        header: t("pages.connections.columns.chains"),
-        size: getColumnWidth("chains", 260),
-        minSize: 260,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "rule",
-        header: t("pages.connections.columns.rule"),
-        size: getColumnWidth("rule", 300),
-        minSize: 230,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "process",
-        header: t("common.fields.process"),
-        size: getColumnWidth("process", 240),
-        minSize: 120,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "source",
-        header: t("common.fields.source"),
-        size: getColumnWidth("source", 200),
-        minSize: 150,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "remoteDestination",
-        header: t("common.fields.destination"),
-        size: getColumnWidth("remoteDestination", 200),
-        minSize: 150,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "upload",
-        header: t("pages.connections.columns.uploaded"),
-        cell: ({ getValue }) => parseTraffic(getValue<number>()).join(" "),
-        size: getColumnWidth("upload", 100),
-        minSize: 100,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "download",
-        header: t("pages.connections.columns.downloaded"),
-        cell: ({ getValue }) => parseTraffic(getValue<number>()).join(" "),
-        size: getColumnWidth("download", 100),
-        minSize: 100,
-        meta: {} satisfies ColumnMeta,
-      },
-      {
-        accessorKey: "time",
-        header: t("common.fields.time"),
-        cell: ({ getValue }) => dayjs(getValue<string>()).fromNow(),
-        sortingFn: (rowA, rowB, columnId) =>
-          dayjs(rowA.getValue<string>(columnId)).valueOf() -
-          dayjs(rowB.getValue<string>(columnId)).valueOf(),
-        size: getColumnWidth("time", 120),
-        minSize: 100,
-        meta: {
-          align: "center",
-        } satisfies ColumnMeta,
-      },
-    ] satisfies ColumnDef<ConnectionRow>[];
-
-    return [
-      ...leadingColumns,
-      ...getOrderedConnectionColumns(sharedColumns, tabColumnOrder),
-    ];
-  }, [isActive, t, tabColumnOrder, tabColumnsWidths]);
+  const columns = useMemo<ColumnDef<ConnectionRow>[]>(
+    () =>
+      createConnectionColumns({
+        isActive,
+        t,
+        columnOrder: tabColumnOrder,
+        getColumnWidth,
+      }),
+    [getColumnWidth, isActive, t, tabColumnOrder],
+  );
 
   useEffect(() => {
     return () => {
@@ -431,16 +305,20 @@ export const ConnectionTable = (props: Props) => {
     getSortedRowModel: getSortedRowModel(),
   });
 
+  const getResolvedColumnWidth = useCallback(
+    (column: ReturnType<typeof table.getAllLeafColumns>[number]) =>
+      columnWidthsRef.current[column.id] ??
+      tabColumnsWidths[column.id] ??
+      column.getSize(),
+    [tabColumnsWidths],
+  );
+
   const tableWidth = useMemo(
     () =>
-      table.getVisibleLeafColumns().reduce((total, column) => {
-        const width =
-          columnWidthsRef.current[column.id] ??
-          tabColumnsWidths[column.id] ??
-          column.getSize();
-        return total + width;
-      }, 0),
-    [columnVisible, tabColumnsWidths, table],
+      table
+        .getVisibleLeafColumns()
+        .reduce((total, column) => total + getResolvedColumnWidth(column), 0),
+    [columnVisible, getResolvedColumnWidth, table],
   );
 
   const syncTableWidthStyles = useCallback(() => {
@@ -449,14 +327,11 @@ export const ConnectionTable = (props: Props) => {
 
     let nextWidth = 0;
     table.getVisibleLeafColumns().forEach((column) => {
-      nextWidth +=
-        columnWidthsRef.current[column.id] ??
-        tabColumnsWidths[column.id] ??
-        column.getSize();
+      nextWidth += getResolvedColumnWidth(column);
     });
 
     container.style.setProperty("--connection-table-width", `${nextWidth}px`);
-  }, [tabColumnsWidths, table, tableContainerRef]);
+  }, [getResolvedColumnWidth, table, tableContainerRef]);
 
   const applyColumnWidthToDom = useCallback(
     (columnId: string, width: number) => {
@@ -472,11 +347,10 @@ export const ConnectionTable = (props: Props) => {
 
   useEffect(() => {
     table.getAllLeafColumns().forEach((column) => {
-      columnWidthsRef.current[column.id] =
-        tabColumnsWidths[column.id] ?? column.getSize();
+      columnWidthsRef.current[column.id] = getResolvedColumnWidth(column);
     });
     syncTableWidthStyles();
-  }, [columns, syncTableWidthStyles, tabColumnsWidths, table]);
+  }, [columns, getResolvedColumnWidth, syncTableWidthStyles, table]);
 
   const getCellTooltipText = useCallback(
     (cell: Cell<ConnectionRow, unknown>) =>
@@ -576,13 +450,21 @@ export const ConnectionTable = (props: Props) => {
     };
 
     table.getAllLeafColumns().forEach((column) => {
-      styleVars[getColumnVarName(column.id)] = `${
-        tabColumnsWidths[column.id] ?? column.getSize()
-      }px`;
+      styleVars[getColumnVarName(column.id)] =
+        `${getResolvedColumnWidth(column)}px`;
     });
 
     return styleVars;
-  }, [tabColumnsWidths, table, tableWidth]);
+  }, [getResolvedColumnWidth, table, tableWidth]);
+
+  const columnLayoutKey = useMemo(
+    () =>
+      table
+        .getVisibleLeafColumns()
+        .map((column) => column.id)
+        .join("|"),
+    [columnVisible, columns, table],
+  );
 
   const headerContent = useMemo(
     () =>
@@ -657,9 +539,7 @@ export const ConnectionTable = (props: Props) => {
                         startResize(
                           event,
                           header.column.id,
-                          columnWidthsRef.current[header.column.id] ??
-                            tabColumnsWidths[header.column.id] ??
-                            header.getSize(),
+                          getResolvedColumnWidth(header.column),
                           header.column.columnDef.minSize,
                         )
                       }
@@ -671,7 +551,15 @@ export const ConnectionTable = (props: Props) => {
           })}
         </tr>
       )),
-    [autoResizeColumn, columns, sorting, startResize, tabColumnsWidths, table],
+    [
+      autoResizeColumn,
+      columnVisible,
+      columns,
+      getResolvedColumnWidth,
+      sorting,
+      startResize,
+      table,
+    ],
   );
 
   const selectorColumns = useMemo(
@@ -781,6 +669,7 @@ export const ConnectionTable = (props: Props) => {
           <ConnectionTableBody
             rows={table.getRowModel().rows}
             tableContainerElement={tableContainerElement}
+            columnLayoutKey={columnLayoutKey}
             onShowDetail={onShowDetail}
             getCellTooltipText={getCellTooltipText}
           />
