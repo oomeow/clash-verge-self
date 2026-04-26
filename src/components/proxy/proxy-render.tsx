@@ -14,9 +14,8 @@ import { useMemoizedFn } from "ahooks";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useProfiles } from "@/hooks/use-profiles";
 import { downloadIconCache } from "@/services/cmds";
-import { useVergeStore } from "@/stores";
+import { useProfilesStore, useVergeStore } from "@/stores";
 import {
   createScopedHeadStateActions,
   DEFAULT_STATE,
@@ -105,14 +104,17 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const { item, delayVersion, onLocation, onCheckAll, onChangeProxy } = props;
   const { t } = useTranslation();
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
-  const { profiles } = useProfiles();
-  const current = profiles?.current || "";
+  const currentProfileUid = useProfilesStore((s) => s.config.current || "");
   const enableGroupIcon = useVergeStore(
     (s) => s.verge.enable_group_icon ?? true,
   );
   const headStateActions = useMemo(
-    () => createScopedHeadStateActions({ current, groupName: group.name }),
-    [current, group.name],
+    () =>
+      createScopedHeadStateActions({
+        current: currentProfileUid,
+        groupName: group.name,
+      }),
+    [currentProfileUid, group.name],
   );
   const [iconCachePath, setIconCachePath] = useState("");
   const groupIcon = group.icon?.trim() ?? "";

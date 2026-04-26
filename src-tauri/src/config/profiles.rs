@@ -21,6 +21,8 @@ pub struct IProfiles {
     pub current: Option<String>,
 
     /// same as PrfConfig.chain
+    ///
+    /// The field will be removed in the future and the chain will be implemented using the PrfItem `enable` field.
     pub chain: Option<Vec<String>>,
 
     /// profile list
@@ -278,10 +280,13 @@ impl IProfiles {
 
     /// update the item value
     pub fn patch_item(&mut self, uid: &str, item: PrfItem) -> AppResult<()> {
+        let enable_changed = item.enable.is_some();
         let mut items = self.items.take().unwrap_or_default();
 
         for each in items.iter_mut() {
             if each.uid == Some(uid.to_string()) {
+                let refresh_chains =
+                    enable_changed && each.scope.as_ref().is_some_and(|s| matches!(s, ScopeType::Global));
                 patch!(each, item, itype);
                 patch!(each, item, name);
                 patch!(each, item, desc);
@@ -296,6 +301,17 @@ impl IProfiles {
                 patch!(each, item, enable);
 
                 self.items = Some(items);
+
+                println!("refresh chains: {refresh_chains}");
+                if refresh_chains {
+                    let chains: Vec<String> = self
+                        .get_profile_chains(None, EnableFilter::Enable)
+                        .iter()
+                        .map(|i| i.uid.clone())
+                        .collect();
+                    println!("chains: {chains:?}");
+                    self.chain = Some(chains);
+                }
                 return self.save_file();
             }
         }
@@ -418,6 +434,9 @@ impl IProfiles {
                 None => {
                     return Err(AppError::InvalidValue("profile type is null".to_string()));
                 }
+            }
+            if let Some(chain) = self.chain.as_mut() {
+                chain.retain(|i| i != &uid);
             }
             self.items = Some(items);
         } else {

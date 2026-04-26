@@ -22,12 +22,15 @@ import { useLockFn } from "ahooks";
 import dayjs from "dayjs";
 import { memo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { mutate } from "swr";
 
 import { Marquee } from "@/components/base";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
-import { openWebUrl, updateProfile, viewProfile } from "@/services/cmds";
-import { useLoadingCacheStore, useThemeModeStore } from "@/stores";
+import { openWebUrl, viewProfile } from "@/services/cmds";
+import {
+  useLoadingCacheStore,
+  useProfilesStore,
+  useThemeModeStore,
+} from "@/stores";
 import { cn } from "@/utils";
 import parseTraffic from "@/utils/parse-traffic";
 
@@ -64,6 +67,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const themeMode = useThemeModeStore((s) => s.themeMode);
+  const updateProfile = useProfilesStore((s) => s.updateProfile);
   const [anchorEl, setAnchorEl] = useState<any>(null);
   if (anchorEl && isDragging) {
     setAnchorEl(null);
@@ -164,7 +168,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
     try {
       await updateProfile(uid, option);
-      mutate("getProfiles");
     } catch (err: any) {
       const errmsg = err?.message || err.toString();
       notice(

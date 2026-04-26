@@ -26,7 +26,7 @@ import { isEqual, throttle } from "lodash-es";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 
 import {
   BasePage,
@@ -42,18 +42,8 @@ import {
   ProfileViewerRef,
 } from "@/components/profile/profile-viewer";
 import { ConfigViewer } from "@/components/setting/mods/config-viewer";
-import { useProfiles } from "@/hooks/use-profiles";
-import {
-  deleteProfile,
-  enhanceProfiles,
-  getProfiles,
-  getRuntimeLogs,
-  importProfile,
-  patchProfile,
-  reorderProfile,
-  updateProfile,
-} from "@/services/cmds";
-import { useLoadingCacheStore } from "@/stores";
+import { getRuntimeLogs } from "@/services/cmds";
+import { useLoadingCacheStore, useProfilesStore } from "@/stores";
 
 const FlexDecorationItems = memo(function FlexDecoratorItems() {
   return [...Array(20)].map((_, index) => (
@@ -61,47 +51,50 @@ const FlexDecorationItems = memo(function FlexDecoratorItems() {
   ));
 });
 
+const compactUids = (uids: (string | undefined)[]) =>
+  Array.from(new Set(uids.filter((uid): uid is string => !!uid)));
+
 const ProfilePage = () => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
   const [url, setUrl] = useState("");
   const [disabled, setDisabled] = useState(false);
-  const [activatingUids, setActivatingUids] = useState<string[]>([]);
   const [importLoading, setImportLoading] = useState(false);
-  const {
-    profiles = {},
-    activateSelected,
-    patchProfiles,
-    mutateProfiles,
-  } = useProfiles();
+  const config = useProfilesStore((s) => s.config);
+  const profileItems = useProfilesStore((s) => s.profileItems);
+  const globalChainItems = useProfilesStore((s) => s.globalChainItems);
+  const enabledGlobalChainUids = useProfilesStore(
+    (s) => s.enabledGlobalChainUids,
+  );
+  const applySelectedProxies = useProfilesStore((s) => s.applySelectedProxies);
+  const patchConfig = useProfilesStore((s) => s.patchConfig);
+  const patchProfile = useProfilesStore((s) => s.patchProfile);
+  const refreshConfig = useProfilesStore((s) => s.refreshConfig);
+  const importProfile = useProfilesStore((s) => s.importProfile);
+  const reorderProfile = useProfilesStore((s) => s.reorderProfile);
+  const deleteProfile = useProfilesStore((s) => s.deleteProfile);
+  const updateProfile = useProfilesStore((s) => s.updateProfile);
+  const enhanceProfiles = useProfilesStore((s) => s.enhanceProfiles);
+  const activatingItemUids = useProfilesStore((s) => s.activatingItemUids);
+  const setActivatingItemUids = useProfilesStore(
+    (s) => s.setActivatingItemUids,
+  );
+  const clearActivatingItemUids = useProfilesStore(
+    (s) => s.clearActivatingItemUids,
+  );
 
   const { data: chainLogs = {}, mutate: mutateLogs } = useSWR(
     "getRuntimeLogs",
     getRuntimeLogs,
   );
 
-  const chain = profiles.chain || [];
   const viewerRef = useRef<ProfileViewerRef>(null);
   const configRef = useRef<DialogRef>(null);
 
-  // distinguish type
-  const { profileItems, globalChains, enabledChainUids } = useMemo(() => {
-    const items = profiles.items || [];
-    const type_p = ["local", "remote"];
-    const type_c = ["merge", "script"];
-    const profileItems = items.filter((i) => i && type_p.includes(i.type!));
-    const globalChains = items.filter(
-      (i) => i && type_c.includes(i.type!) && i.scope === "global",
-    );
-    const enabledChainUids = globalChains
-      .filter((i) => i.enable)
-      .map((i) => i.uid);
-    return { profileItems, globalChains, enabledChainUids };
-  }, [profiles]);
   const activatingUidSet = useMemo(
-    () => new Set(activatingUids),
-    [activatingUids],
+    () => new Set(activatingItemUids),
+    [activatingItemUids],
   );
 
   // sortable
@@ -127,9 +120,13 @@ const ProfilePage = () => {
   const [overItemWidth, setOverItemWidth] = useState(260);
 
   useEffect(() => {
+    refreshConfig();
+  }, [refreshConfig]);
+
+  useEffect(() => {
     setProfileList(profileItems);
-    setChainList(globalChains);
-  }, [profileItems, globalChains]);
+    setChainList(globalChainItems);
+  }, [profileItems, globalChainItems]);
 
   const handleProfileDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -147,7 +144,6 @@ const ProfilePage = () => {
           );
           setProfileList((items) => arrayMove(items, activeIndex, overIndex));
           await reorderProfile(activeId, overId);
-          mutateProfiles();
         }
       }
     },
@@ -170,13 +166,15 @@ const ProfilePage = () => {
           const newEnabledChainUids = newChainList
             .filter((i) => i.enable)
             .map((item) => item.uid);
-          const needToEnhance = !isEqual(enabledChainUids, newEnabledChainUids);
+          const needToEnhance = !isEqual(
+            enabledGlobalChainUids,
+            newEnabledChainUids,
+          );
           setChainList(newChainList);
           await reorderProfile(activeId, overId);
           if (needToEnhance) {
             await onEnhance();
           }
-          mutateProfiles();
         }
       }
     },
@@ -188,20 +186,17 @@ const ProfilePage = () => {
     setImportLoading(true);
 
     try {
-      await importProfile(url);
+      const newProfiles = await importProfile(url);
       notice("success", t("messages.profiles.imported"));
       setUrl("");
       setImportLoading(false);
 
-      const newProfiles = await getProfiles();
-      mutate("getProfiles", newProfiles);
-
       const remoteItem = newProfiles.items?.find((e) => e.type === "remote");
       if (!newProfiles.current && remoteItem) {
         const current = remoteItem.uid;
-        patchProfiles({ current });
+        patchConfig({ current });
         mutateLogs();
-        setTimeout(() => activateSelected(), 2000);
+        setTimeout(() => applySelectedProxies(), 2000);
       }
     } catch (err: any) {
       notice("error", err.message || err.toString());
@@ -213,72 +208,81 @@ const ProfilePage = () => {
   }, [url]);
 
   const onSelect = useLockFn(async (current: string, _force: boolean) => {
-    if (current === profiles.current || activatingUids.length > 0) return;
+    if (current === config.current || activatingItemUids.length > 0) return;
+    const nextActivatingItemUids = compactUids([
+      current,
+      ...enabledGlobalChainUids,
+    ]);
     try {
-      setActivatingUids([current, ...enabledChainUids]);
-      await patchProfiles({ current });
+      setActivatingItemUids(nextActivatingItemUids);
+      await patchConfig({ current });
       mutateLogs();
-      // setTimeout(() => activateSelected(), 2000);
+      // setTimeout(() => applySelectedProxies(), 2000);
       notice("success", t("messages.profiles.switched"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 4000);
     } finally {
       setTimeout(() => {
-        setActivatingUids([]);
+        clearActivatingItemUids(nextActivatingItemUids);
       }, 500);
     }
   });
 
   const onDelete = useLockFn(async (uid: string) => {
-    const isEnable = profiles.current === uid || enabledChainUids.includes(uid);
+    const isEnable =
+      config.current === uid || enabledGlobalChainUids.includes(uid);
+    const nextActivatingItemUids = compactUids([
+      config.current,
+      uid,
+      ...enabledGlobalChainUids,
+    ]);
     try {
       if (isEnable) {
-        setActivatingUids([profiles.current || "", uid, ...enabledChainUids]);
+        setActivatingItemUids(nextActivatingItemUids);
       }
       await deleteProfile(uid);
-      mutateProfiles();
     } catch (err: any) {
       notice("error", err.message || err.toString());
     } finally {
       if (isEnable) {
-        setActivatingUids([]);
+        clearActivatingItemUids(nextActivatingItemUids);
       }
     }
   });
 
   const handleToggleEnable = useLockFn(
     async (chainUid: string, enable: boolean) => {
+      const nextActivatingItemUids = compactUids([
+        config.current,
+        chainUid,
+        ...enabledGlobalChainUids,
+      ]);
       try {
-        setActivatingUids([
-          profiles.current || "",
-          chainUid,
-          ...enabledChainUids,
-        ]);
+        setActivatingItemUids(nextActivatingItemUids);
         await patchProfile(chainUid, { enable: enable });
         mutateLogs();
-        mutateProfiles();
         notice("success", t("messages.profiles.reactivated"), 1000);
       } catch (error) {
         console.error(error);
       } finally {
         setTimeout(() => {
-          setActivatingUids([]);
+          clearActivatingItemUids(nextActivatingItemUids);
         }, 500);
       }
     },
   );
 
   const handleChainDelete = useLockFn(async (item: IProfileItem) => {
+    const nextActivatingItemUids = compactUids([
+      config.current,
+      item.uid,
+      ...enabledGlobalChainUids,
+    ]);
     try {
       if (item.enable) {
-        setActivatingUids([
-          profiles.current || "",
-          item.uid,
-          ...enabledChainUids,
-        ]);
+        setActivatingItemUids(nextActivatingItemUids);
       }
       await deleteProfile(item.uid);
-      mutateProfiles();
       if (item.enable) {
         await onEnhance();
       }
@@ -286,21 +290,25 @@ const ProfilePage = () => {
       notice("error", error.message || error.toString());
     } finally {
       if (item.enable) {
-        setActivatingUids([]);
+        clearActivatingItemUids(nextActivatingItemUids);
       }
     }
   });
 
   const onEnhance = useLockFn(async () => {
+    const nextActivatingItemUids = compactUids([
+      config.current,
+      ...enabledGlobalChainUids,
+    ]);
     try {
-      setActivatingUids([profiles.current || "", ...enabledChainUids]);
+      setActivatingItemUids(nextActivatingItemUids);
       await enhanceProfiles();
       mutateLogs();
       notice("success", t("messages.profiles.reactivated"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 3000);
     } finally {
-      setActivatingUids([]);
+      clearActivatingItemUids(nextActivatingItemUids);
     }
   });
 
@@ -309,13 +317,13 @@ const ProfilePage = () => {
   const loadingCache = useLoadingCacheStore((s) => s.loadingCache);
   const onUpdateAll = useMemoizedFn(
     useLockFn(async () => {
-      const throttleMutate = throttle(mutateProfiles, 2000, {
+      const throttledRefreshConfig = throttle(refreshConfig, 2000, {
         trailing: true,
       });
       const updateOne = async (uid: string) => {
         try {
-          await updateProfile(uid);
-          throttleMutate();
+          await updateProfile(uid, undefined, { refresh: false });
+          throttledRefreshConfig();
         } finally {
           setLoading(uid, false);
         }
@@ -364,7 +372,7 @@ const ProfilePage = () => {
           <Button
             size="small"
             // loading={activating.profile !== "" || activating.chain !== ""}
-            loading={activatingUids.length > 0}
+            loading={activatingItemUids.length > 0}
             loadingPosition="end"
             variant="contained"
             color="primary"
@@ -462,8 +470,8 @@ const ProfilePage = () => {
                     <ProfileItem
                       selected={
                         activatingUidSet.has(item.uid) ||
-                        (activatingUids.length === 0 &&
-                          profiles.current === item.uid)
+                        (activatingItemUids.length === 0 &&
+                          config.current === item.uid)
                       }
                       isDragging={draggingItem?.uid === item.uid}
                       activating={activatingUidSet.has(item.uid)}
@@ -490,8 +498,8 @@ const ProfilePage = () => {
                 }}
                 selected={
                   activatingUidSet.has(draggingItem.uid) ||
-                  (activatingUids.length === 0 &&
-                    profiles.current === draggingItem.uid)
+                  (activatingItemUids.length === 0 &&
+                    config.current === draggingItem.uid)
                 }
                 activating={activatingUidSet.has(draggingItem.uid)}
                 itemData={draggingItem}
@@ -546,7 +554,9 @@ const ProfilePage = () => {
                     <DraggableItem
                       key={item.uid}
                       id={item.uid}
-                      data={{ activated: !!chain.includes(item.uid) }}
+                      data={{
+                        activated: enabledGlobalChainUids.includes(item.uid),
+                      }}
                       sx={{
                         display: "flex",
                         flexGrow: 1,
@@ -561,7 +571,7 @@ const ProfilePage = () => {
                         itemData={item}
                         logs={chainLogs[item.uid]}
                         chainLogs={chainLogs}
-                        reactivating={activatingUids.includes(item.uid)}
+                        reactivating={activatingItemUids.includes(item.uid)}
                         onToggleEnable={async (enable) => {
                           handleToggleEnable(item.uid, enable);
                         }}
@@ -603,7 +613,7 @@ const ProfilePage = () => {
           </>
         )}
       </Box>
-      <ProfileViewer ref={viewerRef} onChange={() => mutateProfiles()} />
+      <ProfileViewer ref={viewerRef} onChange={() => refreshConfig()} />
       <ConfigViewer ref={configRef} />
     </BasePage>
   );

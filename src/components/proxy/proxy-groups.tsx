@@ -13,10 +13,9 @@ import {
 
 import { ProxyGroupSidebar } from "@/components/proxy/proxy-group-sidebar";
 import { ProxyRender } from "@/components/proxy/proxy-render";
-import { useProfiles } from "@/hooks/use-profiles";
 import LoadingPage from "@/pages/loading";
 import delayManager from "@/services/delay";
-import { useVergeStore } from "@/stores";
+import { useProfilesStore, useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 
 import { BaseEmpty } from "../base";
@@ -38,7 +37,8 @@ export const ProxyGroups = (props: Props) => {
     (s) => s.verge.auto_close_connection ?? true,
   );
 
-  const { current, patchCurrent } = useProfiles();
+  const currentProfile = useProfilesStore((s) => s.currentProfile);
+  const patchCurrentProfile = useProfilesStore((s) => s.patchCurrentProfile);
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [groupDelayVersions, setGroupDelayVersions] = useState<
@@ -108,22 +108,20 @@ export const ProxyGroups = (props: Props) => {
       }
 
       // 保存到 selected 中
-      if (!current) return;
-      if (!current.selected) current.selected = [];
+      if (!currentProfile) return;
+      const selected = [...(currentProfile.selected ?? [])];
 
-      const index = current.selected.findIndex(
-        (item) => item.name === group.name,
-      );
+      const index = selected.findIndex((item) => item.name === group.name);
 
       if (index < 0) {
-        current.selected.push({ name, now: unfixing ? undefined : proxy.name });
+        selected.push({ name, now: unfixing ? undefined : proxy.name });
       } else {
-        current.selected[index] = {
+        selected[index] = {
           name,
           now: unfixing ? undefined : proxy.name,
         };
       }
-      await patchCurrent({ selected: current.selected });
+      await patchCurrentProfile({ selected });
     }),
   );
 

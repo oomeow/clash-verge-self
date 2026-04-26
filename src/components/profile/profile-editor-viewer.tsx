@@ -38,13 +38,7 @@ import {
   SwitchLovely,
 } from "@/components/base";
 import { LogMessage } from "@/components/profile/profile-more";
-import { useProfiles } from "@/hooks/use-profiles";
-import {
-  enhanceProfiles,
-  getChains,
-  patchProfile,
-  reorderProfile,
-} from "@/services/cmds";
+import { useProfilesStore } from "@/stores";
 import { sleep } from "@/utils";
 
 import { useNotice } from "../base/notifies";
@@ -72,6 +66,8 @@ const text = {
   autoCorrect: "off",
 } as const;
 
+const EMPTY_CHAIN: IProfileItem[] = [];
+
 export const ProfileEditorViewer = (props: Props) => {
   const {
     title,
@@ -83,10 +79,18 @@ export const ProfileEditorViewer = (props: Props) => {
     onChange,
   } = props;
   const { t } = useTranslation();
-  const { current } = useProfiles();
-  const { notice } = useNotice();
   const profileUid = profileItem.uid;
-  const isRunningProfile = current?.uid === profileUid;
+  const currentProfile = useProfilesStore((s) => s.currentProfile);
+  const patchProfile = useProfilesStore((s) => s.patchProfile);
+  const reorderProfile = useProfilesStore((s) => s.reorderProfile);
+  const enhanceProfiles = useProfilesStore((s) => s.enhanceProfiles);
+  const fetchProfileChains = useProfilesStore((s) => s.fetchProfileChains);
+  const profileChainItems = useProfilesStore(
+    (s) => s.chainItemsByProfileUid[profileUid] ?? EMPTY_CHAIN,
+  );
+  const setProfileChains = useProfilesStore((s) => s.setProfileChains);
+  const { notice } = useNotice();
+  const isRunningProfile = currentProfile?.uid === profileUid;
   const [editProfile, setEditProfile] = useState<IProfileItem>(profileItem);
   const [curContentSaved, setCurContentSaved] = useState(true);
   const profileEditorRef = useRef<ProfileEditorHandle>(null);
@@ -97,8 +101,9 @@ export const ProfileEditorViewer = (props: Props) => {
   const isEditChain =
     editProfile.type === "merge" || editProfile.type === "script";
   const [expand, setExpand] = useState(isEditChain);
-  const [chain, setChain] = useState<IProfileItem[]>([]);
-  const enabledChainUids = chain.filter((i) => i.enable).map((i) => i.uid);
+  const enabledProfileChainUids = profileChainItems
+    .filter((i) => i.enable)
+    .map((i) => i.uid);
   const viewerRef = useRef<ProfileViewerRef>(null);
   const [reactivating, setReactivating] = useState(false);
   // sortable
@@ -158,15 +163,24 @@ export const ProfileEditorViewer = (props: Props) => {
       const activeId = active.id.toString();
       const overId = over.id.toString();
       if (activeId !== overId) {
-        const activeIndex = chain.findIndex((item) => item.uid === activeId);
-        const overIndex = chain.findIndex((item) => item.uid === overId);
-        const newChainList = arrayMove(chain, activeIndex, overIndex);
+        const activeIndex = profileChainItems.findIndex(
+          (item) => item.uid === activeId,
+        );
+        const overIndex = profileChainItems.findIndex(
+          (item) => item.uid === overId,
+        );
+        const newChainList = arrayMove(
+          profileChainItems,
+          activeIndex,
+          overIndex,
+        );
         const newEnabledChainUids = newChainList
           .filter((i) => i.enable)
           .map((item) => item.uid);
         const needToEnhance =
-          !isEqual(enabledChainUids, newEnabledChainUids) && isRunningProfile;
-        setChain(newChainList);
+          !isEqual(enabledProfileChainUids, newEnabledChainUids) &&
+          isRunningProfile;
+        setProfileChains(profileUid, newChainList);
         await reorderProfile(activeId, overId);
         if (needToEnhance) {
           setReactivating(true);
@@ -180,8 +194,7 @@ export const ProfileEditorViewer = (props: Props) => {
   });
 
   const refreshChain = async () => {
-    const fetchedChain = await getChains(profileUid);
-    setChain(fetchedChain);
+    await fetchProfileChains(profileUid);
   };
 
   const handleProfileSubmit = useLockFn(
@@ -218,7 +231,6 @@ export const ProfileEditorViewer = (props: Props) => {
         if (!form.uid) throw new Error("UID not found");
         await patchProfile(form.uid, item);
         notice("success", t("messages.profiles.configUpdated"));
-        mutate("getProfiles");
       } catch (err: any) {
         notice("error", err.message || err.toString());
       }
@@ -484,7 +496,7 @@ export const ProfileEditorViewer = (props: Props) => {
                       onDragOver={(event) => {
                         const { over } = event;
                         if (over) {
-                          const item = chain.find(
+                          const item = profileChainItems.find(
                             (i) => i.uid === event.active.id,
                           )!;
                           setDraggingItem(item);
@@ -492,8 +504,9 @@ export const ProfileEditorViewer = (props: Props) => {
                       }}
                       onDragEnd={(e) => handleChainDragEnd(e)}
                       onDragCancel={() => setDraggingItem(null)}>
-                      <SortableContext items={chain.map((i) => i.uid)}>
-                        {chain.map((item, _index) => (
+                      <SortableContext
+                        items={profileChainItems.map((i) => i.uid)}>
+                        {profileChainItems.map((item, _index) => (
                           <DraggableItem key={item.uid} id={item.uid}>
                             <ProfileMoreMini
                               item={item}

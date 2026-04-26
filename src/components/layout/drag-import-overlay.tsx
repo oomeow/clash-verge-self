@@ -2,11 +2,10 @@ import { listen, TauriEvent } from "@tauri-apps/api/event";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { mutate } from "swr";
 
 import { useNotice } from "@/components/base/notifies";
 import { router } from "@/router";
-import { createProfile } from "@/services/cmds";
+import { useProfilesStore } from "@/stores";
 
 type DragImportValidation = {
   paths: string[];
@@ -63,6 +62,7 @@ export function DragImportOverlay() {
   const dragImportValidationRef = useRef(dragImportValidation);
   const { t } = useTranslation();
   const { notice } = useNotice();
+  const createProfile = useProfilesStore((s) => s.createProfile);
 
   useEffect(() => {
     const syncDragImportActive = (nextValue: boolean) => {
@@ -161,7 +161,6 @@ export function DragImportOverlay() {
       }
 
       if (hasImported) {
-        mutate("getProfiles");
         router.navigate({ to: "/profiles" });
       }
     });
@@ -171,7 +170,7 @@ export function DragImportOverlay() {
       unlistenDragLeave.then((fn) => fn());
       unlistenDragDrop.then((fn) => fn());
     };
-  }, [notice, t]);
+  }, [createProfile, notice, t]);
 
   const validDragImportCount = dragImportValidation.validPaths.length;
   const hasInvalidDragImport = dragImportValidation.invalidPaths.length > 0;
