@@ -302,14 +302,12 @@ impl IProfiles {
 
                 self.items = Some(items);
 
-                println!("refresh chains: {refresh_chains}");
                 if refresh_chains {
                     let chains: Vec<String> = self
                         .get_profile_chains(None, EnableFilter::Enable)
                         .iter()
                         .map(|i| i.uid.clone())
                         .collect();
-                    println!("chains: {chains:?}");
                     self.chain = Some(chains);
                 }
                 return self.save_file();
