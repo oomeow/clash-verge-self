@@ -1,5 +1,6 @@
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { AnimatePresence, motion } from "motion/react";
 
 import AppNameSvg from "@/assets/image/clash_verge.svg?react";
@@ -18,16 +19,29 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
 
   return (
     <div
+      onMouseDown={() => {
+        getCurrentWebviewWindow().startDragging();
+      }}
+      onDoubleClick={() => {
+        getCurrentWebviewWindow().toggleMaximize();
+      }}
       className={cn("relative box-border flex w-full shrink-0 grow-0 pt-2", {
         "pt-4": isMacOS,
-      })}
-      data-tauri-drag-region="true">
-      <div className="flex items-center justify-around px-5">
+      })}>
+      <div
+        className={cn("flex items-center justify-around px-5", {
+          "px-2": !open,
+        })}>
         <div>
           <LogoSvg
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleTheme(isDark ? "light" : "dark");
+            }}
             className={cn(
-              "fill-primary-main! mr-1 h-full w-12 transition-all duration-200",
-              { "w-16": !open },
+              "fill-primary-main! z-10 mr-1 h-full w-12 cursor-pointer transition-all duration-200",
+              { "mt-6 mr-0 w-10": !open },
             )}
           />
         </div>
@@ -51,7 +65,12 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
           animate={{ x: 0, opacity: 1 }}
           exit={{ x: 20, opacity: 0 }}
           transition={{ duration: 0.5 }}
-          className="absolute top-0 right-2 z-10 h-7.5 w-7.5 cursor-pointer border-none bg-transparent"
+          className={cn(
+            "absolute top-0 right-2 z-10 h-7.5 w-7.5 cursor-pointer border-none bg-transparent",
+            {
+              "top-4 right-3": !open,
+            },
+          )}
           onClick={() => toggleTheme(isDark ? "light" : "dark")}>
           {isDark ? (
             <DarkMode

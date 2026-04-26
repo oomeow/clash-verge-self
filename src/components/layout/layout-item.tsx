@@ -41,7 +41,8 @@ export const LayoutItem = (props: Props) => {
     <Tooltip
       title={enableMenuIcon && !open ? children : null}
       placement="right">
-      <ListItem sx={{ py: 0.5, padding: "4px 0px", height: "60px" }}>
+      <ListItem
+        sx={{ py: 0.5, padding: "4px 0px", height: open ? "60px" : "46px" }}>
         <ListItemButton
           selected={match || pending}
           sx={(theme) => {
@@ -51,8 +52,8 @@ export const LayoutItem = (props: Props) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              margin: "0 10px",
-              padding: "8px 6px",
+              margin: open ? "0 10px" : "0 4px",
+              padding: open ? "8px 6px" : "4px",
               "& .MuiListItemText-primary": {
                 color: theme.palette.text.primary,
                 fontWeight: "700",

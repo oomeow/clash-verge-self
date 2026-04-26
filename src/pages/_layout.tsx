@@ -160,10 +160,6 @@ const Layout = () => {
     return () => globalThis.clearTimeout(timeoutId);
   }, [pathname, pendingPath]);
 
-  // if (!verge) {
-  //   return <LoadingPage />;
-  // }
-
   return (
     <SWRConfig
       value={{

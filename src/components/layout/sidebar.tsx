@@ -58,19 +58,19 @@ export const Sidebar = (props: Props) => {
       className={cn(
         "relative flex shrink-0 grow-0 basis-50 flex-col border-t-0 border-r border-b-0 border-l-0 border-solid border-(--divider-color) pt-2 transition-all duration-300",
         {
-          "basis-27.5": !open,
+          "basis-14": !open,
           "pt-4": !enableSystemTitleBar,
         },
       )}>
       <LogoTitle open={open} />
 
-      <div
+      {/*<div
         className={cn("absolute top-0 right-0 left-0 h-20 bg-transparent", {
           "h-22.5": !open,
           "h-17.5": enableSystemTitleBar && open,
           "h-21.25": enableSystemTitleBar && !open,
         })}
-        data-tauri-drag-region="true"></div>
+        data-tauri-drag-region="true"></div>*/}
 
       <List className="box-border flex-auto overflow-y-auto">
         {routes.map((route) => (
