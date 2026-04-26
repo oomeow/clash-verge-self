@@ -526,7 +526,7 @@ export const ConnectionTable = (props: Props) => {
                   </button>
                   {header.column.getCanResize() ? (
                     <span
-                      className="absolute top-0 right-0 h-full w-1 cursor-col-resize bg-[rgba(0,0,0,0.08)] opacity-45 transition-[opacity,background-color,width] hover:w-1.5 hover:bg-[rgba(0,0,0,0.22)] hover:opacity-100"
+                      className="absolute top-0 right-0 h-full w-0.5 cursor-col-resize bg-[rgba(0,0,0,0.2)] opacity-45 transition-[opacity,background-color,width] hover:w-1.5 hover:bg-[rgba(0,0,0,0.22)] hover:opacity-100"
                       onDoubleClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
