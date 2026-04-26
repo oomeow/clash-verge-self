@@ -267,7 +267,7 @@ export const useProfilesStore = create<ProfilesStore>()(
 
         for (const item of [global, ...groups]) {
           const { type, name, now } = item;
-          if (!now || type !== "Selector") return;
+          if (!now || type !== "Selector") continue;
           if (selectedMap[name] != null && selectedMap[name] !== now) {
             hasChange = true;
             await selectNodeForGroup(name, selectedMap[name]);
