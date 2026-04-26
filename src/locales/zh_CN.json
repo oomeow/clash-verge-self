@@ -217,7 +217,9 @@
       "title": "规则",
       "provider": "规则集合",
       "actions": {
-        "toggleDisable": "启用/禁用规则"
+        "toggleDisable": "启用/禁用规则",
+        "enable": "启用规则",
+        "disable": "禁用规则"
       }
     },
     "logs": {

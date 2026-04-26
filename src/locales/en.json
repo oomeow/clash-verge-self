@@ -217,7 +217,9 @@
       "title": "Rules",
       "provider": "Rule Provider",
       "actions": {
-        "toggleDisable": "Enable/Disable Rule"
+        "toggleDisable": "Enable/Disable Rule",
+        "enable": "Enable Rule",
+        "disable": "Disable Rule"
       }
     },
     "logs": {

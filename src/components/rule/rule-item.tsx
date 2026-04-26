@@ -1,5 +1,3 @@
-import BlockIcon from "@mui/icons-material/Block";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Update from "@mui/icons-material/Update";
 import {
@@ -11,11 +9,10 @@ import {
   IconButtonProps,
   ListItemButton,
   styled,
-  Tooltip,
+  Switch,
   Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
-import { t } from "i18next";
 import { Virtuoso } from "react-virtuoso";
 
 import { CustomRule, useRulesStateStore } from "@/stores/rulesStateStore";
@@ -114,19 +111,15 @@ export const RuleItem = (props: Props) => {
         }}>
         <div className="w-full">
           <div className="flex w-full items-center justify-center">
-            <Tooltip
-              placement="top"
-              title={t!("pages.rules.actions.toggleDisable")}>
-              <IconButton
-                color="primary"
-                size="small"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  await disableRules({ [value.index]: !value.extra?.disabled });
-                }}>
-                {value.extra?.disabled ? <BlockIcon /> : <CheckCircleIcon />}
-              </IconButton>
-            </Tooltip>
+            <Switch
+              size="small"
+              checked={!value.extra?.disabled}
+              onChange={async (e) => {
+                e.stopPropagation();
+                await disableRules({ [value.index]: !value.extra?.disabled });
+              }}
+              sx={{ mr: 0.5 }}
+            />
 
             <Typography
               color="text.secondary"
@@ -140,7 +133,14 @@ export const RuleItem = (props: Props) => {
                 <Typography
                   component="h6"
                   variant="subtitle1"
-                  color="text.primary">
+                  color={
+                    value.extra?.disabled ? "text.disabled" : "text.primary"
+                  }
+                  sx={
+                    value.extra?.disabled
+                      ? { textDecoration: "line-through" }
+                      : undefined
+                  }>
                   {value.payload || "-"}
                 </Typography>
               </div>
@@ -162,7 +162,12 @@ export const RuleItem = (props: Props) => {
                 <Typography
                   component="span"
                   variant="body2"
-                  color={parseColor(value.proxy)}>
+                  color={parseColor(value.proxy)}
+                  sx={
+                    value.extra?.disabled
+                      ? { textDecoration: "line-through" }
+                      : undefined
+                  }>
                   {value.proxy}
                 </Typography>
               </div>
