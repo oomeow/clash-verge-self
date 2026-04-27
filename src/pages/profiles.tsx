@@ -22,7 +22,7 @@ import TextSnippetOutlined from "@mui/icons-material/TextSnippetOutlined";
 import { Box, Button, Divider, IconButton } from "@mui/material";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { useLockFn, useMemoizedFn } from "ahooks";
-import { isEqual, throttle } from "lodash-es";
+import { isEqual } from "lodash-es";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -317,13 +317,9 @@ const ProfilePage = () => {
   const loadingCache = useLoadingCacheStore((s) => s.loadingCache);
   const onUpdateAll = useMemoizedFn(
     useLockFn(async () => {
-      const throttledRefreshConfig = throttle(refreshConfig, 2000, {
-        trailing: true,
-      });
       const updateOne = async (uid: string) => {
         try {
-          await updateProfile(uid, undefined, false);
-          throttledRefreshConfig();
+          await updateProfile(uid);
         } finally {
           setLoading(uid, false);
         }

@@ -52,28 +52,16 @@ type ProfilesActions = {
   refreshConfig: () => Promise<IProfilesConfig>;
   patchConfig: (value: Partial<IProfilesConfig>) => Promise<void>;
   patchCurrentProfile: (value: Partial<IProfileItem>) => Promise<void>;
-  patchProfile: (
-    uid: string,
-    profile: Partial<IProfileItem>,
-    refreshConfig?: boolean,
-  ) => Promise<void>;
+  patchProfile: (uid: string, profile: Partial<IProfileItem>) => Promise<void>;
   createProfile: (
     item: Partial<IProfileItem>,
     fileData?: string | null,
   ) => Promise<void>;
   importProfile: (url: string) => Promise<IProfilesConfig>;
-  reorderProfile: (
-    activeId: string,
-    overId: string,
-    refreshConfig?: boolean,
-  ) => Promise<void>;
-  updateProfile: (
-    uid: string,
-    option?: IProfileOption,
-    refreshConfig?: boolean,
-  ) => Promise<void>;
-  deleteProfile: (uid: string, refreshConfig?: boolean) => Promise<void>;
-  enhanceProfiles: (refreshConfig?: boolean) => Promise<void>;
+  reorderProfile: (activeId: string, overId: string) => Promise<void>;
+  updateProfile: (uid: string, option?: IProfileOption) => Promise<void>;
+  deleteProfile: (uid: string) => Promise<void>;
+  enhanceProfiles: () => Promise<void>;
   setProfileChains: (profileUid: string | null, chains: IProfileItem[]) => void;
   fetchProfileChains: (profileUid: string | null) => Promise<IProfileItem[]>;
   setActivatingItemUids: (uids: string[]) => void;
@@ -163,11 +151,9 @@ export const useProfilesStore = create<ProfilesStore>()(
         await get().patchProfile(current, value);
       },
 
-      patchProfile: async (uid, profile, refreshConfig = true) => {
+      patchProfile: async (uid, profile) => {
         await patchProfileCmd(uid, profile);
-        if (refreshConfig) {
-          await get().refreshConfig();
-        }
+        await get().refreshConfig();
       },
 
       createProfile: async (item, fileData) => {
@@ -180,32 +166,24 @@ export const useProfilesStore = create<ProfilesStore>()(
         return get().refreshConfig();
       },
 
-      reorderProfile: async (activeId, overId, refreshConfig = true) => {
+      reorderProfile: async (activeId, overId) => {
         await reorderProfileCmd(activeId, overId);
-        if (refreshConfig) {
-          await get().refreshConfig();
-        }
+        await get().refreshConfig();
       },
 
-      updateProfile: async (uid, option, refreshConfig = true) => {
+      updateProfile: async (uid, option) => {
         await updateProfileCmd(uid, option);
-        if (refreshConfig) {
-          await get().refreshConfig();
-        }
+        await get().refreshConfig();
       },
 
-      deleteProfile: async (uid, refreshConfig = true) => {
+      deleteProfile: async (uid) => {
         await deleteProfileCmd(uid);
-        if (refreshConfig) {
-          await get().refreshConfig();
-        }
+        await get().refreshConfig();
       },
 
-      enhanceProfiles: async (refreshConfig = true) => {
+      enhanceProfiles: async () => {
         await enhanceProfilesCmd();
-        if (refreshConfig) {
-          await get().refreshConfig();
-        }
+        await get().refreshConfig();
       },
 
       setProfileChains: (profileUid, chains) => {
