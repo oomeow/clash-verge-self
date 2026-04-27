@@ -47,10 +47,6 @@ type ProfilesPersistedState = Pick<
   | "chainItemsByProfileUid"
 >;
 
-type RefreshOptions = {
-  refresh?: boolean;
-};
-
 type ProfilesActions = {
   setConfig: (config: IProfilesConfig) => void;
   refreshConfig: () => Promise<IProfilesConfig>;
@@ -59,7 +55,7 @@ type ProfilesActions = {
   patchProfile: (
     uid: string,
     profile: Partial<IProfileItem>,
-    options?: RefreshOptions,
+    refreshConfig?: boolean,
   ) => Promise<void>;
   createProfile: (
     item: Partial<IProfileItem>,
@@ -69,15 +65,15 @@ type ProfilesActions = {
   reorderProfile: (
     activeId: string,
     overId: string,
-    options?: RefreshOptions,
+    refreshConfig?: boolean,
   ) => Promise<void>;
   updateProfile: (
     uid: string,
     option?: IProfileOption,
-    options?: RefreshOptions,
+    refreshConfig?: boolean,
   ) => Promise<void>;
-  deleteProfile: (uid: string, options?: RefreshOptions) => Promise<void>;
-  enhanceProfiles: (options?: RefreshOptions) => Promise<void>;
+  deleteProfile: (uid: string, refreshConfig?: boolean) => Promise<void>;
+  enhanceProfiles: (refreshConfig?: boolean) => Promise<void>;
   setProfileChains: (profileUid: string | null, chains: IProfileItem[]) => void;
   fetchProfileChains: (profileUid: string | null) => Promise<IProfileItem[]>;
   setActivatingItemUids: (uids: string[]) => void;
@@ -136,8 +132,6 @@ const commitConfig = (
   return config;
 };
 
-const shouldRefresh = (options?: RefreshOptions) => options?.refresh !== false;
-
 export const useProfilesStore = create<ProfilesStore>()(
   persist(
     (set, get) => ({
@@ -169,9 +163,9 @@ export const useProfilesStore = create<ProfilesStore>()(
         await get().patchProfile(current, value);
       },
 
-      patchProfile: async (uid, profile, options) => {
+      patchProfile: async (uid, profile, refreshConfig = true) => {
         await patchProfileCmd(uid, profile);
-        if (shouldRefresh(options)) {
+        if (refreshConfig) {
           await get().refreshConfig();
         }
       },
@@ -186,30 +180,30 @@ export const useProfilesStore = create<ProfilesStore>()(
         return get().refreshConfig();
       },
 
-      reorderProfile: async (activeId, overId, options) => {
+      reorderProfile: async (activeId, overId, refreshConfig = true) => {
         await reorderProfileCmd(activeId, overId);
-        if (shouldRefresh(options)) {
+        if (refreshConfig) {
           await get().refreshConfig();
         }
       },
 
-      updateProfile: async (uid, option, options) => {
+      updateProfile: async (uid, option, refreshConfig = true) => {
         await updateProfileCmd(uid, option);
-        if (shouldRefresh(options)) {
+        if (refreshConfig) {
           await get().refreshConfig();
         }
       },
 
-      deleteProfile: async (uid, options) => {
+      deleteProfile: async (uid, refreshConfig = true) => {
         await deleteProfileCmd(uid);
-        if (shouldRefresh(options)) {
+        if (refreshConfig) {
           await get().refreshConfig();
         }
       },
 
-      enhanceProfiles: async (options) => {
+      enhanceProfiles: async (refreshConfig = true) => {
         await enhanceProfilesCmd();
-        if (shouldRefresh(options)) {
+        if (refreshConfig) {
           await get().refreshConfig();
         }
       },

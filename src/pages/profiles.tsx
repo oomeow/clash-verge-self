@@ -322,7 +322,7 @@ const ProfilePage = () => {
       });
       const updateOne = async (uid: string) => {
         try {
-          await updateProfile(uid, undefined, { refresh: false });
+          await updateProfile(uid, undefined, false);
           throttledRefreshConfig();
         } finally {
           setLoading(uid, false);
