@@ -100,9 +100,6 @@ pub async fn patch_profiles_config(profiles: IProfiles) -> AppResult<()> {
 
     match CoreManager::global().update_config().await {
         Ok(_) => {
-            handle::Handle::refresh_clash();
-            handle::Handle::refresh_profiles();
-            handle::Handle::update_systray_part()?;
             Config::profiles().apply();
             Config::profiles().data().save_file()?;
             if switch_current {
@@ -111,6 +108,9 @@ pub async fn patch_profiles_config(profiles: IProfiles) -> AppResult<()> {
                     log_err!(crate::config::activate_selected_nodes().await);
                 });
             }
+            handle::Handle::refresh_clash();
+            handle::Handle::refresh_profiles();
+            handle::Handle::update_systray_part()?;
             Ok(())
         }
         Err(err) => {
