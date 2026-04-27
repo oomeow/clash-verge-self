@@ -1,10 +1,7 @@
 import { isEqual } from "lodash-es";
-import { mutate as mutateSWR } from "swr";
-import { selectNodeForGroup } from "tauri-plugin-mihomo-api";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { calcuProxies } from "@/services/api";
 import {
   createProfile as createProfileCmd,
   deleteProfile as deleteProfileCmd,
@@ -25,6 +22,7 @@ type ProfilesState = {
   globalChainItems: IProfileItem[];
   enabledGlobalChainUids: string[];
   chainItemsByProfileUid: Record<string, IProfileItem[]>;
+  // 切换订阅时, 使用中的订阅的激活状态
   activatingItemUids: string[];
 };
 
@@ -66,7 +64,6 @@ type ProfilesActions = {
   fetchProfileChains: (profileUid: string | null) => Promise<IProfileItem[]>;
   setActivatingItemUids: (uids: string[]) => void;
   clearActivatingItemUids: (expectedUids?: string[]) => void;
-  applySelectedProxies: () => Promise<void>;
 };
 
 type ProfilesStore = ProfilesState & ProfilesActions;
@@ -214,44 +211,6 @@ export const useProfilesStore = create<ProfilesStore>()(
           return;
         }
         get().setActivatingItemUids([]);
-      },
-
-      applySelectedProxies: async () => {
-        const proxiesData = await calcuProxies();
-        const profileData = await get().refreshConfig();
-
-        if (!profileData || !proxiesData) return;
-
-        const current = profileData.items?.find(
-          (item) => item && item.uid === profileData.current,
-        );
-
-        if (!current || !profileData.current) return;
-
-        const { selected = [] } = current;
-        const selectedMap = Object.fromEntries(
-          selected.map((each) => [each.name!, each.now!]),
-        );
-
-        let hasChange = false;
-        const newSelected: typeof selected = [];
-        const { global, groups } = proxiesData;
-
-        for (const item of [global, ...groups]) {
-          const { type, name, now } = item;
-          if (!now || type !== "Selector") continue;
-          if (selectedMap[name] != null && selectedMap[name] !== now) {
-            hasChange = true;
-            await selectNodeForGroup(name, selectedMap[name]);
-          }
-          newSelected.push({ name, now: selectedMap[name] });
-        }
-
-        if (hasChange) {
-          await patchProfileCmd(profileData.current, { selected: newSelected });
-          await get().refreshConfig();
-          mutateSWR("getProxies", calcuProxies());
-        }
       },
     }),
     {

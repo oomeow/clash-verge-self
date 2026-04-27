@@ -67,7 +67,6 @@ const ProfilePage = () => {
   const enabledGlobalChainUids = useProfilesStore(
     (s) => s.enabledGlobalChainUids,
   );
-  const applySelectedProxies = useProfilesStore((s) => s.applySelectedProxies);
   const patchConfig = useProfilesStore((s) => s.patchConfig);
   const patchProfile = useProfilesStore((s) => s.patchProfile);
   const refreshConfig = useProfilesStore((s) => s.refreshConfig);
@@ -196,7 +195,6 @@ const ProfilePage = () => {
         const current = remoteItem.uid;
         patchConfig({ current });
         mutateLogs();
-        setTimeout(() => applySelectedProxies(), 2000);
       }
     } catch (err: any) {
       notice("error", err.message || err.toString());
@@ -217,14 +215,11 @@ const ProfilePage = () => {
       setActivatingItemUids(nextActivatingItemUids);
       await patchConfig({ current });
       mutateLogs();
-      // setTimeout(() => applySelectedProxies(), 2000);
       notice("success", t("messages.profiles.switched"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 4000);
     } finally {
-      setTimeout(() => {
-        clearActivatingItemUids(nextActivatingItemUids);
-      }, 500);
+      clearActivatingItemUids(nextActivatingItemUids);
     }
   });
 
