@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 
 import { BaseDialog, SwitchLovely } from "@/components/base";
 import { FileInput } from "@/components/profile/file-input";
-import { createProfile, patchProfile } from "@/services/cmds";
+import { useProfilesStore } from "@/stores";
 
 import { useNotice } from "../base/notifies";
 
@@ -48,6 +48,8 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
   (props, ref) => {
     const { t } = useTranslation();
     const { notice } = useNotice();
+    const createProfile = useProfilesStore((s) => s.createProfile);
+    const patchProfile = useProfilesStore((s) => s.patchProfile);
     const [open, setOpen] = useState(false);
     const [openType, setOpenType] = useState<"new" | "edit">("new");
     const [loading, setLoading] = useState(false);
@@ -207,7 +209,7 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
     const handleClose = () => {
       setOpen(false);
       fileDataRef.current = null;
-      setTimeout(() => formIns.reset(), 500);
+      formIns.reset();
     };
 
     return (

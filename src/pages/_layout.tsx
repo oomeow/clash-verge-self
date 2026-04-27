@@ -21,7 +21,7 @@ import { useAppHotkeys } from "@/hooks/use-app-hotkeys";
 import { usePortable } from "@/hooks/use-portable";
 import { useVisibility } from "@/hooks/use-visibility";
 import LoadingPage from "@/pages/loading";
-import { useVergeStore } from "@/stores";
+import { useProfilesStore, useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 
@@ -52,6 +52,7 @@ const Layout = () => {
   const appHotkeys = useVergeStore((s) => s.verge.app_hotkeys);
   const hotkeys = useVergeStore((s) => s.verge.hotkeys);
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
+  const refreshProfilesConfig = useProfilesStore((s) => s.refreshConfig);
   useAppHotkeys(appHotkeys, hotkeys);
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -75,9 +76,10 @@ const Layout = () => {
     appWindow.isMaximized().then((maximized) => {
       setIsMaximized(maximized);
     });
+    refreshProfilesConfig();
 
     const unlistenRefreshProfiles = listen("verge://refresh-profiles", () => {
-      mutate("getProfiles");
+      refreshProfilesConfig();
     });
 
     const unlistenRefreshClash = listen("verge://refresh-clash-config", () => {

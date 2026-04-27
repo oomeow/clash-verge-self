@@ -18,7 +18,7 @@ import { useRef, useState } from "react";
 
 import { LogViewer } from "@/components/profile/log-viewer";
 import { LogMessage } from "@/components/profile/profile-more";
-import { deleteProfile, patchProfile } from "@/services/cmds";
+import { useProfilesStore } from "@/stores";
 import { cn } from "@/utils";
 
 import { Marquee } from "../base";
@@ -50,6 +50,8 @@ export default function ProfileMoreMini(props: Props) {
     onDeleteCallback,
   } = props;
   const viewerRef = useRef<ProfileViewerRef>(null);
+  const patchProfile = useProfilesStore((s) => s.patchProfile);
+  const deleteProfile = useProfilesStore((s) => s.deleteProfile);
   const [toggleEnabling, setToggleEnabling] = useState(false);
   const [deleting, setDeleting] = useState(false);
 

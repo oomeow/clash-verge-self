@@ -1,10 +1,9 @@
 import { useEffect, useMemo } from "react";
 import useSWR from "swr";
 
-import { useProfiles } from "@/hooks/use-profiles";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { calcuProxies } from "@/services/api";
-import { useVergeStore } from "@/stores";
+import { useProfilesStore, useVergeStore } from "@/stores";
 import type { HeadState } from "@/stores/proxyHeadStateStore";
 import {
   DEFAULT_STATE,
@@ -31,15 +30,14 @@ export const useRenderList = (mode: string) => {
     { refreshInterval: 45000 },
   );
 
-  const { profiles } = useProfiles();
-  const current = profiles?.current || "";
+  const currentProfileUid = useProfilesStore((s) => s.config.current || "");
   const proxyLayoutColumn = useVergeStore(
     (s) => s.verge.proxy_layout_column || 6,
   );
   const { size } = useWindowSize();
   const headStates = useProxyHeadStateStore((state) =>
-    current
-      ? (state.headStates[current] ?? EMPTY_HEAD_STATES)
+    currentProfileUid
+      ? (state.headStates[currentProfileUid] ?? EMPTY_HEAD_STATES)
       : EMPTY_HEAD_STATES,
   );
 

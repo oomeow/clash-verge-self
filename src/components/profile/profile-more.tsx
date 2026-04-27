@@ -47,10 +47,9 @@ interface Props {
   isDragging?: boolean;
   itemData: IProfileItem;
   logs?: LogMessage[];
-  chainLogs?: Record<string, LogMessage[]>;
   reactivating: boolean;
-  onToggleEnable: (enable: boolean) => void;
-  onDelete?: () => Promise<void>;
+  onToggleEnable: (uid: string, enable: boolean) => void;
+  onDelete?: (item: IProfileItem) => Promise<void>;
   onActivatedSave: () => void;
 }
 
@@ -71,7 +70,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
     isDragging,
     itemData,
     logs = [],
-    chainLogs = {},
     reactivating,
     onToggleEnable,
     onDelete,
@@ -118,7 +116,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
       icon: <CheckCircle fontSize="small" />,
       handler: fnWrapper(async () => {
         setToggling(true);
-        onToggleEnable(true);
+        onToggleEnable(uid, true);
         setToggling(false);
       }),
     },
@@ -148,7 +146,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
       icon: <Block fontSize="small" />,
       handler: fnWrapper(async () => {
         setToggling(true);
-        onToggleEnable(false);
+        onToggleEnable(uid, false);
         setToggling(false);
       }),
     });
@@ -297,7 +295,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         open={fileOpen}
         profileItem={itemData}
         type={type === "merge" ? "merge" : "script"}
-        chainLogs={chainLogs}
         onChange={() => {
           if (selected) {
             onActivatedSave();
@@ -313,7 +310,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         onConfirm={async () => {
           setConfirmOpen(false);
           setToggling(true);
-          await onDelete?.();
+          await onDelete?.(itemData);
           setToggling(false);
         }}
       />

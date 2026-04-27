@@ -7,6 +7,7 @@ export type {
 } from "./connectionsStore";
 export { useConnectionsStore } from "./connectionsStore";
 export { useLoadingCacheStore } from "./loadingCacheStore";
+export { useProfilesStore } from "./profilesStore";
 export { useProxyHeadStateStore } from "./proxyHeadStateStore";
 export { useRefreshConnectionDateStore } from "./refreshConnectionDateStore";
 export { useRefreshLogsDateStore } from "./refreshLogsDateStore";

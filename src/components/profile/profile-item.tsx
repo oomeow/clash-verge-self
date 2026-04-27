@@ -22,19 +22,21 @@ import { useLockFn } from "ahooks";
 import dayjs from "dayjs";
 import { memo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { mutate } from "swr";
 
 import { Marquee } from "@/components/base";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
-import { openWebUrl, updateProfile, viewProfile } from "@/services/cmds";
-import { useLoadingCacheStore, useThemeModeStore } from "@/stores";
+import { openWebUrl, viewProfile } from "@/services/cmds";
+import {
+  useLoadingCacheStore,
+  useProfilesStore,
+  useThemeModeStore,
+} from "@/stores";
 import { cn } from "@/utils";
 import parseTraffic from "@/utils/parse-traffic";
 
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
-import { LogMessage } from "./profile-more";
 
 interface Props {
   sx?: SxProps;
@@ -42,10 +44,9 @@ interface Props {
   isDragging?: boolean;
   activating: boolean;
   itemData: IProfileItem;
-  chainLogs: Record<string, LogMessage[]>;
-  onSelect: (force: boolean) => void;
-  onDelete: () => void;
-  onReactivate: () => void;
+  onSelect: (uid: string) => void;
+  onDelete: (uid: string) => void;
+  onActivatedSave: () => void;
 }
 
 export const ProfileItem = memo(function ProfileItem(props: Props) {
@@ -55,15 +56,15 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
     isDragging,
     activating,
     itemData,
-    chainLogs,
     onSelect,
     onDelete,
-    onReactivate,
+    onActivatedSave,
   } = props;
 
   const { t } = useTranslation();
   const { notice } = useNotice();
   const themeMode = useThemeModeStore((s) => s.themeMode);
+  const updateProfile = useProfilesStore((s) => s.updateProfile);
   const [anchorEl, setAnchorEl] = useState<any>(null);
   if (anchorEl && isDragging) {
     setAnchorEl(null);
@@ -126,7 +127,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
   const onForceSelect = async () => {
     setAnchorEl(null);
-    onSelect(true);
+    onSelect(uid);
   };
 
   const onOpenFile = useLockFn(async () => {
@@ -164,7 +165,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
     try {
       await updateProfile(uid, option);
-      mutate("getProfiles");
     } catch (err: any) {
       const errmsg = err?.message || err.toString();
       notice(
@@ -240,7 +240,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
       <ProfileDiv
         aria-label={isDragging ? "dragging" : "profile"}
         aria-selected={selected}
-        onClick={() => onSelect(false)}
+        onClick={() => onSelect(uid)}
         onContextMenu={(event) => {
           const { clientX, clientY } = event;
           setPosition({ top: clientY, left: clientX });
@@ -390,11 +390,10 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
       <ProfileEditorViewer
         open={open}
         profileItem={itemData}
-        chainLogs={chainLogs}
         type="clash"
         onChange={() => {
           if (selected) {
-            onReactivate();
+            onActivatedSave();
           }
         }}
         onClose={() => setOpen(false)}
@@ -407,7 +406,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         onConfirm={() => {
           setAnchorEl(null);
           setConfirmOpen(false);
-          onDelete();
+          onDelete(uid);
         }}
       />
     </Box>

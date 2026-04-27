@@ -14,9 +14,8 @@ import debounce from "lodash-es/debounce";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useProfiles } from "@/hooks/use-profiles";
 import delayManager from "@/services/delay";
-import { useVergeStore } from "@/stores";
+import { useProfilesStore, useVergeStore } from "@/stores";
 import {
   createScopedHeadStateActions,
   DEFAULT_STATE,
@@ -34,16 +33,16 @@ interface Props {
 
 export const ProxyHead = memo(function ProxyHead(props: Props) {
   const { sx = {}, groupName } = props;
-  const { profiles } = useProfiles();
-  const current = profiles?.current || "";
+  const currentProfileUid = useProfilesStore((s) => s.config.current || "");
   const headState = useProxyHeadStateStore((state) =>
-    current
-      ? (state.headStates[current]?.[groupName] ?? DEFAULT_STATE)
+    currentProfileUid
+      ? (state.headStates[currentProfileUid]?.[groupName] ?? DEFAULT_STATE)
       : DEFAULT_STATE,
   );
   const headStateActions = useMemo(
-    () => createScopedHeadStateActions({ current, groupName }),
-    [current, groupName],
+    () =>
+      createScopedHeadStateActions({ current: currentProfileUid, groupName }),
+    [currentProfileUid, groupName],
   );
 
   const { showType, sortType, filterText, textState, testUrl } = headState;
