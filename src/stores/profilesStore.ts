@@ -2,12 +2,14 @@ import { isEqual } from "lodash-es";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import type { LogMessage } from "@/components/profile/profile-more";
 import {
   createProfile as createProfileCmd,
   deleteProfile as deleteProfileCmd,
   enhanceProfiles as enhanceProfilesCmd,
   getChains as getChainsCmd,
   getProfiles,
+  getRuntimeLogs,
   importProfile as importProfileCmd,
   patchProfile as patchProfileCmd,
   patchProfilesConfig,
@@ -22,6 +24,7 @@ type ProfilesState = {
   globalChainItems: IProfileItem[];
   enabledGlobalChainUids: string[];
   chainItemsByProfileUid: Record<string, IProfileItem[]>;
+  chainLogs: Record<string, LogMessage[]>;
   // 切换订阅时, 使用中的订阅的激活状态
   activatingItemUids: string[];
 };
@@ -72,6 +75,7 @@ type ProfilesActions = {
   enhanceProfiles: () => Promise<void>;
   setProfileChains: (profileUid: string | null, chains: IProfileItem[]) => void;
   fetchProfileChains: (profileUid: string | null) => Promise<IProfileItem[]>;
+  refreshChainLogs: () => Promise<Record<string, LogMessage[]>>;
   setActivatingItemUids: (uids: string[]) => void;
   clearActivatingItemUids: (expectedUids?: string[]) => void;
 };
@@ -87,6 +91,27 @@ const isProfileType = (type?: IProfileItem["type"]) =>
 
 const isChainType = (type?: IProfileItem["type"]) =>
   type === "merge" || type === "script";
+
+const isEnabledChainUid = (state: ProfilesState, uid?: string) => {
+  if (!uid) return false;
+  if (state.enabledGlobalChainUids.includes(uid)) return true;
+  return Object.values(state.chainItemsByProfileUid).some((items) =>
+    items.some((item) => item.uid === uid && item.enable),
+  );
+};
+
+const shouldRefreshChainLogs = (
+  state: ProfilesState,
+  uid?: string,
+  profile?: Partial<IProfileItem>,
+) => {
+  if (!uid) return false;
+  return (
+    uid === state.config.current ||
+    isEnabledChainUid(state, uid) ||
+    profile?.enable === true
+  );
+};
 
 const toProfileView = (config: IProfilesConfig = {}): ProfilesDerivedState => {
   const items = (config.items ?? []).filter(
@@ -208,6 +233,7 @@ export const useProfilesStore = create<ProfilesStore>()(
       globalChainItems: [],
       enabledGlobalChainUids: [],
       chainItemsByProfileUid: {},
+      chainLogs: {},
       activatingItemUids: [],
 
       setConfig: (config) => {
@@ -220,8 +246,14 @@ export const useProfilesStore = create<ProfilesStore>()(
       },
 
       patchConfig: async (value) => {
+        const shouldRefreshLogs =
+          (value.current != null && value.current !== get().config.current) ||
+          value.chain != null;
         await patchProfilesConfig(value);
         await get().refreshConfig();
+        if (shouldRefreshLogs) {
+          await get().refreshChainLogs();
+        }
       },
 
       patchCurrentProfile: async (value) => {
@@ -231,8 +263,12 @@ export const useProfilesStore = create<ProfilesStore>()(
       },
 
       patchProfile: async (uid, profile) => {
+        const shouldRefreshLogs = shouldRefreshChainLogs(get(), uid, profile);
         await patchProfileCmd(uid, profile);
         await get().refreshConfig();
+        if (shouldRefreshLogs) {
+          await get().refreshChainLogs();
+        }
       },
 
       createProfile: async (item, fileData) => {
@@ -247,11 +283,15 @@ export const useProfilesStore = create<ProfilesStore>()(
 
       reorderProfile: async (activeId, overId) => {
         const previousState = pickProfilesSnapshot(get());
+        const shouldRefreshLogs = shouldRefreshChainLogs(get(), activeId);
         commitReorder(set, get, activeId, overId);
 
         try {
           await reorderProfileCmd(activeId, overId);
           await get().refreshConfig();
+          if (shouldRefreshLogs) {
+            await get().refreshChainLogs();
+          }
         } catch (error) {
           set(previousState);
           throw error;
@@ -259,18 +299,27 @@ export const useProfilesStore = create<ProfilesStore>()(
       },
 
       updateProfile: async (uid, option) => {
+        const shouldRefreshLogs = shouldRefreshChainLogs(get(), uid);
         await updateProfileCmd(uid, option);
         await get().refreshConfig();
+        if (shouldRefreshLogs) {
+          await get().refreshChainLogs();
+        }
       },
 
       deleteProfile: async (uid) => {
+        const shouldRefreshLogs = shouldRefreshChainLogs(get(), uid);
         await deleteProfileCmd(uid);
         await get().refreshConfig();
+        if (shouldRefreshLogs) {
+          await get().refreshChainLogs();
+        }
       },
 
       enhanceProfiles: async () => {
         await enhanceProfilesCmd();
         await get().refreshConfig();
+        await get().refreshChainLogs();
       },
 
       setProfileChains: (profileUid, chains) => {
@@ -289,6 +338,14 @@ export const useProfilesStore = create<ProfilesStore>()(
         const chains = await getChainsCmd(profileUid);
         get().setProfileChains(profileUid, chains);
         return chains;
+      },
+
+      refreshChainLogs: async () => {
+        const chainLogs = await getRuntimeLogs();
+        if (!isEqual(get().chainLogs, chainLogs)) {
+          set({ chainLogs });
+        }
+        return chainLogs;
       },
 
       setActivatingItemUids: (uids) => {

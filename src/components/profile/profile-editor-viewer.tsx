@@ -29,7 +29,6 @@ import { isEqual } from "lodash-es";
 import { ReactNode, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { mutate } from "swr";
 
 import {
   BaseDialog,
@@ -37,7 +36,6 @@ import {
   Marquee,
   SwitchLovely,
 } from "@/components/base";
-import { LogMessage } from "@/components/profile/profile-more";
 import { useProfilesStore } from "@/stores";
 import { sleep } from "@/utils";
 
@@ -50,7 +48,6 @@ import { ProfileViewer, ProfileViewerRef } from "./profile-viewer";
 interface Props {
   title?: string | ReactNode;
   profileItem: IProfileItem;
-  chainLogs?: Record<string, LogMessage[]>;
   open: boolean;
   type?: "clash" | "merge" | "script";
   onClose: () => void;
@@ -83,15 +80,7 @@ const reorderItems = (
   );
 
 export const ProfileEditorViewer = (props: Props) => {
-  const {
-    title,
-    profileItem,
-    chainLogs = {},
-    open,
-    type,
-    onClose,
-    onChange,
-  } = props;
+  const { title, profileItem, open, type, onClose, onChange } = props;
   const { t } = useTranslation();
   const { notice } = useNotice();
 
@@ -113,6 +102,7 @@ export const ProfileEditorViewer = (props: Props) => {
   const reorderProfile = useProfilesStore((s) => s.reorderProfile);
   const enhanceProfiles = useProfilesStore((s) => s.enhanceProfiles);
   const fetchProfileChains = useProfilesStore((s) => s.fetchProfileChains);
+  const chainLogs = useProfilesStore((s) => s.chainLogs);
   const profileChainItems = useProfilesStore(
     (s) => s.chainItemsByProfileUid[profileUid] ?? EMPTY_CHAIN,
   );
@@ -195,7 +185,6 @@ export const ProfileEditorViewer = (props: Props) => {
       setReactivating(true);
       await enhanceProfiles();
       setReactivating(false);
-      mutate("getRuntimeLogs");
     }
     await fetchProfileChains(profileUid);
   });
@@ -261,7 +250,6 @@ export const ProfileEditorViewer = (props: Props) => {
     if (item.uid === editProfile.uid) {
       setEditProfile(profileItem);
     }
-    mutate("getRuntimeLogs");
     await fetchProfileChains(profileUid);
   };
 
@@ -509,7 +497,6 @@ export const ProfileEditorViewer = (props: Props) => {
                               selected={item.uid === editProfile.uid}
                               logs={chainLogs[item.uid]}
                               onToggleEnableCallback={async (_enabled) => {
-                                mutate("getRuntimeLogs");
                                 await fetchProfileChains(profileUid);
                               }}
                               onClick={async () => {

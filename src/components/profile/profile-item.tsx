@@ -37,7 +37,6 @@ import parseTraffic from "@/utils/parse-traffic";
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
-import { LogMessage } from "./profile-more";
 
 interface Props {
   sx?: SxProps;
@@ -45,7 +44,6 @@ interface Props {
   isDragging?: boolean;
   activating: boolean;
   itemData: IProfileItem;
-  chainLogs: Record<string, LogMessage[]>;
   onSelect: (force: boolean) => void;
   onDelete: () => void;
   onReactivate: () => void;
@@ -58,7 +56,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
     isDragging,
     activating,
     itemData,
-    chainLogs,
     onSelect,
     onDelete,
     onReactivate,
@@ -393,7 +390,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
       <ProfileEditorViewer
         open={open}
         profileItem={itemData}
-        chainLogs={chainLogs}
         type="clash"
         onChange={() => {
           if (selected) {

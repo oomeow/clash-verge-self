@@ -26,7 +26,6 @@ import { isEqual } from "lodash-es";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import useSWR from "swr";
 
 import {
   BasePage,
@@ -42,7 +41,6 @@ import {
   ProfileViewerRef,
 } from "@/components/profile/profile-viewer";
 import { ConfigViewer } from "@/components/setting/mods/config-viewer";
-import { getRuntimeLogs } from "@/services/cmds";
 import { useLoadingCacheStore, useProfilesStore } from "@/stores";
 
 const FlexDecorationItems = memo(function FlexDecoratorItems() {
@@ -90,6 +88,7 @@ const ProfilePage = () => {
   const patchConfig = useProfilesStore((s) => s.patchConfig);
   const patchProfile = useProfilesStore((s) => s.patchProfile);
   const refreshConfig = useProfilesStore((s) => s.refreshConfig);
+  const refreshChainLogs = useProfilesStore((s) => s.refreshChainLogs);
   const importProfile = useProfilesStore((s) => s.importProfile);
   const reorderProfile = useProfilesStore((s) => s.reorderProfile);
   const deleteProfile = useProfilesStore((s) => s.deleteProfile);
@@ -102,11 +101,7 @@ const ProfilePage = () => {
   const clearActivatingItemUids = useProfilesStore(
     (s) => s.clearActivatingItemUids,
   );
-
-  const { data: chainLogs = {}, mutate: mutateLogs } = useSWR(
-    "getRuntimeLogs",
-    getRuntimeLogs,
-  );
+  const chainLogs = useProfilesStore((s) => s.chainLogs);
 
   const activatingUidSet = useMemo(
     () => new Set(activatingItemUids),
@@ -133,7 +128,8 @@ const ProfilePage = () => {
 
   useEffect(() => {
     refreshConfig();
-  }, [refreshConfig]);
+    refreshChainLogs();
+  }, [refreshChainLogs, refreshConfig]);
 
   const getActivationUids = useCallback(
     (...uids: (string | undefined)[]) =>
@@ -177,7 +173,6 @@ const ProfilePage = () => {
     try {
       startActivation(nextActivatingItemUids);
       await enhanceProfiles();
-      mutateLogs();
       notice("success", t("messages.profiles.reactivated"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 3000);
@@ -233,7 +228,6 @@ const ProfilePage = () => {
       const remoteItem = newProfiles.items?.find((e) => e.type === "remote");
       if (!newProfiles.current && remoteItem) {
         await patchConfig({ current: remoteItem.uid });
-        mutateLogs();
       }
     } catch (err: any) {
       notice("error", err.message || err.toString());
@@ -241,7 +235,7 @@ const ProfilePage = () => {
       setDisabled(false);
       setImportLoading(false);
     }
-  }, [importProfile, mutateLogs, notice, patchConfig, t, url]);
+  }, [importProfile, notice, patchConfig, t, url]);
 
   const onSelect = useLockFn(async (current: string, _force: boolean) => {
     if (current === config.current || hasActivatingItems) return;
@@ -249,7 +243,6 @@ const ProfilePage = () => {
     try {
       startActivation(nextActivatingItemUids);
       await patchConfig({ current });
-      mutateLogs();
       notice("success", t("messages.profiles.switched"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 4000);
@@ -285,7 +278,6 @@ const ProfilePage = () => {
       try {
         startActivation(nextActivatingItemUids);
         await patchProfile(chainUid, { enable });
-        mutateLogs();
         notice("success", t("messages.profiles.reactivated"), 1000);
       } catch (error) {
         console.error(error);
@@ -471,7 +463,6 @@ const ProfilePage = () => {
                       isDragging={draggingItem?.uid === item.uid}
                       activating={activatingUidSet.has(item.uid)}
                       itemData={item}
-                      chainLogs={chainLogs}
                       onSelect={(f) => onSelect(item.uid, f)}
                       onDelete={() => onDelete(item.uid)}
                       // onEdit={() => viewerRef.current?.edit(item)}
@@ -497,7 +488,6 @@ const ProfilePage = () => {
                 }
                 activating={activatingUidSet.has(draggingItem.uid)}
                 itemData={draggingItem}
-                chainLogs={chainLogs}
                 onSelect={(f) => onSelect(draggingItem.uid, f)}
                 onDelete={() => onDelete(draggingItem.uid)}
                 // onEdit={() => viewerRef.current?.edit(draggingProfileItem)}
@@ -561,7 +551,6 @@ const ProfilePage = () => {
                         isDragging={draggingItem?.uid === item.uid}
                         itemData={item}
                         logs={chainLogs[item.uid]}
-                        chainLogs={chainLogs}
                         reactivating={activatingItemUids.includes(item.uid)}
                         onToggleEnable={async (enable) => {
                           handleToggleEnable(item.uid, enable);
@@ -589,7 +578,6 @@ const ProfilePage = () => {
                         boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
                       }}
                       logs={chainLogs[draggingItem.uid]}
-                      chainLogs={chainLogs}
                       reactivating={activatingUidSet.has(draggingItem.uid)}
                       onToggleEnable={async (enable) => {
                         handleToggleEnable(draggingItem.uid, enable);

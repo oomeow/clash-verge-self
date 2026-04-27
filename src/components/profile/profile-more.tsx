@@ -47,7 +47,6 @@ interface Props {
   isDragging?: boolean;
   itemData: IProfileItem;
   logs?: LogMessage[];
-  chainLogs?: Record<string, LogMessage[]>;
   reactivating: boolean;
   onToggleEnable: (enable: boolean) => void;
   onDelete?: () => Promise<void>;
@@ -71,7 +70,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
     isDragging,
     itemData,
     logs = [],
-    chainLogs = {},
     reactivating,
     onToggleEnable,
     onDelete,
@@ -297,7 +295,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         open={fileOpen}
         profileItem={itemData}
         type={type === "merge" ? "merge" : "script"}
-        chainLogs={chainLogs}
         onChange={() => {
           if (selected) {
             onActivatedSave();
