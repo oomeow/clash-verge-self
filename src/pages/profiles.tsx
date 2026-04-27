@@ -237,7 +237,7 @@ const ProfilePage = () => {
     }
   }, [importProfile, notice, patchConfig, t, url]);
 
-  const onSelect = useLockFn(async (current: string, _force: boolean) => {
+  const onSelect = useLockFn(async (current: string) => {
     if (current === config.current || hasActivatingItems) return;
     const nextActivatingItemUids = getActivationUids(current);
     try {
@@ -463,10 +463,10 @@ const ProfilePage = () => {
                       isDragging={draggingItem?.uid === item.uid}
                       activating={activatingUidSet.has(item.uid)}
                       itemData={item}
-                      onSelect={(f) => onSelect(item.uid, f)}
-                      onDelete={() => onDelete(item.uid)}
+                      onSelect={onSelect}
+                      onDelete={onDelete}
                       // onEdit={() => viewerRef.current?.edit(item)}
-                      onReactivate={() => onEnhance()}
+                      onActivatedSave={onEnhance}
                     />
                   </DraggableItem>
                 ))}
@@ -488,10 +488,10 @@ const ProfilePage = () => {
                 }
                 activating={activatingUidSet.has(draggingItem.uid)}
                 itemData={draggingItem}
-                onSelect={(f) => onSelect(draggingItem.uid, f)}
-                onDelete={() => onDelete(draggingItem.uid)}
+                onSelect={onSelect}
+                onDelete={onDelete}
                 // onEdit={() => viewerRef.current?.edit(draggingProfileItem)}
-                onReactivate={() => onEnhance()}
+                onActivatedSave={onEnhance}
               />
             ) : null}
           </DragOverlay>
@@ -552,11 +552,9 @@ const ProfilePage = () => {
                         itemData={item}
                         logs={chainLogs[item.uid]}
                         reactivating={activatingItemUids.includes(item.uid)}
-                        onToggleEnable={async (enable) => {
-                          handleToggleEnable(item.uid, enable);
-                        }}
-                        onDelete={() => handleChainDelete(item)}
-                        onActivatedSave={() => onEnhance()}
+                        onToggleEnable={handleToggleEnable}
+                        onDelete={handleChainDelete}
+                        onActivatedSave={onEnhance}
                       />
                     </DraggableItem>
                   ))}
@@ -579,10 +577,8 @@ const ProfilePage = () => {
                       }}
                       logs={chainLogs[draggingItem.uid]}
                       reactivating={activatingUidSet.has(draggingItem.uid)}
-                      onToggleEnable={async (enable) => {
-                        handleToggleEnable(draggingItem.uid, enable);
-                      }}
-                      onActivatedSave={() => onEnhance()}
+                      onToggleEnable={handleToggleEnable}
+                      onActivatedSave={onEnhance}
                     />
                   ) : null}
                 </DragOverlay>,

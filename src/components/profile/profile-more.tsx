@@ -48,8 +48,8 @@ interface Props {
   itemData: IProfileItem;
   logs?: LogMessage[];
   reactivating: boolean;
-  onToggleEnable: (enable: boolean) => void;
-  onDelete?: () => Promise<void>;
+  onToggleEnable: (uid: string, enable: boolean) => void;
+  onDelete?: (item: IProfileItem) => Promise<void>;
   onActivatedSave: () => void;
 }
 
@@ -116,7 +116,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
       icon: <CheckCircle fontSize="small" />,
       handler: fnWrapper(async () => {
         setToggling(true);
-        onToggleEnable(true);
+        onToggleEnable(uid, true);
         setToggling(false);
       }),
     },
@@ -146,7 +146,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
       icon: <Block fontSize="small" />,
       handler: fnWrapper(async () => {
         setToggling(true);
-        onToggleEnable(false);
+        onToggleEnable(uid, false);
         setToggling(false);
       }),
     });
@@ -310,7 +310,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         onConfirm={async () => {
           setConfirmOpen(false);
           setToggling(true);
-          await onDelete?.();
+          await onDelete?.(itemData);
           setToggling(false);
         }}
       />

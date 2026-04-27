@@ -44,9 +44,9 @@ interface Props {
   isDragging?: boolean;
   activating: boolean;
   itemData: IProfileItem;
-  onSelect: (force: boolean) => void;
-  onDelete: () => void;
-  onReactivate: () => void;
+  onSelect: (uid: string) => void;
+  onDelete: (uid: string) => void;
+  onActivatedSave: () => void;
 }
 
 export const ProfileItem = memo(function ProfileItem(props: Props) {
@@ -58,7 +58,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
     itemData,
     onSelect,
     onDelete,
-    onReactivate,
+    onActivatedSave,
   } = props;
 
   const { t } = useTranslation();
@@ -127,7 +127,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
   const onForceSelect = async () => {
     setAnchorEl(null);
-    onSelect(true);
+    onSelect(uid);
   };
 
   const onOpenFile = useLockFn(async () => {
@@ -240,7 +240,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
       <ProfileDiv
         aria-label={isDragging ? "dragging" : "profile"}
         aria-selected={selected}
-        onClick={() => onSelect(false)}
+        onClick={() => onSelect(uid)}
         onContextMenu={(event) => {
           const { clientX, clientY } = event;
           setPosition({ top: clientY, left: clientX });
@@ -393,7 +393,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         type="clash"
         onChange={() => {
           if (selected) {
-            onReactivate();
+            onActivatedSave();
           }
         }}
         onClose={() => setOpen(false)}
@@ -406,7 +406,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         onConfirm={() => {
           setAnchorEl(null);
           setConfirmOpen(false);
-          onDelete();
+          onDelete(uid);
         }}
       />
     </Box>
