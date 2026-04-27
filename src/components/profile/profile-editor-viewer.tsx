@@ -24,9 +24,9 @@ import {
   TextField,
 } from "@mui/material";
 import { getVersion } from "@tauri-apps/api/app";
-import { useLockFn, useMemoizedFn } from "ahooks";
+import { useAsyncEffect, useLockFn, useMemoizedFn } from "ahooks";
 import { isEqual } from "lodash-es";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { mutate } from "swr";
@@ -68,6 +68,20 @@ const text = {
 
 const EMPTY_CHAIN: IProfileItem[] = [];
 
+const getEnabledUids = (items: IProfileItem[]) =>
+  items.filter((item) => item.enable).map((item) => item.uid);
+
+const reorderItems = (
+  items: IProfileItem[],
+  activeId: string,
+  overId: string,
+) =>
+  arrayMove(
+    items,
+    items.findIndex((item) => item.uid === activeId),
+    items.findIndex((item) => item.uid === overId),
+  );
+
 export const ProfileEditorViewer = (props: Props) => {
   const {
     title,
@@ -79,7 +93,21 @@ export const ProfileEditorViewer = (props: Props) => {
     onChange,
   } = props;
   const { t } = useTranslation();
+  const { notice } = useNotice();
+
   const profileUid = profileItem.uid;
+
+  const profileEditorRef = useRef<ProfileEditorHandle>(null);
+  const resolveRef = useRef<any>(null);
+  const viewerRef = useRef<ProfileViewerRef>(null);
+
+  const [editProfile, setEditProfile] = useState<IProfileItem>(profileItem);
+  const [curContentSaved, setCurContentSaved] = useState(true);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
+  const [draggingItem, setDraggingItem] = useState<IProfileItem | null>(null);
+  const [saving, setSaving] = useState(false);
+
   const currentProfile = useProfilesStore((s) => s.currentProfile);
   const patchProfile = useProfilesStore((s) => s.patchProfile);
   const reorderProfile = useProfilesStore((s) => s.reorderProfile);
@@ -88,25 +116,20 @@ export const ProfileEditorViewer = (props: Props) => {
   const profileChainItems = useProfilesStore(
     (s) => s.chainItemsByProfileUid[profileUid] ?? EMPTY_CHAIN,
   );
-  const setProfileChains = useProfilesStore((s) => s.setProfileChains);
-  const { notice } = useNotice();
-  const isRunningProfile = currentProfile?.uid === profileUid;
-  const [editProfile, setEditProfile] = useState<IProfileItem>(profileItem);
-  const [curContentSaved, setCurContentSaved] = useState(true);
-  const profileEditorRef = useRef<ProfileEditorHandle>(null);
-  // confirm saved when edit other profile
-  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
-  const resolveRef = useRef<any>(null);
-  // chain
+
+  const { control, watch, register, ...formIns } = useForm<IProfileItem>({
+    defaultValues: profileItem,
+  });
+
+  const profileName = watch("name");
+  const formType = watch("type");
+  const isRemote = formType === "remote";
   const isEditChain =
     editProfile.type === "merge" || editProfile.type === "script";
   const [expand, setExpand] = useState(isEditChain);
-  const enabledProfileChainUids = profileChainItems
-    .filter((i) => i.enable)
-    .map((i) => i.uid);
-  const viewerRef = useRef<ProfileViewerRef>(null);
-  const [reactivating, setReactivating] = useState(false);
-  // sortable
+  const isRunningProfile = currentProfile?.uid === profileUid;
+  const enabledProfileChainUids = getEnabledUids(profileChainItems);
+
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 2 } }),
   );
@@ -115,25 +138,14 @@ export const ProfileEditorViewer = (props: Props) => {
       styles: { active: { opacity: "0.5" } },
     }),
   };
-  const [draggingItem, setDraggingItem] = useState<IProfileItem | null>(null);
-  // update profile
-  const { control, watch, register, ...formIns } = useForm<IProfileItem>({
-    defaultValues: profileItem,
-  });
 
-  const profileName = watch("name");
-  const formType = watch("type");
-  const isRemote = formType === "remote";
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
+  useAsyncEffect(async () => {
     if (!open) return;
-    getVersion().then((version) => {
-      if (isRemote) {
-        formIns.setValue("option.user_agent", `clash-verge/${version}`);
-      }
-    });
-    refreshChain();
+    const version = await getVersion();
+    if (isRemote) {
+      formIns.setValue("option.user_agent", `clash-verge/${version}`);
+    }
+    await fetchProfileChains(profileUid);
   }, [open]);
 
   const showConfirm = () => {
@@ -156,46 +168,37 @@ export const ProfileEditorViewer = (props: Props) => {
     resolveRef.current(false);
   };
 
+  const saveEditorContent = async () => {
+    const saveStatus = !!(await profileEditorRef.current?.save());
+    if (!saveStatus) {
+      notice("error", t("messages.profiles.contentSaveFailed"));
+      return false;
+    }
+    await sleep(1000);
+    return true;
+  };
+
   const handleChainDragEnd = useMemoizedFn(async (event: DragEndEvent) => {
     setDraggingItem(null);
     const { active, over } = event;
-    if (over) {
-      const activeId = active.id.toString();
-      const overId = over.id.toString();
-      if (activeId !== overId) {
-        const activeIndex = profileChainItems.findIndex(
-          (item) => item.uid === activeId,
-        );
-        const overIndex = profileChainItems.findIndex(
-          (item) => item.uid === overId,
-        );
-        const newChainList = arrayMove(
-          profileChainItems,
-          activeIndex,
-          overIndex,
-        );
-        const newEnabledChainUids = newChainList
-          .filter((i) => i.enable)
-          .map((item) => item.uid);
-        const needToEnhance =
-          !isEqual(enabledProfileChainUids, newEnabledChainUids) &&
-          isRunningProfile;
-        setProfileChains(profileUid, newChainList);
-        await reorderProfile(activeId, overId);
-        if (needToEnhance) {
-          setReactivating(true);
-          await enhanceProfiles();
-          setReactivating(false);
-          mutate("getRuntimeLogs");
-        }
-        await refreshChain();
-      }
-    }
-  });
+    if (!over || active.id === over.id) return;
 
-  const refreshChain = async () => {
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
+    const newChainList = reorderItems(profileChainItems, activeId, overId);
+    const needToEnhance =
+      !isEqual(enabledProfileChainUids, getEnabledUids(newChainList)) &&
+      isRunningProfile;
+
+    await reorderProfile(activeId, overId);
+    if (needToEnhance) {
+      setReactivating(true);
+      await enhanceProfiles();
+      setReactivating(false);
+      mutate("getRuntimeLogs");
+    }
     await fetchProfileChains(profileUid);
-  };
+  });
 
   const handleProfileSubmit = useLockFn(
     formIns.handleSubmit(async (form) => {
@@ -241,13 +244,9 @@ export const ProfileEditorViewer = (props: Props) => {
     if (!curContentSaved) {
       const status = await showConfirm();
       if (status) {
-        const saveStatus = !!(await profileEditorRef.current?.save());
-        if (!saveStatus) {
-          return;
-        }
+        const saveStatus = await saveEditorContent();
+        if (!saveStatus) return;
       }
-      // 延迟 1s 后，执行后续操作
-      await sleep(1000);
     }
     const backToOriginalProfile = editProfile.uid === item.uid;
     if (backToOriginalProfile) {
@@ -263,20 +262,15 @@ export const ProfileEditorViewer = (props: Props) => {
       setEditProfile(profileItem);
     }
     mutate("getRuntimeLogs");
-    await refreshChain();
+    await fetchProfileChains(profileUid);
   };
 
   const onSave = useLockFn(async () => {
     try {
       setSaving(true);
       if (!curContentSaved) {
-        const saveStatus = !!(await profileEditorRef.current?.save());
-        if (!saveStatus) {
-          notice("error", t("messages.profiles.contentSaveFailed"));
-          return;
-        }
-        // 延迟 1s 后，执行订阅配置项更新操作
-        await sleep(1000);
+        const saveStatus = await saveEditorContent();
+        if (!saveStatus) return;
       }
       await handleProfileSubmit();
     } catch (err: any) {
@@ -486,7 +480,7 @@ export const ProfileEditorViewer = (props: Props) => {
 
                   <ProfileViewer
                     ref={viewerRef}
-                    onChange={async () => await refreshChain()}
+                    onChange={async () => await fetchProfileChains(profileUid)}
                   />
 
                   <div className="overflow-auto pl-1">
@@ -516,12 +510,14 @@ export const ProfileEditorViewer = (props: Props) => {
                               logs={chainLogs[item.uid]}
                               onToggleEnableCallback={async (_enabled) => {
                                 mutate("getRuntimeLogs");
-                                await refreshChain();
+                                await fetchProfileChains(profileUid);
                               }}
                               onClick={async () => {
                                 await handleChainClick(item);
                               }}
-                              onInfoChangeCallback={refreshChain}
+                              onInfoChangeCallback={async () => {
+                                await fetchProfileChains(profileUid);
+                              }}
                               onDeleteCallback={async () => {
                                 await handleChainDeleteCallBack(item);
                               }}

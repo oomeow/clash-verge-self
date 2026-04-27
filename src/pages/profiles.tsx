@@ -54,13 +54,33 @@ const FlexDecorationItems = memo(function FlexDecoratorItems() {
 const compactUids = (uids: (string | undefined)[]) =>
   Array.from(new Set(uids.filter((uid): uid is string => !!uid)));
 
+const getEnabledUids = (items: IProfileItem[]) =>
+  items.filter((item) => item.enable).map((item) => item.uid);
+
+const reorderItems = (
+  items: IProfileItem[],
+  activeId: string,
+  overId: string,
+) =>
+  arrayMove(
+    items,
+    items.findIndex((item) => item.uid === activeId),
+    items.findIndex((item) => item.uid === overId),
+  );
+
 const ProfilePage = () => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
+  const viewerRef = useRef<ProfileViewerRef>(null);
+  const configRef = useRef<DialogRef>(null);
+
   const [url, setUrl] = useState("");
   const [disabled, setDisabled] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
+  const [draggingItem, setDraggingItem] = useState<IProfileItem | null>(null);
+  const [overItemWidth, setOverItemWidth] = useState(260);
+
   const config = useProfilesStore((s) => s.config);
   const profileItems = useProfilesStore((s) => s.profileItems);
   const globalChainItems = useProfilesStore((s) => s.globalChainItems);
@@ -88,96 +108,117 @@ const ProfilePage = () => {
     getRuntimeLogs,
   );
 
-  const viewerRef = useRef<ProfileViewerRef>(null);
-  const configRef = useRef<DialogRef>(null);
-
   const activatingUidSet = useMemo(
     () => new Set(activatingItemUids),
     [activatingItemUids],
   );
-
-  // sortable
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-  );
-  const [profileList, setProfileList] = useState<IProfileItem[]>([]);
-  const [chainList, setChainList] = useState<IProfileItem[]>([]);
   const profileSortableIds = useMemo(
-    () => profileList.map((item) => item.uid),
-    [profileList],
+    () => profileItems.map((item) => item.uid),
+    [profileItems],
   );
   const chainSortableIds = useMemo(
-    () => chainList.map((item) => item.uid),
-    [chainList],
+    () => globalChainItems.map((item) => item.uid),
+    [globalChainItems],
+  );
+  const hasActivatingItems = activatingItemUids.length > 0;
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
   );
   const dropAnimationConfig: DropAnimation = {
     sideEffects: defaultDropAnimationSideEffects({
       styles: { active: { opacity: "0.5" } },
     }),
   };
-  const [draggingItem, setDraggingItem] = useState<IProfileItem | null>(null);
-  const [overItemWidth, setOverItemWidth] = useState(260);
 
   useEffect(() => {
     refreshConfig();
   }, [refreshConfig]);
 
-  useEffect(() => {
-    setProfileList(profileItems);
-    setChainList(globalChainItems);
-  }, [profileItems, globalChainItems]);
+  const getActivationUids = useCallback(
+    (...uids: (string | undefined)[]) =>
+      compactUids([...uids, ...enabledGlobalChainUids]),
+    [enabledGlobalChainUids],
+  );
+
+  const clearActivationUids = useCallback(
+    (uids: string[], delay?: number) => {
+      const clear = () => clearActivatingItemUids(uids);
+      if (delay) {
+        setTimeout(clear, delay);
+        return;
+      }
+      clear();
+    },
+    [clearActivatingItemUids],
+  );
+
+  const startActivation = useCallback(
+    (uids: string[]) => {
+      if (uids.length > 0) {
+        setActivatingItemUids(uids);
+      }
+    },
+    [setActivatingItemUids],
+  );
+
+  const handleDragOver = useCallback(
+    (items: IProfileItem[], activeId: string, width?: number) => {
+      if (width && width !== overItemWidth) {
+        setOverItemWidth(width);
+      }
+      setDraggingItem(items.find((item) => item.uid === activeId) ?? null);
+    },
+    [overItemWidth],
+  );
+
+  const onEnhance = useLockFn(async () => {
+    const nextActivatingItemUids = getActivationUids(config.current);
+    try {
+      startActivation(nextActivatingItemUids);
+      await enhanceProfiles();
+      mutateLogs();
+      notice("success", t("messages.profiles.reactivated"), 1000);
+    } catch (err: any) {
+      notice("error", err.message || err.toString(), 3000);
+    } finally {
+      clearActivationUids(nextActivatingItemUids);
+    }
+  });
 
   const handleProfileDragEnd = useCallback(
     async (event: DragEndEvent) => {
       setDraggingItem(null);
       const { active, over } = event;
-      if (over) {
-        const activeId = active.id.toString();
-        const overId = over.id.toString();
-        if (activeId !== overId) {
-          const activeIndex = profileList.findIndex(
-            (item) => item.uid === activeId,
-          );
-          const overIndex = profileList.findIndex(
-            (item) => item.uid === overId,
-          );
-          setProfileList((items) => arrayMove(items, activeIndex, overIndex));
-          await reorderProfile(activeId, overId);
-        }
-      }
+      if (!over || active.id === over.id) return;
+
+      const activeId = active.id.toString();
+      const overId = over.id.toString();
+      await reorderProfile(activeId, overId);
     },
-    [profileList],
+    [reorderProfile],
   );
 
   const handleChainDragEnd = useCallback(
     async (event: DragEndEvent) => {
       setDraggingItem(null);
       const { active, over } = event;
-      if (over) {
-        const activeId = active.id.toString();
-        const overId = over.id.toString();
-        if (activeId !== overId) {
-          const activeIndex = chainList.findIndex(
-            (item) => item.uid === activeId,
-          );
-          const overIndex = chainList.findIndex((item) => item.uid === overId);
-          const newChainList = arrayMove(chainList, activeIndex, overIndex);
-          const newEnabledChainUids = newChainList
-            .filter((i) => i.enable)
-            .map((item) => item.uid);
-          const needToEnhance = !isEqual(
-            enabledGlobalChainUids,
-            newEnabledChainUids,
-          );
-          setChainList(newChainList);
-          await reorderProfile(activeId, overId);
-          if (needToEnhance) {
-            await onEnhance();
-          }
-        }
+      if (!over || active.id === over.id) return;
+
+      const activeId = active.id.toString();
+      const overId = over.id.toString();
+      const newChainList = reorderItems(globalChainItems, activeId, overId);
+      const needToEnhance = !isEqual(
+        enabledGlobalChainUids,
+        getEnabledUids(newChainList),
+      );
+
+      await reorderProfile(activeId, overId);
+      if (needToEnhance) {
+        await onEnhance();
       }
     },
-    [chainList],
+    [globalChainItems, enabledGlobalChainUids, onEnhance, reorderProfile],
   );
 
   const onImport = useCallback(async () => {
@@ -188,94 +229,77 @@ const ProfilePage = () => {
       const newProfiles = await importProfile(url);
       notice("success", t("messages.profiles.imported"));
       setUrl("");
-      setImportLoading(false);
 
       const remoteItem = newProfiles.items?.find((e) => e.type === "remote");
       if (!newProfiles.current && remoteItem) {
-        const current = remoteItem.uid;
-        patchConfig({ current });
+        await patchConfig({ current: remoteItem.uid });
         mutateLogs();
       }
     } catch (err: any) {
       notice("error", err.message || err.toString());
-      setImportLoading(false);
     } finally {
       setDisabled(false);
       setImportLoading(false);
     }
-  }, [url]);
+  }, [importProfile, mutateLogs, notice, patchConfig, t, url]);
 
   const onSelect = useLockFn(async (current: string, _force: boolean) => {
-    if (current === config.current || activatingItemUids.length > 0) return;
-    const nextActivatingItemUids = compactUids([
-      current,
-      ...enabledGlobalChainUids,
-    ]);
+    if (current === config.current || hasActivatingItems) return;
+    const nextActivatingItemUids = getActivationUids(current);
     try {
-      setActivatingItemUids(nextActivatingItemUids);
+      startActivation(nextActivatingItemUids);
       await patchConfig({ current });
       mutateLogs();
       notice("success", t("messages.profiles.switched"), 1000);
     } catch (err: any) {
       notice("error", err.message || err.toString(), 4000);
     } finally {
-      clearActivatingItemUids(nextActivatingItemUids);
+      clearActivationUids(nextActivatingItemUids);
     }
   });
 
   const onDelete = useLockFn(async (uid: string) => {
     const isEnable =
       config.current === uid || enabledGlobalChainUids.includes(uid);
-    const nextActivatingItemUids = compactUids([
-      config.current,
-      uid,
-      ...enabledGlobalChainUids,
-    ]);
+    const nextActivatingItemUids = getActivationUids(config.current, uid);
     try {
       if (isEnable) {
-        setActivatingItemUids(nextActivatingItemUids);
+        startActivation(nextActivatingItemUids);
       }
       await deleteProfile(uid);
     } catch (err: any) {
       notice("error", err.message || err.toString());
     } finally {
       if (isEnable) {
-        clearActivatingItemUids(nextActivatingItemUids);
+        clearActivationUids(nextActivatingItemUids);
       }
     }
   });
 
   const handleToggleEnable = useLockFn(
     async (chainUid: string, enable: boolean) => {
-      const nextActivatingItemUids = compactUids([
+      const nextActivatingItemUids = getActivationUids(
         config.current,
         chainUid,
-        ...enabledGlobalChainUids,
-      ]);
+      );
       try {
-        setActivatingItemUids(nextActivatingItemUids);
-        await patchProfile(chainUid, { enable: enable });
+        startActivation(nextActivatingItemUids);
+        await patchProfile(chainUid, { enable });
         mutateLogs();
         notice("success", t("messages.profiles.reactivated"), 1000);
       } catch (error) {
         console.error(error);
       } finally {
-        setTimeout(() => {
-          clearActivatingItemUids(nextActivatingItemUids);
-        }, 500);
+        clearActivationUids(nextActivatingItemUids, 500);
       }
     },
   );
 
   const handleChainDelete = useLockFn(async (item: IProfileItem) => {
-    const nextActivatingItemUids = compactUids([
-      config.current,
-      item.uid,
-      ...enabledGlobalChainUids,
-    ]);
+    const nextActivatingItemUids = getActivationUids(config.current, item.uid);
     try {
       if (item.enable) {
-        setActivatingItemUids(nextActivatingItemUids);
+        startActivation(nextActivatingItemUids);
       }
       await deleteProfile(item.uid);
       if (item.enable) {
@@ -285,25 +309,8 @@ const ProfilePage = () => {
       notice("error", error.message || error.toString());
     } finally {
       if (item.enable) {
-        clearActivatingItemUids(nextActivatingItemUids);
+        clearActivationUids(nextActivatingItemUids);
       }
-    }
-  });
-
-  const onEnhance = useLockFn(async () => {
-    const nextActivatingItemUids = compactUids([
-      config.current,
-      ...enabledGlobalChainUids,
-    ]);
-    try {
-      setActivatingItemUids(nextActivatingItemUids);
-      await enhanceProfiles();
-      mutateLogs();
-      notice("success", t("messages.profiles.reactivated"), 1000);
-    } catch (err: any) {
-      notice("error", err.message || err.toString(), 3000);
-    } finally {
-      clearActivatingItemUids(nextActivatingItemUids);
     }
   });
 
@@ -362,8 +369,7 @@ const ProfilePage = () => {
 
           <Button
             size="small"
-            // loading={activating.profile !== "" || activating.chain !== ""}
-            loading={activatingItemUids.length > 0}
+            loading={hasActivatingItems}
             loadingPosition="end"
             variant="contained"
             color="primary"
@@ -435,12 +441,11 @@ const ProfilePage = () => {
           onDragOver={(event) => {
             const { over } = event;
             if (over) {
-              const itemWidth = event.over?.rect.width;
-              if (itemWidth && itemWidth !== overItemWidth) {
-                setOverItemWidth(itemWidth);
-              }
-              const item = profileList.find((i) => i.uid === event.active.id)!;
-              setDraggingItem(item);
+              handleDragOver(
+                profileItems,
+                event.active.id.toString(),
+                event.over?.rect.width,
+              );
             }
           }}
           onDragEnd={(e) => handleProfileDragEnd(e)}
@@ -448,7 +453,7 @@ const ProfilePage = () => {
           <Box>
             <SortableContext items={profileSortableIds}>
               <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                {profileList.map((item) => (
+                {profileItems.map((item) => (
                   <DraggableItem
                     key={item.uid}
                     id={item.uid}
@@ -461,8 +466,7 @@ const ProfilePage = () => {
                     <ProfileItem
                       selected={
                         activatingUidSet.has(item.uid) ||
-                        (activatingItemUids.length === 0 &&
-                          config.current === item.uid)
+                        (!hasActivatingItems && config.current === item.uid)
                       }
                       isDragging={draggingItem?.uid === item.uid}
                       activating={activatingUidSet.has(item.uid)}
@@ -489,8 +493,7 @@ const ProfilePage = () => {
                 }}
                 selected={
                   activatingUidSet.has(draggingItem.uid) ||
-                  (activatingItemUids.length === 0 &&
-                    config.current === draggingItem.uid)
+                  (!hasActivatingItems && config.current === draggingItem.uid)
                 }
                 activating={activatingUidSet.has(draggingItem.uid)}
                 itemData={draggingItem}
@@ -504,7 +507,7 @@ const ProfilePage = () => {
           </DragOverlay>
         </DndContext>
 
-        {chainList.length > 0 && (
+        {globalChainItems.length > 0 && (
           <>
             <Divider
               variant="middle"
@@ -525,14 +528,11 @@ const ProfilePage = () => {
               onDragOver={(event) => {
                 const { over } = event;
                 if (over) {
-                  const itemWidth = event.over?.rect.width;
-                  if (itemWidth && itemWidth !== overItemWidth) {
-                    setOverItemWidth(itemWidth);
-                  }
-                  const item = chainList.find(
-                    (item) => item.uid === event.active.id,
-                  )!;
-                  setDraggingItem(item);
+                  handleDragOver(
+                    globalChainItems,
+                    event.active.id.toString(),
+                    event.over?.rect.width,
+                  );
                 }
               }}
               onDragEnd={(e) => handleChainDragEnd(e)}
@@ -541,7 +541,7 @@ const ProfilePage = () => {
                 <SortableContext
                   items={chainSortableIds}
                   strategy={rectSortingStrategy}>
-                  {chainList.map((item) => (
+                  {globalChainItems.map((item) => (
                     <DraggableItem
                       key={item.uid}
                       id={item.uid}

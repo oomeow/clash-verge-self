@@ -45,6 +45,16 @@ type ProfilesPersistedState = Pick<
   | "chainItemsByProfileUid"
 >;
 
+type ProfilesSnapshot = Pick<
+  ProfilesState,
+  | "config"
+  | "currentProfile"
+  | "profileItems"
+  | "globalChainItems"
+  | "enabledGlobalChainUids"
+  | "chainItemsByProfileUid"
+>;
+
 type ProfilesActions = {
   setConfig: (config: IProfilesConfig) => void;
   refreshConfig: () => Promise<IProfilesConfig>;
@@ -105,6 +115,11 @@ const pickProfilesState = (state: ProfilesState): ProfilesDerivedState => ({
   enabledGlobalChainUids: state.enabledGlobalChainUids,
 });
 
+const pickProfilesSnapshot = (state: ProfilesState): ProfilesSnapshot => ({
+  ...pickProfilesState(state),
+  chainItemsByProfileUid: state.chainItemsByProfileUid,
+});
+
 const commitConfig = (
   set: ProfilesStoreSet,
   get: ProfilesStoreGet,
@@ -115,6 +130,73 @@ const commitConfig = (
     set(nextState);
   }
   return config;
+};
+
+const reorderItems = <T extends { uid: string }>(
+  items: T[],
+  activeId: string,
+  overId: string,
+) => {
+  const activeIndex = items.findIndex((item) => item.uid === activeId);
+  const overIndex = items.findIndex((item) => item.uid === overId);
+  if (activeIndex < 0 || overIndex < 0 || activeIndex === overIndex) {
+    return items;
+  }
+
+  const nextItems = items.slice();
+  const [item] = nextItems.splice(activeIndex, 1);
+  nextItems.splice(overIndex, 0, item);
+  return nextItems;
+};
+
+const reorderConfig = (
+  config: IProfilesConfig,
+  activeId: string,
+  overId: string,
+) => {
+  const items = (config.items ?? []).filter(
+    (item): item is IProfileItem => !!item,
+  );
+  return {
+    ...config,
+    items: reorderItems(items, activeId, overId),
+  };
+};
+
+const reorderChainCache = (
+  cache: Record<string, IProfileItem[]>,
+  activeId: string,
+  overId: string,
+) =>
+  Object.fromEntries(
+    Object.entries(cache).map(([key, items]) => [
+      key,
+      items.some((item) => item.uid === activeId) &&
+      items.some((item) => item.uid === overId)
+        ? reorderItems(items, activeId, overId)
+        : items,
+    ]),
+  );
+
+const commitReorder = (
+  set: ProfilesStoreSet,
+  get: ProfilesStoreGet,
+  activeId: string,
+  overId: string,
+) => {
+  const nextState = toProfileView(
+    reorderConfig(get().config, activeId, overId),
+  );
+  const nextChainItemsByProfileUid = reorderChainCache(
+    get().chainItemsByProfileUid,
+    activeId,
+    overId,
+  );
+
+  set({
+    ...nextState,
+    chainItemsByProfileUid: nextChainItemsByProfileUid,
+  });
 };
 
 export const useProfilesStore = create<ProfilesStore>()(
@@ -164,8 +246,16 @@ export const useProfilesStore = create<ProfilesStore>()(
       },
 
       reorderProfile: async (activeId, overId) => {
-        await reorderProfileCmd(activeId, overId);
-        await get().refreshConfig();
+        const previousState = pickProfilesSnapshot(get());
+        commitReorder(set, get, activeId, overId);
+
+        try {
+          await reorderProfileCmd(activeId, overId);
+          await get().refreshConfig();
+        } catch (error) {
+          set(previousState);
+          throw error;
+        }
       },
 
       updateProfile: async (uid, option) => {
