@@ -20,6 +20,7 @@ interface Props {
   group: IProxyGroupItem;
   proxy: IProxyItem;
   selected: boolean;
+  fixed: boolean;
   showType?: boolean;
   delayVersion?: number;
   sx?: SxProps<Theme>;
@@ -57,6 +58,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
     group,
     proxy,
     selected,
+    fixed,
     showType = true,
     delayVersion,
     sx,
@@ -83,6 +85,13 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
             "&:hover .the-check": { display: !showDelay ? "block" : "none" },
             "&:hover .the-delay": { display: showDelay ? "block" : "none" },
             "&:hover .the-icon": { display: "none" },
+            "& .the-pin, & .the-unpin": {
+              position: "absolute",
+              fontSize: "12px",
+              top: "-5px",
+              right: "-5px",
+            },
+            "& .the-unpin": { filter: "grayscale(1)" },
             "&.Mui-selected": {
               width: `calc(100% + 3px)`,
               marginLeft: `-3px`,
@@ -98,22 +107,15 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
               backgroundColor: "#24252f",
             }),
             transition: "background-color 0s",
-            marginBottom: "8px",
-            height: "40px",
+            marginBottom: "2px",
           };
         }}>
         <ListItemText
           title={proxy.name}
           secondary={
             <span className="flex items-center">
-              <span className="line-clamp-1">
-                <span
-                  style={{
-                    display: "inline-block",
-                    marginRight: "8px",
-                    fontSize: "14px",
-                    color: "text.primary",
-                  }}>
+              <span className="mr-1 line-clamp-2">
+                <span className="text-primary-text text-sm">
                   {proxy.name}
                   {showType && proxy.now && ` - ${proxy.now}`}
                 </span>
@@ -156,7 +158,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
             </Widget>
           )}
 
-          {proxy.type !== "Direct" && delay > 0 && (
+          {proxy.type !== "Direct" && delay >= 0 && (
             // 显示延迟
             <Widget
               className="the-delay"
@@ -176,17 +178,19 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
             </Widget>
           )}
 
-          {proxy.type !== "Direct" &&
-            delay !== -2 &&
-            delay <= 0 &&
-            selected && (
-              // 展示已选择的icon
-              <CheckCircleOutlineRounded
-                className="the-icon"
-                sx={{ fontSize: 16 }}
-              />
-            )}
+          {proxy.type !== "Direct" && delay !== -2 && delay < 0 && selected && (
+            // 展示已选择的icon
+            <CheckCircleOutlineRounded
+              className="the-icon"
+              sx={{ fontSize: 16 }}
+            />
+          )}
         </ListItemIcon>
+
+        {fixed && (
+          // 展示fixed状态
+          <span className={selected ? "the-pin" : "the-unpin"}>📌</span>
+        )}
       </ListItemButton>
     </ListItem>
   );

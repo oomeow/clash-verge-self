@@ -62,15 +62,7 @@ export const Sidebar = (props: Props) => {
           "pt-4": !enableSystemTitleBar,
         },
       )}>
-      <LogoTitle open={open} />
-
-      {/*<div
-        className={cn("absolute top-0 right-0 left-0 h-20 bg-transparent", {
-          "h-22.5": !open,
-          "h-17.5": enableSystemTitleBar && open,
-          "h-21.25": enableSystemTitleBar && !open,
-        })}
-        data-tauri-drag-region="true"></div>*/}
+      <LogoTitle open={open} enableSystemTitleBar={enableSystemTitleBar} />
 
       <List className="box-border flex-auto overflow-y-auto">
         {routes.map((route) => (

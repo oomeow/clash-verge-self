@@ -13,7 +13,13 @@ import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 
-export const LogoTitle = ({ open }: { open: boolean }) => {
+export const LogoTitle = ({
+  open,
+  enableSystemTitleBar,
+}: {
+  open: boolean;
+  enableSystemTitleBar: boolean;
+}) => {
   const { toggleTheme } = useCustomTheme();
   const mode = useThemeModeStore((s) => s.themeMode);
   const isDark = mode === "dark";
@@ -26,14 +32,15 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
       getCurrentWebviewWindow().startDragging();
     },
     dragRegionRef,
-    { moveThreshold: { x: 3 } },
+    { moveThreshold: { x: 3 }, delay: 100 },
   );
 
   return (
     <div
-      className={cn("relative box-border flex w-full shrink-0 grow-0 pt-2", {
-        "pt-4": isMacOS,
-      })}>
+      className={cn(
+        "relative box-border flex w-full shrink-0 grow-0 pt-2 pb-2",
+        { "pt-4": isMacOS },
+      )}>
       <div
         ref={dragRegionRef}
         className={cn("flex items-center justify-around px-5", {
@@ -48,7 +55,10 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
             }}
             className={cn(
               "fill-primary-main! z-10 mr-1 h-full w-12 cursor-pointer transition-all duration-200",
-              { "mt-6 mr-0 w-10": !open },
+              {
+                "mt-6 mr-0 w-10": !open,
+                "mt-2": enableSystemTitleBar,
+              },
             )}
           />
         </div>
@@ -63,6 +73,7 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
       <UpdateButton
         className={cn("absolute top-0 left-0 z-10 scale-[0.7] cursor-pointer", {
           "top-0 left-16 scale-75": open,
+          "top-13 left-1": !open,
         })}
       />
       <AnimatePresence initial={false}>
@@ -75,7 +86,9 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
           className={cn(
             "absolute top-0 right-2 z-10 h-7.5 w-7.5 cursor-pointer border-none bg-transparent",
             {
-              "top-4 right-3": !open,
+              "top-2 right-3": !open,
+              "-top-2": !open && enableSystemTitleBar,
+              "top-4": !open && isMacOS,
             },
           )}
           onClick={() => toggleTheme(isDark ? "light" : "dark")}>

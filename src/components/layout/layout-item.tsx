@@ -42,7 +42,7 @@ export const LayoutItem = (props: Props) => {
       title={enableMenuIcon && !open ? children : null}
       placement="right">
       <ListItem
-        sx={{ py: 0.5, padding: "4px 0px", height: open ? "60px" : "46px" }}>
+        sx={{ py: 0.5, padding: "4px 0px", height: open ? "60px" : "50px" }}>
         <ListItemButton
           selected={match || pending}
           sx={(theme) => {
