@@ -209,7 +209,7 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
     const handleClose = () => {
       setOpen(false);
       fileDataRef.current = null;
-      setTimeout(() => formIns.reset(), 500);
+      formIns.reset();
     };
 
     return (

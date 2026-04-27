@@ -55,6 +55,7 @@ impl From<PrfItem> for Option<ChainItem> {
         let path = dirs::app_profiles_dir().ok()?.join(&file);
         let enable = item.enable.unwrap_or_default();
         let parent = item.parent.clone();
+        let scope = item.scope.unwrap_or_default();
 
         if !path.exists() {
             return None;
@@ -69,7 +70,7 @@ impl From<PrfItem> for Option<ChainItem> {
                 file,
                 parent,
                 enable,
-                scope: ScopeType::Global,
+                scope,
             }),
             ProfileType::Merge => Some(ChainItem {
                 uid,
@@ -79,7 +80,7 @@ impl From<PrfItem> for Option<ChainItem> {
                 file,
                 parent,
                 enable,
-                scope: ScopeType::Global,
+                scope,
             }),
             _ => None,
         }
