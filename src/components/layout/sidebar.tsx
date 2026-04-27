@@ -24,7 +24,7 @@ export const Sidebar = (props: Props) => {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
-  const open = size.width >= 650;
+  const sidebarCollapsed = size.width < 650;
   const [pendingTo, setPendingTo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,16 +58,19 @@ export const Sidebar = (props: Props) => {
       className={cn(
         "relative flex shrink-0 grow-0 basis-50 flex-col border-t-0 border-r border-b-0 border-l-0 border-solid border-(--divider-color) pt-2 transition-all duration-300",
         {
-          "basis-14": !open,
+          "basis-14": sidebarCollapsed,
           "pt-4": !enableSystemTitleBar,
         },
       )}>
-      <LogoTitle open={open} enableSystemTitleBar={enableSystemTitleBar} />
+      <LogoTitle
+        sidebarCollapsed={sidebarCollapsed}
+        enableSystemTitleBar={enableSystemTitleBar}
+      />
 
       <List className="box-border flex-auto overflow-y-auto">
         {routes.map((route) => (
           <LayoutItem
-            open={open}
+            sidebarCollapsed={sidebarCollapsed}
             key={route.label}
             to={route.path}
             icon={route.icon}
@@ -87,7 +90,7 @@ export const Sidebar = (props: Props) => {
       <div
         className={cn(
           "flex shrink-0 grow-0 items-center justify-center px-4 py-2",
-          { hidden: !open },
+          { hidden: sidebarCollapsed },
         )}>
         <LayoutTraffic />
       </div>

@@ -14,10 +14,10 @@ import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 export const LogoTitle = ({
-  open,
+  sidebarCollapsed,
   enableSystemTitleBar,
 }: {
-  open: boolean;
+  sidebarCollapsed: boolean;
   enableSystemTitleBar: boolean;
 }) => {
   const { toggleTheme } = useCustomTheme();
@@ -37,14 +37,14 @@ export const LogoTitle = ({
 
   return (
     <div
-      className={cn(
-        "relative box-border flex w-full shrink-0 grow-0 pt-2 pb-2",
-        { "pt-4": isMacOS },
-      )}>
+      className={cn("relative box-border flex w-full shrink-0 grow-0 pt-2", {
+        "pb-2": sidebarCollapsed,
+        "pt-4": isMacOS,
+      })}>
       <div
         ref={dragRegionRef}
         className={cn("flex items-center justify-around px-5", {
-          "px-2": !open,
+          "px-2": sidebarCollapsed,
         })}>
         <div>
           <LogoSvg
@@ -56,7 +56,7 @@ export const LogoTitle = ({
             className={cn(
               "fill-primary-main! z-10 mr-1 h-full w-12 cursor-pointer transition-all duration-200",
               {
-                "mt-6 mr-0": !open,
+                "mt-6 mr-0": sidebarCollapsed,
                 "mt-2": !isMacOS && enableSystemTitleBar,
               },
             )}
@@ -65,15 +65,15 @@ export const LogoTitle = ({
         <div>
           <AppNameSvg
             className={cn("fill-primary-main! h-full w-full", {
-              hidden: !open,
+              hidden: sidebarCollapsed,
             })}
           />
         </div>
       </div>
       <UpdateButton
         className={cn("absolute top-0 left-0 z-10 scale-[0.7] cursor-pointer", {
-          "top-0 left-16 scale-75": open,
-          "top-13 left-1": !open,
+          "top-0 left-16 scale-75": !sidebarCollapsed,
+          "top-13 left-1": sidebarCollapsed,
         })}
       />
       <AnimatePresence initial={false}>
@@ -86,9 +86,9 @@ export const LogoTitle = ({
           className={cn(
             "absolute top-0 right-2 z-10 h-7.5 w-7.5 cursor-pointer border-none bg-transparent",
             {
-              "top-2 right-3": !open,
-              "-top-2": !open && enableSystemTitleBar,
-              "top-4": !open && isMacOS,
+              "top-2 right-4": sidebarCollapsed,
+              "-top-2": sidebarCollapsed && enableSystemTitleBar,
+              "top-4": sidebarCollapsed && isMacOS,
             },
           )}
           onClick={() => toggleTheme(isDark ? "light" : "dark")}>

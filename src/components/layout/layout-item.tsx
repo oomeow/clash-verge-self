@@ -16,7 +16,7 @@ interface Props {
   to: string;
   children: string;
   icon: React.ReactNode[];
-  open: boolean;
+  sidebarCollapsed: boolean;
   pending?: boolean;
   onNavigate?: () => void;
   onMouseEnter?: () => void;
@@ -26,7 +26,7 @@ export const LayoutItem = (props: Props) => {
     to,
     children,
     icon,
-    open,
+    sidebarCollapsed,
     pending = false,
     onNavigate,
     onMouseEnter,
@@ -39,10 +39,14 @@ export const LayoutItem = (props: Props) => {
 
   return (
     <Tooltip
-      title={enableMenuIcon && !open ? children : null}
+      title={enableMenuIcon && sidebarCollapsed ? children : null}
       placement="right">
       <ListItem
-        sx={{ py: 0.5, padding: "4px 0px", height: open ? "60px" : "50px" }}>
+        sx={{
+          py: 0.5,
+          padding: "4px 0px",
+          height: sidebarCollapsed ? "50px" : "60px",
+        }}>
         <ListItemButton
           selected={match || pending}
           sx={(theme) => {
@@ -52,8 +56,8 @@ export const LayoutItem = (props: Props) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              margin: open ? "0 10px" : "0 4px",
-              padding: open ? "8px 6px" : "4px",
+              margin: sidebarCollapsed ? "0 4px" : "0 10px",
+              padding: sidebarCollapsed ? "4px" : "8px 6px",
               "& .MuiListItemText-primary": {
                 color: theme.palette.text.primary,
                 fontWeight: "700",
@@ -83,9 +87,13 @@ export const LayoutItem = (props: Props) => {
           }}
           onMouseEnter={onMouseEnter}>
           <div
-            className={cn("flex items-center text-center", { "w-full": open })}>
+            className={cn("flex items-center text-center", {
+              "w-full": !sidebarCollapsed,
+            })}>
             <div className="flex h-8 w-full items-center justify-center">
-              <motion.div layout className={cn({ "relative left-4": open })}>
+              <motion.div
+                layout
+                className={cn({ "relative left-4": !sidebarCollapsed })}>
                 {enableMenuIcon && menuIcon === "monochrome" && (
                   <Box
                     sx={{
@@ -96,7 +104,7 @@ export const LayoutItem = (props: Props) => {
                 )}
                 {enableMenuIcon && menuIcon === "colorful" && icon[1]}
               </motion.div>
-              {(open || !enableMenuIcon) && (
+              {(!sidebarCollapsed || !enableMenuIcon) && (
                 <div className="w-full">
                   <Typography
                     sx={{
