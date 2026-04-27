@@ -56,7 +56,7 @@ export const LogoTitle = ({
             className={cn(
               "fill-primary-main! z-10 mr-1 h-full w-12 cursor-pointer transition-all duration-200",
               {
-                "mt-6 mr-0 w-10": !open,
+                "mt-6 mr-0": !open,
                 "mt-2": !isMacOS && enableSystemTitleBar,
               },
             )}
