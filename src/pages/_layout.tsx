@@ -179,17 +179,19 @@ const Layout = () => {
           "rounded-none": isMaximized,
         })}
         onContextMenu={(e) => {
-          // only prevent it on Windows
-          const validList = ["input", "textarea"];
-          const target = e.currentTarget;
-          if (
-            OS === "windows" &&
-            !(
-              validList.includes(target.tagName.toLowerCase()) ||
-              target.isContentEditable
-            )
-          ) {
-            e.preventDefault();
+          if (process.env.NODE_ENV === "production") {
+            // only prevent it on Windows
+            const validList = ["input", "textarea"];
+            const target = e.currentTarget;
+            if (
+              OS === "windows" &&
+              !(
+                validList.includes(target.tagName.toLowerCase()) ||
+                target.isContentEditable
+              )
+            ) {
+              e.preventDefault();
+            }
           }
         }}>
         <Sidebar

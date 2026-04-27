@@ -1,7 +1,9 @@
 import DarkMode from "@mui/icons-material/DarkMode";
 import LightMode from "@mui/icons-material/LightMode";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { useLongPress } from "ahooks";
 import { AnimatePresence, motion } from "motion/react";
+import { useRef } from "react";
 
 import AppNameSvg from "@/assets/image/clash_verge.svg?react";
 import LogoSvg from "@/assets/image/logo.svg?react";
@@ -16,19 +18,24 @@ export const LogoTitle = ({ open }: { open: boolean }) => {
   const mode = useThemeModeStore((s) => s.themeMode);
   const isDark = mode === "dark";
   const isMacOS = getSystem() === "macos";
+  const dragRegionRef = useRef<HTMLDivElement>(null);
+
+  useLongPress(
+    () => {
+      getCurrentWebviewWindow().setCursorIcon("move");
+      getCurrentWebviewWindow().startDragging();
+    },
+    dragRegionRef,
+    { moveThreshold: { x: 3 } },
+  );
 
   return (
     <div
-      onMouseDown={() => {
-        getCurrentWebviewWindow().startDragging();
-      }}
-      onDoubleClick={() => {
-        getCurrentWebviewWindow().toggleMaximize();
-      }}
       className={cn("relative box-border flex w-full shrink-0 grow-0 pt-2", {
         "pt-4": isMacOS,
       })}>
       <div
+        ref={dragRegionRef}
         className={cn("flex items-center justify-around px-5", {
           "px-2": !open,
         })}>
