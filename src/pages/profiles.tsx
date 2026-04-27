@@ -23,7 +23,7 @@ import { Box, Button, Divider, IconButton } from "@mui/material";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { useLockFn, useMemoizedFn } from "ahooks";
 import { isEqual } from "lodash-es";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
@@ -88,7 +88,6 @@ const ProfilePage = () => {
   const patchConfig = useProfilesStore((s) => s.patchConfig);
   const patchProfile = useProfilesStore((s) => s.patchProfile);
   const refreshConfig = useProfilesStore((s) => s.refreshConfig);
-  const refreshChainLogs = useProfilesStore((s) => s.refreshChainLogs);
   const importProfile = useProfilesStore((s) => s.importProfile);
   const reorderProfile = useProfilesStore((s) => s.reorderProfile);
   const deleteProfile = useProfilesStore((s) => s.deleteProfile);
@@ -125,11 +124,6 @@ const ProfilePage = () => {
       styles: { active: { opacity: "0.5" } },
     }),
   };
-
-  useEffect(() => {
-    refreshConfig();
-    refreshChainLogs();
-  }, [refreshChainLogs, refreshConfig]);
 
   const getActivationUids = useCallback(
     (...uids: (string | undefined)[]) =>

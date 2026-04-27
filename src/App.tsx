@@ -1,5 +1,6 @@
 import { StyledEngineProvider, ThemeProvider } from "@mui/material";
 import { RouterProvider } from "@tanstack/react-router";
+import { useMount } from "ahooks";
 import { SnackbarProvider } from "notistack";
 import { useEffect } from "react";
 
@@ -11,11 +12,21 @@ import {
 import { DragImportOverlay } from "./components/layout/drag-import-overlay";
 import { useCustomTheme } from "./components/layout/use-custom-theme";
 import { router } from "./router";
-import { useThemeSettingsStore, useVergeStore } from "./stores";
+import {
+  useProfilesStore,
+  useThemeSettingsStore,
+  useVergeStore,
+} from "./stores";
 
 function App() {
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
   const syncThemeSettings = useThemeSettingsStore((s) => s.syncThemeSettings);
+
+  const refreshProfilesConfig = useProfilesStore((s) => s.refreshConfig);
+  const refreshChainLogs = useProfilesStore((s) => s.refreshChainLogs);
+
+  const { theme } = useCustomTheme();
+  // const theme = createTheme({ cssVariables: true });
 
   useEffect(() => {
     refreshVerge().then((verge) => {
@@ -23,9 +34,11 @@ function App() {
     });
   }, [refreshVerge, syncThemeSettings]);
 
-  const { theme } = useCustomTheme();
+  useMount(async () => {
+    await refreshProfilesConfig();
+    await refreshChainLogs();
+  });
 
-  // const theme = createTheme({ cssVariables: true });
   return (
     <ThemeProvider theme={theme}>
       <StyledEngineProvider injectFirst>
