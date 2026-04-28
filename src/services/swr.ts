@@ -32,7 +32,7 @@ export const updateSWRConfig: SWRConfiguration = {
   focusThrottleInterval: 36e5, // 1 hour
 };
 
-export const swrSubscriptionKey = (key: string | null) => `$sub$${key}`;
+export const swrSubscriptionKey = (key: string | null) => key ? "$sub$" + key : null;
 
 export const refreshClashSWR = () => {
   mutate(swrKeys.proxies);
