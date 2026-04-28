@@ -168,7 +168,7 @@ export const ProfileEditorViewer = (props: Props) => {
     return true;
   };
 
-  const handleChainDragEnd = useMemoizedFn(async (event: DragEndEvent) => {
+  const handleChainDragEnd = useLockFn(async (event: DragEndEvent) => {
     setDraggingItem(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;

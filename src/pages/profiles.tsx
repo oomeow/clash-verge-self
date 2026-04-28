@@ -175,7 +175,7 @@ const ProfilePage = () => {
     }
   });
 
-  const handleProfileDragEnd = useCallback(
+  const handleProfileDragEnd = useLockFn(
     async (event: DragEndEvent) => {
       setDraggingItem(null);
       const { active, over } = event;
@@ -185,10 +185,9 @@ const ProfilePage = () => {
       const overId = over.id.toString();
       await reorderProfile(activeId, overId);
     },
-    [reorderProfile],
   );
 
-  const handleChainDragEnd = useCallback(
+  const handleChainDragEnd = useLockFn(
     async (event: DragEndEvent) => {
       setDraggingItem(null);
       const { active, over } = event;
@@ -207,7 +206,6 @@ const ProfilePage = () => {
         await onEnhance();
       }
     },
-    [globalChainItems, enabledGlobalChainUids, onEnhance, reorderProfile],
   );
 
   const onImport = useCallback(async () => {
