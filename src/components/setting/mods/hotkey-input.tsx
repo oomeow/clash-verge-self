@@ -98,6 +98,7 @@ export const HotkeyInput = (props: Props) => {
             }
           }}
           onKeyDown={(e) => {
+            if (e.repeat) return;
             e.preventDefault();
             e.stopPropagation();
 
