@@ -429,8 +429,10 @@
           "clear": "پاک کردن همه",
           "conflict": "این کلید میانبر از قبل وجود دارد",
           "invalid": "کلید میانبر نمی‌تواند فقط شامل کلیدهای تغییردهنده باشد",
+          "notAvailable": "در دسترس نیست",
           "actions": {
             "openOrCloseDashboard": "باز/بستن داشبورد",
+            "closeDashboard": "بستن داشبورد",
             "ruleMode": "حالت قانون",
             "globalMode": "حالت جهانی",
             "directMode": "حالت مستقیم",

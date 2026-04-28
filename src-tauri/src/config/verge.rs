@@ -15,7 +15,7 @@ fn default_app_hotkeys() -> Vec<String> {
     }
     #[cfg(not(target_os = "macos"))]
     {
-        vec![HotkeyAction::OpenOrCloseDashboard.to_config_entry("ESCAPE")]
+        vec![HotkeyAction::CloseDashboard.to_config_entry("ESCAPE")]
     }
 }
 

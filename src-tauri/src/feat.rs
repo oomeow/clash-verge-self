@@ -32,6 +32,13 @@ pub fn open_or_close_dashboard() {
     resolve::create_window();
 }
 
+/// 关闭面板
+pub fn close_dashboard() {
+    if let Some(window) = handle::Handle::get_window() {
+        let _ = window.close();
+    }
+}
+
 /// 重启clash
 pub fn restart_clash_core() {
     tauri::async_runtime::spawn(async {

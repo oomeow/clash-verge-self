@@ -13,10 +13,12 @@ import {
 } from "@/utils/parse-hotkey";
 
 const OS = getSystem();
+const HOTKEY_INPUT_WIDTH = 204;
 
 const KeyWrapper = styled("div")(({ theme }) => ({
   position: "relative",
-  width: 165,
+  flex: 1,
+  minWidth: 0,
   minHeight: 36,
 
   "> input": {
@@ -40,7 +42,7 @@ const KeyWrapper = styled("div")(({ theme }) => ({
     height: "100%",
     minHeight: 36,
     boxSizing: "border-box",
-    padding: "3px 4px",
+    padding: "3px 5px",
     border: "1px solid",
     borderRadius: 4,
     borderColor: alpha(theme.palette.text.secondary, 0.15),
@@ -59,7 +61,7 @@ const KeyWrapper = styled("div")(({ theme }) => ({
     lineHeight: 1,
     borderRadius: "2px",
     padding: "2px 6px",
-    backgroundColor: alpha(theme.palette.primary.main, 0.4),
+    backgroundColor: alpha(theme.palette.primary.main, 0.7),
     fontFamily:
       OS === "macos"
         ? "-apple-system, BlinkMacSystemFont, system-ui, sans-serif"
@@ -87,7 +89,12 @@ export const HotkeyInput = (props: Props) => {
   }, [value]);
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center" }}>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        width: HOTKEY_INPUT_WIDTH,
+      }}>
       <KeyWrapper>
         <input
           onKeyUp={() => {

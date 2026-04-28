@@ -19,6 +19,11 @@ import { HotkeyInput } from "./hotkey-input";
 
 type HotkeyScope = "global" | "app";
 type HotkeyMap = Record<string, string[]>;
+type HotkeyAction = {
+  func: string;
+  label: string;
+  scopes: HotkeyScope[];
+};
 type RestoreHotkeyItem = {
   id: string;
   scope: HotkeyScope;
@@ -32,9 +37,13 @@ type HotkeySnapshot = {
   appMap: HotkeyMap;
 };
 
+const HOTKEY_CELL_WIDTH = 204;
+
 const ItemWrapper = styled("div")`
   display: grid;
-  grid-template-columns: minmax(140px, 1fr) 204px 204px;
+  grid-template-columns:
+    minmax(140px, 1fr)
+    ${HOTKEY_CELL_WIDTH}px ${HOTKEY_CELL_WIDTH}px;
   align-items: center;
   gap: 12px;
   margin-bottom: 8px;
@@ -43,6 +52,24 @@ const ItemWrapper = styled("div")`
 const HeaderWrapper = styled(ItemWrapper)`
   margin-bottom: 12px;
 `;
+
+const DisabledHotkeyCell = styled("div")(({ theme }) => ({
+  width: HOTKEY_CELL_WIDTH,
+  minHeight: 36,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  boxSizing: "border-box",
+  border: "1px dashed",
+  borderColor: theme.palette.action.disabledBackground,
+  borderRadius: 4,
+  color: theme.palette.text.disabled,
+  backgroundColor: theme.palette.action.hover,
+  fontSize: 12,
+  lineHeight: 1,
+  letterSpacing: 0.2,
+  userSelect: "none",
+}));
 
 const ActionWrapper = styled("div")`
   display: flex;
@@ -120,33 +147,64 @@ const PreviousHotkeyScope = styled("span")(({ theme }) => ({
   },
 }));
 
-const HOTKEY_FUNC = [
-  "open_or_close_dashboard",
-  "clash_mode_rule",
-  "clash_mode_global",
-  "clash_mode_direct",
-  "toggle_system_proxy",
-  "toggle_tun_mode",
-  "exit_app",
+const HOTKEY_ACTIONS: HotkeyAction[] = [
+  {
+    func: "open_or_close_dashboard",
+    label: "pages.settings.verge.hotkeys.actions.openOrCloseDashboard",
+    scopes: ["global"],
+  },
+  {
+    func: "close_dashboard",
+    label: "pages.settings.verge.hotkeys.actions.closeDashboard",
+    scopes: ["app"],
+  },
+  {
+    func: "clash_mode_rule",
+    label: "pages.settings.verge.hotkeys.actions.ruleMode",
+    scopes: ["global", "app"],
+  },
+  {
+    func: "clash_mode_global",
+    label: "pages.settings.verge.hotkeys.actions.globalMode",
+    scopes: ["global", "app"],
+  },
+  {
+    func: "clash_mode_direct",
+    label: "pages.settings.verge.hotkeys.actions.directMode",
+    scopes: ["global", "app"],
+  },
+  {
+    func: "toggle_system_proxy",
+    label: "pages.settings.verge.hotkeys.actions.toggleSystemProxy",
+    scopes: ["global", "app"],
+  },
+  {
+    func: "toggle_tun_mode",
+    label: "pages.settings.verge.hotkeys.actions.toggleTunMode",
+    scopes: ["global", "app"],
+  },
+  {
+    func: "exit_app",
+    label: "pages.settings.verge.hotkeys.actions.exitApp",
+    scopes: ["app"],
+  },
 ];
 
-const HOTKEY_LABEL_KEY: Record<(typeof HOTKEY_FUNC)[number], string> = {
-  open_or_close_dashboard:
-    "pages.settings.verge.hotkeys.actions.openOrCloseDashboard",
-  clash_mode_rule: "pages.settings.verge.hotkeys.actions.ruleMode",
-  clash_mode_global: "pages.settings.verge.hotkeys.actions.globalMode",
-  clash_mode_direct: "pages.settings.verge.hotkeys.actions.directMode",
-  toggle_system_proxy: "pages.settings.verge.hotkeys.actions.toggleSystemProxy",
-  toggle_tun_mode: "pages.settings.verge.hotkeys.actions.toggleTunMode",
-  exit_app: "pages.settings.verge.hotkeys.actions.exitApp",
-};
+const HOTKEY_LABEL_KEY = Object.fromEntries(
+  HOTKEY_ACTIONS.map((action) => [action.func, action.label]),
+);
 
-const parseHotkeyMap = (hotkeys?: string[]) => {
+const isScopeAllowed = (func: string, scope: HotkeyScope) =>
+  HOTKEY_ACTIONS.some(
+    (action) => action.func === func && action.scopes.includes(scope),
+  );
+
+const parseHotkeyMap = (hotkeys: string[] | undefined, scope: HotkeyScope) => {
   const map: HotkeyMap = {};
 
   hotkeys?.forEach((text) => {
     const parsed = parseHotkeyText(text);
-    if (parsed) {
+    if (parsed && isScopeAllowed(parsed.func, scope)) {
       map[parsed.func] = parsed.keys;
     }
   });
@@ -159,9 +217,13 @@ const serializeHotkeyMap = (map: HotkeyMap) =>
     .map(([func, keys]) => serializeHotkey(func, keys ?? []))
     .filter(Boolean);
 
-const isSameHotkeyTexts = (left: string[] = [], right: string[] = []) => {
-  const leftHotkeys = serializeHotkeyMap(parseHotkeyMap(left)).sort();
-  const rightHotkeys = serializeHotkeyMap(parseHotkeyMap(right)).sort();
+const isSameHotkeyTexts = (
+  left: string[] = [],
+  right: string[] = [],
+  scope: HotkeyScope,
+) => {
+  const leftHotkeys = serializeHotkeyMap(parseHotkeyMap(left, scope)).sort();
+  const rightHotkeys = serializeHotkeyMap(parseHotkeyMap(right, scope)).sort();
 
   return (
     leftHotkeys.length === rightHotkeys.length &&
@@ -267,8 +329,8 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
     const snapshot = {
       global: vergeHotkeys,
       app: vergeAppHotkeys,
-      globalMap: parseHotkeyMap(vergeHotkeys),
-      appMap: parseHotkeyMap(vergeAppHotkeys),
+      globalMap: parseHotkeyMap(vergeHotkeys, "global"),
+      appMap: parseHotkeyMap(vergeAppHotkeys, "app"),
     };
 
     initialHotkeysRef.current = snapshot;
@@ -285,6 +347,8 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   };
 
   const updateHotkey = (scope: HotkeyScope, func: string, keys: string[]) => {
+    if (!isScopeAllowed(func, scope)) return;
+
     const next =
       scope === "global"
         ? {
@@ -315,12 +379,12 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   const initial = initialHotkeysRef.current;
   const globalHotkeys = serializeHotkeyMap(globalHotkeyMap);
   const appHotkeys = serializeHotkeyMap(appHotkeyMap);
+  const isEmptyInitKeys = !initial.global.length && !initial.app.length;
   const hasHotkeyChanges =
-    !isSameHotkeyTexts(initial.global, globalHotkeys) ||
-    !isSameHotkeyTexts(initial.app, appHotkeys);
-  const hasHotkeys = !!globalHotkeys.length || !!appHotkeys.length;
+    !isSameHotkeyTexts(initial.global, globalHotkeys, "global") ||
+    !isSameHotkeyTexts(initial.app, appHotkeys, "app");
   const restoreHotkeyItems = getRestoreItems(
-    HOTKEY_FUNC,
+    HOTKEY_ACTIONS.map((action) => action.func),
     initial,
     globalHotkeyMap,
     appHotkeyMap,
@@ -377,7 +441,25 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
   return (
     <BaseDialog
       open={open}
-      title={t("pages.settings.verge.hotkeys.title")}
+      title={
+        <div className="flex w-full items-center justify-between">
+          <span>{t("pages.settings.verge.hotkeys.title")}</span>
+          <ActionButtons>
+            {hasHotkeyChanges && !isEmptyInitKeys && (
+              <Button variant="contained" size="small" onClick={restoreHotkeys}>
+                {t("pages.settings.verge.hotkeys.restore")}
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              size="small"
+              color="error"
+              onClick={clearHotkeys}>
+              {t("pages.settings.verge.hotkeys.clear")}
+            </Button>
+          </ActionButtons>
+        </div>
+      }
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
       loading={saving}
@@ -385,47 +467,25 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
       onCancel={cancelHotkeySettings}
       onOk={saveHotkeys}
       contentStyle={{ maxWidth: 640 }}>
-      {(hasHotkeyChanges || hasHotkeys) && (
+      {hasHotkeyChanges && !isEmptyInitKeys && (
         <ActionWrapper>
-          {hasHotkeyChanges ? (
-            <PreviousHotkeyActions>
-              {restoreHotkeyItems.map((item) => (
-                <PreviousHotkeyChip
-                  key={item.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() =>
-                    updateHotkey(item.scope, item.func, item.keys)
-                  }>
-                  <PreviousHotkeyScope data-scope={item.scope}>
-                    {t(`pages.settings.verge.hotkeys.${item.scope}`)}
-                  </PreviousHotkeyScope>
-                  <span>{t(HOTKEY_LABEL_KEY[item.func])}</span>
-                  <PreviousHotkeyKey>
-                    {formatHotkeyKeys(item.keys)}
-                  </PreviousHotkeyKey>
-                </PreviousHotkeyChip>
-              ))}
-            </PreviousHotkeyActions>
-          ) : (
-            <span />
-          )}
-          <ActionButtons>
-            {hasHotkeyChanges && (
-              <Button variant="contained" size="small" onClick={restoreHotkeys}>
-                {t("pages.settings.verge.hotkeys.restore")}
-              </Button>
-            )}
-            {hasHotkeys && (
-              <Button
-                variant="contained"
-                size="small"
-                color="error"
-                onClick={clearHotkeys}>
-                {t("pages.settings.verge.hotkeys.clear")}
-              </Button>
-            )}
-          </ActionButtons>
+          <PreviousHotkeyActions>
+            {restoreHotkeyItems.map((item) => (
+              <PreviousHotkeyChip
+                key={item.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => updateHotkey(item.scope, item.func, item.keys)}>
+                <PreviousHotkeyScope data-scope={item.scope}>
+                  {t(`pages.settings.verge.hotkeys.${item.scope}`)}
+                </PreviousHotkeyScope>
+                <span>{t(HOTKEY_LABEL_KEY[item.func])}</span>
+                <PreviousHotkeyKey>
+                  {formatHotkeyKeys(item.keys)}
+                </PreviousHotkeyKey>
+              </PreviousHotkeyChip>
+            ))}
+          </PreviousHotkeyActions>
         </ActionWrapper>
       )}
       <HeaderWrapper>
@@ -437,19 +497,31 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
           {t("pages.settings.verge.hotkeys.app")}
         </Typography>
       </HeaderWrapper>
-      {HOTKEY_FUNC.map((func) => (
+      {HOTKEY_ACTIONS.map(({ func, label, scopes }) => (
         <ItemWrapper key={func}>
-          <Typography>{t(HOTKEY_LABEL_KEY[func])}</Typography>
-          <HotkeyInput
-            value={globalHotkeyMap[func] ?? []}
-            onChange={(v) => updateHotkey("global", func, v)}
-            onDelete={() => updateHotkey("global", func, [])}
-          />
-          <HotkeyInput
-            value={appHotkeyMap[func] ?? []}
-            onChange={(v) => updateHotkey("app", func, v)}
-            onDelete={() => updateHotkey("app", func, [])}
-          />
+          <Typography>{t(label)}</Typography>
+          {scopes.includes("global") ? (
+            <HotkeyInput
+              value={globalHotkeyMap[func] ?? []}
+              onChange={(v) => updateHotkey("global", func, v)}
+              onDelete={() => updateHotkey("global", func, [])}
+            />
+          ) : (
+            <DisabledHotkeyCell aria-hidden="true">
+              {t("pages.settings.verge.hotkeys.notAvailable")}
+            </DisabledHotkeyCell>
+          )}
+          {scopes.includes("app") ? (
+            <HotkeyInput
+              value={appHotkeyMap[func] ?? []}
+              onChange={(v) => updateHotkey("app", func, v)}
+              onDelete={() => updateHotkey("app", func, [])}
+            />
+          ) : (
+            <DisabledHotkeyCell aria-hidden="true">
+              {t("pages.settings.verge.hotkeys.notAvailable")}
+            </DisabledHotkeyCell>
+          )}
         </ItemWrapper>
       ))}
     </BaseDialog>
