@@ -1,7 +1,6 @@
 import { Box, Button, LinearProgress } from "@mui/material";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { open as openUrl } from "@tauri-apps/plugin-shell";
-import { check } from "@tauri-apps/plugin-updater";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import { useLockFn } from "ahooks";
 import React, {
@@ -11,12 +10,12 @@ import React, {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import useSWR from "swr";
 
 import { BaseDialog, DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { usePortable } from "@/hooks/use-portable";
 import { useWindowSize } from "@/hooks/use-window-size";
+import { useCheckUpdateSWR } from "@/services/swr";
 import { useAppUpdatingStore, useThemeModeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
@@ -32,11 +31,7 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
   const { size } = useWindowSize();
   const { portable } = usePortable();
 
-  const { data: updateInfo } = useSWR("checkUpdate", check, {
-    errorRetryCount: 2,
-    revalidateIfStale: false,
-    focusThrottleInterval: 36e5, // 1 hour
-  });
+  const { data: updateInfo } = useCheckUpdateSWR();
 
   const [downloaded, setDownloaded] = useState(0);
   const [buffer, setBuffer] = useState(0);

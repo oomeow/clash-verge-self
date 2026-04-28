@@ -14,7 +14,6 @@ import { debounce } from "lodash-es";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PulseLoader } from "react-spinners";
-import { mutate } from "swr";
 import {
   closeAllConnections,
   MihomoWebSocket,
@@ -85,10 +84,6 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       await changeClashCore(core);
       patchVerge({ clash_core: core });
       await MihomoWebSocket.cleanupAll();
-      setTimeout(() => {
-        mutate("getClashConfig");
-        mutate("getVersion");
-      }, 1000);
       notice(
         "success",
         t("messages.clash.core.switched", { core: `${core}` }),

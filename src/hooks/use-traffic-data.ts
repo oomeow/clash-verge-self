@@ -1,9 +1,8 @@
 import { useEffect, useRef } from "react";
-import { mutate } from "swr";
-import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 
 import { TrafficRef } from "@/components/layout/traffic-graph";
+import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useRefreshTrafficDateStore } from "@/stores";
 
 export const useTrafficData = () => {
@@ -74,7 +73,7 @@ export const useTrafficData = () => {
   );
 
   useEffect(() => {
-    mutate(`$sub$${subscriptKey}`);
+    mutate(swrSubscriptionKey(subscriptKey));
   }, [date, subscriptKey]);
 
   const refreshGetClashTraffic = () => {

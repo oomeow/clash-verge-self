@@ -13,10 +13,9 @@ import dayjs from "dayjs";
 import { throttle } from "lodash-es";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import useSWR, { mutate } from "swr";
 import { updateProxyProvider } from "tauri-plugin-mihomo-api";
 
-import { calcuProxyProviders } from "@/services/api";
+import { mutate, swrKeys, useProxyProvidersSWR } from "@/services/swr";
 import { cn } from "@/utils";
 import parseTraffic from "@/utils/parse-traffic";
 
@@ -24,10 +23,7 @@ import { BaseDialog } from "../base";
 
 export const ProviderButton = () => {
   const { t } = useTranslation();
-  const { data = {}, mutate: mutateProxyProviders } = useSWR(
-    "getProxyProviders",
-    calcuProxyProviders,
-  );
+  const { data = {}, mutate: mutateProxyProviders } = useProxyProvidersSWR();
   const entries = Object.entries(data);
   const keys = entries.map(([key]) => key);
 
@@ -56,13 +52,13 @@ export const ProviderButton = () => {
   const updateAll = throttle(async () => {
     const tasks = keys.map((key, index) => handleUpdate(key, index));
     await Promise.all(tasks);
-    mutate("getProxies");
+    mutate(swrKeys.proxies);
     mutateProxyProviders();
   }, 1000);
 
   const updateOne = throttle(async (key: string) => {
     await handleUpdate(key, keys.indexOf(key));
-    mutate("getProxies");
+    mutate(swrKeys.proxies);
     mutateProxyProviders();
   }, 1000);
 

@@ -11,7 +11,6 @@ import i18next from "i18next";
 import { debounce } from "lodash-es";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { mutate, SWRConfig } from "swr";
 
 import { TailwindIndicator } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
@@ -21,7 +20,8 @@ import { useAppHotkeys } from "@/hooks/use-app-hotkeys";
 import { usePortable } from "@/hooks/use-portable";
 import { useVisibility } from "@/hooks/use-visibility";
 import LoadingPage from "@/pages/loading";
-import { useProfilesStore, useVergeStore } from "@/stores";
+import { appSWRConfig, refreshClashSWR, SWRConfig } from "@/services/swr";
+import { useProfilesStore, useRulesStateStore, useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 
@@ -53,6 +53,8 @@ const Layout = () => {
   const hotkeys = useVergeStore((s) => s.verge.hotkeys);
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
   const refreshProfilesConfig = useProfilesStore((s) => s.refreshConfig);
+  const fetchRules = useRulesStateStore((s) => s.fetchRules);
+
   useAppHotkeys(appHotkeys, hotkeys);
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
@@ -84,13 +86,8 @@ const Layout = () => {
 
     const unlistenRefreshClash = listen("verge://refresh-clash-config", () => {
       // the clash info may be updated
-      mutate("getProxies");
-      mutate("getRules");
-      mutate("getVersion");
-      mutate("getClashConfig");
-      mutate("getClashInfo");
-      mutate("getRuntimeConfig");
-      mutate("getProxyProviders");
+      refreshClashSWR();
+      fetchRules();
     });
 
     // update the verge config
@@ -163,13 +160,7 @@ const Layout = () => {
   }, [pathname, pendingPath]);
 
   return (
-    <SWRConfig
-      value={{
-        errorRetryCount: 10,
-        errorRetryInterval: 1000,
-        revalidateOnFocus: true,
-        revalidateOnMount: true,
-      }}>
+    <SWRConfig value={appSWRConfig}>
       <Paper
         square
         elevation={0}
