@@ -9,10 +9,10 @@ import { useNotice } from "@/components/base/notifies";
 import { useVergeStore } from "@/stores";
 import {
   formatHotkeyKeys,
-  normalizeKeyList,
   normalizeKeys,
   parseHotkeyText,
   serializeHotkey,
+  sortKeys,
 } from "@/utils/parse-hotkey";
 
 import { HotkeyInput } from "./hotkey-input";
@@ -181,7 +181,7 @@ const updateHotkeyMap = (map: HotkeyMap, func: string, keys: string[]) => {
   const next = { ...map };
 
   if (keys.length) {
-    next[func] = normalizeKeyList(keys);
+    next[func] = sortKeys(keys);
   } else {
     delete next[func];
   }

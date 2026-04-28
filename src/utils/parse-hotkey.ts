@@ -2,9 +2,7 @@ import getSystem from "./get-system";
 
 const OS = getSystem();
 
-export const MODIFIER_KEYS = new Set(["CMD", "CTRL", "OPTION", "ALT", "SHIFT"]);
-
-const HOTKEY_TOKEN_ORDER = ["CMD", "CTRL", "OPTION", "ALT", "SHIFT"];
+export const MODIFIER_KEYS = ["CTRL", "OPTION", "ALT", "SHIFT", "CMD"];
 
 const CODE_MAP: Record<string, string> = {
   BACKQUOTE: "`",
@@ -79,44 +77,43 @@ const normalizeHotkeyKey = (key: string) => {
   return normalizeModifierKey(value) ?? value.toUpperCase();
 };
 
-export const normalizeKeyList = (keys: string[]) => {
+export const sortKeys = (keys: string[]) => {
   const keySet = new Set(
     keys.map(normalizeHotkeyKey).filter((key) => key && key !== "UNIDENTIFIED"),
   );
-  const modifiers = HOTKEY_TOKEN_ORDER.filter((key) => keySet.delete(key));
+  const modifiers = MODIFIER_KEYS.filter((key) => keySet.delete(key));
   const others = [...keySet].sort();
 
   return [...modifiers, ...others];
 };
 
-export const normalizeKeys = (keys: string[]) =>
-  normalizeKeyList(keys).join("+");
+export const normalizeKeys = (keys: string[]) => sortKeys(keys).join("+");
 
 export const formatHotkeyKey = (key: string) => HOTKEY_LABELS[key] ?? key;
 
 export const formatHotkeyKeys = (keys: string[]) =>
-  normalizeKeyList(keys).map(formatHotkeyKey).join(" + ");
+  sortKeys(keys).map(formatHotkeyKey).join(" + ");
 
 export const parseHotkeyText = (text: string): HotkeyText | null => {
   const [func, key] = text.split(",").map((item) => item.trim());
   if (!func || !key) return null;
 
-  const keys = normalizeKeyList(key.split("+"));
+  const keys = sortKeys(key.split("+"));
   if (!keys.length) return null;
 
   return { func, keys, id: normalizeKeys(keys) };
 };
 
 export const serializeHotkey = (func: string, keys: string[]) => {
-  const key = normalizeKeyList(keys)
+  const key = sortKeys(keys)
     .map((item) => (item === "+" ? "PLUS" : item))
     .join("+");
 
   return func && key ? `${func},${key}` : "";
 };
 
-const parseKeyCode = (event: KeyboardEvent) => {
-  let key = event.code.toUpperCase();
+const parseKeyCode = (code: string) => {
+  let key = code.toUpperCase();
   const mappedCode = CODE_MAP[key];
   if (mappedCode) return mappedCode;
 
@@ -143,12 +140,12 @@ export const parseHotkey = (event: KeyboardEvent) => {
   if (event.altKey) keys.push(OS === "macos" ? "OPTION" : "ALT");
   if (event.shiftKey) keys.push("SHIFT");
 
-  const key = parseKeyCode(event);
-  if (!MODIFIER_KEYS.has(normalizeHotkeyKey(key))) {
+  const key = parseKeyCode(event.code);
+  if (!MODIFIER_KEYS.includes(normalizeHotkeyKey(key))) {
     keys.push(key);
   }
 
-  return normalizeKeyList(keys);
+  return sortKeys(keys);
 };
 
 export const getHotkeyEventId = (event: KeyboardEvent) => {

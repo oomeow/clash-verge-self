@@ -8,8 +8,8 @@ import getSystem from "@/utils/get-system";
 import {
   formatHotkeyKey,
   MODIFIER_KEYS,
-  normalizeKeyList,
   parseHotkey,
+  sortKeys,
 } from "@/utils/parse-hotkey";
 
 const OS = getSystem();
@@ -83,7 +83,7 @@ export const HotkeyInput = (props: Props) => {
 
   useEffect(() => {
     modifierOnlyKeysRef.current = [];
-    setKeys(normalizeKeyList(value));
+    setKeys(sortKeys(value));
   }, [value]);
 
   return (
@@ -94,7 +94,7 @@ export const HotkeyInput = (props: Props) => {
             if (modifierOnlyKeysRef.current.length) {
               notice("error", t("pages.settings.verge.hotkeys.invalid"));
               modifierOnlyKeysRef.current = [];
-              setKeys(normalizeKeyList(value));
+              setKeys(sortKeys(value));
             }
           }}
           onKeyDown={(e) => {
@@ -106,7 +106,7 @@ export const HotkeyInput = (props: Props) => {
 
             setKeys(nextKeys);
 
-            if (nextKeys.every((key) => MODIFIER_KEYS.has(key))) {
+            if (nextKeys.every((key) => MODIFIER_KEYS.includes(key))) {
               modifierOnlyKeysRef.current = nextKeys;
               return;
             }
