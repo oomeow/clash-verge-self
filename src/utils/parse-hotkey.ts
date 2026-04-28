@@ -2,6 +2,10 @@ import getSystem from "./get-system";
 
 const OS = getSystem();
 
+export const MODIFIER_KEYS = new Set(["CMD", "CTRL", "OPTION", "ALT", "SHIFT"]);
+
+const HOTKEY_TOKEN_ORDER = ["CMD", "CTRL", "OPTION", "ALT", "SHIFT"];
+
 const CODE_MAP: Record<string, string> = {
   BACKQUOTE: "`",
   BACKSLASH: "\\",
@@ -16,8 +20,105 @@ const CODE_MAP: Record<string, string> = {
   SLASH: "/",
 };
 
-export const parseHotkey = (keyCode: string) => {
-  let key = keyCode.toUpperCase();
+const HOTKEY_LABELS: Record<string, string> = {
+  BACKSPACE: OS === "macos" ? "⌫" : "Backspace",
+  CAPSLOCK: OS === "macos" ? "⇪" : "Caps Lock",
+  CMD:
+    OS === "macos"
+      ? "⌘"
+      : OS === "windows"
+        ? "Win"
+        : OS === "linux"
+          ? "Super"
+          : "Meta",
+  CTRL: OS === "macos" ? "⌃" : "Ctrl",
+  DELETE: OS === "macos" ? "⌦" : "Del",
+  DOWN: OS === "macos" ? "↓" : "Down",
+  ENTER: OS === "macos" ? "↵" : "Enter",
+  ESCAPE: "Esc",
+  LEFT: OS === "macos" ? "←" : "Left",
+  OPTION: OS === "macos" ? "⌥" : "Alt",
+  PAGEUP: "Page Up",
+  PAGEDOWN: "Page Down",
+  RIGHT: OS === "macos" ? "→" : "Right",
+  SHIFT: OS === "macos" ? "⇧" : "Shift",
+  SPACE: "Space",
+  TAB: OS === "macos" ? "⇥" : "Tab",
+  UP: OS === "macos" ? "↑" : "Up",
+};
+
+type HotkeyText = {
+  func: string;
+  keys: string[];
+  id: string;
+};
+
+const normalizeModifierKey = (key: string) => {
+  switch (key.toUpperCase()) {
+    case "CONTROL":
+    case "CTRL":
+      return "CTRL";
+    case "ALT":
+    case "OPTION":
+      return OS === "macos" ? "OPTION" : "ALT";
+    case "META":
+    case "CMD":
+      return "CMD";
+    case "SHIFT":
+      return "SHIFT";
+    default:
+      return null;
+  }
+};
+
+const normalizeHotkeyKey = (key: string) => {
+  const value = key.trim();
+  if (!value) return "";
+  if (value === "PLUS") return "+";
+
+  return normalizeModifierKey(value) ?? value.toUpperCase();
+};
+
+export const normalizeKeyList = (keys: string[]) => {
+  const keySet = new Set(
+    keys.map(normalizeHotkeyKey).filter((key) => key && key !== "UNIDENTIFIED"),
+  );
+  const modifiers = HOTKEY_TOKEN_ORDER.filter((key) => keySet.delete(key));
+  const others = [...keySet].sort();
+
+  return [...modifiers, ...others];
+};
+
+export const normalizeKeys = (keys: string[]) =>
+  normalizeKeyList(keys).join("+");
+
+export const formatHotkeyKey = (key: string) => HOTKEY_LABELS[key] ?? key;
+
+export const formatHotkeyKeys = (keys: string[]) =>
+  normalizeKeyList(keys).map(formatHotkeyKey).join(" + ");
+
+export const parseHotkeyText = (text: string): HotkeyText | null => {
+  const [func, key] = text.split(",").map((item) => item.trim());
+  if (!func || !key) return null;
+
+  const keys = normalizeKeyList(key.split("+"));
+  if (!keys.length) return null;
+
+  return { func, keys, id: normalizeKeys(keys) };
+};
+
+export const serializeHotkey = (func: string, keys: string[]) => {
+  const key = normalizeKeyList(keys)
+    .map((item) => (item === "+" ? "PLUS" : item))
+    .join("+");
+
+  return func && key ? `${func},${key}` : "";
+};
+
+const parseKeyCode = (event: KeyboardEvent) => {
+  let key = event.code.toUpperCase();
+  const mappedCode = CODE_MAP[key];
+  if (mappedCode) return mappedCode;
 
   if (key.startsWith("KEY")) {
     key = key.slice(3);
@@ -31,20 +132,25 @@ export const parseHotkey = (keyCode: string) => {
     key = key.slice(0, -5);
   }
 
-  switch (key) {
-    case "CONTROL":
-      return "CTRL";
-    case "ALT":
-      if (OS === "macos") {
-        return "OPTION";
-      } else {
-        return "ALT";
-      }
-    case "META":
-      return "CMD";
-    case "SPACE":
-      return "SPACE";
-    default:
-      return CODE_MAP[key] || key;
+  return key;
+};
+
+export const parseHotkey = (event: KeyboardEvent) => {
+  const keys: string[] = [];
+
+  if (event.metaKey) keys.push("CMD");
+  if (event.ctrlKey) keys.push("CTRL");
+  if (event.altKey) keys.push(OS === "macos" ? "OPTION" : "ALT");
+  if (event.shiftKey) keys.push("SHIFT");
+
+  const key = parseKeyCode(event);
+  if (!MODIFIER_KEYS.has(normalizeHotkeyKey(key))) {
+    keys.push(key);
   }
+
+  return normalizeKeyList(keys);
+};
+
+export const getHotkeyEventId = (event: KeyboardEvent) => {
+  return normalizeKeys(parseHotkey(event));
 };

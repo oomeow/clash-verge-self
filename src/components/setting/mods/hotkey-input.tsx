@@ -4,40 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useNotice } from "@/components/base/notifies";
-import { MODIFIER_KEYS, normalizeKeyList } from "@/hooks/use-app-hotkeys";
 import getSystem from "@/utils/get-system";
-import { parseHotkey } from "@/utils/parse-hotkey";
+import {
+  formatHotkeyKey,
+  MODIFIER_KEYS,
+  normalizeKeyList,
+  parseHotkey,
+} from "@/utils/parse-hotkey";
 
 const OS = getSystem();
-
-const HOTKEY_LABELS: Record<string, string> = {
-  BACKSPACE: OS === "macos" ? "⌫" : "Backspace",
-  CAPSLOCK: OS === "macos" ? "⇪" : "Caps Lock",
-  CMD:
-    OS === "macos"
-      ? "⌘"
-      : OS === "windows"
-        ? "Win"
-        : OS === "linux"
-          ? "Super"
-          : "Meta",
-  CTRL: OS === "macos" ? "⌃" : "Ctrl",
-  DELETE: OS === "macos" ? "⌦" : "Del",
-  DOWN: OS === "macos" ? "↓" : "Down",
-  ENTER: OS === "macos" ? "↵" : "Enter",
-  ESCAPE: "Esc",
-  LEFT: OS === "macos" ? "←" : "Left",
-  OPTION: OS === "macos" ? "⌥" : "Alt",
-  PAGEUP: "Page Up",
-  PAGEDOWN: "Page Down",
-  RIGHT: OS === "macos" ? "→" : "Right",
-  SHIFT: OS === "macos" ? "⇧" : "Shift",
-  SPACE: "Space",
-  TAB: OS === "macos" ? "⇥" : "Tab",
-  UP: OS === "macos" ? "↑" : "Up",
-};
-
-export const formatHotkeyKey = (key: string) => HOTKEY_LABELS[key] ?? key;
 
 const KeyWrapper = styled("div")(({ theme }) => ({
   position: "relative",
@@ -103,11 +78,11 @@ export const HotkeyInput = (props: Props) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
-  const changeRef = useRef<string[]>([]);
+  const modifierOnlyKeysRef = useRef<string[]>([]);
   const [keys, setKeys] = useState(value);
 
   useEffect(() => {
-    changeRef.current = [];
+    modifierOnlyKeysRef.current = [];
     setKeys(normalizeKeyList(value));
   }, [value]);
 
@@ -116,36 +91,28 @@ export const HotkeyInput = (props: Props) => {
       <KeyWrapper>
         <input
           onKeyUp={() => {
-            const ret = changeRef.current.slice();
-            if (ret.length) {
-              if (ret.every((key) => MODIFIER_KEYS.has(key))) {
-                notice("error", t("pages.settings.verge.hotkeys.invalid"));
-                changeRef.current = [];
-                setKeys(normalizeKeyList(value));
-                return;
-              }
-
-              onChange(ret);
-              changeRef.current = [];
+            if (modifierOnlyKeysRef.current.length) {
+              notice("error", t("pages.settings.verge.hotkeys.invalid"));
+              modifierOnlyKeysRef.current = [];
+              setKeys(normalizeKeyList(value));
             }
           }}
           onKeyDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
 
-            const evt = e.nativeEvent;
-            const key = parseHotkey(evt.code);
-            if (key === "UNIDENTIFIED") return;
+            const nextKeys = parseHotkey(e.nativeEvent);
+            if (!nextKeys.length) return;
 
-            const isModifier = MODIFIER_KEYS.has(key);
-            const hasNonModifier = changeRef.current.some(
-              (k) => !MODIFIER_KEYS.has(k),
-            );
+            setKeys(nextKeys);
 
-            if (!isModifier && hasNonModifier) return;
+            if (nextKeys.every((key) => MODIFIER_KEYS.has(key))) {
+              modifierOnlyKeysRef.current = nextKeys;
+              return;
+            }
 
-            changeRef.current = normalizeKeyList([...changeRef.current, key]);
-            setKeys(changeRef.current);
+            modifierOnlyKeysRef.current = [];
+            onChange(nextKeys);
           }}
         />
 
@@ -163,7 +130,7 @@ export const HotkeyInput = (props: Props) => {
         title="Delete"
         color="inherit"
         onClick={() => {
-          changeRef.current = [];
+          modifierOnlyKeysRef.current = [];
           setKeys([]);
           onDelete?.();
           if (!onDelete) {

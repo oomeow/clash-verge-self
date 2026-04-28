@@ -50,12 +50,11 @@ const Layout = () => {
     (s) => s.verge.enable_keep_ui_active ?? false,
   );
   const appHotkeys = useVergeStore((s) => s.verge.app_hotkeys);
-  const hotkeys = useVergeStore((s) => s.verge.hotkeys);
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
   const refreshProfilesConfig = useProfilesStore((s) => s.refreshConfig);
   const fetchRules = useRulesStateStore((s) => s.fetchRules);
 
-  useAppHotkeys(appHotkeys, hotkeys);
+  useAppHotkeys(appHotkeys);
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
