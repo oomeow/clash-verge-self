@@ -298,17 +298,17 @@ impl Sysopt {
         let app_path = format!("\"{app_path}\"");
 
         // use the /Applications/Clash Verge.app path
-        #[cfg(target_os = "macos")]
-        let app_path = (|| -> Option<String> {
-            let path = std::path::PathBuf::from(&app_path);
-            let path = path.parent()?.parent()?.parent()?;
-            let extension = path.extension()?.to_str()?;
-            match extension == "app" {
-                true => Some(path.as_os_str().to_str()?.to_string()),
-                false => None,
-            }
-        })()
-        .unwrap_or(app_path);
+        // #[cfg(target_os = "macos")]
+        // let app_path = (|| -> Option<String> {
+        //     let path = std::path::PathBuf::from(&app_path);
+        //     let path = path.parent()?.parent()?.parent()?;
+        //     let extension = path.extension()?.to_str()?;
+        //     match extension == "app" {
+        //         true => Some(path.as_os_str().to_str()?.to_string()),
+        //         false => None,
+        //     }
+        // })()
+        // .unwrap_or(app_path);
 
         // fix #403
         #[cfg(target_os = "linux")]
