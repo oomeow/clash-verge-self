@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
-import { mutate } from "swr";
-import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 
+import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useRefreshConnectionDateStore } from "@/stores";
 
 export type IClosedConnectionItem = IConnectionsItem & {
@@ -132,7 +131,7 @@ export const useConnectionData = () => {
   );
 
   useEffect(() => {
-    mutate(`$sub$${subscriptKey}`);
+    mutate(swrSubscriptionKey(subscriptKey));
   }, [date, subscriptKey]);
 
   const refreshGetClashConnection = () => {
@@ -140,7 +139,7 @@ export const useConnectionData = () => {
   };
 
   const clearClosedConnections = () => {
-    mutate(`$sub$${subscriptKey}`, {
+    mutate(swrSubscriptionKey(subscriptKey), {
       uploadTotal: response.data?.uploadTotal ?? 0,
       downloadTotal: response.data?.downloadTotal ?? 0,
       activeConnections: response.data?.activeConnections ?? [],

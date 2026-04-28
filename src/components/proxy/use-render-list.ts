@@ -1,8 +1,7 @@
 import { useEffect, useMemo } from "react";
-import useSWR from "swr";
 
 import { useWindowSize } from "@/hooks/use-window-size";
-import { calcuProxies } from "@/services/api";
+import { useProxiesSWR } from "@/services/swr";
 import { useProfilesStore, useVergeStore } from "@/stores";
 import type { HeadState } from "@/stores/proxyHeadStateStore";
 import {
@@ -24,11 +23,7 @@ export interface IRenderItem {
 }
 
 export const useRenderList = (mode: string) => {
-  const { data: proxiesData, mutate: mutateProxies } = useSWR(
-    "getProxies",
-    calcuProxies,
-    { refreshInterval: 45000 },
-  );
+  const { data: proxiesData, mutate: mutateProxies } = useProxiesSWR();
 
   const currentProfileUid = useProfilesStore((s) => s.config.current || "");
   const proxyLayoutColumn = useVergeStore(

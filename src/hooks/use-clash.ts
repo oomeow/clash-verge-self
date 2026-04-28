@@ -1,17 +1,10 @@
 import { useLockFn } from "ahooks";
-import useSWR, { mutate } from "swr";
 
-import {
-  getClashInfo,
-  getRuntimeConfig,
-  patchClashConfig,
-} from "@/services/cmds";
+import { patchClashConfig } from "@/services/cmds";
+import { useClashInfoSWR, useRuntimeConfigSWR } from "@/services/swr";
 
 export const useClash = () => {
-  const { data: clash, mutate: mutateClash } = useSWR(
-    "getRuntimeConfig",
-    getRuntimeConfig,
-  );
+  const { data: clash, mutate: mutateClash } = useRuntimeConfigSWR();
 
   const patchClash = useLockFn(async (patch: Partial<IConfigData>) => {
     await patchClashConfig(patch);
@@ -26,10 +19,7 @@ export const useClash = () => {
 };
 
 export const useClashInfo = () => {
-  const { data: clashInfo, mutate: mutateInfo } = useSWR(
-    "getClashInfo",
-    getClashInfo,
-  );
+  const { data: clashInfo, mutate: mutateInfo } = useClashInfoSWR();
 
   const patchInfo = async (
     patch: Partial<
@@ -99,7 +89,6 @@ export const useClashInfo = () => {
 
     await patchClashConfig(patch);
     mutateInfo();
-    mutate("getClashConfig");
   };
 
   return {

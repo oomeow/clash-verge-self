@@ -1,11 +1,11 @@
 import { Command } from "@tauri-apps/plugin-shell";
 import { useCallback, useEffect } from "react";
-import useSWR from "swr";
 
 import {
   checkPermissionsGranted,
   refreshPermissionsGranted,
 } from "@/services/cmds";
+import { swrKeys, useSWR } from "@/services/swr";
 import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
@@ -49,7 +49,7 @@ export const useMihomoCoresInfo = () => {
   const enableGrantPermissions = isLinuxPortable && serviceUnavailable;
 
   const { data: mihomoCoresInfo, mutate: muteMihomoCoresInfo } = useSWR(
-    "getMihomoCoresInfo",
+    swrKeys.mihomoCoresInfo,
     async () => {
       let res = defaultValue;
       res = await refreshMihomoVersion(res);

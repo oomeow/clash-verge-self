@@ -2,12 +2,12 @@ import { List, ListItem, ListItemText, TextField } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { mutate } from "swr";
 
 import { BaseDialog, DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import { checkPortAvailable } from "@/services/cmds";
+import { mutate, swrKeys } from "@/services/swr";
 import getSystem from "@/utils/get-system";
 
 const OS = getSystem();
@@ -159,7 +159,7 @@ export const ClashPortViewer = forwardRef<DialogRef>((_props, ref) => {
       }
 
       await patchInfo(updatePorts);
-      await mutate("getRuntimeConfig");
+      await mutate(swrKeys.runtimeConfig);
       setOpen(false);
       notice("success", t("messages.clash.portModified"), 1000);
     } catch (err: any) {

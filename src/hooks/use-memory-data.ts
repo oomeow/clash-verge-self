@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
-import { mutate } from "swr";
-import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 
+import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useRefreshMemoryDateStore } from "@/stores";
 
 export const useMemoryData = () => {
@@ -70,7 +69,7 @@ export const useMemoryData = () => {
   );
 
   useEffect(() => {
-    mutate(`$sub$${subscriptKey}`);
+    mutate(swrSubscriptionKey(subscriptKey));
   }, [date, subscriptKey]);
 
   const refreshGetClashMemory = () => {

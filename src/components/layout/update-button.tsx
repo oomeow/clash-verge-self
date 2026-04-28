@@ -1,7 +1,6 @@
-import { check } from "@tauri-apps/plugin-updater";
 import React, { Suspense, useRef } from "react";
-import useSWR from "swr";
 
+import { useCheckUpdateSWR } from "@/services/swr";
 import { useVergeStore } from "@/stores";
 
 import { DialogRef } from "../base";
@@ -24,15 +23,7 @@ export const UpdateButton = (props: Props) => {
 
   const viewerRef = useRef<DialogRef>(null);
 
-  const { data: updateInfo } = useSWR(
-    autoCheckUpdate ? "checkUpdate" : null,
-    check,
-    {
-      errorRetryCount: 2,
-      revalidateIfStale: false,
-      focusThrottleInterval: 36e5, // 1 hour
-    },
-  );
+  const { data: updateInfo } = useCheckUpdateSWR(autoCheckUpdate);
 
   if (!updateInfo) return null;
 

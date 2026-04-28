@@ -1,10 +1,9 @@
 import dayjs from "dayjs";
 import { useEffect, useRef } from "react";
-import { mutate } from "swr";
-import useSWRSubscription from "swr/subscription";
 import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
 
 import { getClashLogs } from "@/services/cmds";
+import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useClashLogStore, useRefreshLogsDateStore } from "@/stores";
 
 const MAX_LOG_NUM = 1000;
@@ -129,7 +128,7 @@ export const useLogData = () => {
   );
 
   useEffect(() => {
-    mutate(`$sub$${subscriptKey}`);
+    mutate(swrSubscriptionKey(subscriptKey));
   }, [date, subscriptKey]);
 
   useEffect(() => {
@@ -140,7 +139,7 @@ export const useLogData = () => {
 
   const refreshGetClashLog = (clear = false) => {
     if (clear) {
-      mutate(`$sub$${subscriptKey}`, []);
+      mutate(swrSubscriptionKey(subscriptKey), []);
     } else {
       refresh();
     }
