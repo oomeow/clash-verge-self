@@ -19,6 +19,7 @@ pub struct Hotkey {
 #[derive(Clone, Copy)]
 pub enum HotkeyAction {
     OpenOrCloseDashboard,
+    CloseDashboard,
     ClashModeRule,
     ClashModeGlobal,
     ClashModeDirect,
@@ -31,6 +32,7 @@ impl HotkeyAction {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::OpenOrCloseDashboard => "open_or_close_dashboard",
+            Self::CloseDashboard => "close_dashboard",
             Self::ClashModeRule => "clash_mode_rule",
             Self::ClashModeGlobal => "clash_mode_global",
             Self::ClashModeDirect => "clash_mode_direct",
@@ -51,6 +53,7 @@ impl TryFrom<&str> for HotkeyAction {
     fn try_from(func: &str) -> Result<Self, Self::Error> {
         match func.trim() {
             "open_or_close_dashboard" => Ok(Self::OpenOrCloseDashboard),
+            "close_dashboard" => Ok(Self::CloseDashboard),
             "clash_mode_rule" => Ok(Self::ClashModeRule),
             "clash_mode_global" => Ok(Self::ClashModeGlobal),
             "clash_mode_direct" => Ok(Self::ClashModeDirect),
@@ -65,6 +68,7 @@ impl TryFrom<&str> for HotkeyAction {
 pub fn dispatch_action(app_handle: &tauri::AppHandle, func: &str) -> AppResult<()> {
     match HotkeyAction::try_from(func)? {
         HotkeyAction::OpenOrCloseDashboard => feat::open_or_close_dashboard(),
+        HotkeyAction::CloseDashboard => feat::close_dashboard(),
         HotkeyAction::ClashModeRule => feat::change_clash_mode("rule".into()),
         HotkeyAction::ClashModeGlobal => feat::change_clash_mode("global".into()),
         HotkeyAction::ClashModeDirect => feat::change_clash_mode("direct".into()),

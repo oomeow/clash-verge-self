@@ -24,7 +24,7 @@ import {
   TextField,
 } from "@mui/material";
 import { getVersion } from "@tauri-apps/api/app";
-import { useAsyncEffect, useLockFn, useMemoizedFn } from "ahooks";
+import { useAsyncEffect, useLockFn } from "ahooks";
 import { isEqual } from "lodash-es";
 import { ReactNode, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";

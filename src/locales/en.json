@@ -429,8 +429,10 @@
           "clear": "Clear All",
           "conflict": "This hotkey already exists",
           "invalid": "Hotkeys cannot contain only modifier keys",
+          "notAvailable": "Not available",
           "actions": {
             "openOrCloseDashboard": "Open/Close Dashboard",
+            "closeDashboard": "Close Dashboard",
             "ruleMode": "Rule Mode",
             "globalMode": "Global Mode",
             "directMode": "Direct Mode",

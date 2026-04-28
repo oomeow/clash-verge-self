@@ -429,8 +429,10 @@
           "clear": "清空全部",
           "conflict": "已存在该快捷键",
           "invalid": "快捷键不能只包含修饰键",
+          "notAvailable": "不可设置",
           "actions": {
             "openOrCloseDashboard": "打开/关闭面板",
+            "closeDashboard": "关闭面板",
             "ruleMode": "规则模式",
             "globalMode": "全局模式",
             "directMode": "直连模式",
