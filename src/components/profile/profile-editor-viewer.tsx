@@ -472,8 +472,11 @@ export const ProfileEditorViewer = (props: Props) => {
 
                           if (needToEnhance) {
                             setReactivating(true);
-                            await enhanceProfiles();
-                            setReactivating(false);
+                            try {
+                              await enhanceProfiles();
+                            } finally {
+                              setReactivating(false);
+                            }
                           }
                           await fetchProfileChains(profileUid);
                         }
