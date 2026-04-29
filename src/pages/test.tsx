@@ -1,18 +1,10 @@
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  MouseSensor,
-  UniqueIdentifier,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { PointerActivationConstraints } from "@dnd-kit/dom";
+import { move } from "@dnd-kit/helpers";
+import { DragDropProvider, DragOverlay, PointerSensor } from "@dnd-kit/react";
 import { Box, Button } from "@mui/material";
 import { emit } from "@tauri-apps/api/event";
 import { nanoid } from "nanoid";
-import { memo, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 
@@ -21,16 +13,10 @@ import apple from "@/assets/image/test/apple.svg?raw";
 import github from "@/assets/image/test/github.svg?raw";
 import google from "@/assets/image/test/google.svg?raw";
 import youtube from "@/assets/image/test/youtube.svg?raw";
-import { BasePage, DraggableItem } from "@/components/base";
+import { BasePage, SortableItem } from "@/components/base";
 import { TestItem } from "@/components/test/test-item";
 import { TestViewer, TestViewerRef } from "@/components/test/test-viewer";
 import { useVergeStore } from "@/stores";
-
-const FlexDecorationItems = memo(function FlexDecorationItems() {
-  return [...Array(20)].map((_, index) => (
-    <i key={index} className="mx-1.25 my-0 flex h-0 w-45 grow"></i>
-  ));
-});
 
 const DEFAULT_TEST_LIST = [
   {
@@ -59,23 +45,18 @@ const DEFAULT_TEST_LIST = [
   },
 ];
 
+type ISortableTestItem = IVergeTestItem & { id: string };
+
 const TestPage = () => {
   const { t } = useTranslation();
   const testList = useVergeStore(
     useShallow((s) => s.verge.test_list ?? DEFAULT_TEST_LIST),
   );
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-  );
 
-  const [sortableTestList, setSortableTestList] = useState<IVergeTestItem[]>(
+  const [sortableTestList, setSortableTestList] = useState<ISortableTestItem[]>(
     [],
   );
-  const [draggingTestItem, setDraggingTestItem] =
-    useState<IVergeTestItem | null>(null);
-
-  const [overItemWidth, setOverItemWidth] = useState(180);
 
   const onTestListItemChange = async (
     uid: string,
@@ -97,38 +78,15 @@ const TestPage = () => {
     await patchVerge({ test_list: newList });
   };
 
-  const getIndex = (id: UniqueIdentifier | undefined) => {
-    if (id) {
-      return sortableTestList.findIndex((x) => x.uid === id.toString());
-    } else {
-      return -1;
-    }
-  };
-
-  const draggingTestIndex = getIndex(draggingTestItem?.uid);
-
-  const handleChainDragEnd = async (event: DragEndEvent) => {
-    setDraggingTestItem(null);
-    const { over } = event;
-    if (over) {
-      const overIndex = getIndex(over.id);
-      if (draggingTestIndex !== overIndex) {
-        const newTestList = arrayMove(
-          sortableTestList,
-          draggingTestIndex,
-          overIndex,
-        );
-        setSortableTestList(newTestList);
-        await patchVerge({ test_list: newTestList });
-      }
-    }
-  };
-
   useEffect(() => {
     if (!useVergeStore.getState().verge.test_list) {
       patchVerge({ test_list: testList });
     }
-    setSortableTestList(testList);
+    const sortable = testList.map((item) => ({
+      ...item,
+      id: item.uid,
+    }));
+    setSortableTestList(sortable);
   }, [testList]);
 
   const viewerRef = useRef<TestViewerRef>(null);
@@ -154,71 +112,52 @@ const TestPage = () => {
           </Button>
         </Box>
       }>
-      <Box sx={{ pt: "5px", px: "5px" }}>
-        <DndContext
-          sensors={sensors}
-          // onDragStart={(event) => {}}
-          onDragOver={(event) => {
-            const { over } = event;
-            if (over) {
-              const itemWidth = event.over?.rect.width;
-              if (itemWidth && itemWidth !== overItemWidth) {
-                setOverItemWidth(itemWidth);
-              }
-              const item = sortableTestList.find(
-                (item) => item.uid === event.active.id,
-              )!;
-              setDraggingTestItem(item);
-            }
+      <DragDropProvider
+        sensors={(defaults) => [
+          ...defaults,
+          PointerSensor.configure({
+            activationConstraints: [
+              new PointerActivationConstraints.Distance({ value: 5 }),
+            ],
+          }),
+        ]}
+        onDragEnd={async (event) => {
+          const newTestList = move(sortableTestList, event);
+          setSortableTestList(newTestList);
+          await patchVerge({ test_list: newTestList });
+        }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4 px-2">
+          {sortableTestList.map((item, index) => (
+            <SortableItem key={item.uid} id={item.uid} index={index}>
+              <TestItem
+                id={item.uid}
+                itemData={item}
+                onEdit={() => viewerRef.current?.edit(item)}
+                onDelete={async (uid) => await onDeleteTestListItem(uid)}
+              />
+            </SortableItem>
+          ))}
+        </div>
+        <DragOverlay>
+          {(source) => {
+            const draggingItem = sortableTestList.find(
+              (x) => x.id === source.id,
+            )!;
+            return (
+              <TestItem
+                id={draggingItem.uid}
+                itemData={draggingItem}
+                sx={{
+                  borderRadius: "8px",
+                  boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
+                }}
+                onEdit={() => {}}
+                onDelete={() => {}}
+              />
+            );
           }}
-          onDragEnd={handleChainDragEnd}
-          onDragCancel={() => setDraggingTestItem(null)}>
-          <Box sx={{ width: "100%" }}>
-            <SortableContext items={sortableTestList.map((item) => item.uid)}>
-              <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                {sortableTestList.map((item) => (
-                  <DraggableItem
-                    key={item.uid}
-                    id={item.uid}
-                    sx={{
-                      display: "flex",
-                      flexGrow: "1",
-                      margin: "5px",
-                      width: "180px",
-                    }}>
-                    <TestItem
-                      id={item.uid}
-                      isDragging={draggingTestItem?.uid === item.uid}
-                      itemData={item}
-                      onEdit={() => viewerRef.current?.edit(item)}
-                      onDelete={async (uid) => await onDeleteTestListItem(uid)}
-                    />
-                  </DraggableItem>
-                ))}
-                <FlexDecorationItems />
-              </Box>
-            </SortableContext>
-          </Box>
-          {createPortal(
-            <DragOverlay>
-              {draggingTestItem ? (
-                <TestItem
-                  sx={{
-                    width: overItemWidth,
-                    borderRadius: "8px",
-                    boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
-                  }}
-                  id={draggingTestItem.uid}
-                  itemData={draggingTestItem}
-                  onEdit={() => viewerRef.current?.edit(draggingTestItem)}
-                  onDelete={async (uid) => await onDeleteTestListItem(uid)}
-                />
-              ) : null}
-            </DragOverlay>,
-            document.body,
-          )}
-        </DndContext>
-      </Box>
+        </DragOverlay>
+      </DragDropProvider>
       <TestViewer
         ref={viewerRef}
         onChange={async (uid, value) => await onTestListItemChange(uid, value)}

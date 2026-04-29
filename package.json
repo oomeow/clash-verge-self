@@ -23,9 +23,9 @@
     "bump": "tsx scripts/bump-version.ts"
   },
   "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
+    "@dnd-kit/dom": "^0.4.0",
+    "@dnd-kit/helpers": "^0.4.0",
+    "@dnd-kit/react": "^0.4.0",
     "@juggle/resize-observer": "^3.4.0",
     "@mui/icons-material": "^7.3.9",
     "@mui/lab": "7.0.1-beta.24",
