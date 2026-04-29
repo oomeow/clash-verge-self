@@ -124,7 +124,9 @@ const TestPage = () => {
         onDragEnd={async (event) => {
           const newTestList = move(sortableTestList, event);
           setSortableTestList(newTestList);
-          await patchVerge({ test_list: newTestList });
+          await patchVerge({
+            test_list: newTestList.map(({ id, ...item }) => item),
+          });
         }}>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4 px-2">
           {sortableTestList.map((item, index) => (
