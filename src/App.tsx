@@ -12,6 +12,7 @@ import {
 import { DragImportOverlay } from "./components/layout/drag-import-overlay";
 import { useCustomTheme } from "./components/layout/use-custom-theme";
 import { router } from "./router";
+import { loadMonaco } from "./services/monaco";
 import {
   useProfilesStore,
   useThemeSettingsStore,
@@ -37,6 +38,7 @@ function App() {
   useMount(async () => {
     await refreshProfilesConfig();
     await refreshChainLogs();
+    await loadMonaco();
   });
 
   return (
