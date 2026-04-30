@@ -1,8 +1,7 @@
 import { StyledEngineProvider, ThemeProvider } from "@mui/material";
 import { RouterProvider } from "@tanstack/react-router";
-import { useMount } from "ahooks";
+import { useAsyncEffect, useMount } from "ahooks";
 import { SnackbarProvider } from "notistack";
-import { useEffect } from "react";
 
 import {
   BaseErrorBoundary,
@@ -29,10 +28,9 @@ function App() {
   const { theme } = useCustomTheme();
   // const theme = createTheme({ cssVariables: true });
 
-  useEffect(() => {
-    refreshVerge().then((verge) => {
-      syncThemeSettings(verge);
-    });
+  useAsyncEffect(async () => {
+    const verge = await refreshVerge();
+    syncThemeSettings(verge);
   }, [refreshVerge, syncThemeSettings]);
 
   useMount(async () => {
