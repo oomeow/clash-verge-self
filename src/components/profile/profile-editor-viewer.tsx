@@ -442,6 +442,9 @@ export const ProfileEditorViewer = (props: Props) => {
 
                   <div className="overflow-auto pl-1">
                     <DragDropProvider
+                      onDragOver={(e) => {
+                        if (reactivating) e.preventDefault();
+                      }}
                       onDragEnd={async (event) => {
                         const { operation, canceled } = event;
                         const { source, target } = operation;

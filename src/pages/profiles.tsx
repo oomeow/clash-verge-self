@@ -360,6 +360,10 @@ const ProfilePage = () => {
       </div>
       <div className="px-2">
         <DragDropProvider
+          onDragOver={(e) => {
+            // Prevent drag-and-drop when activating items are present
+            if (activatingItemUids.length > 0) e.preventDefault();
+          }}
           onDragEnd={async (event) => {
             const { operation, canceled } = event;
             const { source, target } = operation;
@@ -443,6 +447,9 @@ const ProfilePage = () => {
               {t("pages.profiles.actions.enhanceScripts")}
             </Divider>
             <DragDropProvider
+              onDragOver={(e) => {
+                if (activatingItemUids.length > 0) e.preventDefault();
+              }}
               onDragEnd={async (event) => {
                 const { operation, canceled } = event;
                 const { source, target } = operation;
