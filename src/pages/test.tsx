@@ -144,7 +144,8 @@ const TestPage = () => {
           {(source) => {
             const draggingItem = sortableTestList.find(
               (x) => x.id === source.id,
-            )!;
+            );
+            if (!draggingItem) return null;
             return (
               <TestItem
                 id={draggingItem.uid}
