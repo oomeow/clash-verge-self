@@ -111,7 +111,7 @@ importers:
         version: 6.1.1(react@19.2.5)
       react-hook-form:
         specifier: ^7.72.1
-        version: 7.73.1(react@19.2.5)
+        version: 7.74.0(react@19.2.5)
       react-i18next:
         specifier: ^17.0.2
         version: 17.0.4(i18next@26.0.8(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3)
@@ -5472,10 +5472,10 @@ packages:
         integrity: sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ==,
       }
 
-  react-hook-form@7.73.1:
+  react-hook-form@7.74.0:
     resolution:
       {
-        integrity: sha512-VAfVYOPcx3piiEVQy95vyFmBwbVUsP/AUIN+mpFG8h11yshDd444nn0VyfaGWSRnhOLVgiDu7HIuBtAIzxn9dA==,
+        integrity: sha512-yR6wHr99p9wFv686jhRWVSFhUvDvNbdUf2dKlbno8/VKOCuoNobDGC6S+M2dua9A9Yo8vpcrp8assIYbsZCQ9g==,
       }
     engines: { node: ">=18.0.0" }
     peerDependencies:
@@ -9868,7 +9868,7 @@ snapshots:
 
   react-fast-compare@3.2.2: {}
 
-  react-hook-form@7.73.1(react@19.2.5):
+  react-hook-form@7.74.0(react@19.2.5):
     dependencies:
       react: 19.2.5
 
