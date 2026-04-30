@@ -1,8 +1,7 @@
 import { StyledEngineProvider, ThemeProvider } from "@mui/material";
 import { RouterProvider } from "@tanstack/react-router";
-import { useMount } from "ahooks";
+import { useAsyncEffect, useMount } from "ahooks";
 import { SnackbarProvider } from "notistack";
-import { useEffect } from "react";
 
 import {
   BaseErrorBoundary,
@@ -12,6 +11,7 @@ import {
 import { DragImportOverlay } from "./components/layout/drag-import-overlay";
 import { useCustomTheme } from "./components/layout/use-custom-theme";
 import { router } from "./router";
+import { loadMonaco } from "./services/monaco";
 import {
   useProfilesStore,
   useThemeSettingsStore,
@@ -28,15 +28,15 @@ function App() {
   const { theme } = useCustomTheme();
   // const theme = createTheme({ cssVariables: true });
 
-  useEffect(() => {
-    refreshVerge().then((verge) => {
-      syncThemeSettings(verge);
-    });
+  useAsyncEffect(async () => {
+    const verge = await refreshVerge();
+    syncThemeSettings(verge);
   }, [refreshVerge, syncThemeSettings]);
 
   useMount(async () => {
     await refreshProfilesConfig();
     await refreshChainLogs();
+    await loadMonaco();
   });
 
   return (

@@ -104,7 +104,9 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const { item, delayVersion, onLocation, onCheckAll, onChangeProxy } = props;
   const { t } = useTranslation();
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
-  const currentProfileUid = useProfilesStore((s) => s.config.current || "");
+  const currentProfileUid = useProfilesStore(
+    (s) => s.currentProfile?.uid ?? "",
+  );
   const enableGroupIcon = useVergeStore(
     (s) => s.verge.enable_group_icon ?? true,
   );

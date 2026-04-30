@@ -50,11 +50,12 @@ const ProfilePage = () => {
   const [disabled, setDisabled] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
 
-  const config = useProfilesStore((s) => s.config);
+  const currentProfileUid = useProfilesStore((s) => s.currentProfile?.uid);
   const profileItems = useProfilesStore((s) => s.profileItems);
   const globalChainItems = useProfilesStore((s) => s.globalChainItems);
-  const enabledGlobalChainUids = useProfilesStore(
-    (s) => s.enabledGlobalChainUids,
+  const enabledGlobalChainUids = useMemo(
+    () => getEnabledUids(globalChainItems),
+    [globalChainItems],
   );
   const patchConfig = useProfilesStore((s) => s.patchConfig);
   const patchProfile = useProfilesStore((s) => s.patchProfile);
@@ -132,7 +133,7 @@ const ProfilePage = () => {
   );
 
   const onEnhance = useLockFn(async () => {
-    const nextActivatingItemUids = getActivationUids(config.current);
+    const nextActivatingItemUids = getActivationUids(currentProfileUid);
     try {
       startActivation(nextActivatingItemUids);
       await enhanceProfiles();
@@ -166,7 +167,7 @@ const ProfilePage = () => {
   }, [importProfile, notice, patchConfig, t, url]);
 
   const onSelect = useLockFn(async (current: string) => {
-    if (current === config.current || hasActivatingItems) return;
+    if (current === currentProfileUid || hasActivatingItems) return;
     const nextActivatingItemUids = getActivationUids(current);
     try {
       startActivation(nextActivatingItemUids);
@@ -181,8 +182,8 @@ const ProfilePage = () => {
 
   const onDelete = useLockFn(async (uid: string) => {
     const isEnable =
-      config.current === uid || enabledGlobalChainUids.includes(uid);
-    const nextActivatingItemUids = getActivationUids(config.current, uid);
+      currentProfileUid === uid || enabledGlobalChainUids.includes(uid);
+    const nextActivatingItemUids = getActivationUids(currentProfileUid, uid);
     try {
       if (isEnable) {
         startActivation(nextActivatingItemUids);
@@ -200,7 +201,7 @@ const ProfilePage = () => {
   const handleToggleEnable = useLockFn(
     async (chainUid: string, enable: boolean) => {
       const nextActivatingItemUids = getActivationUids(
-        config.current,
+        currentProfileUid,
         chainUid,
       );
       try {
@@ -216,7 +217,10 @@ const ProfilePage = () => {
   );
 
   const handleChainDelete = useLockFn(async (item: IProfileItem) => {
-    const nextActivatingItemUids = getActivationUids(config.current, item.uid);
+    const nextActivatingItemUids = getActivationUids(
+      currentProfileUid,
+      item.uid,
+    );
     try {
       if (item.enable) {
         startActivation(nextActivatingItemUids);
@@ -384,7 +388,7 @@ const ProfilePage = () => {
                 <ProfileItem
                   selected={
                     activatingUidSet.has(item.uid) ||
-                    (!hasActivatingItems && config.current === item.uid)
+                    (!hasActivatingItems && currentProfileUid === item.uid)
                   }
                   activating={activatingUidSet.has(item.uid)}
                   itemData={item}
@@ -409,7 +413,8 @@ const ProfilePage = () => {
                   }}
                   selected={
                     activatingUidSet.has(draggingItem.uid) ||
-                    (!hasActivatingItems && config.current === draggingItem.uid)
+                    (!hasActivatingItems &&
+                      currentProfileUid === draggingItem.uid)
                   }
                   activating={activatingUidSet.has(draggingItem.uid)}
                   itemData={draggingItem}
