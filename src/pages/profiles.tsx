@@ -408,7 +408,8 @@ const ProfilePage = () => {
             {(source) => {
               const draggingItem = sortableProfileItems.find(
                 (item) => item.uid === source.id,
-              )!;
+              );
+              if (!draggingItem) return null;
               return (
                 <ProfileItem
                   sx={{
@@ -500,7 +501,8 @@ const ProfilePage = () => {
                 {(source) => {
                   const draggingItem = sortableGlobalChainItems.find(
                     (item) => item.id === source.id,
-                  )!;
+                  );
+                  if (!draggingItem) return null;
                   return (
                     <ProfileMore
                       selected={
