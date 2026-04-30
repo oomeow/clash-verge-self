@@ -40,16 +40,7 @@ type ProfilesPersistedState = Pick<
   | "chainItemsByProfileUid"
 >;
 
-type ProfilesSnapshot = Pick<
-  ProfilesState,
-  | "currentProfile"
-  | "profileItems"
-  | "globalChainItems"
-  | "chainItemsByProfileUid"
->;
-
 type ProfilesActions = {
-  setConfig: (config: IProfilesConfig) => void;
   refreshConfig: () => Promise<IProfilesConfig>;
   patchConfig: (value: Partial<IProfilesConfig>) => Promise<void>;
   patchCurrentProfile: (value: Partial<IProfileItem>) => Promise<void>;
@@ -126,7 +117,9 @@ const pickProfilesState = (state: ProfilesState): ProfilesDerivedState => ({
   globalChainItems: state.globalChainItems,
 });
 
-const pickProfilesSnapshot = (state: ProfilesState): ProfilesSnapshot => ({
+const pickProfilesSnapshot = (
+  state: ProfilesStore,
+): ProfilesPersistedState => ({
   ...pickProfilesState(state),
   chainItemsByProfileUid: state.chainItemsByProfileUid,
 });
@@ -204,10 +197,6 @@ export const useProfilesStore = create<ProfilesStore>()(
       chainItemsByProfileUid: {},
       chainLogs: {},
       activatingItemUids: [],
-
-      setConfig: (config) => {
-        commitConfig(set, get, config);
-      },
 
       refreshConfig: async () => {
         const config = await getProfiles();
@@ -332,12 +321,7 @@ export const useProfilesStore = create<ProfilesStore>()(
     }),
     {
       name: "profiles-store",
-      partialize: (state): ProfilesPersistedState => ({
-        currentProfile: state.currentProfile,
-        profileItems: state.profileItems,
-        globalChainItems: state.globalChainItems,
-        chainItemsByProfileUid: state.chainItemsByProfileUid,
-      }),
+      partialize: pickProfilesSnapshot,
     },
   ),
 );
