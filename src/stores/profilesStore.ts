@@ -18,11 +18,9 @@ import {
 } from "@/services/cmds";
 
 type ProfilesState = {
-  config: IProfilesConfig;
   currentProfile?: IProfileItem;
   profileItems: IProfileItem[];
   globalChainItems: IProfileItem[];
-  enabledGlobalChainUids: string[];
   chainItemsByProfileUid: Record<string, IProfileItem[]>;
   chainLogs: Record<string, LogMessage[]>;
   // 切换订阅时, 使用中的订阅的激活状态
@@ -31,35 +29,18 @@ type ProfilesState = {
 
 type ProfilesDerivedState = Pick<
   ProfilesState,
-  | "config"
-  | "currentProfile"
-  | "profileItems"
-  | "globalChainItems"
-  | "enabledGlobalChainUids"
+  "currentProfile" | "profileItems" | "globalChainItems"
 >;
 
 type ProfilesPersistedState = Pick<
   ProfilesState,
-  | "config"
   | "currentProfile"
   | "profileItems"
   | "globalChainItems"
-  | "enabledGlobalChainUids"
-  | "chainItemsByProfileUid"
->;
-
-type ProfilesSnapshot = Pick<
-  ProfilesState,
-  | "config"
-  | "currentProfile"
-  | "profileItems"
-  | "globalChainItems"
-  | "enabledGlobalChainUids"
   | "chainItemsByProfileUid"
 >;
 
 type ProfilesActions = {
-  setConfig: (config: IProfilesConfig) => void;
   refreshConfig: () => Promise<IProfilesConfig>;
   patchConfig: (value: Partial<IProfilesConfig>) => Promise<void>;
   patchCurrentProfile: (value: Partial<IProfileItem>) => Promise<void>;
@@ -94,7 +75,9 @@ const isChainType = (type?: IProfileItem["type"]) =>
 
 const isEnabledChainUid = (state: ProfilesState, uid?: string) => {
   if (!uid) return false;
-  if (state.enabledGlobalChainUids.includes(uid)) return true;
+  if (state.globalChainItems.some((item) => item.uid === uid && item.enable)) {
+    return true;
+  }
   return Object.values(state.chainItemsByProfileUid).some((items) =>
     items.some((item) => item.uid === uid && item.enable),
   );
@@ -107,7 +90,7 @@ const shouldRefreshChainLogs = (
 ) => {
   if (!uid) return false;
   return (
-    uid === state.config.current ||
+    uid === state.currentProfile?.uid ||
     isEnabledChainUid(state, uid) ||
     profile?.enable === true
   );
@@ -122,25 +105,21 @@ const toProfileView = (config: IProfilesConfig = {}): ProfilesDerivedState => {
   );
 
   return {
-    config,
     currentProfile: items.find((item) => item.uid === config.current),
     profileItems: items.filter((item) => isProfileType(item.type)),
     globalChainItems,
-    enabledGlobalChainUids: globalChainItems
-      .filter((item) => item.enable)
-      .map((item) => item.uid),
   };
 };
 
 const pickProfilesState = (state: ProfilesState): ProfilesDerivedState => ({
-  config: state.config,
   currentProfile: state.currentProfile,
   profileItems: state.profileItems,
   globalChainItems: state.globalChainItems,
-  enabledGlobalChainUids: state.enabledGlobalChainUids,
 });
 
-const pickProfilesSnapshot = (state: ProfilesState): ProfilesSnapshot => ({
+const pickProfilesSnapshot = (
+  state: ProfilesStore,
+): ProfilesPersistedState => ({
   ...pickProfilesState(state),
   chainItemsByProfileUid: state.chainItemsByProfileUid,
 });
@@ -174,20 +153,6 @@ const reorderItems = <T extends { uid: string }>(
   return nextItems;
 };
 
-const reorderConfig = (
-  config: IProfilesConfig,
-  activeId: string,
-  overId: string,
-) => {
-  const items = (config.items ?? []).filter(
-    (item): item is IProfileItem => !!item,
-  );
-  return {
-    ...config,
-    items: reorderItems(items, activeId, overId),
-  };
-};
-
 const reorderChainCache = (
   cache: Record<string, IProfileItem[]>,
   activeId: string,
@@ -209,17 +174,16 @@ const commitReorder = (
   activeId: string,
   overId: string,
 ) => {
-  const nextState = toProfileView(
-    reorderConfig(get().config, activeId, overId),
-  );
+  const state = get();
   const nextChainItemsByProfileUid = reorderChainCache(
-    get().chainItemsByProfileUid,
+    state.chainItemsByProfileUid,
     activeId,
     overId,
   );
 
   set({
-    ...nextState,
+    profileItems: reorderItems(state.profileItems, activeId, overId),
+    globalChainItems: reorderItems(state.globalChainItems, activeId, overId),
     chainItemsByProfileUid: nextChainItemsByProfileUid,
   });
 };
@@ -227,18 +191,12 @@ const commitReorder = (
 export const useProfilesStore = create<ProfilesStore>()(
   persist(
     (set, get) => ({
-      config: {},
       currentProfile: undefined,
       profileItems: [],
       globalChainItems: [],
-      enabledGlobalChainUids: [],
       chainItemsByProfileUid: {},
       chainLogs: {},
       activatingItemUids: [],
-
-      setConfig: (config) => {
-        commitConfig(set, get, config);
-      },
 
       refreshConfig: async () => {
         const config = await getProfiles();
@@ -247,7 +205,8 @@ export const useProfilesStore = create<ProfilesStore>()(
 
       patchConfig: async (value) => {
         const shouldRefreshLogs =
-          (value.current != null && value.current !== get().config.current) ||
+          (value.current != null &&
+            value.current !== get().currentProfile?.uid) ||
           value.chain != null;
         await patchProfilesConfig(value);
         await get().refreshConfig();
@@ -257,7 +216,7 @@ export const useProfilesStore = create<ProfilesStore>()(
       },
 
       patchCurrentProfile: async (value) => {
-        const current = get().config.current;
+        const current = get().currentProfile?.uid;
         if (!current) return;
         await get().patchProfile(current, value);
       },
@@ -362,14 +321,7 @@ export const useProfilesStore = create<ProfilesStore>()(
     }),
     {
       name: "profiles-store",
-      partialize: (state): ProfilesPersistedState => ({
-        config: state.config,
-        currentProfile: state.currentProfile,
-        profileItems: state.profileItems,
-        globalChainItems: state.globalChainItems,
-        enabledGlobalChainUids: state.enabledGlobalChainUids,
-        chainItemsByProfileUid: state.chainItemsByProfileUid,
-      }),
+      partialize: pickProfilesSnapshot,
     },
   ),
 );

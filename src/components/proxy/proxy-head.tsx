@@ -33,7 +33,9 @@ interface Props {
 
 export const ProxyHead = memo(function ProxyHead(props: Props) {
   const { sx = {}, groupName } = props;
-  const currentProfileUid = useProfilesStore((s) => s.config.current || "");
+  const currentProfileUid = useProfilesStore(
+    (s) => s.currentProfile?.uid ?? "",
+  );
   const headState = useProxyHeadStateStore((state) =>
     currentProfileUid
       ? (state.headStates[currentProfileUid]?.[groupName] ?? DEFAULT_STATE)

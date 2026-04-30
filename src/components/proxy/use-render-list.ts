@@ -25,7 +25,7 @@ export interface IRenderItem {
 export const useRenderList = (mode: string) => {
   const { data: proxiesData, mutate: mutateProxies } = useProxiesSWR();
 
-  const currentProfileUid = useProfilesStore((s) => s.config.current || "");
+  const currentProfileUid = useProfilesStore((s) => s.currentProfile?.uid);
   const proxyLayoutColumn = useVergeStore(
     (s) => s.verge.proxy_layout_column || 6,
   );
