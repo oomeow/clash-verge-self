@@ -205,7 +205,7 @@ pub async fn download_icon_cache(url: String, name: String) -> Result<String, St
             let icon_cache_dir = dirs::app_home_dir()?.join("icons").join("cache");
             let icon_path = icon_cache_dir.join(name);
             if !icon_cache_dir.exists() {
-                let _ = std::fs::create_dir_all(&icon_cache_dir);
+                std::fs::create_dir_all(&icon_cache_dir)?;
             }
             if !icon_path.exists() {
                 let response = reqwest::get(url).await?;
