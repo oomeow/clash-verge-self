@@ -1,10 +1,8 @@
 use std::time::Duration;
 
-use crate::{
-    any_err,
-    core::handle,
-    error::{AppError, AppResult},
-};
+use anyhow::Result;
+
+use crate::core::handle;
 
 pub mod backup;
 pub mod clash;
@@ -13,11 +11,15 @@ pub mod profile;
 pub mod service;
 pub mod verge;
 
-pub async fn check_service_and_clash() -> AppResult<()> {
+pub fn into_command_result<T>(result: Result<T>) -> std::result::Result<T, String> {
+    result.map_err(|err| err.to_string())
+}
+
+pub async fn check_service_and_clash() -> Result<()> {
     for i in 0..5 {
         if service::check_service().await.is_err() {
             if i == 4 {
-                return Err(AppError::Service("service check failed".to_string()));
+                anyhow::bail!("service check failed");
             } else {
                 tokio::time::sleep(Duration::from_secs(1)).await;
             }
@@ -27,7 +29,7 @@ pub async fn check_service_and_clash() -> AppResult<()> {
     for i in 0..5 {
         if mihomo.get_version().await.is_err() {
             if i == 4 {
-                return Err(any_err!("clash check failed"));
+                anyhow::bail!("clash check failed");
             } else {
                 tokio::time::sleep(Duration::from_secs(1)).await;
             }

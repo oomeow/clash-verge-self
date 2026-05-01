@@ -1,36 +1,39 @@
+use anyhow::Context;
+
 use crate::{
-    any_err,
+    cmds::into_command_result,
     config::{Config, DEFAULT_PAC, EnableFilter, IProfiles, PrfItem, PrfOption},
     core::{CoreManager, handle, timer},
     enhance::chain::{ChainItem, ScopeType},
-    error::{AppError, AppResult},
     feat, log_err,
     utils::{dirs, help, tmpl},
 };
 
 #[tauri::command]
-pub fn get_profiles() -> AppResult<IProfiles> {
+pub fn get_profiles() -> Result<IProfiles, String> {
     Ok(Config::profiles().data().clone())
 }
 
 #[tauri::command]
-pub fn get_profile(uid: String) -> AppResult<PrfItem> {
-    Ok(Config::profiles()
-        .data()
-        .get_item(&uid)
-        .ok_or(any_err!("failed to get profile [{uid}]"))?
-        .clone())
+pub fn get_profile(uid: String) -> Result<PrfItem, String> {
+    into_command_result((|| {
+        Ok(Config::profiles()
+            .data()
+            .get_item(&uid)
+            .with_context(|| format!("failed to get profile [{uid}]"))?
+            .clone())
+    })())
 }
 
 #[tauri::command]
-pub fn get_chains(profile_uid: Option<String>) -> AppResult<Vec<ChainItem>> {
+pub fn get_chains(profile_uid: Option<String>) -> Result<Vec<ChainItem>, String> {
     Ok(Config::profiles()
         .data()
         .get_profile_chains(profile_uid, EnableFilter::All))
 }
 
 #[tauri::command]
-pub fn get_template(scope: String, language: String) -> AppResult<String> {
+pub fn get_template(scope: String, language: String) -> Result<String, String> {
     match (scope.as_str(), language.as_str()) {
         ("merge", "yaml") => Ok(tmpl::ITEM_MERGE.into()),
         ("script", "javascript") => Ok(tmpl::ITEM_SCRIPT.into()),
@@ -40,160 +43,206 @@ pub fn get_template(scope: String, language: String) -> AppResult<String> {
 }
 
 #[tauri::command]
-pub async fn enhance_profiles() -> AppResult<()> {
-    CoreManager::global().update_config().await?;
-    handle::Handle::refresh_clash();
-    Ok(())
+pub async fn enhance_profiles() -> Result<(), String> {
+    into_command_result(
+        async {
+            CoreManager::global().update_config().await?;
+            handle::Handle::refresh_clash();
+            Ok(())
+        }
+        .await,
+    )
 }
 
 #[tauri::command]
-pub async fn import_profile(url: String, option: Option<PrfOption>) -> AppResult<()> {
-    let item = PrfItem::from_url(&url, None, None, option).await?;
-    let restart_core = Config::profiles().data_mut().append_item(item)?;
-    if restart_core {
-        CoreManager::global().update_config().await?;
-        handle::Handle::refresh_clash();
-    }
-    handle::Handle::update_systray_part()
+pub async fn import_profile(url: String, option: Option<PrfOption>) -> Result<(), String> {
+    into_command_result(
+        async {
+            let item = PrfItem::from_url(&url, None, None, option).await?;
+            let restart_core = Config::profiles().data_mut().append_item(item)?;
+            if restart_core {
+                CoreManager::global().update_config().await?;
+                handle::Handle::refresh_clash();
+            }
+            handle::Handle::update_systray_part()
+        }
+        .await,
+    )
 }
 
 #[tauri::command]
-pub async fn reorder_profile(active_id: String, over_id: String) -> AppResult<()> {
-    Config::profiles().data_mut().reorder(active_id, over_id)?;
-    handle::Handle::update_systray_part()
+pub async fn reorder_profile(active_id: String, over_id: String) -> Result<(), String> {
+    into_command_result(
+        async {
+            Config::profiles().data_mut().reorder(active_id, over_id)?;
+            handle::Handle::update_systray_part()
+        }
+        .await,
+    )
 }
 
 #[tauri::command]
-pub async fn create_profile(item: PrfItem, file_data: Option<String>) -> AppResult<()> {
-    let item = PrfItem::from(item, file_data).await?;
-    let restart_core = Config::profiles().data_mut().append_item(item)?;
-    if restart_core {
-        CoreManager::global().update_config().await?;
-        handle::Handle::refresh_clash();
-    }
-    handle::Handle::update_systray_part()
+pub async fn create_profile(item: PrfItem, file_data: Option<String>) -> Result<(), String> {
+    into_command_result(
+        async {
+            let item = PrfItem::from(item, file_data).await?;
+            let restart_core = Config::profiles().data_mut().append_item(item)?;
+            if restart_core {
+                CoreManager::global().update_config().await?;
+                handle::Handle::refresh_clash();
+            }
+            handle::Handle::update_systray_part()
+        }
+        .await,
+    )
 }
 
 // 同步更新订阅
 #[tauri::command]
-pub async fn update_profile(uid: String, option: Option<PrfOption>) -> AppResult<()> {
-    feat::update_profile(&uid, option).await?;
-    handle::Handle::update_systray_part()
+pub async fn update_profile(uid: String, option: Option<PrfOption>) -> Result<(), String> {
+    into_command_result(
+        async {
+            feat::update_profile(&uid, option).await?;
+            handle::Handle::update_systray_part()
+        }
+        .await,
+    )
 }
 
 #[tauri::command]
-pub async fn delete_profile(uid: String) -> AppResult<()> {
-    let restart_core = Config::profiles().data_mut().delete_item(uid)?;
-    // the running profile is deleted, update the core config
-    if restart_core {
-        CoreManager::global().update_config().await?;
-        handle::Handle::refresh_clash();
-    }
-    handle::Handle::update_systray_part()
+pub async fn delete_profile(uid: String) -> Result<(), String> {
+    into_command_result(
+        async {
+            let restart_core = Config::profiles().data_mut().delete_item(uid)?;
+            // the running profile is deleted, update the core config
+            if restart_core {
+                CoreManager::global().update_config().await?;
+                handle::Handle::refresh_clash();
+            }
+            handle::Handle::update_systray_part()
+        }
+        .await,
+    )
 }
 
 /// 修改整个 profiles
 #[tauri::command]
-pub async fn patch_profiles_config(profiles: IProfiles) -> AppResult<()> {
-    let switch_current = profiles.current.is_some();
-    Config::profiles().draft().patch_config(profiles)?;
+pub async fn patch_profiles_config(profiles: IProfiles) -> Result<(), String> {
+    into_command_result(
+        async {
+            let switch_current = profiles.current.is_some();
+            Config::profiles().draft().patch_config(profiles)?;
 
-    match CoreManager::global().update_config().await {
-        Ok(_) => {
-            Config::profiles().apply();
-            Config::profiles().data().save_file()?;
-            if switch_current {
-                tauri::async_runtime::spawn(async {
-                    tracing::debug!("change current profile, run activate selected node");
-                    log_err!(crate::config::activate_selected_nodes().await);
-                });
+            match CoreManager::global().update_config().await {
+                Ok(_) => {
+                    Config::profiles().apply();
+                    Config::profiles().data().save_file()?;
+                    if switch_current {
+                        tauri::async_runtime::spawn(async {
+                            tracing::debug!("change current profile, run activate selected node");
+                            log_err!(crate::config::activate_selected_nodes().await);
+                        });
+                    }
+                    handle::Handle::refresh_clash();
+                    handle::Handle::refresh_profiles();
+                    handle::Handle::update_systray_part()?;
+                    Ok(())
+                }
+                Err(err) => {
+                    Config::profiles().discard();
+                    tracing::error!("{err}");
+                    Err(err)
+                }
             }
-            handle::Handle::refresh_clash();
-            handle::Handle::refresh_profiles();
-            handle::Handle::update_systray_part()?;
-            Ok(())
         }
-        Err(err) => {
-            Config::profiles().discard();
-            tracing::error!("{err}");
-            Err(err)
-        }
-    }
+        .await,
+    )
 }
 
 /// 修改某个 profile item
 #[tauri::command]
-pub async fn patch_profile(uid: String, profile: PrfItem) -> AppResult<()> {
-    let old = Config::profiles()
-        .latest()
-        .get_item(&uid)
-        .ok_or(any_err!("failed to get profile [{uid}]"))?
-        .clone();
-    let name_changed = profile.name != old.name;
-    let enable_changed = profile.enable != old.enable;
-    Config::profiles().data_mut().patch_item(&uid, profile)?;
-    timer::Timer::global().refresh_profiles()?;
-    if enable_changed {
-        // this is a chain to toggle enable
-        let profiles = Config::profiles().latest().clone();
-        let result_item = profiles
-            .get_item(&uid)
-            .ok_or(any_err!("failed to get profile [{uid}]"))?;
-        match result_item.scope {
-            Some(ScopeType::Global) => {
-                CoreManager::global().update_config().await?;
-                handle::Handle::refresh_clash();
+pub async fn patch_profile(uid: String, profile: PrfItem) -> Result<(), String> {
+    into_command_result(
+        async {
+            let old = Config::profiles()
+                .latest()
+                .get_item(&uid)
+                .with_context(|| format!("failed to get profile [{uid}]"))?
+                .clone();
+            let name_changed = profile.name != old.name;
+            let enable_changed = profile.enable != old.enable;
+            Config::profiles().data_mut().patch_item(&uid, profile)?;
+            timer::Timer::global().refresh_profiles()?;
+            if enable_changed {
+                // this is a chain to toggle enable
+                let profiles = Config::profiles().latest().clone();
+                let result_item = profiles
+                    .get_item(&uid)
+                    .with_context(|| format!("failed to get profile [{uid}]"))?;
+                match result_item.scope {
+                    Some(ScopeType::Global) => {
+                        CoreManager::global().update_config().await?;
+                        handle::Handle::refresh_clash();
+                    }
+                    Some(ScopeType::Specific) if result_item.parent.as_ref() == profiles.get_current() => {
+                        CoreManager::global().update_config().await?;
+                        handle::Handle::refresh_clash();
+                    }
+                    _ => {}
+                }
             }
-            Some(ScopeType::Specific) if result_item.parent.as_ref() == profiles.get_current() => {
-                CoreManager::global().update_config().await?;
-                handle::Handle::refresh_clash();
+            if name_changed {
+                handle::Handle::update_systray_part()?;
             }
-            _ => {}
+            Ok(())
         }
-    }
-    if name_changed {
-        handle::Handle::update_systray_part()?;
-    }
-    Ok(())
+        .await,
+    )
 }
 
 #[tauri::command]
-pub fn view_profile(app_handle: tauri::AppHandle, index: String) -> AppResult<()> {
-    let profiles = Config::profiles();
-    let profiles = profiles.latest();
-    let file = profiles
-        .get_item(&index)
-        .ok_or(any_err!("failed to get profile [{index}]"))?
-        .file
-        .as_ref()
-        .ok_or(AppError::InvalidValue("the file field is null".to_string()))?;
-    let path = dirs::app_profiles_dir()?.join(file);
-    if !path.exists() {
-        return Err(any_err!("profile [{}] not found", path.display()));
-    }
-    help::open_file(app_handle, path)
+pub fn view_profile(app_handle: tauri::AppHandle, index: String) -> Result<(), String> {
+    into_command_result((|| {
+        let profiles = Config::profiles();
+        let profiles = profiles.latest();
+        let file = profiles
+            .get_item(&index)
+            .with_context(|| format!("failed to get profile [{index}]"))?
+            .file
+            .as_ref()
+            .context("the file field is null")?;
+        let path = dirs::app_profiles_dir()?.join(file);
+        if !path.exists() {
+            anyhow::bail!("profile [{}] not found", path.display());
+        }
+        help::open_file(app_handle, path)
+    })())
 }
 
 #[tauri::command]
-pub fn read_profile_file(index: String) -> AppResult<String> {
-    let profiles = Config::profiles();
-    let profiles = profiles.latest();
-    let item = profiles
-        .get_item(&index)
-        .ok_or(any_err!("failed to get profile [{index}]"))?;
-    let data = item.read_file()?;
-    Ok(data)
-}
-
-#[tauri::command]
-pub fn save_profile_file(uid: String, file_data: Option<String>) -> AppResult<()> {
-    if let Some(file_data) = file_data {
+pub fn read_profile_file(index: String) -> Result<String, String> {
+    into_command_result((|| {
         let profiles = Config::profiles();
         let profiles = profiles.latest();
         let item = profiles
-            .get_item(&uid)
-            .ok_or(any_err!("failed to get profile [{uid}]"))?;
-        item.save_file(file_data)?;
-    }
-    Ok(())
+            .get_item(&index)
+            .with_context(|| format!("failed to get profile [{index}]"))?;
+        let data = item.read_file()?;
+        Ok(data)
+    })())
+}
+
+#[tauri::command]
+pub fn save_profile_file(uid: String, file_data: Option<String>) -> Result<(), String> {
+    into_command_result((|| {
+        if let Some(file_data) = file_data {
+            let profiles = Config::profiles();
+            let profiles = profiles.latest();
+            let item = profiles
+                .get_item(&uid)
+                .with_context(|| format!("failed to get profile [{uid}]"))?;
+            item.save_file(file_data)?;
+        }
+        Ok(())
+    })())
 }

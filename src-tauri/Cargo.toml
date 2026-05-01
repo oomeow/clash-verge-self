@@ -30,7 +30,6 @@ serde_json.workspace = true
 serde_yaml.workspace = true
 once_cell.workspace = true
 parking_lot.workspace = true
-thiserror.workspace = true
 anyhow.workspace = true
 # log
 tracing.workspace = true

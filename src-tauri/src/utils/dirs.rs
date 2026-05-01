@@ -1,13 +1,10 @@
 use std::path::PathBuf;
 
+use anyhow::{Context, Result};
 use dirs::data_dir;
 use once_cell::sync::OnceCell;
 
-use crate::{
-    any_err,
-    core::handle,
-    error::{AppError, AppResult},
-};
+use crate::core::handle;
 
 #[cfg(not(feature = "verge-dev"))]
 pub static APP_ID: &str = "io.github.oomeow.clash-verge-self";
@@ -25,10 +22,10 @@ pub fn is_portable_version() -> bool {
 }
 
 /// get the verge app home dir
-pub fn app_home_dir() -> AppResult<PathBuf> {
+pub fn app_home_dir() -> Result<PathBuf> {
     use tauri::utils::platform::current_exe;
 
-    let flag = PORTABLE_FLAG.get_or_try_init(|| -> AppResult<bool> {
+    let flag = PORTABLE_FLAG.get_or_try_init(|| -> Result<bool> {
         let app_exe = current_exe()?;
         let mut flag = false;
         if let Some(dir) = app_exe.parent() {
@@ -44,15 +41,15 @@ pub fn app_home_dir() -> AppResult<PathBuf> {
     {
         let app_exe = current_exe()?;
         let app_exe = dunce::canonicalize(app_exe)?;
-        let app_dir = app_exe.parent().ok_or(any_err!("failed to get the portable app dir"))?;
+        let app_dir = app_exe.parent().context("failed to get the portable app dir")?;
         return Ok(PathBuf::from(app_dir).join(".config").join(APP_ID));
     }
 
-    Ok(data_dir().ok_or(any_err!("failed to get app home dir"))?.join(APP_ID))
+    Ok(data_dir().context("failed to get app home dir")?.join(APP_ID))
 }
 
 /// get the resources dir
-pub fn app_resources_dir() -> AppResult<PathBuf> {
+pub fn app_resources_dir() -> Result<PathBuf> {
     use tauri::{
         Env,
         utils::platform::{current_exe, resource_dir},
@@ -63,53 +60,54 @@ pub fn app_resources_dir() -> AppResult<PathBuf> {
     let res_dir = if *portable {
         current_exe()?
             .parent()
-            .ok_or(any_err!("failed to get the portable app dir"))?
+            .context("failed to get the portable app dir")?
             .join("resources")
     } else {
         resource_dir(app_handle.package_info(), &Env::default())
-            .map_err(|_| any_err!("failed to get the resource dir"))?
+            .map_err(anyhow::Error::from)
+            .context("failed to get the resource dir")?
             .join("resources")
     };
     Ok(res_dir)
 }
 
 /// profiles dir
-pub fn app_profiles_dir() -> AppResult<PathBuf> {
+pub fn app_profiles_dir() -> Result<PathBuf> {
     Ok(app_home_dir()?.join("profiles"))
 }
 
 /// logs dir
-pub fn app_logs_dir() -> AppResult<PathBuf> {
+pub fn app_logs_dir() -> Result<PathBuf> {
     Ok(app_home_dir()?.join("logs"))
 }
 
-pub fn clash_logs_dir() -> AppResult<PathBuf> {
+pub fn clash_logs_dir() -> Result<PathBuf> {
     Ok(app_logs_dir()?.join("clash"))
 }
 
-pub fn clash_path() -> AppResult<PathBuf> {
+pub fn clash_path() -> Result<PathBuf> {
     Ok(app_home_dir()?.join(CLASH_CONFIG))
 }
 
-pub fn verge_path() -> AppResult<PathBuf> {
+pub fn verge_path() -> Result<PathBuf> {
     Ok(app_home_dir()?.join(VERGE_CONFIG))
 }
 
-pub fn profiles_path() -> AppResult<PathBuf> {
+pub fn profiles_path() -> Result<PathBuf> {
     Ok(app_home_dir()?.join(PROFILE_YAML))
 }
 
-pub fn service_bin_path() -> AppResult<PathBuf> {
+pub fn service_bin_path() -> Result<PathBuf> {
     let exe_ext = std::env::consts::EXE_SUFFIX;
     let service_bin = format!("clash-verge-self-service{}", exe_ext);
     Ok(app_resources_dir()?.join(service_bin))
 }
 
-pub fn backup_dir() -> AppResult<PathBuf> {
+pub fn backup_dir() -> Result<PathBuf> {
     Ok(app_home_dir()?.join("backup"))
 }
 
-pub fn backup_archive_file() -> AppResult<PathBuf> {
+pub fn backup_archive_file() -> Result<PathBuf> {
     Ok(app_home_dir()?.join("archive.zip"))
 }
 
@@ -119,6 +117,6 @@ pub fn generate_log_file() -> String {
     log_file
 }
 
-pub fn path_to_str(path: &PathBuf) -> AppResult<&str> {
-    Ok(clash_verge_self_utils::path_to_str(path)?)
+pub fn path_to_str(path: &PathBuf) -> Result<&str> {
+    clash_verge_self_utils::path_to_str(path)
 }

@@ -6,15 +6,14 @@ mod tun;
 
 use std::{collections::HashMap, path::PathBuf};
 
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_yaml::{Mapping, Value};
 
 use self::{chain::*, field::*, merge::*, script::*, tun::*};
 use crate::{
-    any_err,
     config::{Config, ConfigType, EnableFilter, ProfileType},
     core::CoreManager,
-    error::{AppError, AppResult},
     utils::dirs,
 };
 
@@ -138,7 +137,7 @@ pub fn enhance() -> (Mapping, HashMap<String, ResultLog>) {
     (config, result_map)
 }
 
-pub fn get_pre_merge_result(profile_uid: Option<String>, modified_uid: String) -> AppResult<MergeResult> {
+pub fn get_pre_merge_result(profile_uid: Option<String>, modified_uid: String) -> Result<MergeResult> {
     let profiles = Config::profiles().latest().clone();
     let mut config = profiles.current_mapping().unwrap_or_default();
 
@@ -194,7 +193,7 @@ pub async fn test_merge_chain(
     profile_uid: Option<String>,
     modified_uid: String,
     content: String,
-) -> AppResult<MergeResult> {
+) -> Result<MergeResult> {
     let profiles = Config::profiles().latest().clone();
     let mut running_chains = profiles.chain.clone().unwrap_or_default();
     if let Some(profile_uid) = profile_uid.as_ref()
@@ -213,13 +212,13 @@ pub async fn test_merge_chain(
 
     let profile_item = profiles
         .get_item(&modified_uid)
-        .ok_or(any_err!("failed to find the profile item \"uid:{modified_uid}\""))?;
+        .with_context(|| format!("failed to find the profile item \"uid:{modified_uid}\""))?;
     tracing::info!("test merge chain {:?}", profile_item.name);
     match profile_item.itype.as_ref() {
         Some(ProfileType::Merge) => {
             let yaml_content = serde_yaml::from_str::<Value>(&content)?
                 .as_mapping()
-                .ok_or(AppError::InvalidValue("invalid yaml content".to_string()))?
+                .context("invalid yaml content")?
                 .to_owned();
             config = use_merge(yaml_content, config.clone());
         }
@@ -241,10 +240,10 @@ pub async fn test_merge_chain(
             result_map.insert(modified_uid, logs);
         }
         Some(_) => {
-            return Err(any_err!("unsupported chain type"));
+            anyhow::bail!("unsupported chain type");
         }
         None => {
-            return Err(AppError::InvalidValue("missing chain type".to_string()));
+            anyhow::bail!("missing chain type");
         }
     };
 
