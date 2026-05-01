@@ -1,4 +1,4 @@
-use std::{fs, io, net::TcpListener, path::PathBuf, str::FromStr};
+use std::{fs, net::TcpListener, path::PathBuf, str::FromStr};
 
 use anyhow::{Context, Result};
 use nanoid::nanoid;
@@ -10,10 +10,7 @@ use crate::config::Config;
 /// read data from yaml as struct T
 pub fn read_yaml<T: DeserializeOwned>(path: &PathBuf) -> Result<T> {
     if !path.exists() {
-        anyhow::bail!(io::Error::new(
-            io::ErrorKind::NotFound,
-            format!("file not found \"{}\"", path.display()),
-        ));
+        anyhow::bail!("file not found \"{}\"", path.display());
     }
 
     let yaml_str =

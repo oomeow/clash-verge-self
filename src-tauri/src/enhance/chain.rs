@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, io};
+use std::{collections::HashMap, fs};
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -91,10 +91,7 @@ impl ChainItem {
     pub fn execute(&self, config: Mapping) -> Result<ChainExcResult> {
         let path = dirs::app_profiles_dir()?.join(&self.file);
         if !path.exists() {
-            anyhow::bail!(io::Error::new(
-                io::ErrorKind::NotFound,
-                format!("couldn't find enhance file, {}", self.name),
-            ));
+            anyhow::bail!("couldn't find enhance file, {}", self.name);
         }
         let res = match self.itype {
             ChainType::Merge => {

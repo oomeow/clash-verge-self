@@ -1,5 +1,3 @@
-use std::io;
-
 use anyhow::Context;
 use network_interface::NetworkInterfaceConfig;
 use serde::Serialize;
@@ -245,10 +243,7 @@ pub fn copy_icon_file(path: String, name: String) -> Result<String, String> {
             std::fs::copy(file_path, &dest_path)?;
             Ok(dest_path.to_string_lossy().to_string())
         } else {
-            Err(anyhow::anyhow!(io::Error::new(
-                io::ErrorKind::NotFound,
-                "file not found"
-            )))
+            Err(anyhow::anyhow!("file not found"))
         }
     })())
 }

@@ -1,4 +1,4 @@
-use std::{io, process::Command as StdCommand};
+use std::process::Command as StdCommand;
 
 use anyhow::Result;
 use deelevate::{PrivilegeLevel, Token};
@@ -11,7 +11,7 @@ pub async fn invoke_uwptools() -> Result<()> {
     let tool_path = resource_dir.join("enableLoopback.exe");
 
     if !tool_path.exists() {
-        anyhow::bail!(io::Error::new(io::ErrorKind::NotFound, "enableLoopback exe not found",));
+        anyhow::bail!("enableLoopback exe not found");
     }
 
     let token = Token::with_current_process()?;

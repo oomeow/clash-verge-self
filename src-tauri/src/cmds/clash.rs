@@ -32,14 +32,13 @@ pub fn get_runtime_config() -> Result<Option<Mapping>, String> {
 
 #[tauri::command]
 pub fn get_runtime_yaml() -> Result<String, String> {
-    into_command_result({
+    into_command_result((|| -> anyhow::Result<String> {
         let runtime = Config::runtime();
         let runtime = runtime.latest();
         let config = runtime.config.as_ref();
-        config
-            .with_context(|| t!("error.config.parseFailed"))
-            .and_then(|config| Ok(serde_yaml::to_string(config)?))
-    })
+        let config = config.with_context(|| t!("error.config.parseFailed"))?;
+        Ok(serde_yaml::to_string(config)?)
+    })())
 }
 
 #[tauri::command]
