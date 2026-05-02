@@ -1,15 +1,6 @@
-import {
-  closestCenter,
-  defaultDropAnimationSideEffects,
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DropAnimation,
-  MouseSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { arrayMove, SortableContext } from "@dnd-kit/sortable";
+import { isSortable } from "@dnd-kit/dom/sortable";
+import { arrayMove } from "@dnd-kit/helpers";
+import { DragDropProvider } from "@dnd-kit/react";
 import Add from "@mui/icons-material/Add";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import {
@@ -26,14 +17,14 @@ import {
 import { getVersion } from "@tauri-apps/api/app";
 import { useAsyncEffect, useLockFn } from "ahooks";
 import { isEqual } from "lodash-es";
-import { ReactNode, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
 import {
   BaseDialog,
-  DraggableItem,
   Marquee,
+  SortableItem,
   SwitchLovely,
 } from "@/components/base";
 import { useProfilesStore } from "@/stores";
@@ -68,16 +59,9 @@ const EMPTY_CHAIN: IProfileItem[] = [];
 const getEnabledUids = (items: IProfileItem[]) =>
   items.filter((item) => item.enable).map((item) => item.uid);
 
-const reorderItems = (
-  items: IProfileItem[],
-  activeId: string,
-  overId: string,
-) =>
-  arrayMove(
-    items,
-    items.findIndex((item) => item.uid === activeId),
-    items.findIndex((item) => item.uid === overId),
-  );
+type ISortableProfileItem = IProfileItem & {
+  id: string;
+};
 
 export const ProfileEditorViewer = (props: Props) => {
   const { title, profileItem, open, type, onClose, onChange } = props;
@@ -94,7 +78,6 @@ export const ProfileEditorViewer = (props: Props) => {
   const [curContentSaved, setCurContentSaved] = useState(true);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [reactivating, setReactivating] = useState(false);
-  const [draggingItem, setDraggingItem] = useState<IProfileItem | null>(null);
   const [saving, setSaving] = useState(false);
 
   const currentProfile = useProfilesStore((s) => s.currentProfile);
@@ -106,6 +89,16 @@ export const ProfileEditorViewer = (props: Props) => {
   const profileChainItems = useProfilesStore(
     (s) => s.chainItemsByProfileUid[profileUid] ?? EMPTY_CHAIN,
   );
+
+  const [sortableProfileChainItems, setSortableProfileChainItems] = useState<
+    ISortableProfileItem[]
+  >(profileChainItems.map((item) => ({ id: item.uid, ...item })));
+
+  useEffect(() => {
+    setSortableProfileChainItems(
+      profileChainItems.map((item) => ({ id: item.uid, ...item })),
+    );
+  }, [profileChainItems]);
 
   const { control, watch, register, ...formIns } = useForm<IProfileItem>({
     defaultValues: profileItem,
@@ -119,15 +112,6 @@ export const ProfileEditorViewer = (props: Props) => {
   const [expand, setExpand] = useState(isEditChain);
   const isRunningProfile = currentProfile?.uid === profileUid;
   const enabledProfileChainUids = getEnabledUids(profileChainItems);
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 2 } }),
-  );
-  const dropAnimationConfig: DropAnimation = {
-    sideEffects: defaultDropAnimationSideEffects({
-      styles: { active: { opacity: "0.5" } },
-    }),
-  };
 
   useAsyncEffect(async () => {
     if (!open) return;
@@ -167,27 +151,6 @@ export const ProfileEditorViewer = (props: Props) => {
     await sleep(1000);
     return true;
   };
-
-  const handleChainDragEnd = useLockFn(async (event: DragEndEvent) => {
-    setDraggingItem(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const activeId = active.id.toString();
-    const overId = over.id.toString();
-    const newChainList = reorderItems(profileChainItems, activeId, overId);
-    const needToEnhance =
-      !isEqual(enabledProfileChainUids, getEnabledUids(newChainList)) &&
-      isRunningProfile;
-
-    await reorderProfile(activeId, overId);
-    if (needToEnhance) {
-      setReactivating(true);
-      await enhanceProfiles();
-      setReactivating(false);
-    }
-    await fetchProfileChains(profileUid);
-  });
 
   const handleProfileSubmit = useLockFn(
     formIns.handleSubmit(async (form) => {
@@ -472,59 +435,72 @@ export const ProfileEditorViewer = (props: Props) => {
                   />
 
                   <div className="overflow-auto pl-1">
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragOver={(event) => {
-                        const { over } = event;
-                        if (over) {
-                          const item = profileChainItems.find(
-                            (i) => i.uid === event.active.id,
-                          )!;
-                          setDraggingItem(item);
-                        }
+                    <DragDropProvider
+                      onDragOver={(e) => {
+                        if (reactivating) e.preventDefault();
                       }}
-                      onDragEnd={(e) => handleChainDragEnd(e)}
-                      onDragCancel={() => setDraggingItem(null)}>
-                      <SortableContext
-                        items={profileChainItems.map((i) => i.uid)}>
-                        {profileChainItems.map((item, _index) => (
-                          <DraggableItem key={item.uid} id={item.uid}>
-                            <ProfileMoreMini
-                              item={item}
-                              isDragging={item.uid === draggingItem?.uid}
-                              reactivating={reactivating && item.enable}
-                              selected={item.uid === editProfile.uid}
-                              logs={chainLogs[item.uid]}
-                              onToggleEnableCallback={async (_enabled) => {
-                                await fetchProfileChains(profileUid);
-                              }}
-                              onClick={async () => {
-                                await handleChainClick(item);
-                              }}
-                              onInfoChangeCallback={async () => {
-                                await fetchProfileChains(profileUid);
-                              }}
-                              onDeleteCallback={async () => {
-                                await handleChainDeleteCallBack(item);
-                              }}
-                            />
-                          </DraggableItem>
-                        ))}
-                      </SortableContext>
-                      <DragOverlay dropAnimation={dropAnimationConfig}>
-                        {draggingItem && (
+                      onDragEnd={async (event) => {
+                        const { operation, canceled } = event;
+                        const { source, target } = operation;
+                        if (canceled) return;
+
+                        if (target && isSortable(source)) {
+                          const newIndex = source.sortable.index;
+                          const oldIndex = source.sortable.initialIndex;
+                          if (newIndex === oldIndex) return;
+                          const activeId =
+                            sortableProfileChainItems[oldIndex].uid;
+                          const overId =
+                            sortableProfileChainItems[newIndex].uid;
+
+                          const newChainList = arrayMove(
+                            sortableProfileChainItems,
+                            oldIndex,
+                            newIndex,
+                          );
+                          const needToEnhance =
+                            !isEqual(
+                              enabledProfileChainUids,
+                              getEnabledUids(newChainList),
+                            ) && isRunningProfile;
+
+                          await reorderProfile(activeId, overId);
+                          setSortableProfileChainItems(newChainList);
+
+                          if (needToEnhance) {
+                            setReactivating(true);
+                            try {
+                              await enhanceProfiles();
+                            } finally {
+                              setReactivating(false);
+                            }
+                          }
+                          await fetchProfileChains(profileUid);
+                        }
+                      }}>
+                      {sortableProfileChainItems.map((item, index) => (
+                        <SortableItem key={item.uid} id={item.id} index={index}>
                           <ProfileMoreMini
-                            key={draggingItem.uid}
-                            item={draggingItem}
-                            isDragging={true}
-                            reactivating={reactivating && draggingItem.enable}
-                            selected={draggingItem.uid === editProfile.uid}
-                            logs={chainLogs[draggingItem.uid]}
+                            item={item}
+                            reactivating={reactivating && item.enable}
+                            selected={item.uid === editProfile.uid}
+                            logs={chainLogs[item.uid]}
+                            onToggleEnableCallback={async (_enabled) => {
+                              await fetchProfileChains(profileUid);
+                            }}
+                            onClick={async () => {
+                              await handleChainClick(item);
+                            }}
+                            onInfoChangeCallback={async () => {
+                              await fetchProfileChains(profileUid);
+                            }}
+                            onDeleteCallback={async () => {
+                              await handleChainDeleteCallBack(item);
+                            }}
                           />
-                        )}
-                      </DragOverlay>
-                    </DndContext>
+                        </SortableItem>
+                      ))}
+                    </DragDropProvider>
                   </div>
                 </div>
               </>

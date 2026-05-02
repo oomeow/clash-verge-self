@@ -1,55 +1,45 @@
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS as DndCSS } from "@dnd-kit/utilities";
+import { isSortable } from "@dnd-kit/dom/sortable";
+import { DragDropProvider } from "@dnd-kit/react";
+import { useSortable } from "@dnd-kit/react/sortable";
 import CancelIcon from "@mui/icons-material/Close";
 import DragIndicatorRounded from "@mui/icons-material/DragIndicatorRounded";
 import { Backdrop, Box, Checkbox, IconButton } from "@mui/material";
-import { type CSSProperties } from "react";
+import { useRef, useState } from "react";
+
+import { cn } from "@/utils";
 
 import { ColumnOption } from "./connection-table.types";
 
 const SortableColumnOption = ({
   option,
+  index,
   onToggleVisible,
 }: {
   option: ColumnOption;
+  index: number;
   onToggleVisible: (columnId: string) => void;
 }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: option.id });
-
-  const style: CSSProperties = {
-    transform: DndCSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.75 : 1,
-  };
-
+  const [element, setElement] = useState<Element | null>(null);
+  const handleRef = useRef<HTMLButtonElement | null>(null);
+  const { isDragging } = useSortable({
+    id: option.id,
+    index,
+    element,
+    handle: handleRef,
+  });
   return (
-    <div ref={setNodeRef} style={style}>
+    <div
+      className={cn("bg-white", {
+        "shadow-[0_0_10px_5px_rgba(0,0,0,0.2)]": isDragging,
+      })}
+      ref={setElement}
+      data-show={isDragging || undefined}>
       <div className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-[rgba(0,0,0,0.04)]">
         <button
+          ref={handleRef}
           type="button"
           className="cursor-grab text-[rgba(0,0,0,0.48)] active:cursor-grabbing"
-          aria-label={`Drag ${option.label}`}
-          {...attributes}
-          {...listeners}>
+          aria-label={`Drag ${option.label}`}>
           <DragIndicatorRounded fontSize="small" />
         </button>
         <button
@@ -71,7 +61,7 @@ interface Props {
   columns: ColumnOption[];
   onClose: () => void;
   onToggleVisible: (columnId: string) => void;
-  onDragEnd: (event: DragEndEvent) => void;
+  onDragEnd: (oldIndex: number, newIndex: number) => void;
 }
 
 export const ConnectionTableColumnSelector = ({
@@ -83,12 +73,6 @@ export const ConnectionTableColumnSelector = ({
   onToggleVisible,
   onDragEnd,
 }: Props) => {
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 4 },
-    }),
-  );
-
   return (
     <Backdrop
       open={open}
@@ -120,26 +104,31 @@ export const ConnectionTableColumnSelector = ({
           </IconButton>
         </Box>
 
-        <Box className="max-h-105 overflow-y-auto px-2 py-2">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={onDragEnd}>
-            <SortableContext
-              items={columns.map((column) => column.id)}
-              strategy={verticalListSortingStrategy}>
-              <div className="space-y-1">
-                {columns.map((column) => (
-                  <SortableColumnOption
-                    key={column.id}
-                    option={column}
-                    onToggleVisible={onToggleVisible}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </Box>
+        <div className="max-h-105 overflow-y-auto px-2 py-2">
+          <DragDropProvider
+            onDragEnd={(event) => {
+              const { operation, canceled } = event;
+              const { source, target } = operation;
+              if (canceled) return;
+
+              if (target && isSortable(source)) {
+                const newIndex = source.sortable.index;
+                const oldIndex = source.sortable.initialIndex;
+                onDragEnd(oldIndex, newIndex);
+              }
+            }}>
+            <div className="space-y-1">
+              {columns.map((column, index) => (
+                <SortableColumnOption
+                  key={column.id}
+                  index={index}
+                  option={column}
+                  onToggleVisible={onToggleVisible}
+                />
+              ))}
+            </div>
+          </DragDropProvider>
+        </div>
       </Box>
     </Backdrop>
   );

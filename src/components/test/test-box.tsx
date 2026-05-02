@@ -9,11 +9,7 @@ export const TestDiv = styled("div")(({
   const key = `${mode}-${!!selected}`;
   const isDragging = label === "dragging";
 
-  const bgcolor = isDragging
-    ? "var(--background-color-alpha)"
-    : mode === "light"
-      ? "#ffffff"
-      : "#282A36";
+  const bgcolor = mode === "light" ? "#ffffff" : "#282A36";
 
   const color = {
     "light-true": text.secondary,
@@ -42,5 +38,11 @@ export const TestDiv = styled("div")(({
     backgroundColor: bgcolor,
     color,
     "& h2": { color: h2color },
+    ...(isDragging && {
+      border: 1,
+      borderStyle: "solid",
+      borderColor: alpha(primary.main, 0.5),
+      boxShadow: `0 0 0 4px ${alpha(primary.main, 0.2)}`,
+    }),
   };
 });

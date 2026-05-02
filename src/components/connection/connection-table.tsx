@@ -1,5 +1,4 @@
-import { type DragEndEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
+import { arrayMove } from "@dnd-kit/helpers";
 import ArrowDownwardRounded from "@mui/icons-material/ArrowDownwardRounded";
 import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
 import UnfoldMoreRounded from "@mui/icons-material/UnfoldMoreRounded";
@@ -578,14 +577,9 @@ export const ConnectionTable = (props: Props) => {
   );
 
   const handleColumnOrderDragEnd = useCallback(
-    ({ active, over }: DragEndEvent) => {
-      if (!over || active.id === over.id) return;
-
+    (oldIndex: number, newIndex: number) => {
+      if (oldIndex === newIndex) return;
       const currentOrder = selectorColumns.map((column) => column.id);
-      const oldIndex = currentOrder.indexOf(String(active.id));
-      const newIndex = currentOrder.indexOf(String(over.id));
-      if (oldIndex === -1 || newIndex === -1) return;
-
       setTabColumnOrder(arrayMove(currentOrder, oldIndex, newIndex));
     },
     [selectorColumns, setTabColumnOrder],

@@ -1,19 +1,6 @@
-import {
-  closestCenter,
-  defaultDropAnimationSideEffects,
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DropAnimation,
-  MouseSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  rectSortingStrategy,
-  SortableContext,
-} from "@dnd-kit/sortable";
+import { isSortable } from "@dnd-kit/dom/sortable";
+import { arrayMove } from "@dnd-kit/helpers";
+import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
 import ClearRounded from "@mui/icons-material/ClearRounded";
 import ContentPasteRounded from "@mui/icons-material/ContentPasteRounded";
 import LocalFireDepartmentRounded from "@mui/icons-material/LocalFireDepartmentRounded";
@@ -23,15 +10,14 @@ import { Box, Button, Divider, IconButton } from "@mui/material";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
 import { useLockFn, useMemoizedFn } from "ahooks";
 import { isEqual } from "lodash-es";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
   BasePage,
   BaseStyledTextField,
   DialogRef,
-  DraggableItem,
+  SortableItem,
 } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { ProfileItem } from "@/components/profile/profile-item";
@@ -43,28 +29,15 @@ import {
 import { ConfigViewer } from "@/components/setting/mods/config-viewer";
 import { useLoadingCacheStore, useProfilesStore } from "@/stores";
 
-const FlexDecorationItems = memo(function FlexDecoratorItems() {
-  return [...Array(20)].map((_, index) => (
-    <i key={index} className="mx-1.25 my-0 flex h-0 w-65 grow"></i>
-  ));
-});
-
 const compactUids = (uids: (string | undefined)[]) =>
   Array.from(new Set(uids.filter((uid): uid is string => !!uid)));
 
 const getEnabledUids = (items: IProfileItem[]) =>
   items.filter((item) => item.enable).map((item) => item.uid);
 
-const reorderItems = (
-  items: IProfileItem[],
-  activeId: string,
-  overId: string,
-) =>
-  arrayMove(
-    items,
-    items.findIndex((item) => item.uid === activeId),
-    items.findIndex((item) => item.uid === overId),
-  );
+type ISortableProfileItem = IProfileItem & {
+  id: string;
+};
 
 const ProfilePage = () => {
   const { t } = useTranslation();
@@ -76,8 +49,6 @@ const ProfilePage = () => {
   const [url, setUrl] = useState("");
   const [disabled, setDisabled] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
-  const [draggingItem, setDraggingItem] = useState<IProfileItem | null>(null);
-  const [overItemWidth, setOverItemWidth] = useState(260);
 
   const currentProfileUid = useProfilesStore((s) => s.currentProfile?.uid);
   const profileItems = useProfilesStore((s) => s.profileItems);
@@ -103,28 +74,30 @@ const ProfilePage = () => {
   );
   const chainLogs = useProfilesStore((s) => s.chainLogs);
 
+  const [sortableProfileItems, setSortableProfileItems] = useState<
+    ISortableProfileItem[]
+  >(profileItems.map((item) => ({ id: item.uid, ...item })));
+  const [sortableGlobalChainItems, setSortableGlobalChainItems] = useState<
+    ISortableProfileItem[]
+  >(globalChainItems.map((item) => ({ id: item.uid, ...item })));
+
+  useEffect(() => {
+    setSortableProfileItems(
+      profileItems.map((item) => ({ id: item.uid, ...item })),
+    );
+  }, [profileItems]);
+
+  useEffect(() => {
+    setSortableGlobalChainItems(
+      globalChainItems.map((item) => ({ id: item.uid, ...item })),
+    );
+  }, [globalChainItems]);
+
   const activatingUidSet = useMemo(
     () => new Set(activatingItemUids),
     [activatingItemUids],
   );
-  const profileSortableIds = useMemo(
-    () => profileItems.map((item) => item.uid),
-    [profileItems],
-  );
-  const chainSortableIds = useMemo(
-    () => globalChainItems.map((item) => item.uid),
-    [globalChainItems],
-  );
   const hasActivatingItems = activatingItemUids.length > 0;
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-  );
-  const dropAnimationConfig: DropAnimation = {
-    sideEffects: defaultDropAnimationSideEffects({
-      styles: { active: { opacity: "0.5" } },
-    }),
-  };
 
   const getActivationUids = useCallback(
     (...uids: (string | undefined)[]) =>
@@ -153,16 +126,6 @@ const ProfilePage = () => {
     [setActivatingItemUids],
   );
 
-  const handleDragOver = useCallback(
-    (items: IProfileItem[], activeId: string, width?: number) => {
-      if (width && width !== overItemWidth) {
-        setOverItemWidth(width);
-      }
-      setDraggingItem(items.find((item) => item.uid === activeId) ?? null);
-    },
-    [overItemWidth],
-  );
-
   const onEnhance = useLockFn(async () => {
     const nextActivatingItemUids = getActivationUids(currentProfileUid);
     try {
@@ -173,35 +136,6 @@ const ProfilePage = () => {
       notice("error", err.message || err.toString(), 3000);
     } finally {
       clearActivationUids(nextActivatingItemUids);
-    }
-  });
-
-  const handleProfileDragEnd = useLockFn(async (event: DragEndEvent) => {
-    setDraggingItem(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const activeId = active.id.toString();
-    const overId = over.id.toString();
-    await reorderProfile(activeId, overId);
-  });
-
-  const handleChainDragEnd = useLockFn(async (event: DragEndEvent) => {
-    setDraggingItem(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const activeId = active.id.toString();
-    const overId = over.id.toString();
-    const newChainList = reorderItems(globalChainItems, activeId, overId);
-    const needToEnhance = !isEqual(
-      enabledGlobalChainUids,
-      getEnabledUids(newChainList),
-    );
-
-    await reorderProfile(activeId, overId);
-    if (needToEnhance) {
-      await onEnhance();
     }
   });
 
@@ -418,77 +352,79 @@ const ProfilePage = () => {
           {t("common.actions.new")}
         </Button>
       </div>
-      <Box sx={{ px: "10px" }}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragOver={(event) => {
-            const { over } = event;
-            if (over) {
-              handleDragOver(
-                profileItems,
-                event.active.id.toString(),
-                event.over?.rect.width,
-              );
-            }
+      <div className="px-2">
+        <DragDropProvider
+          onDragOver={(e) => {
+            // Prevent drag-and-drop when activating items are present
+            if (activatingItemUids.length > 0) e.preventDefault();
           }}
-          onDragEnd={(e) => handleProfileDragEnd(e)}
-          onDragCancel={() => setDraggingItem(null)}>
-          <Box>
-            <SortableContext items={profileSortableIds}>
-              <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                {profileItems.map((item) => (
-                  <DraggableItem
-                    key={item.uid}
-                    id={item.uid}
-                    sx={{
-                      display: "flex",
-                      flexGrow: 1,
-                      width: "260px",
-                      margin: "5px",
-                    }}>
-                    <ProfileItem
-                      selected={
-                        activatingUidSet.has(item.uid) ||
-                        (!hasActivatingItems && currentProfileUid === item.uid)
-                      }
-                      isDragging={draggingItem?.uid === item.uid}
-                      activating={activatingUidSet.has(item.uid)}
-                      itemData={item}
-                      onSelect={onSelect}
-                      onDelete={onDelete}
-                      // onEdit={() => viewerRef.current?.edit(item)}
-                      onActivatedSave={onEnhance}
-                    />
-                  </DraggableItem>
-                ))}
-                <FlexDecorationItems />
-              </Box>
-            </SortableContext>
-          </Box>
-          <DragOverlay dropAnimation={dropAnimationConfig}>
-            {draggingItem ? (
-              <ProfileItem
-                sx={{
-                  width: overItemWidth,
-                  borderRadius: "8px",
-                  boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
-                }}
-                selected={
-                  activatingUidSet.has(draggingItem.uid) ||
-                  (!hasActivatingItems &&
-                    currentProfileUid === draggingItem.uid)
-                }
-                activating={activatingUidSet.has(draggingItem.uid)}
-                itemData={draggingItem}
-                onSelect={onSelect}
-                onDelete={onDelete}
-                // onEdit={() => viewerRef.current?.edit(draggingProfileItem)}
-                onActivatedSave={onEnhance}
-              />
-            ) : null}
+          onDragEnd={async (event) => {
+            const { operation, canceled } = event;
+            const { source, target } = operation;
+
+            if (canceled) return;
+
+            if (target && isSortable(source)) {
+              const newIndex = source.sortable.index;
+              const oldIndex = source.sortable.initialIndex;
+              if (oldIndex === newIndex) return;
+              const activeId = sortableProfileItems[oldIndex].uid;
+              const overId = sortableProfileItems[newIndex].uid;
+
+              const newProfileList = arrayMove(
+                sortableProfileItems,
+                oldIndex,
+                newIndex,
+              );
+              await reorderProfile(activeId, overId);
+              setSortableProfileItems(newProfileList);
+            }
+          }}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-2 px-2">
+            {sortableProfileItems.map((item, index) => (
+              <SortableItem key={item.uid} id={item.uid} index={index}>
+                <ProfileItem
+                  selected={
+                    activatingUidSet.has(item.uid) ||
+                    (!hasActivatingItems && currentProfileUid === item.uid)
+                  }
+                  activating={activatingUidSet.has(item.uid)}
+                  itemData={item}
+                  onSelect={onSelect}
+                  onDelete={onDelete}
+                  // onEdit={() => viewerRef.current?.edit(item)}
+                  onActivatedSave={onEnhance}
+                />
+              </SortableItem>
+            ))}
+          </div>
+          <DragOverlay>
+            {(source) => {
+              const draggingItem = sortableProfileItems.find(
+                (item) => item.uid === source.id,
+              );
+              if (!draggingItem) return null;
+              return (
+                <ProfileItem
+                  sx={{
+                    borderRadius: "8px",
+                    boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
+                  }}
+                  selected={
+                    activatingUidSet.has(draggingItem.uid) ||
+                    (!hasActivatingItems &&
+                      currentProfileUid === draggingItem.uid)
+                  }
+                  activating={activatingUidSet.has(draggingItem.uid)}
+                  itemData={draggingItem}
+                  onSelect={onSelect}
+                  onDelete={onDelete}
+                  onActivatedSave={onEnhance}
+                />
+              );
+            }}
           </DragOverlay>
-        </DndContext>
+        </DragDropProvider>
 
         {globalChainItems.length > 0 && (
           <>
@@ -505,58 +441,63 @@ const ProfilePage = () => {
               })}>
               {t("pages.profiles.actions.enhanceScripts")}
             </Divider>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragOver={(event) => {
-                const { over } = event;
-                if (over) {
-                  handleDragOver(
-                    globalChainItems,
-                    event.active.id.toString(),
-                    event.over?.rect.width,
-                  );
-                }
+            <DragDropProvider
+              onDragOver={(e) => {
+                if (activatingItemUids.length > 0) e.preventDefault();
               }}
-              onDragEnd={(e) => handleChainDragEnd(e)}
-              onDragCancel={() => setDraggingItem(null)}>
-              <Box sx={{ display: "flex", flexWrap: "wrap" }}>
-                <SortableContext
-                  items={chainSortableIds}
-                  strategy={rectSortingStrategy}>
-                  {globalChainItems.map((item) => (
-                    <DraggableItem
-                      key={item.uid}
-                      id={item.uid}
-                      data={{
-                        activated: enabledGlobalChainUids.includes(item.uid),
-                      }}
-                      sx={{
-                        display: "flex",
-                        flexGrow: 1,
-                        width: "260px",
-                        margin: "5px",
-                      }}>
-                      <ProfileMore
-                        selected={
-                          activatingUidSet.has(item.uid) || !!item.enable
-                        }
-                        isDragging={draggingItem?.uid === item.uid}
-                        itemData={item}
-                        logs={chainLogs[item.uid]}
-                        reactivating={activatingItemUids.includes(item.uid)}
-                        onToggleEnable={handleToggleEnable}
-                        onDelete={handleChainDelete}
-                        onActivatedSave={onEnhance}
-                      />
-                    </DraggableItem>
-                  ))}
-                </SortableContext>
-                <FlexDecorationItems />
-              </Box>
-              {createPortal(
-                <DragOverlay dropAnimation={dropAnimationConfig}>
-                  {draggingItem ? (
+              onDragEnd={async (event) => {
+                const { operation, canceled } = event;
+                const { source, target } = operation;
+
+                if (canceled) return;
+
+                if (target && isSortable(source)) {
+                  const newIndex = source.sortable.index;
+                  const oldIndex = source.sortable.initialIndex;
+                  if (newIndex === oldIndex) return;
+                  const activeId = sortableGlobalChainItems[oldIndex].uid;
+                  const overId = sortableGlobalChainItems[newIndex].uid;
+
+                  const newChainList = arrayMove(
+                    sortableGlobalChainItems,
+                    oldIndex,
+                    newIndex,
+                  );
+                  const needToEnhance = !isEqual(
+                    enabledGlobalChainUids,
+                    getEnabledUids(newChainList),
+                  );
+
+                  await reorderProfile(activeId, overId);
+                  setSortableGlobalChainItems(newChainList);
+
+                  if (needToEnhance) {
+                    await onEnhance();
+                  }
+                }
+              }}>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-2 px-2">
+                {sortableGlobalChainItems.map((item, index) => (
+                  <SortableItem key={item.id} id={item.uid} index={index}>
+                    <ProfileMore
+                      selected={activatingUidSet.has(item.uid) || !!item.enable}
+                      itemData={item}
+                      logs={chainLogs[item.uid]}
+                      reactivating={activatingItemUids.includes(item.uid)}
+                      onToggleEnable={handleToggleEnable}
+                      onDelete={handleChainDelete}
+                      onActivatedSave={onEnhance}
+                    />
+                  </SortableItem>
+                ))}
+              </div>
+              <DragOverlay>
+                {(source) => {
+                  const draggingItem = sortableGlobalChainItems.find(
+                    (item) => item.id === source.id,
+                  );
+                  if (!draggingItem) return null;
+                  return (
                     <ProfileMore
                       selected={
                         activatingUidSet.has(draggingItem.uid) ||
@@ -564,7 +505,6 @@ const ProfilePage = () => {
                       }
                       itemData={draggingItem}
                       sx={{
-                        width: overItemWidth,
                         borderRadius: "8px",
                         boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
                       }}
@@ -573,14 +513,13 @@ const ProfilePage = () => {
                       onToggleEnable={handleToggleEnable}
                       onActivatedSave={onEnhance}
                     />
-                  ) : null}
-                </DragOverlay>,
-                document.body,
-              )}
-            </DndContext>
+                  );
+                }}
+              </DragOverlay>
+            </DragDropProvider>
           </>
         )}
-      </Box>
+      </div>
       <ProfileViewer ref={viewerRef} onChange={() => refreshConfig()} />
       <ConfigViewer ref={configRef} />
     </BasePage>
