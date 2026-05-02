@@ -32,53 +32,51 @@ pub struct MergeResult {
     pub logs: HashMap<String, ResultLog>,
 }
 
-pub fn generate_rule_providers(mut config: Mapping) -> Mapping {
+/// Generates rule providers for the given config, resolving relative paths and setting default format if not specified.
+pub fn generate_rule_providers(mut config: Mapping) -> Result<Mapping> {
     let profiles = Config::profiles();
     let mut profiles = profiles.latest_mut();
-    let rp_key = Value::from("rule-providers");
+    let key = Value::from("rule-providers");
 
-    if !config.contains_key(&rp_key) {
+    if !config.contains_key(&key) {
         profiles.set_rule_providers_path(HashMap::new());
-        return config;
+        return Ok(config);
     }
 
-    let rp_val = config.get(&rp_key);
-    let mut rp_val = rp_val.map_or(Mapping::new(), |val| val.as_mapping().cloned().unwrap_or_default());
-    let mut absolute_path_map: HashMap<String, PathBuf> = HashMap::new();
-    for (key, value) in rp_val.iter_mut() {
-        let name = key.as_str().unwrap();
-        let val_map = value.as_mapping_mut().unwrap();
+    let mut mapping = config
+        .get(&key)
+        .map_or(Mapping::new(), |val| val.as_mapping().cloned().unwrap_or_default());
+    let mut path_map: HashMap<String, PathBuf> = HashMap::new();
+    for (key, value) in mapping.iter_mut() {
+        let name = key.as_str().context("rule-providers key must be a string")?;
+        let val_mapping = value
+            .as_mapping_mut()
+            .context("rule-providers value must be a mapping")?;
+
+        let format_key = Value::from("format");
         let path_key = Value::from("path");
 
-        // add format
-        let format_key = Value::from("format");
-        let rp_format = val_map.get(&format_key).cloned();
-        if rp_format.is_none() {
-            val_map.insert(format_key, Value::from("yaml"));
-        }
+        let format_file = match val_mapping.get(&format_key) {
+            Some(v) => v.as_str().unwrap_or("yaml"),
+            None => {
+                val_mapping.insert(format_key, Value::from("yaml"));
+                "yaml"
+            }
+        };
 
-        // add path
-        if let Some(path) = val_map.get(&path_key) {
-            let path = path.as_str().unwrap();
-            let absolute_path = dirs::app_home_dir().unwrap().join(path);
-            absolute_path_map.insert(name.into(), absolute_path);
-        } else {
-            // no path value, set default path
-            let format_val = rp_format.as_ref().map_or("yaml", |v| v.as_str().unwrap_or("yaml"));
-            let path = format!("./rules/{name}.{format_val}");
-            let absolute_path = dirs::app_home_dir().unwrap().join(path.trim_start_matches("./"));
-            val_map.insert(path_key, path.into());
-            absolute_path_map.insert(name.into(), absolute_path);
-        }
+        let path = format!("./rules/{name}.{format_file}");
+        let absolute_path = dirs::app_home_dir()?.join(path.trim_start_matches("./"));
+        val_mapping.insert(path_key, path.into());
+        path_map.insert(name.into(), absolute_path);
     }
-    profiles.set_rule_providers_path(absolute_path_map);
-    config.insert(rp_key, rp_val.into());
-    config
+    profiles.set_rule_providers_path(path_map);
+    config.insert(key, mapping.into());
+    Ok(config)
 }
 
 /// Enhance mode
 /// 返回最终订阅、该订阅包含的键、和script执行的结果
-pub fn enhance() -> (Mapping, HashMap<String, ResultLog>) {
+pub fn enhance() -> Result<(Mapping, HashMap<String, ResultLog>)> {
     // config.yaml 的订阅
     let clash_config = Config::clash().latest().0.clone();
 
@@ -132,9 +130,9 @@ pub fn enhance() -> (Mapping, HashMap<String, ResultLog>) {
     tracing::info!("sort config key");
     config = use_sort(config);
     tracing::info!("generate rule providers");
-    config = generate_rule_providers(config);
+    config = generate_rule_providers(config)?;
 
-    (config, result_map)
+    Ok((config, result_map))
 }
 
 pub fn get_pre_merge_result(profile_uid: Option<String>, modified_uid: String) -> Result<MergeResult> {
@@ -203,7 +201,7 @@ pub async fn test_merge_chain(
         running_chains.extend(profile_chains);
     };
     let should_build_final_config =
-        running_chains.is_empty() || running_chains[running_chains.len() - 1] == modified_uid;
+        running_chains.is_empty() || running_chains.last().is_some_and(|c| c == &modified_uid);
     // 保存脚本日志
     let mut result_map = HashMap::new();
 
@@ -260,7 +258,7 @@ pub async fn test_merge_chain(
         let enable_tun = Config::clash().latest().get_enable_tun();
         config = use_tun(config, enable_tun);
         config = use_sort(config);
-        config = generate_rule_providers(config);
+        config = generate_rule_providers(config)?;
     }
     // 排序
     config = use_sort(config);

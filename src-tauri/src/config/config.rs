@@ -92,7 +92,7 @@ impl Config {
 
     /// 生成订阅存好
     pub fn generate() -> Result<()> {
-        let (config, logs) = enhance::enhance();
+        let (config, logs) = enhance::enhance()?;
 
         *Config::runtime().draft() = IRuntime {
             config: Some(config),
