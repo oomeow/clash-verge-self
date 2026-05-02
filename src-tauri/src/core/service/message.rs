@@ -11,7 +11,7 @@ async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> Result<JsonRes
     let psk = option_env!("CLASH_VERGE_SELF_SERVICE_PSK").map_or(clash_verge_self_service::PSK, |v| v.as_bytes());
     let mut client = clash_verge_self_service::Client::connect(SERVER_ID, Some(psk))
         .await
-        .context("failed to connect to service serve")?;
+        .context("failed to connect to service server")?;
     let response = client
         .send::<T>(cmd)
         .await
