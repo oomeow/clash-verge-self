@@ -15,7 +15,7 @@ async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> Result<JsonRes
     let response = client
         .send::<T>(cmd)
         .await
-        .context("failed to send request to service serve")?;
+        .context("failed to send request to service server")?;
     Ok(response)
 }
 
