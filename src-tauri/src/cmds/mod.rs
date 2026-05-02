@@ -11,7 +11,9 @@ pub mod profile;
 pub mod service;
 pub mod verge;
 
-pub fn into_command_result<T>(result: Result<T>) -> std::result::Result<T, String> {
+pub(crate) type CommandResult<T> = std::result::Result<T, String>;
+
+pub fn into_command_result<T>(result: Result<T>) -> CommandResult<T> {
     result.map_err(|err| err.to_string())
 }
 

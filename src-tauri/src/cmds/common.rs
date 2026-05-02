@@ -8,7 +8,7 @@ use tauri_plugin_opener::OpenerExt;
 
 use crate::{
     AppState,
-    cmds::into_command_result,
+    cmds::{CommandResult, into_command_result},
     core::{CoreManager, handle, sysopt, tray::Tray},
     feat,
     utils::{self, dirs, help, resolve},
@@ -22,24 +22,24 @@ pub struct NetInfo {
 }
 
 #[tauri::command]
-pub fn is_portable_version() -> Result<bool, String> {
+pub fn is_portable_version() -> CommandResult<bool> {
     Ok(dirs::is_portable_version())
 }
 
 #[tauri::command]
-pub async fn check_port_available(port: u16) -> Result<bool, String> {
+pub async fn check_port_available(port: u16) -> CommandResult<bool> {
     Ok(help::local_port_available(port))
 }
 
 /// restart the sidecar
 #[tauri::command]
-pub async fn restart_sidecar() -> Result<(), String> {
+pub async fn restart_sidecar() -> CommandResult<()> {
     CoreManager::global().reset_state();
     into_command_result(CoreManager::global().run_core().await)
 }
 
 #[tauri::command]
-pub fn grant_permissions(_core: String) -> Result<(), String> {
+pub fn grant_permissions(_core: String) -> CommandResult<()> {
     into_command_result({
         #[cfg(any(target_os = "macos", target_os = "linux"))]
         {
@@ -53,7 +53,7 @@ pub fn grant_permissions(_core: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn check_permissions_granted(_core: String) -> Result<bool, String> {
+pub fn check_permissions_granted(_core: String) -> CommandResult<bool> {
     into_command_result({
         #[cfg(target_os = "linux")]
         {
@@ -67,7 +67,7 @@ pub fn check_permissions_granted(_core: String) -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub fn refresh_permissions_granted() -> Result<(), String> {
+pub fn refresh_permissions_granted() -> CommandResult<()> {
     into_command_result({
         #[cfg(target_os = "linux")]
         {
@@ -82,7 +82,7 @@ pub fn refresh_permissions_granted() -> Result<(), String> {
 
 /// get the system proxy
 #[tauri::command]
-pub fn get_sys_proxy() -> Result<Mapping, String> {
+pub fn get_sys_proxy() -> CommandResult<Mapping> {
     into_command_result((|| {
         let current = Sysproxy::get_system_proxy()?;
         let mut map = Mapping::new();
@@ -94,13 +94,13 @@ pub fn get_sys_proxy() -> Result<Mapping, String> {
 }
 
 #[tauri::command]
-pub fn get_default_bypass() -> Result<String, String> {
+pub fn get_default_bypass() -> CommandResult<String> {
     Ok(sysopt::get_default_bypass())
 }
 
 /// get the system proxy
 #[tauri::command]
-pub fn get_auto_proxy() -> Result<Mapping, String> {
+pub fn get_auto_proxy() -> CommandResult<Mapping> {
     into_command_result((|| {
         let current = Autoproxy::get_auto_proxy()?;
         let res = Mapping::from_iter([
@@ -112,7 +112,7 @@ pub fn get_auto_proxy() -> Result<Mapping, String> {
 }
 
 #[tauri::command]
-pub fn get_app_dir() -> Result<String, String> {
+pub fn get_app_dir() -> CommandResult<String> {
     into_command_result((|| {
         let app_home_dir = dirs::app_home_dir()?.to_string_lossy().to_string();
         Ok(app_home_dir)
@@ -120,7 +120,7 @@ pub fn get_app_dir() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn get_default_backup_dir() -> Result<String, String> {
+pub fn get_default_backup_dir() -> CommandResult<String> {
     into_command_result((|| {
         let backup_dir = dirs::backup_dir()?.to_string_lossy().to_string();
         Ok(backup_dir)
@@ -128,7 +128,7 @@ pub fn get_default_backup_dir() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn open_app_dir(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub fn open_app_dir(app_handle: tauri::AppHandle) -> CommandResult<()> {
     into_command_result((|| {
         let app_dir = dirs::app_home_dir()?;
         app_handle.opener().open_path(app_dir.to_string_lossy(), None::<&str>)?;
@@ -137,7 +137,7 @@ pub fn open_app_dir(app_handle: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn open_core_dir(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub fn open_core_dir(app_handle: tauri::AppHandle) -> CommandResult<()> {
     into_command_result((|| {
         let core_dir = tauri::utils::platform::current_exe()?;
         let core_dir = core_dir.parent().context("failed to get core dir")?;
@@ -149,7 +149,7 @@ pub fn open_core_dir(app_handle: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn open_logs_dir(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub fn open_logs_dir(app_handle: tauri::AppHandle) -> CommandResult<()> {
     into_command_result((|| {
         let log_dir = dirs::app_logs_dir()?;
         app_handle.opener().open_path(log_dir.to_string_lossy(), None::<&str>)?;
@@ -158,7 +158,7 @@ pub fn open_logs_dir(app_handle: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn open_web_url(app_handle: tauri::AppHandle, url: String) -> Result<(), String> {
+pub fn open_web_url(app_handle: tauri::AppHandle, url: String) -> CommandResult<()> {
     into_command_result((|| {
         app_handle.opener().open_url(url, None::<&str>)?;
         Ok(())
@@ -166,7 +166,7 @@ pub fn open_web_url(app_handle: tauri::AppHandle, url: String) -> Result<(), Str
 }
 
 #[tauri::command]
-pub async fn invoke_uwp_tool() -> Result<(), String> {
+pub async fn invoke_uwp_tool() -> CommandResult<()> {
     into_command_result(
         async {
             #[cfg(target_os = "windows")]
@@ -181,7 +181,7 @@ pub async fn invoke_uwp_tool() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn open_devtools(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub fn open_devtools(app_handle: tauri::AppHandle) -> CommandResult<()> {
     if let Some(window) = app_handle.get_webview_window("main") {
         if !window.is_devtools_open() {
             window.open_devtools();
@@ -193,13 +193,13 @@ pub fn open_devtools(app_handle: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn copy_clash_env() -> Result<(), String> {
+pub fn copy_clash_env() -> CommandResult<()> {
     feat::copy_clash_env(handle::Handle::app_handle());
     Ok(())
 }
 
 #[tauri::command]
-pub async fn download_icon_cache(url: String, name: String) -> Result<String, String> {
+pub async fn download_icon_cache(url: String, name: String) -> CommandResult<String> {
     into_command_result(
         async {
             let icon_cache_dir = dirs::app_home_dir()?.join("icons").join("cache");
@@ -222,7 +222,7 @@ pub async fn download_icon_cache(url: String, name: String) -> Result<String, St
 }
 
 #[tauri::command]
-pub fn copy_icon_file(path: String, name: String) -> Result<String, String> {
+pub fn copy_icon_file(path: String, name: String) -> CommandResult<String> {
     into_command_result((|| {
         let file_path = std::path::Path::new(&path);
         let icon_dir = dirs::app_home_dir()?.join("icons");
@@ -249,17 +249,17 @@ pub fn copy_icon_file(path: String, name: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn set_tray_visible(app_handle: tauri::AppHandle, visible: bool) -> Result<(), String> {
+pub async fn set_tray_visible(app_handle: tauri::AppHandle, visible: bool) -> CommandResult<()> {
     into_command_result(Tray::set_tray_visible(&app_handle, visible))
 }
 
 #[tauri::command]
-pub fn is_wayland() -> Result<bool, String> {
+pub fn is_wayland() -> CommandResult<bool> {
     Ok(utils::unix_helper::is_wayland())
 }
 
 #[tauri::command]
-pub fn get_net_info() -> Result<Vec<NetInfo>, String> {
+pub fn get_net_info() -> CommandResult<Vec<NetInfo>> {
     into_command_result((|| {
         let mut net_list = Vec::new();
         let network_interfaces = network_interface::NetworkInterface::show()?;

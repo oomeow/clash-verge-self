@@ -1,7 +1,7 @@
 use anyhow::Context;
 
 use crate::{
-    cmds::into_command_result,
+    cmds::{CommandResult, into_command_result},
     config::{Config, DEFAULT_PAC, EnableFilter, IProfiles, PrfItem, PrfOption},
     core::{CoreManager, handle, timer},
     enhance::chain::{ChainItem, ScopeType},
@@ -10,12 +10,12 @@ use crate::{
 };
 
 #[tauri::command]
-pub fn get_profiles() -> Result<IProfiles, String> {
+pub fn get_profiles() -> CommandResult<IProfiles> {
     Ok(Config::profiles().data().clone())
 }
 
 #[tauri::command]
-pub fn get_profile(uid: String) -> Result<PrfItem, String> {
+pub fn get_profile(uid: String) -> CommandResult<PrfItem> {
     into_command_result((|| {
         Ok(Config::profiles()
             .data()
@@ -26,14 +26,14 @@ pub fn get_profile(uid: String) -> Result<PrfItem, String> {
 }
 
 #[tauri::command]
-pub fn get_chains(profile_uid: Option<String>) -> Result<Vec<ChainItem>, String> {
+pub fn get_chains(profile_uid: Option<String>) -> CommandResult<Vec<ChainItem>> {
     Ok(Config::profiles()
         .data()
         .get_profile_chains(profile_uid, EnableFilter::All))
 }
 
 #[tauri::command]
-pub fn get_template(scope: String, language: String) -> Result<String, String> {
+pub fn get_template(scope: String, language: String) -> CommandResult<String> {
     match (scope.as_str(), language.as_str()) {
         ("merge", "yaml") => Ok(tmpl::ITEM_MERGE.into()),
         ("script", "javascript") => Ok(tmpl::ITEM_SCRIPT.into()),
@@ -43,7 +43,7 @@ pub fn get_template(scope: String, language: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub async fn enhance_profiles() -> Result<(), String> {
+pub async fn enhance_profiles() -> CommandResult<()> {
     into_command_result(
         async {
             CoreManager::global().update_config().await?;
@@ -55,7 +55,7 @@ pub async fn enhance_profiles() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn import_profile(url: String, option: Option<PrfOption>) -> Result<(), String> {
+pub async fn import_profile(url: String, option: Option<PrfOption>) -> CommandResult<()> {
     into_command_result(
         async {
             let item = PrfItem::from_url(&url, None, None, option).await?;
@@ -71,7 +71,7 @@ pub async fn import_profile(url: String, option: Option<PrfOption>) -> Result<()
 }
 
 #[tauri::command]
-pub async fn reorder_profile(active_id: String, over_id: String) -> Result<(), String> {
+pub async fn reorder_profile(active_id: String, over_id: String) -> CommandResult<()> {
     into_command_result(
         async {
             Config::profiles().data_mut().reorder(active_id, over_id)?;
@@ -82,7 +82,7 @@ pub async fn reorder_profile(active_id: String, over_id: String) -> Result<(), S
 }
 
 #[tauri::command]
-pub async fn create_profile(item: PrfItem, file_data: Option<String>) -> Result<(), String> {
+pub async fn create_profile(item: PrfItem, file_data: Option<String>) -> CommandResult<()> {
     into_command_result(
         async {
             let item = PrfItem::from(item, file_data).await?;
@@ -99,7 +99,7 @@ pub async fn create_profile(item: PrfItem, file_data: Option<String>) -> Result<
 
 // 同步更新订阅
 #[tauri::command]
-pub async fn update_profile(uid: String, option: Option<PrfOption>) -> Result<(), String> {
+pub async fn update_profile(uid: String, option: Option<PrfOption>) -> CommandResult<()> {
     into_command_result(
         async {
             feat::update_profile(&uid, option).await?;
@@ -110,7 +110,7 @@ pub async fn update_profile(uid: String, option: Option<PrfOption>) -> Result<()
 }
 
 #[tauri::command]
-pub async fn delete_profile(uid: String) -> Result<(), String> {
+pub async fn delete_profile(uid: String) -> CommandResult<()> {
     into_command_result(
         async {
             let restart_core = Config::profiles().data_mut().delete_item(uid)?;
@@ -127,7 +127,7 @@ pub async fn delete_profile(uid: String) -> Result<(), String> {
 
 /// 修改整个 profiles
 #[tauri::command]
-pub async fn patch_profiles_config(profiles: IProfiles) -> Result<(), String> {
+pub async fn patch_profiles_config(profiles: IProfiles) -> CommandResult<()> {
     into_command_result(
         async {
             let switch_current = profiles.current.is_some();
@@ -161,7 +161,7 @@ pub async fn patch_profiles_config(profiles: IProfiles) -> Result<(), String> {
 
 /// 修改某个 profile item
 #[tauri::command]
-pub async fn patch_profile(uid: String, profile: PrfItem) -> Result<(), String> {
+pub async fn patch_profile(uid: String, profile: PrfItem) -> CommandResult<()> {
     into_command_result(
         async {
             let old = Config::profiles()
@@ -201,7 +201,7 @@ pub async fn patch_profile(uid: String, profile: PrfItem) -> Result<(), String> 
 }
 
 #[tauri::command]
-pub fn view_profile(app_handle: tauri::AppHandle, index: String) -> Result<(), String> {
+pub fn view_profile(app_handle: tauri::AppHandle, index: String) -> CommandResult<()> {
     into_command_result((|| {
         let profiles = Config::profiles();
         let profiles = profiles.latest();
@@ -220,7 +220,7 @@ pub fn view_profile(app_handle: tauri::AppHandle, index: String) -> Result<(), S
 }
 
 #[tauri::command]
-pub fn read_profile_file(index: String) -> Result<String, String> {
+pub fn read_profile_file(index: String) -> CommandResult<String> {
     into_command_result((|| {
         let profiles = Config::profiles();
         let profiles = profiles.latest();
@@ -233,7 +233,7 @@ pub fn read_profile_file(index: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn save_profile_file(uid: String, file_data: Option<String>) -> Result<(), String> {
+pub fn save_profile_file(uid: String, file_data: Option<String>) -> CommandResult<()> {
     into_command_result((|| {
         if let Some(file_data) = file_data {
             let profiles = Config::profiles();

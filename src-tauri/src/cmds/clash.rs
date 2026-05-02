@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 
 use crate::{
-    cmds::into_command_result,
+    cmds::{CommandResult, into_command_result},
     config::{ClashInfo, Config},
     core::{CoreManager, logger, service},
     enhance::{self, LogMessage, MergeResult},
@@ -21,17 +21,17 @@ pub struct CmdMergeResult {
 }
 
 #[tauri::command]
-pub fn get_clash_info() -> Result<ClashInfo, String> {
+pub fn get_clash_info() -> CommandResult<ClashInfo> {
     Ok(Config::clash().latest().get_client_info())
 }
 
 #[tauri::command]
-pub fn get_runtime_config() -> Result<Option<Mapping>, String> {
+pub fn get_runtime_config() -> CommandResult<Option<Mapping>> {
     Ok(Config::runtime().latest().config.clone())
 }
 
 #[tauri::command]
-pub fn get_runtime_yaml() -> Result<String, String> {
+pub fn get_runtime_yaml() -> CommandResult<String> {
     into_command_result((|| -> anyhow::Result<String> {
         let runtime = Config::runtime();
         let runtime = runtime.latest();
@@ -42,12 +42,12 @@ pub fn get_runtime_yaml() -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn get_runtime_logs() -> Result<HashMap<String, Vec<LogMessage>>, String> {
+pub fn get_runtime_logs() -> CommandResult<HashMap<String, Vec<LogMessage>>> {
     Ok(Config::runtime().latest().chain_logs.clone())
 }
 
 #[tauri::command]
-pub fn get_pre_merge_result(parent_uid: Option<String>, modified_uid: String) -> Result<CmdMergeResult, String> {
+pub fn get_pre_merge_result(parent_uid: Option<String>, modified_uid: String) -> CommandResult<CmdMergeResult> {
     into_command_result((|| {
         let MergeResult { config, logs } = enhance::get_pre_merge_result(parent_uid, modified_uid)?;
         let config = serde_yaml::to_string(&config)?;
@@ -60,7 +60,7 @@ pub async fn test_merge_chain(
     profile_uid: Option<String>,
     modified_uid: String,
     content: String,
-) -> Result<CmdMergeResult, String> {
+) -> CommandResult<CmdMergeResult> {
     into_command_result(
         async {
             let MergeResult { config, logs } = enhance::test_merge_chain(profile_uid, modified_uid, content).await?;
@@ -72,17 +72,17 @@ pub async fn test_merge_chain(
 }
 
 #[tauri::command]
-pub async fn patch_clash_config(payload: Mapping) -> Result<(), String> {
+pub async fn patch_clash_config(payload: Mapping) -> CommandResult<()> {
     into_command_result(feat::patch_clash(payload).await)
 }
 
 #[tauri::command]
-pub async fn change_clash_core(clash_core: Option<String>) -> Result<(), String> {
+pub async fn change_clash_core(clash_core: Option<String>) -> CommandResult<()> {
     into_command_result(CoreManager::global().change_core(clash_core).await)
 }
 
 #[tauri::command]
-pub async fn get_clash_logs() -> Result<VecDeque<String>, String> {
+pub async fn get_clash_logs() -> CommandResult<VecDeque<String>> {
     into_command_result(
         async {
             let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or_default();
@@ -103,7 +103,7 @@ pub async fn get_rule_provider_payload(
     provider_name: String,
     behavior: RuleBehavior,
     format: RuleFormat,
-) -> Result<RulePayload, String> {
+) -> CommandResult<RulePayload> {
     into_command_result((|| {
         let file_path = Config::profiles()
             .latest()
