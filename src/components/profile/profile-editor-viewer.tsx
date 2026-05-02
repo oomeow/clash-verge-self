@@ -113,12 +113,6 @@ export const ProfileEditorViewer = (props: Props) => {
   const isRunningProfile = currentProfile?.uid === profileUid;
   const enabledProfileChainUids = getEnabledUids(profileChainItems);
 
-  // const dropAnimationConfig: DropAnimation = {
-  //   sideEffects: defaultDropAnimationSideEffects({
-  //     styles: { active: { opacity: "0.5" } },
-  //   }),
-  // };
-
   useAsyncEffect(async () => {
     if (!open) return;
     const version = await getVersion();

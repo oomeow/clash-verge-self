@@ -99,12 +99,6 @@ const ProfilePage = () => {
   );
   const hasActivatingItems = activatingItemUids.length > 0;
 
-  // const dropAnimationConfig: DropAnimation = {
-  //   sideEffects: defaultDropAnimationSideEffects({
-  //     styles: { active: { opacity: "0.5" } },
-  //   }),
-  // };
-
   const getActivationUids = useCallback(
     (...uids: (string | undefined)[]) =>
       compactUids([...uids, ...enabledGlobalChainUids]),
