@@ -1,16 +1,11 @@
 use std::{collections::HashMap, sync::Arc};
 
+use anyhow::Result;
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
-use crate::{
-    cmds,
-    config::Config,
-    core::handle,
-    error::{AppError, AppResult},
-    feat, log_err,
-};
+use crate::{cmds, config::Config, core::handle, feat, log_err};
 
 pub struct Hotkey {
     current: Arc<Mutex<Vec<String>>>, // 保存当前的热键设置
@@ -48,7 +43,7 @@ impl HotkeyAction {
 }
 
 impl TryFrom<&str> for HotkeyAction {
-    type Error = AppError;
+    type Error = anyhow::Error;
 
     fn try_from(func: &str) -> Result<Self, Self::Error> {
         match func.trim() {
@@ -60,12 +55,12 @@ impl TryFrom<&str> for HotkeyAction {
             "toggle_system_proxy" => Ok(Self::ToggleSystemProxy),
             "toggle_tun_mode" => Ok(Self::ToggleTunMode),
             "exit_app" => Ok(Self::ExitApp),
-            _ => Err(AppError::InvalidValue(format!("invalid function \"{func}\""))),
+            _ => Err(anyhow::anyhow!("invalid function \"{func}\"")),
         }
     }
 }
 
-pub fn dispatch_action(app_handle: &tauri::AppHandle, func: &str) -> AppResult<()> {
+pub fn dispatch_action(app_handle: &tauri::AppHandle, func: &str) -> Result<()> {
     match HotkeyAction::try_from(func)? {
         HotkeyAction::OpenOrCloseDashboard => feat::open_or_close_dashboard(),
         HotkeyAction::CloseDashboard => feat::close_dashboard(),
@@ -89,7 +84,7 @@ impl Hotkey {
         })
     }
 
-    pub fn init(&self) -> AppResult<()> {
+    pub fn init(&self) -> Result<()> {
         let verge = Config::verge();
         let verge = verge.latest();
 
@@ -108,7 +103,7 @@ impl Hotkey {
         Ok(())
     }
 
-    fn register(&self, hotkey: &str, func: &str) -> AppResult<()> {
+    fn register(&self, hotkey: &str, func: &str) -> Result<()> {
         let app_handle = handle::Handle::app_handle();
         let manager = app_handle.global_shortcut();
 
@@ -129,14 +124,14 @@ impl Hotkey {
         Ok(())
     }
 
-    fn unregister(&self, hotkey: &str) -> AppResult<()> {
+    fn unregister(&self, hotkey: &str) -> Result<()> {
         let app_handle = handle::Handle::app_handle();
         app_handle.global_shortcut().unregister(hotkey)?;
         tracing::info!("unregister hotkey {hotkey}");
         Ok(())
     }
 
-    pub fn update(&self, new_hotkeys: Vec<String>) -> AppResult<()> {
+    pub fn update(&self, new_hotkeys: Vec<String>) -> Result<()> {
         let mut current = self.current.lock();
         let old_map = Self::get_map_from_vec(&current);
         let new_map = Self::get_map_from_vec(&new_hotkeys);

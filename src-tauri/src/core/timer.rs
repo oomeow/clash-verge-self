@@ -7,17 +7,13 @@ use std::{
     time::Duration,
 };
 
+use anyhow::Result;
 use delay_timer::prelude::{DelayTimer, DelayTimerBuilder, TaskBuilder};
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 
 use super::handle;
-use crate::{
-    config::Config,
-    error::{AppError, AppResult},
-    feat, log_err,
-    utils::dirs,
-};
+use crate::{config::Config, feat, log_err, utils::dirs};
 
 type TaskId = u64;
 
@@ -46,7 +42,7 @@ impl Timer {
     }
 
     /// restore timer
-    pub fn init(&self) -> AppResult<()> {
+    pub fn init(&self) -> Result<()> {
         self.activate_selected_task()?;
         self.refresh_profiles()?;
 
@@ -81,7 +77,7 @@ impl Timer {
         Ok(())
     }
 
-    pub fn add_async_task<F, U>(&self, id: TaskId, seconds: u64, async_task: F) -> AppResult<()>
+    pub fn add_async_task<F, U>(&self, id: TaskId, seconds: u64, async_task: F) -> Result<()>
     where
         F: Fn() -> U + 'static + Send,
         U: std::future::Future + 'static + Send,
@@ -98,13 +94,13 @@ impl Timer {
     }
 
     #[allow(unused)]
-    pub fn remove_task(&self, task_id: u64) -> AppResult<()> {
+    pub fn remove_task(&self, task_id: u64) -> Result<()> {
         let delay_timer = self.delay_timer.lock();
         delay_timer.remove_task(task_id)?;
         Ok(())
     }
 
-    fn activate_selected_task(&self) -> AppResult<()> {
+    fn activate_selected_task(&self) -> Result<()> {
         if !dirs::backup_archive_file()?.exists() {
             return Ok(());
         }
@@ -184,7 +180,7 @@ impl Timer {
     }
 
     /// Correctly update all cron tasks
-    pub fn refresh_profiles(&self) -> AppResult<()> {
+    pub fn refresh_profiles(&self) -> Result<()> {
         let diff_map = self.gen_diff_profiles();
 
         let mut timer_map = self.timer_map.lock();
@@ -258,7 +254,7 @@ impl Timer {
     }
 
     /// add a cron task
-    fn add_profiles_task(&self, delay_timer: &DelayTimer, uid: String, tid: TaskId, minutes: u64) -> AppResult<()> {
+    fn add_profiles_task(&self, delay_timer: &DelayTimer, uid: String, tid: TaskId, minutes: u64) -> Result<()> {
         let task = TaskBuilder::default()
             .set_task_id(tid)
             .set_maximum_parallel_runnable_num(1)
@@ -279,7 +275,9 @@ impl Timer {
                 tracing::info!("update profile successfully, refresh profiles");
             }
             Err(e) => {
-                if let AppError::InvalidClashConfig(msg) = e {
+                let msg = e.to_string();
+                if let Some(msg) = msg.strip_prefix("invalid clash config: ") {
+                    let msg = msg.to_string();
                     tracing::error!("update profile `{uid}` failed, {msg}");
                     handle::Handle::notice_message(handle::NoticeStatus::Error, msg);
                 } else {

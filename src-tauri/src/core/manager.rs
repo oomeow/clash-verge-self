@@ -2,9 +2,8 @@
 
 use std::{collections::HashMap, sync::LazyLock};
 
+use anyhow::Result;
 use parking_lot::RwLock;
-
-use crate::error::AppResult;
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 static GRANTED_PERMISSIONS: LazyLock<RwLock<HashMap<String, Option<bool>>>> = LazyLock::new(|| {
@@ -16,7 +15,7 @@ static GRANTED_PERMISSIONS: LazyLock<RwLock<HashMap<String, Option<bool>>>> = La
 
 /// 给 mihomo 内核的 tun 模式授权
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-pub fn grant_permissions(core: String) -> AppResult<()> {
+pub fn grant_permissions(core: String) -> Result<()> {
     use std::process::Command;
 
     use tauri::utils::platform::current_exe;
@@ -51,15 +50,13 @@ pub fn grant_permissions(core: String) -> AppResult<()> {
         GRANTED_PERMISSIONS.write().entry(core).and_modify(|i| *i = Some(true));
         Ok(())
     } else {
-        use crate::{any_err, error::AppError};
-
         let stderr = std::str::from_utf8(&output.stderr).unwrap_or_default();
-        Err(any_err!("{stderr}"))
+        Err(anyhow::anyhow!("{stderr}"))
     }
 }
 
 #[cfg(target_os = "linux")]
-pub fn check_permissions_granted(core: String) -> AppResult<bool> {
+pub fn check_permissions_granted(core: String) -> Result<bool> {
     if let Some(Some(granted)) = GRANTED_PERMISSIONS.read().get(&core) {
         tracing::debug!("check permissions granted by cache, core: {core}");
         return Ok(*granted);
@@ -94,15 +91,13 @@ pub fn check_permissions_granted(core: String) -> AppResult<bool> {
             Ok(false)
         }
     } else {
-        use crate::{any_err, error::AppError};
-
         let stderr = std::str::from_utf8(&output.stderr).unwrap_or_default();
-        Err(any_err!("{stderr}"))
+        Err(anyhow::anyhow!("{stderr}"))
     }
 }
 
 #[cfg(target_os = "linux")]
-pub fn refresh_permissions_granted() -> AppResult<()> {
+pub fn refresh_permissions_granted() -> Result<()> {
     tracing::debug!("refresh permissions granted");
     GRANTED_PERMISSIONS.write().iter_mut().for_each(|(_, v)| *v = None);
     let mihomo_cores = ["self-mihomo", "self-mihomo-alpha"];

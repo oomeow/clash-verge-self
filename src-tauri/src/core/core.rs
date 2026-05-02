@@ -8,6 +8,7 @@ use std::{
     time::Duration,
 };
 
+use anyhow::{Context, Result};
 use clash_verge_self_utils::format_mihomo_log_line;
 use once_cell::sync::OnceCell;
 use process_supervisor::{ProcessEvent, ProcessLogConfig, ProcessSpec, ProcessSupervisor, RestartPolicy};
@@ -17,10 +18,9 @@ use tauri_plugin_shell::ShellExt;
 
 use super::verge_log::VergeLog;
 use crate::{
-    MIHOMO_SOCKET_PATH, any_err,
+    MIHOMO_SOCKET_PATH,
     config::*,
     core::{handle, logger::Logger, service},
-    error::{AppError, AppResult},
     log_err, utils,
     utils::{dirs, help::find_unused_port},
 };
@@ -48,7 +48,7 @@ impl CoreManager {
         })
     }
 
-    pub fn init(&self) -> AppResult<()> {
+    pub fn init(&self) -> Result<()> {
         let enable_random_port = Config::verge().latest().enable_random_port.unwrap_or_default();
         if enable_random_port {
             let port = find_unused_port().unwrap_or(Config::clash().latest().get_mixed_port());
@@ -72,7 +72,7 @@ impl CoreManager {
     }
 
     /// 检查订阅是否正确
-    pub async fn check_config(&self, generate_config_type: ConfigType) -> AppResult<()> {
+    pub async fn check_config(&self, generate_config_type: ConfigType) -> Result<()> {
         let config_path = Config::generate_file(generate_config_type)?;
         let config_path = dirs::path_to_str(&config_path)?;
 
@@ -90,7 +90,7 @@ impl CoreManager {
             let stdout = String::from_utf8_lossy(&output.stdout).to_string();
             let error = utils::help::parse_check_output(&stdout);
             let error = if !error.is_empty() { error } else { &stdout };
-            return Err(any_err!("{error}"));
+            anyhow::bail!("{error}");
         }
 
         Ok(())
@@ -101,7 +101,7 @@ impl CoreManager {
     }
 
     /// 启动核心
-    pub async fn run_core(&self) -> AppResult<()> {
+    pub async fn run_core(&self) -> Result<()> {
         tracing::info!("run core");
         Logger::global().clear_logs();
 
@@ -131,7 +131,7 @@ impl CoreManager {
     }
 
     /// 停止核心运行
-    pub async fn stop_core(&self) -> AppResult<()> {
+    pub async fn stop_core(&self) -> Result<()> {
         tracing::info!("stop core");
         self.disable_tun().await;
 
@@ -154,12 +154,10 @@ impl CoreManager {
     }
 
     /// 切换核心
-    pub async fn change_core(&self, clash_core: Option<String>) -> AppResult<()> {
-        let clash_core = clash_core.ok_or(AppError::InvalidValue("clash core is null".to_string()))?;
+    pub async fn change_core(&self, clash_core: Option<String>) -> Result<()> {
+        let clash_core = clash_core.context("clash core is null")?;
         if !CLASH_CORES.contains(&clash_core.as_str()) {
-            return Err(AppError::InvalidValue(format!(
-                "invalid clash core name \"{clash_core}\""
-            )));
+            anyhow::bail!("invalid clash core name \"{clash_core}\"");
         }
 
         tracing::info!("change core to `{clash_core}`");
@@ -184,7 +182,7 @@ impl CoreManager {
 
     /// 更新proxies那些
     /// 如果涉及端口和外部控制则需要重启
-    pub async fn update_config(&self) -> AppResult<()> {
+    pub async fn update_config(&self) -> Result<()> {
         tracing::info!("try to update clash config");
 
         tracing::info!("generate enhanced config");
@@ -197,7 +195,7 @@ impl CoreManager {
         self.run_core().await
     }
 
-    fn build_sidecar_spec(&self, config_path: &PathBuf) -> AppResult<ProcessSpec> {
+    fn build_sidecar_spec(&self, config_path: &PathBuf) -> Result<ProcessSpec> {
         let app_dir = dirs::app_home_dir()?;
         let clash_core = Self::clash_core_name();
         let exe_name = format!("{clash_core}{}", std::env::consts::EXE_SUFFIX);
@@ -267,7 +265,7 @@ impl CoreManager {
         let _ = handle::Handle::mihomo().await.patch_base_config(&disable_tun).await;
     }
 
-    async fn try_run_core_by_service(&self, config_path: &PathBuf) -> AppResult<bool> {
+    async fn try_run_core_by_service(&self, config_path: &PathBuf) -> Result<bool> {
         if !self.use_service_mode.load(Ordering::SeqCst) {
             return Ok(false);
         }
@@ -296,7 +294,7 @@ impl CoreManager {
         }
     }
 
-    fn prepare_sidecar_mode(&self) -> AppResult<()> {
+    fn prepare_sidecar_mode(&self) -> Result<()> {
         VergeLog::global().reset_service_log_file();
 
         if cfg!(target_os = "linux") && dirs::is_portable_version() {

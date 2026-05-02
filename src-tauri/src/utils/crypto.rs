@@ -11,10 +11,7 @@ use rsa::{
     pkcs1::{DecodeRsaPrivateKey, DecodeRsaPublicKey},
 };
 
-use crate::{
-    any_err,
-    error::{AppError, AppResult},
-};
+use anyhow::{Context, Result};
 
 const PRI_KEY_PEM_FILE: &str = ".private.pem";
 const PUB_KEY_PEM_FILE: &str = ".public.pem";
@@ -30,7 +27,7 @@ pub fn get_public_key() -> Option<RsaPublicKey> {
     PUBLIC_KEY.read().clone()
 }
 
-pub fn load_keys() -> AppResult<()> {
+pub fn load_keys() -> Result<()> {
     let private_key_path = crate::utils::dirs::app_resources_dir()?.join(PRI_KEY_PEM_FILE);
     let mut pri_key_file = std::fs::File::open(private_key_path)?;
     let mut private_key_content = String::new();
@@ -48,10 +45,10 @@ pub fn load_keys() -> AppResult<()> {
     Ok(())
 }
 
-pub fn reload_keys() -> AppResult<()> {
+pub fn reload_keys() -> Result<()> {
     for i in 0..=10 {
         if i == 10 {
-            return Err(AppError::LoadKeys("max retries reached for reload keys".to_string()));
+            anyhow::bail!("max retries reached for reload keys");
         }
         match load_keys() {
             Ok(_) => {
@@ -72,27 +69,29 @@ pub fn reload_keys() -> AppResult<()> {
     Ok(())
 }
 
-pub fn rsa_encrypt(public_key: &RsaPublicKey, data: &[u8]) -> AppResult<Vec<u8>> {
+pub fn rsa_encrypt(public_key: &RsaPublicKey, data: &[u8]) -> Result<Vec<u8>> {
     Ok(public_key.encrypt(&mut rand::thread_rng(), Pkcs1v15Encrypt, data)?)
 }
 
-pub fn rsa_decrypt(private_key: &RsaPrivateKey, enc_data: &[u8]) -> AppResult<Vec<u8>> {
+pub fn rsa_decrypt(private_key: &RsaPrivateKey, enc_data: &[u8]) -> Result<Vec<u8>> {
     Ok(private_key.decrypt(Pkcs1v15Encrypt, enc_data)?)
 }
 
-pub fn aes_encrypt(key: &[u8], nonce: &[u8], data: &[u8]) -> AppResult<Vec<u8>> {
+pub fn aes_encrypt(key: &[u8], nonce: &[u8], data: &[u8]) -> Result<Vec<u8>> {
     let cipher = Aes256Gcm::new(key.into());
     let res = cipher
         .encrypt(Nonce::from_slice(nonce), data)
-        .map_err(|e| any_err!("aes encrypt failed, error {e}"))?;
+        .map_err(|e| anyhow::anyhow!("{e}"))
+        .context("aes encrypt failed")?;
     Ok(res)
 }
 
-pub fn aes_decrypt(key: &[u8], nonce: &[u8], data: &[u8]) -> AppResult<Vec<u8>> {
+pub fn aes_decrypt(key: &[u8], nonce: &[u8], data: &[u8]) -> Result<Vec<u8>> {
     let cipher = Aes256Gcm::new(key.into());
     let res = cipher
         .decrypt(Nonce::from_slice(nonce), data)
-        .map_err(|e| any_err!("aes decrypt failed, error {e}"))?;
+        .map_err(|e| anyhow::anyhow!("{e}"))
+        .context("aes decrypt failed")?;
     Ok(res)
 }
 
@@ -102,7 +101,7 @@ pub fn gen_aes_key_and_nonce() -> (Vec<u8>, Vec<u8>) {
     (key.to_vec(), nonce.to_vec())
 }
 
-pub fn encrypt_socket_data(public_key: &RsaPublicKey, data: &str) -> AppResult<String> {
+pub fn encrypt_socket_data(public_key: &RsaPublicKey, data: &str) -> Result<String> {
     let (aes_key, nonce) = gen_aes_key_and_nonce();
     let ciphertext = aes_encrypt(&aes_key, &nonce, data.as_bytes())?;
     let enc_key = rsa_encrypt(public_key, &aes_key)?;
@@ -117,10 +116,10 @@ pub fn encrypt_socket_data(public_key: &RsaPublicKey, data: &str) -> AppResult<S
     Ok(combined)
 }
 
-pub fn decrypt_socket_data(private_key: &RsaPrivateKey, data: &str) -> AppResult<String> {
+pub fn decrypt_socket_data(private_key: &RsaPrivateKey, data: &str) -> Result<String> {
     let parts: Vec<&str> = data.trim().split('|').collect();
     if parts.len() != 3 {
-        return Err(AppError::Service("invalid format".to_string()));
+        anyhow::bail!("invalid format");
     }
 
     let enc_data = BASE64_STANDARD.decode(parts[0])?;

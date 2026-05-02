@@ -4,7 +4,6 @@ mod cmds;
 mod config;
 mod core;
 mod enhance;
-mod error;
 mod feat;
 mod shutdown;
 mod utils;
@@ -14,6 +13,7 @@ use core::verge_log::VergeLog;
 use std::sync::LazyLock;
 use std::sync::atomic::AtomicBool;
 
+use anyhow::Result;
 use once_cell::sync::OnceCell;
 #[cfg(target_os = "linux")]
 use parking_lot::RwLock;
@@ -24,7 +24,6 @@ use tauri_plugin_mihomo::models::Protocol;
 use crate::{
     config::Config,
     core::handle,
-    error::AppResult,
     utils::{init, resolve},
 };
 
@@ -52,7 +51,7 @@ pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\self-mihomo";
 pub const MIHOMO_SOCKET_PATH: &str = r"\\.\pipe\self-mihomo-dev";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() -> AppResult<()> {
+pub fn run() -> Result<()> {
     #[cfg(target_os = "linux")]
     {
         if utils::unix_helper::is_rendered_by_nvidia_only() {

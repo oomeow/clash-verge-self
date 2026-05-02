@@ -100,7 +100,7 @@
     "picocolors": "1.1.1",
     "postcss": "8.5.12",
     "prettier": "3.8.3",
-    "prettier-plugin-tailwindcss": "0.7.3",
+    "prettier-plugin-tailwindcss": "0.8.0",
     "pretty-quick": "4.2.2",
     "tailwind-merge": "3.5.0",
     "tailwindcss": "4.2.4",
@@ -109,7 +109,7 @@
     "tsx": "4.21.0",
     "types-pac": "1.0.3",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.59.0",
+    "typescript-eslint": "8.59.1",
     "vite": "8.0.10",
     "vite-plugin-monaco-editor": "1.1.0",
     "vite-plugin-svgr": "5.2.0"

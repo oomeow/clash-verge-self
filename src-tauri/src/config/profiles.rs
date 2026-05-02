@@ -1,15 +1,14 @@
 use std::{collections::HashMap, fs, io::Write, path::PathBuf, time::Duration};
 
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 
 use super::{EnableFilter, PrfItem};
 use crate::{
-    any_err,
     config::{Config, ProfileType},
     core::handle,
     enhance::chain::{ChainItem, ScopeType},
-    error::{AppError, AppResult},
     log_err,
     utils::{dirs, help},
 };
@@ -122,12 +121,12 @@ impl IProfiles {
         }
     }
 
-    pub fn save_file(&self) -> AppResult<()> {
+    pub fn save_file(&self) -> Result<()> {
         help::save_yaml(&dirs::profiles_path()?, self, Some("# Profiles Config for Clash Verge"))
     }
 
     /// 只修改 current、global chain
-    pub fn patch_config(&mut self, patch: IProfiles) -> AppResult<()> {
+    pub fn patch_config(&mut self, patch: IProfiles) -> Result<()> {
         if self.items.is_none() {
             self.items = Some(vec![]);
         }
@@ -146,7 +145,7 @@ impl IProfiles {
                 for old_uid in old_chain {
                     let item = self
                         .get_item_mut(&old_uid)
-                        .ok_or(any_err!("failed to find the profile item \"uid:{old_uid}\""))?;
+                        .with_context(|| format!("failed to find the profile item \"uid:{old_uid}\""))?;
 
                     item.enable = Some(false);
                 }
@@ -155,7 +154,7 @@ impl IProfiles {
             for new_uid in &new_chain {
                 let item = self
                     .get_item_mut(new_uid)
-                    .ok_or(any_err!("failed to find the profile item \"uid:{new_uid}\""))?;
+                    .with_context(|| format!("failed to find the profile item \"uid:{new_uid}\""))?;
                 item.enable = Some(true);
             }
 
@@ -209,7 +208,7 @@ impl IProfiles {
     /// append new item
     /// if the file_data is some
     /// then should save the data to file
-    pub fn append_item(&mut self, mut item: PrfItem) -> AppResult<bool> {
+    pub fn append_item(&mut self, mut item: PrfItem) -> Result<bool> {
         let mut restart_core = false;
         if let Some(uid) = item.uid.clone() {
             // save the file data
@@ -224,7 +223,7 @@ impl IProfiles {
             if let Some(parent) = item.parent.as_ref() {
                 let profile = self
                     .get_item_mut(parent)
-                    .ok_or(any_err!("failed to find the profile item \"uid:{parent}\""))?;
+                    .with_context(|| format!("failed to find the profile item \"uid:{parent}\""))?;
                 match profile.chain.as_mut() {
                     Some(chain) => chain.push(uid.clone()),
                     None => profile.chain = Some(vec![uid.clone()]),
@@ -246,14 +245,14 @@ impl IProfiles {
             }
             self.save_file()?;
         } else {
-            return Err(AppError::InvalidValue("the uid should not be null".to_string()));
+            anyhow::bail!("the uid should not be null");
         }
 
         Ok(restart_core)
     }
 
     /// reorder items
-    pub fn reorder(&mut self, active_id: String, over_id: String) -> AppResult<()> {
+    pub fn reorder(&mut self, active_id: String, over_id: String) -> Result<()> {
         let mut items = self.items.take().unwrap_or_default();
         let mut old_index = None;
         let mut new_index = None;
@@ -279,7 +278,7 @@ impl IProfiles {
     }
 
     /// update the item value
-    pub fn patch_item(&mut self, uid: &str, item: PrfItem) -> AppResult<()> {
+    pub fn patch_item(&mut self, uid: &str, item: PrfItem) -> Result<()> {
         let enable_changed = item.enable.is_some();
         let mut items = self.items.take().unwrap_or_default();
 
@@ -315,19 +314,19 @@ impl IProfiles {
         }
 
         self.items = Some(items);
-        Err(any_err!("failed to find the profile item \"uid:{uid}\""))
+        Err(anyhow::anyhow!("failed to find the profile item \"uid:{uid}\""))
     }
 
     /// be used to update the remote item
     /// only patch `updated` `extra` `file_data`
-    pub fn update_item(&mut self, uid: &str, mut item: PrfItem) -> AppResult<()> {
+    pub fn update_item(&mut self, uid: &str, mut item: PrfItem) -> Result<()> {
         if self.items.is_none() {
             self.items = Some(vec![]);
         }
 
         // find the item
         self.get_item(uid)
-            .ok_or(any_err!("failed to find the profile item \"uid:{uid}\""))?;
+            .with_context(|| format!("failed to find the profile item \"uid:{uid}\""))?;
 
         if let Some(items) = self.items.as_mut() {
             let some_uid = Some(uid);
@@ -358,7 +357,7 @@ impl IProfiles {
 
     /// delete item
     /// if delete the current then return true
-    pub fn delete_item(&mut self, uid: String) -> AppResult<bool> {
+    pub fn delete_item(&mut self, uid: String) -> Result<bool> {
         let current = self.current.as_ref().unwrap_or(&uid);
         let delete_current = *current == uid;
         let mut restart_core = delete_current;
@@ -430,7 +429,7 @@ impl IProfiles {
                     items.retain(|i| i.uid != Some(uid.clone()));
                 }
                 None => {
-                    return Err(AppError::InvalidValue("profile type is null".to_string()));
+                    anyhow::bail!("profile type is null");
                 }
             }
             if let Some(chain) = self.chain.as_mut() {
@@ -496,7 +495,7 @@ impl IProfiles {
     }
 }
 
-pub async fn activate_selected_nodes() -> AppResult<()> {
+pub async fn activate_selected_nodes() -> Result<()> {
     tracing::info!("starting activating selected nodes");
     let profiles = Config::profiles();
     let profiles = profiles.latest().clone();
@@ -511,9 +510,7 @@ pub async fn activate_selected_nodes() -> AppResult<()> {
                 tracing::error!(
                     "check that the mihomo api reaches the maximum number of retries, maybe mihomo core is not running"
                 );
-                return Err(AppError::Any(
-                    "check mihomo api error, maybe mihomo core is not running".to_string(),
-                ));
+                anyhow::bail!("check mihomo api error, maybe mihomo core is not running");
             }
             if mihomo.get_version().await.is_ok() {
                 tracing::debug!("check mihomo api success");
@@ -523,9 +520,7 @@ pub async fn activate_selected_nodes() -> AppResult<()> {
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
 
-        let profile = profiles
-            .get_item(current)
-            .ok_or(any_err!("failed to get current profile"))?;
+        let profile = profiles.get_item(current).context("failed to get current profile")?;
 
         if let Some(selected) = profile.selected.as_ref() {
             tracing::debug!("selected nodes: {selected:?}");

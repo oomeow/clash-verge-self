@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
@@ -6,11 +7,7 @@ use tauri_plugin_notification::NotificationExt;
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 use super::tray::Tray;
-use crate::{
-    APP_HANDLE, any_err,
-    error::{AppError, AppResult},
-    log_err,
-};
+use crate::{APP_HANDLE, log_err};
 
 pub struct Handle;
 
@@ -47,7 +44,7 @@ impl Handle {
     pub fn get_window() -> Option<WebviewWindow> {
         Self::app_handle()
             .get_webview_window("main")
-            .ok_or(any_err!("get window error"))
+            .ok_or(anyhow::anyhow!("get window error"))
             .ok()
     }
 
@@ -82,18 +79,18 @@ impl Handle {
         }
     }
 
-    pub fn update_systray() -> AppResult<()> {
+    pub fn update_systray() -> Result<()> {
         Tray::update_systray(Self::app_handle())?;
         Ok(())
     }
 
     /// update the system tray state
-    pub fn update_systray_part() -> AppResult<()> {
+    pub fn update_systray_part() -> Result<()> {
         Tray::update_part(Self::app_handle())?;
         Ok(())
     }
 
-    pub fn set_tray_visible(visible: bool) -> AppResult<()> {
+    pub fn set_tray_visible(visible: bool) -> Result<()> {
         Tray::set_tray_visible(Self::app_handle(), visible)?;
         Ok(())
     }
@@ -108,7 +105,7 @@ impl Handle {
         message: M,
         kind: MessageDialogKind,
         buttons: MessageDialogButtons,
-    ) -> AppResult<bool> {
+    ) -> Result<bool> {
         let status = Self::app_handle()
             .dialog()
             .message(message)

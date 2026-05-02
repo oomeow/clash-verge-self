@@ -57,7 +57,7 @@ jobs:
 
       - name: Install pnpm
         if: steps.filter.outputs.mihomo == 'true'
-        uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6
+        uses: pnpm/action-setup@26f6d4f2c533a43e6b5da0b4a5dd983f98f7b49a # v6
         with:
           run_install: false
 
@@ -151,7 +151,7 @@ jobs:
         with:
           node-version: "24"
 
-      - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6
+      - uses: pnpm/action-setup@26f6d4f2c533a43e6b5da0b4a5dd983f98f7b49a # v6
         name: Install pnpm
         with:
           run_install: false
@@ -224,7 +224,7 @@ jobs:
 
       - name: Install Binstall
         if: matrix.target != 'x86_64-unknown-linux-gnu'
-        uses: cargo-bins/cargo-binstall@c0ae9335b22cb4f297cdd1df049cd87bf2aa223f # main
+        uses: cargo-bins/cargo-binstall@5da0a98ed584032edb43164d9205a9928c13e07c # main
 
       - name: Install Cross
         if: matrix.target != 'x86_64-unknown-linux-gnu'
@@ -235,7 +235,7 @@ jobs:
         with:
           node-version: "24"
 
-      - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6
+      - uses: pnpm/action-setup@26f6d4f2c533a43e6b5da0b4a5dd983f98f7b49a # v6
         name: Install pnpm
         with:
           run_install: false

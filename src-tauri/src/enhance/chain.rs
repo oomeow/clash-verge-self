@@ -1,12 +1,12 @@
-use std::{collections::HashMap, fs, io};
+use std::{collections::HashMap, fs};
 
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 
 use super::{LogMessage, use_merge, use_script};
 use crate::{
     config::{PrfItem, ProfileType},
-    error::{AppError, AppResult},
     utils::{dirs, help},
 };
 
@@ -88,13 +88,10 @@ impl From<PrfItem> for Option<ChainItem> {
 }
 
 impl ChainItem {
-    pub fn execute(&self, config: Mapping) -> AppResult<ChainExcResult> {
+    pub fn execute(&self, config: Mapping) -> Result<ChainExcResult> {
         let path = dirs::app_profiles_dir()?.join(&self.file);
         if !path.exists() {
-            return Err(AppError::Io(io::Error::new(
-                io::ErrorKind::NotFound,
-                format!("couldn't find enhance file, {}", self.name),
-            )));
+            anyhow::bail!("couldn't find enhance file, {}", self.name);
         }
         let res = match self.itype {
             ChainType::Merge => {
@@ -122,7 +119,7 @@ impl ChainItem {
 }
 
 #[test]
-fn test_serde() -> AppResult<()> {
+fn test_serde() -> Result<()> {
     let parent = Some("rhasdfwsd".to_string());
     let uid = "123".to_string();
     let name = "test".to_string();

@@ -1,13 +1,10 @@
+use anyhow::Result;
 use serde_yaml::Mapping;
 
 use super::use_lowercase;
-use crate::{
-    any_err,
-    enhance::LogMessage,
-    error::{AppError, AppResult},
-};
+use crate::enhance::LogMessage;
 
-pub fn use_script(script: String, config: Mapping) -> AppResult<(Mapping, Vec<LogMessage>)> {
+pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMessage>)> {
     use std::sync::{Arc, Mutex};
 
     use boa_engine::{Context, JsValue, Source, native_function::NativeFunction};
@@ -57,17 +54,17 @@ pub fn use_script(script: String, config: Mapping) -> AppResult<(Mapping, Vec<Lo
     );
     if let Ok(result) = context.eval(Source::from_bytes(code.as_str())) {
         if !result.is_string() {
-            return Err(any_err!("main function should return object"));
+            anyhow::bail!("main function should return object");
         }
         let result = result.to_string(&mut context).unwrap();
         let result = result.to_std_string().unwrap();
         if result.starts_with("__error_flag__") {
-            return Err(any_err!("{}", result[15..].to_owned()));
+            anyhow::bail!("{}", result[15..].to_owned());
         }
         if result == "\"\"" {
-            return Err(any_err!("main function should return object"));
+            anyhow::bail!("main function should return object");
         }
-        let res: AppResult<Mapping> = Ok(serde_json::from_str::<Mapping>(result.as_str())?);
+        let res: Result<Mapping> = Ok(serde_json::from_str::<Mapping>(result.as_str())?);
         let mut out = outputs.lock().unwrap();
         match res {
             Ok(config) => Ok((use_lowercase(config), out.to_vec())),
@@ -81,7 +78,7 @@ pub fn use_script(script: String, config: Mapping) -> AppResult<(Mapping, Vec<Lo
             }
         }
     } else {
-        Err(any_err!("main function should return object"))
+        Err(anyhow::anyhow!("main function should return object"))
     }
 }
 

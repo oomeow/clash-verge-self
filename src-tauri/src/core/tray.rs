@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use rust_i18n::t;
 use tauri::{
     AppHandle, Manager, Runtime,
@@ -8,9 +9,8 @@ use tauri::{
 
 use super::handle;
 use crate::{
-    AppState, any_err, cmds,
+    AppState, cmds,
     config::{Config, IProfiles},
-    error::{AppError, AppResult},
     feat, log_err,
     utils::{dirs, resolve},
 };
@@ -20,7 +20,7 @@ pub const TRAY_ID: &str = "verge_self_tray";
 pub struct Tray;
 
 impl Tray {
-    fn get_tray_icon() -> AppResult<Image<'static>> {
+    fn get_tray_icon() -> Result<Image<'static>> {
         let verge = Config::verge();
         let verge = verge.latest();
         let clash = Config::clash();
@@ -96,7 +96,7 @@ impl Tray {
         }
     }
 
-    pub fn tray_menu<R: Runtime>(app_handle: &AppHandle<R>) -> AppResult<Menu<R>> {
+    pub fn tray_menu<R: Runtime>(app_handle: &AppHandle<R>) -> Result<Menu<R>> {
         let app_state = app_handle.state::<AppState>();
         let version = app_state.app_version.clone();
         let profiles = Config::profiles();
@@ -161,7 +161,7 @@ impl Tray {
         Ok(menu.build()?)
     }
 
-    pub fn init() -> AppResult<()> {
+    pub fn init() -> Result<()> {
         let app_handle = handle::Handle::app_handle();
         tracing::trace!("generate tray menu");
         let menu = Self::tray_menu(app_handle)?;
@@ -187,17 +187,17 @@ impl Tray {
     }
 
     /// There is some bug in Linux: Tray cannot be created when opening then hiding then reopening it by clicking the switch button
-    pub fn set_tray_visible(app_handle: &AppHandle, visible: bool) -> AppResult<()> {
+    pub fn set_tray_visible(app_handle: &AppHandle, visible: bool) -> Result<()> {
         match app_handle.tray_by_id(TRAY_ID) {
             Some(tray) => {
                 tray.set_visible(visible)?;
                 Ok(())
             }
-            None => Err(any_err!("set tray visible failed, because tray not found")),
+            None => Err(anyhow::anyhow!("set tray visible failed, because tray not found")),
         }
     }
 
-    pub fn update_systray(app_handle: &AppHandle) -> AppResult<()> {
+    pub fn update_systray(app_handle: &AppHandle) -> Result<()> {
         tracing::debug!("starting update tray");
         let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
         if enable_tray {
@@ -207,7 +207,7 @@ impl Tray {
         Ok(())
     }
 
-    pub fn update_part<R: Runtime>(app_handle: &AppHandle<R>) -> AppResult<()> {
+    pub fn update_part<R: Runtime>(app_handle: &AppHandle<R>) -> Result<()> {
         let verge = Config::verge();
         let verge = verge.latest();
         let enable_tray = verge.enable_tray.unwrap_or(true);
@@ -226,25 +226,25 @@ impl Tray {
 
         menu.get("rule_mode")
             .and_then(|item| item.as_check_menuitem()?.set_checked(mode == "rule").ok())
-            .ok_or(any_err!("failed to update rule mode menu"))?;
+            .context("failed to update rule mode menu")?;
         menu.get("global_mode")
             .and_then(|item| item.as_check_menuitem()?.set_checked(mode == "global").ok())
-            .ok_or(any_err!("failed to update global mode menu"))?;
+            .context("failed to update global mode menu")?;
         menu.get("direct_mode")
             .and_then(|item| item.as_check_menuitem()?.set_checked(mode == "direct").ok())
-            .ok_or(any_err!("failed to update direct mode menu"))?;
+            .context("failed to update direct mode menu")?;
 
         menu.get("system_proxy")
             .and_then(|item| item.as_check_menuitem()?.set_checked(sysproxy_enabled).ok())
-            .ok_or(any_err!("failed to update system proxy menu"))?;
+            .context("failed to update system proxy menu")?;
 
         menu.get("tun_mode")
             .and_then(|item| item.as_check_menuitem()?.set_checked(tun_enabled).ok())
-            .ok_or(any_err!("failed to update tun mode menu"))?;
+            .context("failed to update tun mode menu")?;
 
         menu.get("service_mode")
             .and_then(|item| item.as_check_menuitem()?.set_checked(service_enabled).ok())
-            .ok_or(any_err!("failed to update service mode menu"))?;
+            .context("failed to update service mode menu")?;
 
         tray.set_menu(Some(menu))?;
 
