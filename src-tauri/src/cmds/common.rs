@@ -1,5 +1,4 @@
-use std::io;
-
+use anyhow::Context;
 use network_interface::NetworkInterfaceConfig;
 use serde::Serialize;
 use serde_yaml::Mapping;
@@ -8,9 +7,9 @@ use tauri::Manager;
 use tauri_plugin_opener::OpenerExt;
 
 use crate::{
-    AppState, any_err,
+    AppState,
+    cmds::{CommandResult, into_command_result},
     core::{CoreManager, handle, sysopt, tray::Tray},
-    error::{AppError, AppResult},
     feat,
     utils::{self, dirs, help, resolve},
 };
@@ -23,139 +22,166 @@ pub struct NetInfo {
 }
 
 #[tauri::command]
-pub fn is_portable_version() -> AppResult<bool> {
+pub fn is_portable_version() -> CommandResult<bool> {
     Ok(dirs::is_portable_version())
 }
 
 #[tauri::command]
-pub async fn check_port_available(port: u16) -> AppResult<bool> {
+pub async fn check_port_available(port: u16) -> CommandResult<bool> {
     Ok(help::local_port_available(port))
 }
 
 /// restart the sidecar
 #[tauri::command]
-pub async fn restart_sidecar() -> AppResult<()> {
+pub async fn restart_sidecar() -> CommandResult<()> {
     CoreManager::global().reset_state();
-    CoreManager::global().run_core().await
+    into_command_result(CoreManager::global().run_core().await)
 }
 
 #[tauri::command]
-pub fn grant_permissions(_core: String) -> AppResult<()> {
-    #[cfg(any(target_os = "macos", target_os = "linux"))]
-    {
-        use crate::core::manager;
-        manager::grant_permissions(_core)
-    }
+pub fn grant_permissions(_core: String) -> CommandResult<()> {
+    into_command_result({
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        {
+            use crate::core::manager;
+            manager::grant_permissions(_core)
+        }
 
-    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-    Err(any_err!("Unsupported target"))
+        #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+        Err(anyhow::anyhow!("Unsupported target"))
+    })
 }
 
 #[tauri::command]
-pub fn check_permissions_granted(_core: String) -> AppResult<bool> {
-    #[cfg(target_os = "linux")]
-    {
-        use crate::core::manager;
-        manager::check_permissions_granted(_core)
-    }
+pub fn check_permissions_granted(_core: String) -> CommandResult<bool> {
+    into_command_result({
+        #[cfg(target_os = "linux")]
+        {
+            use crate::core::manager;
+            manager::check_permissions_granted(_core)
+        }
 
-    #[cfg(not(target_os = "linux"))]
-    Err(any_err!("Unsupported target"))
+        #[cfg(not(target_os = "linux"))]
+        Err(anyhow::anyhow!("Unsupported target"))
+    })
 }
 
 #[tauri::command]
-pub fn refresh_permissions_granted() -> AppResult<()> {
-    #[cfg(target_os = "linux")]
-    {
-        use crate::core::manager;
-        manager::refresh_permissions_granted()
-    }
+pub fn refresh_permissions_granted() -> CommandResult<()> {
+    into_command_result({
+        #[cfg(target_os = "linux")]
+        {
+            use crate::core::manager;
+            manager::refresh_permissions_granted()
+        }
 
-    #[cfg(not(target_os = "linux"))]
-    Err(any_err!("Unsupported target"))
+        #[cfg(not(target_os = "linux"))]
+        Err(anyhow::anyhow!("Unsupported target"))
+    })
 }
 
 /// get the system proxy
 #[tauri::command]
-pub fn get_sys_proxy() -> AppResult<Mapping> {
-    let current = Sysproxy::get_system_proxy()?;
-    let mut map = Mapping::new();
-    map.insert("enable".into(), current.enable.into());
-    map.insert("server".into(), format!("{}:{}", current.host, current.port).into());
-    map.insert("bypass".into(), current.bypass.replace("@as [", "").into());
-    Ok(map)
+pub fn get_sys_proxy() -> CommandResult<Mapping> {
+    into_command_result((|| {
+        let current = Sysproxy::get_system_proxy()?;
+        let mut map = Mapping::new();
+        map.insert("enable".into(), current.enable.into());
+        map.insert("server".into(), format!("{}:{}", current.host, current.port).into());
+        map.insert("bypass".into(), current.bypass.replace("@as [", "").into());
+        Ok(map)
+    })())
 }
 
 #[tauri::command]
-pub fn get_default_bypass() -> AppResult<String> {
+pub fn get_default_bypass() -> CommandResult<String> {
     Ok(sysopt::get_default_bypass())
 }
 
 /// get the system proxy
 #[tauri::command]
-pub fn get_auto_proxy() -> AppResult<Mapping> {
-    let current = Autoproxy::get_auto_proxy()?;
-    let res = Mapping::from_iter([
-        ("enable".into(), current.enable.into()),
-        ("url".into(), current.url.into()),
-    ]);
-    Ok(res)
+pub fn get_auto_proxy() -> CommandResult<Mapping> {
+    into_command_result((|| {
+        let current = Autoproxy::get_auto_proxy()?;
+        let res = Mapping::from_iter([
+            ("enable".into(), current.enable.into()),
+            ("url".into(), current.url.into()),
+        ]);
+        Ok(res)
+    })())
 }
 
 #[tauri::command]
-pub fn get_app_dir() -> AppResult<String> {
-    let app_home_dir = dirs::app_home_dir()?.to_string_lossy().to_string();
-    Ok(app_home_dir)
+pub fn get_app_dir() -> CommandResult<String> {
+    into_command_result((|| {
+        let app_home_dir = dirs::app_home_dir()?.to_string_lossy().to_string();
+        Ok(app_home_dir)
+    })())
 }
 
 #[tauri::command]
-pub fn get_default_backup_dir() -> AppResult<String> {
-    let backup_dir = dirs::backup_dir()?.to_string_lossy().to_string();
-    Ok(backup_dir)
+pub fn get_default_backup_dir() -> CommandResult<String> {
+    into_command_result((|| {
+        let backup_dir = dirs::backup_dir()?.to_string_lossy().to_string();
+        Ok(backup_dir)
+    })())
 }
 
 #[tauri::command]
-pub fn open_app_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
-    let app_dir = dirs::app_home_dir()?;
-    app_handle.opener().open_path(app_dir.to_string_lossy(), None::<&str>)?;
-    Ok(())
+pub fn open_app_dir(app_handle: tauri::AppHandle) -> CommandResult<()> {
+    into_command_result((|| {
+        let app_dir = dirs::app_home_dir()?;
+        app_handle.opener().open_path(app_dir.to_string_lossy(), None::<&str>)?;
+        Ok(())
+    })())
 }
 
 #[tauri::command]
-pub fn open_core_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
-    let core_dir = tauri::utils::platform::current_exe()?;
-    let core_dir = core_dir.parent().ok_or(any_err!("failed to get core dir"))?;
-    app_handle
-        .opener()
-        .open_path(core_dir.to_string_lossy(), None::<&str>)?;
-    Ok(())
+pub fn open_core_dir(app_handle: tauri::AppHandle) -> CommandResult<()> {
+    into_command_result((|| {
+        let core_dir = tauri::utils::platform::current_exe()?;
+        let core_dir = core_dir.parent().context("failed to get core dir")?;
+        app_handle
+            .opener()
+            .open_path(core_dir.to_string_lossy(), None::<&str>)?;
+        Ok(())
+    })())
 }
 
 #[tauri::command]
-pub fn open_logs_dir(app_handle: tauri::AppHandle) -> AppResult<()> {
-    let log_dir = dirs::app_logs_dir()?;
-    app_handle.opener().open_path(log_dir.to_string_lossy(), None::<&str>)?;
-    Ok(())
+pub fn open_logs_dir(app_handle: tauri::AppHandle) -> CommandResult<()> {
+    into_command_result((|| {
+        let log_dir = dirs::app_logs_dir()?;
+        app_handle.opener().open_path(log_dir.to_string_lossy(), None::<&str>)?;
+        Ok(())
+    })())
 }
 
 #[tauri::command]
-pub fn open_web_url(app_handle: tauri::AppHandle, url: String) -> AppResult<()> {
-    app_handle.opener().open_url(url, None::<&str>)?;
-    Ok(())
+pub fn open_web_url(app_handle: tauri::AppHandle, url: String) -> CommandResult<()> {
+    into_command_result((|| {
+        app_handle.opener().open_url(url, None::<&str>)?;
+        Ok(())
+    })())
 }
 
 #[tauri::command]
-pub async fn invoke_uwp_tool() -> AppResult<()> {
-    #[cfg(target_os = "windows")]
-    {
-        use crate::core::win_uwp;
-        win_uwp::invoke_uwptools().await?;
-    }
-    Ok(())
+pub async fn invoke_uwp_tool() -> CommandResult<()> {
+    into_command_result(
+        async {
+            #[cfg(target_os = "windows")]
+            {
+                use crate::core::win_uwp;
+                win_uwp::invoke_uwptools().await?;
+            }
+            Ok(())
+        }
+        .await,
+    )
 }
 
 #[tauri::command]
-pub fn open_devtools(app_handle: tauri::AppHandle) -> AppResult<()> {
+pub fn open_devtools(app_handle: tauri::AppHandle) -> CommandResult<()> {
     if let Some(window) = app_handle.get_webview_window("main") {
         if !window.is_devtools_open() {
             window.open_devtools();
@@ -167,84 +193,93 @@ pub fn open_devtools(app_handle: tauri::AppHandle) -> AppResult<()> {
 }
 
 #[tauri::command]
-pub fn copy_clash_env() -> AppResult<()> {
+pub fn copy_clash_env() -> CommandResult<()> {
     feat::copy_clash_env(handle::Handle::app_handle());
     Ok(())
 }
 
 #[tauri::command]
-pub async fn download_icon_cache(url: String, name: String) -> AppResult<String> {
-    let icon_cache_dir = dirs::app_home_dir()?.join("icons").join("cache");
-    let icon_path = icon_cache_dir.join(name);
-    if !icon_cache_dir.exists() {
-        let _ = std::fs::create_dir_all(&icon_cache_dir);
-    }
-    if !icon_path.exists() {
-        let response = reqwest::get(url).await?;
+pub async fn download_icon_cache(url: String, name: String) -> CommandResult<String> {
+    into_command_result(
+        async {
+            let icon_cache_dir = dirs::app_home_dir()?.join("icons").join("cache");
+            let icon_path = icon_cache_dir.join(name);
+            if !icon_cache_dir.exists() {
+                std::fs::create_dir_all(&icon_cache_dir)?;
+            }
+            if !icon_path.exists() {
+                let response = reqwest::get(url).await?;
 
-        let mut file = std::fs::File::create(&icon_path)?;
+                let mut file = std::fs::File::create(&icon_path)?;
 
-        let content = response.bytes().await?;
-        std::io::copy(&mut content.as_ref(), &mut file)?;
-    }
-    Ok(icon_path.to_string_lossy().to_string())
+                let content = response.bytes().await?;
+                std::io::copy(&mut content.as_ref(), &mut file)?;
+            }
+            Ok(icon_path.to_string_lossy().to_string())
+        }
+        .await,
+    )
 }
 
 #[tauri::command]
-pub fn copy_icon_file(path: String, name: String) -> AppResult<String> {
-    let file_path = std::path::Path::new(&path);
-    let icon_dir = dirs::app_home_dir()?.join("icons");
-    if !icon_dir.exists() {
-        let _ = std::fs::create_dir_all(&icon_dir);
-    }
-    let ext = match file_path.extension() {
-        Some(e) => e.to_string_lossy().to_string(),
-        None => "ico".to_string(),
-    };
+pub fn copy_icon_file(path: String, name: String) -> CommandResult<String> {
+    into_command_result((|| {
+        let file_path = std::path::Path::new(&path);
+        let icon_dir = dirs::app_home_dir()?.join("icons");
+        if !icon_dir.exists() {
+            let _ = std::fs::create_dir_all(&icon_dir);
+        }
+        let ext = match file_path.extension() {
+            Some(e) => e.to_string_lossy().to_string(),
+            None => "ico".to_string(),
+        };
 
-    let png_dest_path = icon_dir.join(format!("{name}.png"));
-    let ico_dest_path = icon_dir.join(format!("{name}.ico"));
-    let dest_path = icon_dir.join(format!("{name}.{ext}"));
-    if file_path.exists() {
-        std::fs::remove_file(png_dest_path).unwrap_or_default();
-        std::fs::remove_file(ico_dest_path).unwrap_or_default();
-        std::fs::copy(file_path, &dest_path)?;
-        Ok(dest_path.to_string_lossy().to_string())
-    } else {
-        Err(AppError::Io(io::Error::new(io::ErrorKind::NotFound, "file not found")))
-    }
+        let png_dest_path = icon_dir.join(format!("{name}.png"));
+        let ico_dest_path = icon_dir.join(format!("{name}.ico"));
+        let dest_path = icon_dir.join(format!("{name}.{ext}"));
+        if file_path.exists() {
+            std::fs::remove_file(png_dest_path).unwrap_or_default();
+            std::fs::remove_file(ico_dest_path).unwrap_or_default();
+            std::fs::copy(file_path, &dest_path)?;
+            Ok(dest_path.to_string_lossy().to_string())
+        } else {
+            Err(anyhow::anyhow!("file not found"))
+        }
+    })())
 }
 
 #[tauri::command]
-pub async fn set_tray_visible(app_handle: tauri::AppHandle, visible: bool) -> AppResult<()> {
-    Tray::set_tray_visible(&app_handle, visible)
+pub async fn set_tray_visible(app_handle: tauri::AppHandle, visible: bool) -> CommandResult<()> {
+    into_command_result(Tray::set_tray_visible(&app_handle, visible))
 }
 
 #[tauri::command]
-pub fn is_wayland() -> AppResult<bool> {
+pub fn is_wayland() -> CommandResult<bool> {
     Ok(utils::unix_helper::is_wayland())
 }
 
 #[tauri::command]
-pub fn get_net_info() -> AppResult<Vec<NetInfo>> {
-    let mut net_list = Vec::new();
-    let network_interfaces = network_interface::NetworkInterface::show()?;
-    for network in network_interfaces.into_iter() {
-        let mut net_info = NetInfo {
-            name: network.name,
-            ipv4: None,
-            ipv6: None,
-        };
-        if !network.addr.is_empty() {
-            network.addr.iter().for_each(|addr| match addr {
-                network_interface::Addr::V4(addr_v4) => net_info.ipv4 = Some(addr_v4.ip.to_string()),
-                network_interface::Addr::V6(addr_v6) => net_info.ipv6 = Some(addr_v6.ip.to_string()),
-            });
-            net_list.push(net_info);
+pub fn get_net_info() -> CommandResult<Vec<NetInfo>> {
+    into_command_result((|| {
+        let mut net_list = Vec::new();
+        let network_interfaces = network_interface::NetworkInterface::show()?;
+        for network in network_interfaces.into_iter() {
+            let mut net_info = NetInfo {
+                name: network.name,
+                ipv4: None,
+                ipv6: None,
+            };
+            if !network.addr.is_empty() {
+                network.addr.iter().for_each(|addr| match addr {
+                    network_interface::Addr::V4(addr_v4) => net_info.ipv4 = Some(addr_v4.ip.to_string()),
+                    network_interface::Addr::V6(addr_v6) => net_info.ipv6 = Some(addr_v6.ip.to_string()),
+                });
+                net_list.push(net_info);
+            }
         }
-    }
-    net_list.sort_by(|a, b| a.name.cmp(&b.name));
-    Ok(net_list)
+        net_list.sort_by(|a, b| a.name.cmp(&b.name));
+        Ok(net_list)
+    })())
 }
 
 #[tauri::command]

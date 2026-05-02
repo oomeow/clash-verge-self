@@ -1,18 +1,17 @@
 use std::path::PathBuf;
 
+use anyhow::Result;
 use tauri_plugin_shell::ShellExt;
 
 use crate::{
-    any_err,
     config::{Config, IClashConfig, IProfiles, IVerge},
     core::handle,
-    error::{AppError, AppResult},
     trace_err,
     utils::{dirs, help},
 };
 
 /// Initialize all the config files before tauri setup
-pub fn init_dirs_and_config() -> AppResult<()> {
+pub fn init_dirs_and_config() -> Result<()> {
     // init dirs
     let init_dirs = [
         dirs::app_home_dir(),
@@ -47,7 +46,7 @@ pub fn init_dirs_and_config() -> AppResult<()> {
 }
 
 /// initialize app resources after tauri setup
-pub fn init_resources() -> AppResult<()> {
+pub fn init_resources() -> Result<()> {
     let app_dir = dirs::app_home_dir().and_then(|app_dir| {
         if !app_dir.exists() {
             std::fs::create_dir_all(&app_dir)?;
@@ -101,7 +100,7 @@ pub fn init_resources() -> AppResult<()> {
     Ok(())
 }
 
-pub async fn startup_script() -> AppResult<()> {
+pub async fn startup_script() -> Result<()> {
     let path = {
         let verge = Config::verge();
         let verge = verge.latest();
@@ -120,11 +119,11 @@ pub async fn startup_script() -> AppResult<()> {
             shell = "powershell";
         }
         if shell.is_empty() {
-            return Err(any_err!("unsupported script: {path}"));
+            anyhow::bail!("unsupported script: {path}");
         }
         let script_path = PathBuf::from(&path);
         if !script_path.exists() {
-            return Err(any_err!("script not found: {path}"));
+            anyhow::bail!("script not found: {path}");
         }
         let current_dir = script_path.parent();
         let app_handle = handle::Handle::app_handle();

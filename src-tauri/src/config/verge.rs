@@ -1,10 +1,10 @@
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use tracing::level_filters::LevelFilter;
 
 use crate::{
     config::DEFAULT_PAC,
     core::hotkey::HotkeyAction,
-    error::AppResult,
     utils::{dirs, help},
 };
 
@@ -338,7 +338,7 @@ impl IVerge {
     }
 
     /// Save IVerge App Config
-    pub fn save_file(&self) -> AppResult<()> {
+    pub fn save_file(&self) -> Result<()> {
         help::save_yaml(&dirs::verge_path()?, &self, Some("# Clash Verge Config"))
     }
 

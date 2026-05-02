@@ -1,49 +1,44 @@
-use std::{fs, io, net::TcpListener, path::PathBuf, str::FromStr};
+use std::{fs, net::TcpListener, path::PathBuf, str::FromStr};
 
+use anyhow::{Context, Result};
 use nanoid::nanoid;
 use serde::{Serialize, de::DeserializeOwned};
 use serde_yaml::{Mapping, Value};
 
-use crate::{
-    any_err,
-    config::Config,
-    error::{AppError, AppResult},
-};
+use crate::config::Config;
 
 /// read data from yaml as struct T
-pub fn read_yaml<T: DeserializeOwned>(path: &PathBuf) -> AppResult<T> {
+pub fn read_yaml<T: DeserializeOwned>(path: &PathBuf) -> Result<T> {
     if !path.exists() {
-        return Err(AppError::Io(io::Error::new(
-            io::ErrorKind::NotFound,
-            format!("file not found \"{}\"", path.display()),
-        )));
+        anyhow::bail!("file not found \"{}\"", path.display());
     }
 
-    let yaml_str = fs::read_to_string(path).map_err(|_| any_err!("failed to read the file \"{}\"", path.display()))?;
+    let yaml_str =
+        fs::read_to_string(path).with_context(|| format!("failed to read the file \"{}\"", path.display()))?;
 
     let res = serde_yaml::from_str::<T>(&yaml_str)
-        .map_err(|_| any_err!("failed to read the file with yaml format \"{}\"", path.display()))?;
+        .with_context(|| format!("failed to read the file with yaml format \"{}\"", path.display()))?;
     Ok(res)
 }
 
 /// read mapping from yaml fix #165
-pub fn read_merge_mapping(path: &PathBuf) -> AppResult<Mapping> {
+pub fn read_merge_mapping(path: &PathBuf) -> Result<Mapping> {
     let mut val: Value = read_yaml(path)?;
     if val.is_null() {
         return Ok(Mapping::new());
     }
     val.apply_merge()
-        .map_err(|_| any_err!("failed to apply merge \"{}\"", path.display()))?;
+        .with_context(|| format!("failed to apply merge \"{}\"", path.display()))?;
     let mapping = val
         .as_mapping()
-        .ok_or(any_err!("failed to transform to yaml mapping \"{}\"", path.display()))?
+        .with_context(|| format!("failed to transform to yaml mapping \"{}\"", path.display()))?
         .to_owned();
     Ok(mapping)
 }
 
 /// save the data to the file
 /// can set `prefix` string to add some comments
-pub fn save_yaml<T: Serialize>(path: &PathBuf, data: &T, prefix: Option<&str>) -> AppResult<()> {
+pub fn save_yaml<T: Serialize>(path: &PathBuf, data: &T, prefix: Option<&str>) -> Result<()> {
     let data_str = serde_yaml::to_string(data)?;
 
     let yaml_str = match prefix {
@@ -52,7 +47,7 @@ pub fn save_yaml<T: Serialize>(path: &PathBuf, data: &T, prefix: Option<&str>) -
     };
 
     let path_str = path.as_os_str().to_string_lossy().to_string();
-    fs::write(path, yaml_str.as_bytes()).map_err(|_| any_err!("failed to save file \"{path_str}\""))?;
+    fs::write(path, yaml_str.as_bytes()).with_context(|| format!("failed to save file \"{path_str}\""))?;
     Ok(())
 }
 
@@ -107,7 +102,7 @@ pub fn get_last_part_and_decode(url: &str) -> Option<String> {
 /// open file
 /// use vscode by default
 #[cfg(not(target_os = "windows"))]
-pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> AppResult<()> {
+pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
     use tauri_plugin_opener::OpenerExt;
 
     let _ = app
@@ -123,7 +118,7 @@ pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> AppResult<()> {
 // open file
 // use vscode by default
 #[cfg(target_os = "windows")]
-pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> AppResult<()> {
+pub fn open_file(app: tauri::AppHandle, path: PathBuf) -> Result<()> {
     use tauri_plugin_opener::OpenerExt;
     use tauri_plugin_shell::ShellExt;
 
@@ -180,7 +175,7 @@ pub fn local_port_available(port: u16) -> bool {
     TcpListener::bind(("127.0.0.1", port)).is_ok()
 }
 
-pub fn find_unused_port() -> AppResult<u16> {
+pub fn find_unused_port() -> Result<u16> {
     match TcpListener::bind("127.0.0.1:0") {
         Ok(listener) => {
             let port = listener.local_addr()?.port();

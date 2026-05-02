@@ -1080,7 +1080,6 @@ dependencies = [
  "tauri-plugin-shell",
  "tauri-plugin-single-instance",
  "tauri-plugin-updater",
- "thiserror 2.0.18",
  "time",
  "tokio",
  "tracing",

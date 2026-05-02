@@ -6,6 +6,7 @@ use std::{
     sync::Arc,
 };
 
+use anyhow::{Context, Result};
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 use reqwest_dav::{
@@ -15,13 +16,7 @@ use reqwest_dav::{
 use serde::{Deserialize, Serialize};
 use zip::write::SimpleFileOptions;
 
-use crate::{
-    any_err,
-    config::Config,
-    error::{AppError, AppResult},
-    trace_err,
-    utils::dirs,
-};
+use crate::{config::Config, trace_err, utils::dirs};
 
 // new backup dir
 #[cfg(not(feature = "verge-dev"))]
@@ -48,7 +43,7 @@ pub struct BackupFile {
     pub tag: String,
 }
 
-pub fn local_backup_dir() -> AppResult<PathBuf> {
+pub fn local_backup_dir() -> Result<PathBuf> {
     if let Some(custom_dir) = Config::verge()
         .latest()
         .local_backup_dir
@@ -70,7 +65,7 @@ pub fn local_backup_dir() -> AppResult<PathBuf> {
     Ok(backup_dir)
 }
 
-fn create_backup(local_save: bool, only_backup_profiles: bool) -> AppResult<(String, PathBuf)> {
+fn create_backup(local_save: bool, only_backup_profiles: bool) -> Result<(String, PathBuf)> {
     let now = chrono::Local::now().format(TIME_FORMAT_PATTERN).to_string();
 
     let zip_file_name = format!(
@@ -96,7 +91,7 @@ fn create_backup(local_save: bool, only_backup_profiles: bool) -> AppResult<(Str
         path: &PathBuf,
         zip_path: &str,
         options: SimpleFileOptions,
-    ) -> AppResult<()> {
+    ) -> Result<()> {
         zip.start_file(zip_path, options)?;
         zip.write_all(&fs::read(path)?)?;
         Ok(())
@@ -126,10 +121,7 @@ fn create_backup(local_save: bool, only_backup_profiles: bool) -> AppResult<(Str
     Ok((zip_file_name, zip_path))
 }
 
-pub async fn create_backup_by_type(
-    backup_type: BackupType,
-    only_backup_profiles: bool,
-) -> AppResult<(String, PathBuf)> {
+pub async fn create_backup_by_type(backup_type: BackupType, only_backup_profiles: bool) -> Result<(String, PathBuf)> {
     let local_save = matches!(backup_type, BackupType::Local);
     let (file_name, file_path) = create_backup(local_save, only_backup_profiles)?;
 
@@ -141,20 +133,18 @@ pub async fn create_backup_by_type(
     Ok((file_name, file_path))
 }
 
-pub fn apply_backup_file(file_path: PathBuf) -> AppResult<()> {
+pub fn apply_backup_file(file_path: PathBuf) -> Result<()> {
     let file = fs::File::open(file_path)?;
     let mut zip: zip::ZipArchive<fs::File> = zip::ZipArchive::new(file)?;
     zip.extract(dirs::app_home_dir()?)?;
     Ok(())
 }
 
-fn local_backup_file_path(file_name: String) -> AppResult<PathBuf> {
+fn local_backup_file_path(file_name: String) -> Result<PathBuf> {
     if file_name.is_empty() || file_name.contains(['/', '\\', '\0']) {
-        return Err(any_err!("invalid backup file name"));
+        anyhow::bail!("invalid backup file name");
     }
-    let file_name = Path::new(&file_name)
-        .file_name()
-        .ok_or_else(|| any_err!("invalid backup file name"))?;
+    let file_name = Path::new(&file_name).file_name().context("invalid backup file name")?;
     Ok(local_backup_dir()?.join(file_name))
 }
 
@@ -197,7 +187,7 @@ fn webdav_backup_file(file: ListFile) -> BackupFile {
     }
 }
 
-pub async fn apply_backup_file_by_type(backup_type: BackupType, file_name: String) -> AppResult<()> {
+pub async fn apply_backup_file_by_type(backup_type: BackupType, file_name: String) -> Result<()> {
     match backup_type {
         BackupType::Local => {
             let file_path = local_backup_file_path(file_name)?;
@@ -213,7 +203,7 @@ pub async fn apply_backup_file_by_type(backup_type: BackupType, file_name: Strin
     Ok(())
 }
 
-pub async fn list_backup_files(backup_type: BackupType) -> AppResult<Vec<BackupFile>> {
+pub async fn list_backup_files(backup_type: BackupType) -> Result<Vec<BackupFile>> {
     let files = match backup_type {
         BackupType::Local => {
             let backup_dir = local_backup_dir()?;
@@ -233,7 +223,7 @@ pub async fn list_backup_files(backup_type: BackupType) -> AppResult<Vec<BackupF
     Ok(files)
 }
 
-pub async fn delete_backup_file(backup_type: BackupType, file_name: String) -> AppResult<()> {
+pub async fn delete_backup_file(backup_type: BackupType, file_name: String) -> Result<()> {
     match backup_type {
         BackupType::Local => {
             let file_path = local_backup_file_path(file_name)?;
@@ -262,7 +252,7 @@ impl WebDav {
         })
     }
 
-    pub async fn init(&self) -> AppResult<()> {
+    pub async fn init(&self) -> Result<()> {
         let (url, username, password) = {
             let verge = Config::verge();
             let verge = verge.latest();
@@ -283,7 +273,7 @@ impl WebDav {
         Ok(())
     }
 
-    pub async fn update_webdav_info<S: Into<String>>(&self, url: S, username: S, password: S) -> AppResult<()> {
+    pub async fn update_webdav_info<S: Into<String>>(&self, url: S, username: S, password: S) -> Result<()> {
         *self.client.lock() = None;
         let client = reqwest_dav::ClientBuilder::new()
             .set_host(url.into())
@@ -299,23 +289,23 @@ impl WebDav {
             }
             Err(e) => {
                 tracing::error!("invalid webdav config: {e:?}");
-                Err(AppError::WebDav(e))
+                Err(e.into())
             }
         }
     }
 
-    fn get_client(&self) -> AppResult<reqwest_dav::Client> {
+    fn get_client(&self) -> Result<reqwest_dav::Client> {
         match self.client.lock().clone() {
             Some(client) => Ok(client),
             None => {
                 let msg = "Unable to create web dav client, please make sure the webdav config is correct";
                 tracing::error!("{msg}");
-                Err(any_err!("{msg}"))
+                Err(anyhow::anyhow!("{msg}"))
             }
         }
     }
 
-    pub async fn list_file_by_path(path: &str) -> AppResult<Vec<ListFile>> {
+    pub async fn list_file_by_path(path: &str) -> Result<Vec<ListFile>> {
         let client = Self::global().get_client()?;
         let files = client
             .list(path, reqwest_dav::Depth::Number(1))
@@ -329,29 +319,29 @@ impl WebDav {
         Ok(files)
     }
 
-    pub async fn list_file() -> AppResult<Vec<ListFile>> {
+    pub async fn list_file() -> Result<Vec<ListFile>> {
         let path = format!("{BACKUP_DIR}/");
         let files = Self::list_file_by_path(&path).await?;
         Ok(files)
     }
 
-    pub async fn download_file(webdav_file_name: &str, storage_path: &PathBuf) -> AppResult<()> {
+    pub async fn download_file(webdav_file_name: &str, storage_path: &PathBuf) -> Result<()> {
         let client = Self::global().get_client()?;
         let path = format!("{BACKUP_DIR}/{webdav_file_name}");
         let response = client.get(&path).await?;
-        let content = response.bytes().await.map_err(|e| AppError::WebDav(e.into()))?;
+        let content = response.bytes().await?;
         fs::write(storage_path, &content)?;
         Ok(())
     }
 
-    pub async fn upload_file(file_path: &PathBuf, webdav_file_name: &str) -> AppResult<()> {
+    pub async fn upload_file(file_path: &PathBuf, webdav_file_name: &str) -> Result<()> {
         let client = Self::global().get_client()?;
         let web_dav_path = format!("{BACKUP_DIR}/{webdav_file_name}");
         client.put(&web_dav_path, fs::read(file_path)?).await?;
         Ok(())
     }
 
-    pub async fn delete_file(file_name: String) -> AppResult<()> {
+    pub async fn delete_file(file_name: String) -> Result<()> {
         let client = Self::global().get_client()?;
         let path = format!("{BACKUP_DIR}/{file_name}");
         client.delete(&path).await?;
@@ -361,7 +351,7 @@ impl WebDav {
 
 /// cargo test -- --show-output test_webdav
 #[tokio::test]
-async fn test_webdav() -> AppResult<()> {
+async fn test_webdav() -> Result<()> {
     WebDav::global()
         .update_webdav_info("https://dav.jianguoyun.com/dav/", "test", "test")
         .await?;

@@ -4,6 +4,7 @@ use std::{
     sync::Arc,
 };
 
+use anyhow::{Context, Result};
 use chrono::{Local, TimeZone};
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
@@ -19,7 +20,6 @@ use tracing_subscriber::{
 
 use crate::{
     config::Config,
-    error::{AppError, AppResult},
     log_err,
     utils::dirs::{self},
 };
@@ -49,7 +49,7 @@ impl VergeLog {
         *self.service_log_file.lock() = None;
     }
 
-    pub fn create_service_log_file(&self) -> AppResult<String> {
+    pub fn create_service_log_file(&self) -> Result<String> {
         let service_log_file = dirs::clash_logs_dir()?
             .join(dirs::generate_log_file())
             .to_string_lossy()
@@ -61,7 +61,7 @@ impl VergeLog {
     /// 必须返回 WorkerGuard，并且仅在它的生命周期中，才能写入到日志文件
     ///
     /// 因此，必须确保返回的 WorkerGuard 的生命周期足够长
-    pub fn init(&self) -> AppResult<WorkerGuard> {
+    pub fn init(&self) -> Result<WorkerGuard> {
         let log_level = Config::verge().latest().get_log_level();
         let timer = tracing_subscriber::fmt::time::LocalTime::new(format_description!(
             "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:3]"
@@ -104,19 +104,17 @@ impl VergeLog {
         Ok(guard)
     }
 
-    pub fn update_log_level(log_level: LevelFilter) -> AppResult<()> {
+    pub fn update_log_level(log_level: LevelFilter) -> Result<()> {
         let handle = Self::global().log_handle.lock();
         if let Some(handle) = handle.as_ref() {
             handle.modify(|filter| *filter = log_level)?;
         } else {
-            return Err(AppError::InvalidValue(
-                "log handle is none, need to init log".to_string(),
-            ));
+            anyhow::bail!("log handle is none, need to init log");
         }
         Ok(())
     }
 
-    pub fn delete_log() -> AppResult<()> {
+    pub fn delete_log() -> Result<()> {
         let log_dir = dirs::app_logs_dir()?;
         if !log_dir.exists() {
             return Ok(());
@@ -141,20 +139,20 @@ impl VergeLog {
         let parse_time_str = |s: &str| {
             let sa = s.split('-').collect::<Vec<&str>>();
             if sa.len() != 4 {
-                return Err(AppError::InvalidValue(format!("invalid time str: {s}.log")));
+                anyhow::bail!("invalid time str: {s}.log");
             }
 
             let year = i32::from_str(sa[0])?;
             let month = u32::from_str(sa[1])?;
             let day = u32::from_str(sa[2])?;
             let time = chrono::NaiveDate::from_ymd_opt(year, month, day)
-                .ok_or(AppError::InvalidValue("invalid time str".to_string()))?
+                .context("invalid time str")?
                 .and_hms_opt(0, 0, 0)
-                .ok_or(AppError::InvalidValue("invalid time str".to_string()))?;
+                .context("invalid time str")?;
             Ok(time)
         };
 
-        let process_file = |file: DirEntry| -> AppResult<()> {
+        let process_file = |file: DirEntry| -> Result<()> {
             let file_name = file.file_name();
             let file_name = file_name.to_str().unwrap_or_default();
 
@@ -165,7 +163,7 @@ impl VergeLog {
                         let file_time = Local
                             .from_local_datetime(&created_time)
                             .single()
-                            .ok_or(AppError::InvalidValue("invalid local datetime".to_string()))?;
+                            .context("invalid local datetime")?;
 
                         let duration = now.signed_duration_since(file_time);
                         if duration.num_days() > day {

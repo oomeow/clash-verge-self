@@ -1,15 +1,14 @@
 use std::{env::temp_dir, path::PathBuf, sync::Arc};
 
+use anyhow::{Context, Result};
 use once_cell::sync::OnceCell;
 use rust_i18n::t;
 use serde_yaml::Mapping;
 
 use super::{Draft, IClashConfig, IProfiles, IRuntime, IVerge};
 use crate::{
-    any_err,
     core::{service, sysopt},
     enhance,
-    error::{AppError, AppResult},
     utils::{dirs, help},
 };
 
@@ -52,7 +51,7 @@ impl Config {
     }
 
     /// 初始化订阅
-    pub fn init_config() -> AppResult<()> {
+    pub fn init_config() -> Result<()> {
         crate::log_err!(Self::generate());
         if let Err(err) = Self::generate_file(ConfigType::Run) {
             tracing::error!("{err}");
@@ -70,7 +69,7 @@ impl Config {
     }
 
     /// 将订阅丢到对应的文件中
-    pub fn generate_file(config_type: ConfigType) -> AppResult<PathBuf> {
+    pub fn generate_file(config_type: ConfigType) -> Result<PathBuf> {
         let path = match config_type {
             ConfigType::Run => dirs::app_home_dir()?.join(RUNTIME_CONFIG),
             ConfigType::RuntimeCheck => temp_dir().join(CHECK_CONFIG),
@@ -83,7 +82,7 @@ impl Config {
             ConfigType::Run | ConfigType::RuntimeCheck => runtime_config
                 .config
                 .as_ref()
-                .ok_or(any_err!("{}", t!("error.runtime.config.getFailed")))?,
+                .with_context(|| t!("error.runtime.config.getFailed"))?,
             ConfigType::MappingCheck(ref check_config) => check_config,
         };
 
@@ -92,7 +91,7 @@ impl Config {
     }
 
     /// 生成订阅存好
-    pub fn generate() -> AppResult<()> {
+    pub fn generate() -> Result<()> {
         let (config, logs) = enhance::enhance();
 
         *Config::runtime().draft() = IRuntime {
@@ -106,7 +105,7 @@ impl Config {
     /// reload config from file
     ///
     /// if config need restart app, return true
-    pub async fn reload() -> AppResult<()> {
+    pub async fn reload() -> Result<()> {
         let clash_config = Self::clash();
         let verge_config = Self::verge();
         let profiles_config = Self::profiles();
