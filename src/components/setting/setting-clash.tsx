@@ -13,7 +13,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 
@@ -102,27 +102,33 @@ const SettingClash = ({ onError }: Props) => {
     Partial<Record<ClashViewerKey, boolean>>
   >({});
 
-  const viewerRefs = {
-    web: webRef,
-    port: portRef,
-    controller: ctrlRef,
-    core: coreRef,
-    tun: tunRef,
-    service: serviceRef,
-    netInfo: netInfoRef,
-  };
+  const viewerRefs = useMemo(
+    () => ({
+      web: webRef,
+      port: portRef,
+      controller: ctrlRef,
+      core: coreRef,
+      tun: tunRef,
+      service: serviceRef,
+      netInfo: netInfoRef,
+    }),
+    [],
+  );
 
-  const openViewer = (viewer: ClashViewerKey) => {
-    if (mountedViewers[viewer]) {
-      viewerRefs[viewer].current?.open();
-      return;
-    }
+  const openViewer = useCallback(
+    (viewer: ClashViewerKey) => {
+      if (mountedViewers[viewer]) {
+        viewerRefs[viewer].current?.open();
+        return;
+      }
 
-    pendingViewerRef.current = viewer;
-    setMountedViewers((prev) =>
-      prev[viewer] ? prev : { ...prev, [viewer]: true },
-    );
-  };
+      pendingViewerRef.current = viewer;
+      setMountedViewers((prev) =>
+        prev[viewer] ? prev : { ...prev, [viewer]: true },
+      );
+    },
+    [mountedViewers, viewerRefs],
+  );
 
   useEffect(() => {
     if (enableServiceMode === undefined) return;
@@ -135,7 +141,7 @@ const SettingClash = ({ onError }: Props) => {
 
     viewerRefs[viewer].current?.open();
     pendingViewerRef.current = null;
-  }, [mountedViewers]);
+  }, [mountedViewers, viewerRefs]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onUpdateGeo = async () => {
