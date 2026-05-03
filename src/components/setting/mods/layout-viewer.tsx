@@ -16,7 +16,7 @@ import { join } from "@tauri-apps/api/path";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { exists } from "@tauri-apps/plugin-fs";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
@@ -64,12 +64,12 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
   const [commonIcon, setCommonIcon] = useState("");
   const [sysproxyIcon, setSysproxyIcon] = useState("");
   const [tunIcon, setTunIcon] = useState("");
-
-  useEffect(() => {
-    initIconPath();
-  }, []);
+  const iconPathInitializedRef = useRef(false);
 
   async function initIconPath() {
+    if (iconPathInitializedRef.current) return;
+    iconPathInitializedRef.current = true;
+
     const appDir = await getAppDir();
     const icon_dir = await join(appDir, "icons");
     const common_icon_png = await join(icon_dir, "common.png");
@@ -96,7 +96,10 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
   }
 
   useImperativeHandle(ref, () => ({
-    open: () => setOpen(true),
+    open: () => {
+      setOpen(true);
+      void initIconPath();
+    },
     close: () => setOpen(false),
   }));
 

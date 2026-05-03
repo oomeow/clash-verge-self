@@ -1,7 +1,7 @@
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Settings from "@mui/icons-material/Settings";
 import { Button, ButtonGroup, IconButton, Tooltip } from "@mui/material";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogRef, SwitchLovely } from "@/components/base";
@@ -30,12 +30,31 @@ const SettingSystem = ({ onError }: Props) => {
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const sysproxyRef = useRef<DialogRef>(null);
+  const [mountedSysproxyViewer, setMountedSysproxyViewer] = useState(false);
+  const pendingSysproxyOpenRef = useRef(false);
+
+  const openSysproxyViewer = () => {
+    if (mountedSysproxyViewer) {
+      sysproxyRef.current?.open();
+      return;
+    }
+
+    pendingSysproxyOpenRef.current = true;
+    setMountedSysproxyViewer(true);
+  };
+
+  useEffect(() => {
+    if (!mountedSysproxyViewer || !pendingSysproxyOpenRef.current) return;
+
+    sysproxyRef.current?.open();
+    pendingSysproxyOpenRef.current = false;
+  }, [mountedSysproxyViewer]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
 
   return (
     <SettingList title={t("pages.settings.system.title")}>
-      <SysproxyViewer ref={sysproxyRef} />
+      {mountedSysproxyViewer && <SysproxyViewer ref={sysproxyRef} />}
 
       <SettingItem
         label={t("pages.settings.system.proxy.label")}
@@ -54,7 +73,7 @@ const SettingSystem = ({ onError }: Props) => {
             <IconButton
               color="inherit"
               size="small"
-              onClick={() => sysproxyRef.current?.open()}>
+              onClick={openSysproxyViewer}>
               <Settings
                 fontSize="inherit"
                 style={{ cursor: "pointer", opacity: 0.75 }}

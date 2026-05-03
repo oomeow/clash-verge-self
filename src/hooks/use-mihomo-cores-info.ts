@@ -65,21 +65,31 @@ export const useMihomoCoresInfo = () => {
 
   const refreshMihomoVersion = useCallback(
     async (coresInfo: MihomoCoreInfo[]) => {
-      for (const core of MIHOMO_CORES) {
-        const output = await Command.sidecar(`sidecar/${core}`, [
-          "-v",
-        ]).execute();
-        if (output.code === 0) {
-          const regex = /(alpha-\w+|v\d+(?:\.\d+)*)/gm;
-          const version = output.stdout.match(regex)?.[0];
-          if (version) {
-            coresInfo = coresInfo.map((c) =>
-              c.core === core ? { ...c, version } : c,
-            );
+      const versions = await Promise.all(
+        MIHOMO_CORES.map(async (core) => {
+          const output = await Command.sidecar(`sidecar/${core}`, [
+            "-v",
+          ]).execute();
+          if (output.code === 0) {
+            const regex = /(alpha-\w+|v\d+(?:\.\d+)*)/gm;
+            const version = output.stdout.match(regex)?.[0];
+            if (version) {
+              return { core, version };
+            }
           }
-        }
-      }
-      return coresInfo;
+          return null;
+        }),
+      );
+
+      return versions.reduce((nextCoresInfo, result) => {
+        if (!result) return nextCoresInfo;
+
+        return nextCoresInfo.map((coreInfo) =>
+          coreInfo.core === result.core
+            ? { ...coreInfo, version: result.version }
+            : coreInfo,
+        );
+      }, coresInfo);
     },
     [],
   );
@@ -88,16 +98,26 @@ export const useMihomoCoresInfo = () => {
     async (coresInfo: MihomoCoreInfo[]) => {
       if (enableGrantPermissions) {
         await refreshPermissionsGranted();
-        for (const core of MIHOMO_CORES) {
-          const granted = await checkPermissionsGranted(core);
-          coresInfo = coresInfo.map((c) =>
-            c.core === core ? { ...c, permissionsGranted: granted } : c,
-          );
-        }
+        const permissions = await Promise.all(
+          MIHOMO_CORES.map(async (core) => {
+            const granted = await checkPermissionsGranted(core);
+            return { core, granted };
+          }),
+        );
+
+        return permissions.reduce(
+          (nextCoresInfo, { core, granted }) =>
+            nextCoresInfo.map((coreInfo) =>
+              coreInfo.core === core
+                ? { ...coreInfo, permissionsGranted: granted }
+                : coreInfo,
+            ),
+          coresInfo,
+        );
       }
       return coresInfo;
     },
-    [],
+    [enableGrantPermissions],
   );
 
   return {
