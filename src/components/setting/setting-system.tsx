@@ -1,15 +1,21 @@
 import InfoRounded from "@mui/icons-material/InfoRounded";
 import Settings from "@mui/icons-material/Settings";
 import { Button, ButtonGroup, IconButton, Tooltip } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DialogRef, SwitchLovely } from "@/components/base";
 import { useVergeStore } from "@/stores";
 
 import { GuardState } from "./mods/guard-state";
+import { lazyDialogViewer } from "./mods/lazy-dialog-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
-import { SysproxyViewer } from "./mods/sysproxy-viewer";
+
+const SysproxyViewer = lazyDialogViewer(() =>
+  import("./mods/sysproxy-viewer").then(({ SysproxyViewer }) => ({
+    default: SysproxyViewer,
+  })),
+);
 
 interface Props {
   onError?: (err: Error) => void;
@@ -43,18 +49,22 @@ const SettingSystem = ({ onError }: Props) => {
     setMountedSysproxyViewer(true);
   };
 
-  useEffect(() => {
-    if (!mountedSysproxyViewer || !pendingSysproxyOpenRef.current) return;
+  const openReadySysproxyViewer = () => {
+    if (!pendingSysproxyOpenRef.current) return;
 
     sysproxyRef.current?.open();
     pendingSysproxyOpenRef.current = false;
-  }, [mountedSysproxyViewer]);
+  };
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
 
   return (
     <SettingList title={t("pages.settings.system.title")}>
-      {mountedSysproxyViewer && <SysproxyViewer ref={sysproxyRef} />}
+      <Suspense fallback={null}>
+        {mountedSysproxyViewer && (
+          <SysproxyViewer ref={sysproxyRef} onReady={openReadySysproxyViewer} />
+        )}
+      </Suspense>
 
       <SettingItem
         label={t("pages.settings.system.proxy.label")}
