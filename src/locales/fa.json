@@ -510,12 +510,14 @@
       "configUpdated": "پیکربندی Clash به‌روزرسانی شد",
       "portModified": "پورت Clash تغییر یافت",
       "portConflict": "{{portName}} تعارض پورت",
+      "portFallback": "پورت پیش‌فرض `7890` در حال استفاده است؛ از پورت آزاد `{{port}}` استفاده شد",
       "externalControllerAddressModified": "آدرس کنترل‌کننده خارجی تغییر یافت",
       "core": {
         "permissionsGranted": "مجوزها با موفقیت برای هسته {{core}} اعطا شد",
         "requireGrant": "حالت Tun اکنون فعال است؛ پیش از تغییر، مجوز هسته {{core}} را اعطا کنید",
         "versionUpdated": "نسخه هسته به‌روزرسانی شد",
         "restarted": "هسته Clash مجدداً راه‌اندازی شد",
+        "runFailed": "اجرای هسته mihomo ناموفق بود؛ برای یافتن مشکل گزارش mihomo را بررسی کنید",
         "switched": "تغییر به هسته {{core}}"
       },
       "geoDataUpdated": "GeoData به‌روزرسانی شد",

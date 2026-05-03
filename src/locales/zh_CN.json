@@ -510,12 +510,14 @@
       "configUpdated": "Clash 配置已更新",
       "portModified": "Clash 端口已修改",
       "portConflict": "{{portName}} 端口冲突",
+      "portFallback": "默认端口 `7890` 已被占用，已使用可用端口 `{{port}}`",
       "externalControllerAddressModified": "外部控制器监听地址已修改",
       "core": {
         "permissionsGranted": "{{core}} 内核授权成功",
         "requireGrant": "当前 Tun 模式已开启，请给 {{core}} 内核授权后再切换",
         "versionUpdated": "内核版本已更新",
         "restarted": "已重启 Clash 内核",
+        "runFailed": "无法运行 mihomo 内核，请查看 mihomo 日志定位问题",
         "switched": "已切换至 {{core}} 内核"
       },
       "geoDataUpdated": "已更新 GeoData",

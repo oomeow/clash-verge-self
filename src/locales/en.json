@@ -510,12 +510,14 @@
       "configUpdated": "Clash Config Updated",
       "portModified": "Clash Port Modified",
       "portConflict": "{{portName}} Port Conflict",
+      "portFallback": "Default port `7890` is already in use, using unused port `{{port}}`",
       "externalControllerAddressModified": "External Controller Address Modified",
       "core": {
         "permissionsGranted": "Permissions Granted Successfully for {{core}} Core",
         "requireGrant": "Tun mode is currently enabled, please grant permission to {{core}} before switching",
         "versionUpdated": "Core Version Updated",
         "restarted": "Clash Core Restarted",
+        "runFailed": "Failed to run mihomo core, please check mihomo log to find problem",
         "switched": "Switched to {{core}} Core"
       },
       "geoDataUpdated": "GeoData Updated",

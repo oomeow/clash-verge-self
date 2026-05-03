@@ -234,10 +234,7 @@ impl CoreManager {
             }
             ProcessEvent::RestartLimitReached { .. } => {
                 tracing::error!("recover clash core count exceeded, skip");
-                handle::Handle::notice_message(
-                    handle::NoticeStatus::Error,
-                    "Failed to run mihomo core, please check mihomo log to find problem",
-                );
+                handle::Handle::notice_message(handle::NoticeStatus::Error, "messages.clash.core.runFailed");
             }
             _ => {}
         }

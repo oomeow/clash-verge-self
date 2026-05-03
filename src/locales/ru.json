@@ -510,12 +510,14 @@
       "configUpdated": "Clash конфигурация Обновлена",
       "portModified": "Clash порт изменен",
       "portConflict": "{{portName}} Конфликт портов",
+      "portFallback": "Порт по умолчанию `7890` уже используется, выбран свободный порт `{{port}}`",
       "externalControllerAddressModified": "Изменен адрес внешнего контроллера",
       "core": {
         "permissionsGranted": "Разрешения успешно предоставлены для ядра {{core}}",
         "requireGrant": "Tun уже включён. Предоставьте права для ядра {{core}} перед переключением",
         "versionUpdated": "Обновлена версия ядра",
         "restarted": "Clash ядра перезапущено",
+        "runFailed": "Не удалось запустить ядро mihomo, проверьте журнал mihomo для поиска проблемы",
         "switched": "Переключено на ядра {{core}}"
       },
       "geoDataUpdated": "GeoData Обновлена",

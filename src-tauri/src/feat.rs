@@ -45,7 +45,7 @@ pub fn restart_clash_core() {
         match CoreManager::global().run_core().await {
             Ok(_) => {
                 handle::Handle::refresh_clash();
-                handle::Handle::notice_message(handle::NoticeStatus::Success, "Clash Config Updated");
+                handle::Handle::notice_message(handle::NoticeStatus::Success, "messages.clash.configUpdated");
             }
             Err(err) => {
                 handle::Handle::notice_message(handle::NoticeStatus::Error, format!("{err}"));
@@ -259,9 +259,10 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
             tmp_map.insert("mixed-port".into(), 7890.into());
         } else {
             let port = help::find_unused_port()?;
-            handle::Handle::notice_message(
+            handle::Handle::notice_message_with_args(
                 handle::NoticeStatus::Warning,
-                format!("default port `7890` already in use, find unused port `{port}`"),
+                "messages.clash.portFallback",
+                [("port", port.to_string())],
             );
             tmp_map.insert("mixed-port".into(), port.into());
         }
@@ -294,7 +295,7 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
         handle::Handle::refresh_verge();
         handle::Handle::refresh_clash();
         tracing::debug!("emit notice message event");
-        handle::Handle::notice_message(handle::NoticeStatus::Success, "Clash Config Updated");
+        handle::Handle::notice_message(handle::NoticeStatus::Success, "messages.clash.configUpdated");
         return Ok(());
     }
 
@@ -586,7 +587,7 @@ async fn update_core_config() -> Result<()> {
     match CoreManager::global().update_config().await {
         Ok(_) => {
             handle::Handle::refresh_clash();
-            handle::Handle::notice_message(handle::NoticeStatus::Success, "Clash Config Updated");
+            handle::Handle::notice_message(handle::NoticeStatus::Success, "messages.clash.configUpdated");
             Ok(())
         }
         Err(err) => {

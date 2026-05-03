@@ -10,7 +10,6 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import i18next from "i18next";
 import { debounce } from "lodash-es";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
 
 import { TailwindIndicator } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
@@ -31,6 +30,7 @@ const OS = getSystem();
 interface NoticePayload {
   status: "success" | "info" | "warning" | "error";
   msg: string;
+  args?: Record<string, string>;
 }
 
 const Layout = () => {
@@ -39,7 +39,6 @@ const Layout = () => {
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [showRouteLoading, setShowRouteLoading] = useState(false);
   const visitedPathsRef = useRef(new Set<string>());
-  const { t } = useTranslation();
   const { notice } = useNotice();
   const visible = useVisibility();
   const language = useVergeStore((s) => s.verge.language);
@@ -99,9 +98,10 @@ const Layout = () => {
       "verge://notice-message",
       (e: Event<NoticePayload>) => {
         const {
-          payload: { status, msg },
+          payload: { status, msg, args },
         } = e;
-        notice(status, t(msg));
+        // 直接通过 i18next 翻译，避免和界面语言不一致的问题
+        notice(status, i18next.exists(msg) ? i18next.t(msg, args) : msg);
       },
     );
 

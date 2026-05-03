@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
@@ -26,6 +28,8 @@ pub enum NoticeStatus {
 struct NoticeMsg {
     status: NoticeStatus,
     msg: String,
+    #[serde(skip_serializing_if = "HashMap::is_empty")]
+    args: HashMap<String, String>,
 }
 
 impl Handle {
@@ -68,14 +72,30 @@ impl Handle {
 
     /// notification message on the front-end that the message will be converted according to the front-end i18n native language
     pub fn notice_message<S: Into<String>>(status: NoticeStatus, msg: S) {
+        Self::notice_message_with_args(status, msg, std::iter::empty::<(String, String)>());
+    }
+
+    pub fn notice_message_with_args<S, K, V, I>(status: NoticeStatus, msg: S, args: I)
+    where
+        S: Into<String>,
+        K: Into<String>,
+        V: Into<String>,
+        I: IntoIterator<Item = (K, V)>,
+    {
         if let Some(window) = Self::get_window() {
-            log_err!(window.emit(
-                "verge://notice-message",
-                NoticeMsg {
-                    status,
-                    msg: msg.into()
-                }
-            ));
+            log_err!(
+                window.emit(
+                    "verge://notice-message",
+                    NoticeMsg {
+                        status,
+                        msg: msg.into(),
+                        args: args
+                            .into_iter()
+                            .map(|(key, value)| (key.into(), value.into()))
+                            .collect(),
+                    }
+                )
+            );
         }
     }
 
