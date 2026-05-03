@@ -168,13 +168,12 @@ impl Tray {
         tracing::trace!("build tray");
         let tray = TrayIconBuilder::with_id(TRAY_ID)
             .icon(Self::get_tray_icon()?)
+            .icon_as_template(true)
             .menu(&menu)
             .show_menu_on_left_click(false)
             .on_tray_icon_event(Self::on_click)
             .on_menu_event(Self::on_system_tray_event)
             .build(app_handle)?;
-        #[cfg(target_os = "macos")]
-        tray.set_icon_as_template(true)?;
 
         tracing::trace!("check if enable tray");
         let enable_tray = Config::verge().latest().enable_tray.unwrap_or(true);
@@ -249,21 +248,17 @@ impl Tray {
         tray.set_menu(Some(menu))?;
 
         // set tray icon
-        tray.set_icon(Some(Self::get_tray_icon()?))?;
-
-        #[cfg(target_os = "macos")]
-        {
-            let tray_icon_style = verge.tray_icon.as_deref().unwrap_or("monochrome");
-            match tray_icon_style {
-                "monochrome" => log_err!(tray.set_icon_as_template(true)),
-                "colorful" => log_err!(tray.set_icon_as_template(false)),
-                _ => {}
-            }
-        }
+        let icon = Self::get_tray_icon()?;
+        let is_template = if cfg!(target_os = "macos") {
+            verge.tray_icon.as_ref().is_some_and(|i| i == "monochrome")
+        } else {
+            false
+        };
+        tray.set_icon_with_as_template(Some(icon), is_template)?;
 
         #[cfg(not(target_os = "linux"))]
         {
-            let version = app_handle.package_info().version.to_string();
+            let version = &app_handle.state::<AppState>().app_version;
             let mut current_name = "None".to_string();
             let profiles = Config::profiles();
             let profiles = profiles.latest();
@@ -274,7 +269,8 @@ impl Tray {
                 current_name = profile_name.to_string();
             };
             tray.set_tooltip(Some(&format!(
-                "Clash Verge Self v{version}\n{}: {}",
+                "Clash Verge Self v{}\n{}: {}",
+                version,
                 t!("tray.current.profile"),
                 current_name
             )))?;
