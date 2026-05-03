@@ -166,9 +166,24 @@ impl Tray {
         tracing::trace!("generate tray menu");
         let menu = Self::tray_menu(app_handle)?;
         tracing::trace!("build tray");
+
+        let is_template = {
+            #[cfg(target_os = "macos")]
+            {
+                Config::verge()
+                    .latest()
+                    .tray_icon
+                    .as_deref()
+                    .is_none_or(|i| i == "monochrome")
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                false
+            }
+        };
         let tray = TrayIconBuilder::with_id(TRAY_ID)
             .icon(Self::get_tray_icon()?)
-            .icon_as_template(true)
+            .icon_as_template(is_template)
             .menu(&menu)
             .show_menu_on_left_click(false)
             .on_tray_icon_event(Self::on_click)
@@ -251,9 +266,13 @@ impl Tray {
         let icon = Self::get_tray_icon()?;
         let is_template = {
             #[cfg(target_os = "macos")]
-            { verge.tray_icon.as_deref().is_none_or(|i| i == "monochrome") }
+            {
+                verge.tray_icon.as_deref().is_none_or(|i| i == "monochrome")
+            }
             #[cfg(not(target_os = "macos"))]
-            { false }
+            {
+                false
+            }
         };
         tray.set_icon_with_as_template(Some(icon), is_template)?;
 
