@@ -249,10 +249,11 @@ impl Tray {
 
         // set tray icon
         let icon = Self::get_tray_icon()?;
-        let is_template = if cfg!(target_os = "macos") {
-            verge.tray_icon.as_ref().is_some_and(|i| i == "monochrome")
-        } else {
-            false
+        let is_template = {
+            #[cfg(target_os = "macos")]
+            { verge.tray_icon.as_deref().is_none_or(|i| i == "monochrome") }
+            #[cfg(not(target_os = "macos"))]
+            { false }
         };
         tray.set_icon_with_as_template(Some(icon), is_template)?;
 
