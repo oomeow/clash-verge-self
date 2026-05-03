@@ -145,7 +145,8 @@ pub fn create_window() {
         .title("Clash Verge Self")
         .fullscreen(false)
         .maximized(verge.window_is_maximized.unwrap_or(false))
-        .min_inner_size(600.0, 550.0);
+        .min_inner_size(600.0, 550.0)
+        .general_autofill_enabled(false);
 
     let _decoration = verge.enable_system_title_bar.unwrap_or(false);
     #[cfg(not(target_os = "macos"))]
