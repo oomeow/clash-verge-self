@@ -13,7 +13,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 
@@ -39,6 +39,15 @@ import TunViewer from "./mods/tun-viewer";
 import WebUIViewer from "./mods/web-ui-viewer";
 
 const OS = getSystem();
+
+type ClashViewerKey =
+  | "web"
+  | "port"
+  | "controller"
+  | "core"
+  | "tun"
+  | "service"
+  | "netInfo";
 
 interface Props {
   onError: (err: Error) => void;
@@ -88,11 +97,45 @@ const SettingClash = ({ onError }: Props) => {
   const tunRef = useRef<DialogRef>(null);
   const serviceRef = useRef<DialogRef>(null);
   const netInfoRef = useRef<DialogRef>(null);
+  const pendingViewerRef = useRef<ClashViewerKey | null>(null);
+  const [mountedViewers, setMountedViewers] = useState<
+    Partial<Record<ClashViewerKey, boolean>>
+  >({});
+
+  const viewerRefs = {
+    web: webRef,
+    port: portRef,
+    controller: ctrlRef,
+    core: coreRef,
+    tun: tunRef,
+    service: serviceRef,
+    netInfo: netInfoRef,
+  };
+
+  const openViewer = (viewer: ClashViewerKey) => {
+    if (mountedViewers[viewer]) {
+      viewerRefs[viewer].current?.open();
+      return;
+    }
+
+    pendingViewerRef.current = viewer;
+    setMountedViewers((prev) =>
+      prev[viewer] ? prev : { ...prev, [viewer]: true },
+    );
+  };
 
   useEffect(() => {
     if (enableServiceMode === undefined) return;
     mutateCheckService();
   }, [enableServiceMode]);
+
+  useEffect(() => {
+    const viewer = pendingViewerRef.current;
+    if (!viewer || !mountedViewers[viewer]) return;
+
+    viewerRefs[viewer].current?.open();
+    pendingViewerRef.current = null;
+  }, [mountedViewers]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onUpdateGeo = async () => {
@@ -132,16 +175,20 @@ const SettingClash = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("pages.settings.clash.title")}>
-      <TunViewer ref={tunRef} />
-      <WebUIViewer ref={webRef} />
-      <ClashPortViewer ref={portRef} />
-      <ControllerViewer ref={ctrlRef} />
-      <ClashCoreViewer
-        ref={coreRef}
-        serviceActive={serviceStatus === "active"}
-      />
-      <ServiceViewer ref={serviceRef} enable={!!enableServiceMode} />
-      <NetInfoViewer ref={netInfoRef} />
+      {mountedViewers.tun && <TunViewer ref={tunRef} />}
+      {mountedViewers.web && <WebUIViewer ref={webRef} />}
+      {mountedViewers.port && <ClashPortViewer ref={portRef} />}
+      {mountedViewers.controller && <ControllerViewer ref={ctrlRef} />}
+      {mountedViewers.core && (
+        <ClashCoreViewer
+          ref={coreRef}
+          serviceActive={serviceStatus === "active"}
+        />
+      )}
+      {mountedViewers.service && (
+        <ServiceViewer ref={serviceRef} enable={!!enableServiceMode} />
+      )}
+      {mountedViewers.netInfo && <NetInfoViewer ref={netInfoRef} />}
 
       <SettingItem
         disabled={disableTunSetting}
@@ -160,7 +207,7 @@ const SettingClash = ({ onError }: Props) => {
               <IconButton
                 color="inherit"
                 size="small"
-                onClick={() => tunRef.current?.open()}>
+                onClick={() => openViewer("tun")}>
                 <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
               </IconButton>
             )}
@@ -183,7 +230,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => serviceRef.current?.open()}>
+            onClick={() => openViewer("service")}>
             <PrivacyTipRounded
               color={
                 serviceStatus === "active" || serviceStatus === "installed"
@@ -244,7 +291,7 @@ const SettingClash = ({ onError }: Props) => {
               color="inherit"
               size="small"
               onClick={() => {
-                netInfoRef.current?.open();
+                openViewer("netInfo");
               }}>
               <Lan fontSize="inherit" sx={{ opacity: 0.75 }} />
             </IconButton>
@@ -354,7 +401,7 @@ const SettingClash = ({ onError }: Props) => {
           value={clash?.["mixed-port"] ?? 7890}
           sx={{ width: 100, input: { py: "7.5px", cursor: "pointer" } }}
           onClick={(e) => {
-            portRef.current?.open();
+            openViewer("port");
             (e.target as any).blur();
           }}
         />
@@ -366,7 +413,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => ctrlRef.current?.open()}>
+            onClick={() => openViewer("controller")}>
             <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
           </IconButton>
         }>
@@ -382,7 +429,7 @@ const SettingClash = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => webRef.current?.open()}
+        onClick={() => openViewer("web")}
         label={t("pages.settings.clash.webUi.label")}
       />
 
@@ -392,7 +439,7 @@ const SettingClash = ({ onError }: Props) => {
           <IconButton
             color="inherit"
             size="small"
-            onClick={() => coreRef.current?.open()}>
+            onClick={() => openViewer("core")}>
             <Settings
               fontSize="inherit"
               style={{ cursor: "pointer", opacity: 0.75 }}

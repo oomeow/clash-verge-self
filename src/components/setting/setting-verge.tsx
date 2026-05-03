@@ -65,6 +65,14 @@ interface Props {
 
 const OS = getSystem();
 
+type VergeViewerKey =
+  | "theme"
+  | "config"
+  | "hotkey"
+  | "misc"
+  | "layout"
+  | "update";
+
 const SettingVerge = ({ onError }: Props) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
@@ -89,6 +97,39 @@ const SettingVerge = ({ onError }: Props) => {
   const layoutRef = useRef<DialogRef>(null);
   const updateRef = useRef<DialogRef>(null);
   const backupFilesRef = useRef<BackupFilesViewerRef>(null);
+  const pendingViewerRef = useRef<VergeViewerKey | null>(null);
+  const [mountedViewers, setMountedViewers] = useState<
+    Partial<Record<VergeViewerKey, boolean>>
+  >({});
+
+  const viewerRefs = {
+    theme: themeRef,
+    config: configRef,
+    hotkey: hotkeyRef,
+    misc: miscRef,
+    layout: layoutRef,
+    update: updateRef,
+  };
+
+  const openViewer = (viewer: VergeViewerKey) => {
+    if (mountedViewers[viewer]) {
+      viewerRefs[viewer].current?.open();
+      return;
+    }
+
+    pendingViewerRef.current = viewer;
+    setMountedViewers((prev) =>
+      prev[viewer] ? prev : { ...prev, [viewer]: true },
+    );
+  };
+
+  useEffect(() => {
+    const viewer = pendingViewerRef.current;
+    if (!viewer || !mountedViewers[viewer]) return;
+
+    viewerRefs[viewer].current?.open();
+    pendingViewerRef.current = null;
+  }, [mountedViewers]);
 
   const onCheckUpdate = async () => {
     try {
@@ -96,7 +137,7 @@ const SettingVerge = ({ onError }: Props) => {
       if (!info) {
         notice("success", t("messages.app.latestVersion"));
       } else {
-        updateRef.current?.open();
+        openViewer("update");
       }
     } catch (err: any) {
       notice("error", err.message || err.toString());
@@ -218,12 +259,12 @@ const SettingVerge = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("pages.settings.verge.title")}>
-      <ThemeViewer ref={themeRef} />
-      <ConfigViewer ref={configRef} />
-      <HotkeyViewer ref={hotkeyRef} />
-      <MiscViewer ref={miscRef} />
-      <LayoutViewer ref={layoutRef} />
-      <UpdateViewer ref={updateRef} />
+      {mountedViewers.theme && <ThemeViewer ref={themeRef} />}
+      {mountedViewers.config && <ConfigViewer ref={configRef} />}
+      {mountedViewers.hotkey && <HotkeyViewer ref={hotkeyRef} />}
+      {mountedViewers.misc && <MiscViewer ref={miscRef} />}
+      {mountedViewers.layout && <LayoutViewer ref={layoutRef} />}
+      {mountedViewers.update && <UpdateViewer ref={updateRef} />}
       <BackupFilesViewer ref={backupFilesRef} />
 
       <SettingItem label={t("pages.settings.verge.misc.appLogLevel")}>
@@ -379,19 +420,19 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => themeRef.current?.open()}
+        onClick={() => openViewer("theme")}
         label={t("pages.settings.verge.theme.title")}
       />
 
       <SettingItem
         openMoreSettings
-        onClick={() => layoutRef.current?.open()}
+        onClick={() => openViewer("layout")}
         label={t("pages.settings.verge.layout.title")}
       />
 
       <SettingItem
         openMoreSettings
-        onClick={() => miscRef.current?.open()}
+        onClick={() => openViewer("misc")}
         label={t("pages.settings.verge.misc.title")}
       />
 
@@ -604,12 +645,12 @@ const SettingVerge = ({ onError }: Props) => {
 
       <SettingItem
         openMoreSettings
-        onClick={() => hotkeyRef.current?.open()}
+        onClick={() => openViewer("hotkey")}
         label={t("pages.settings.verge.hotkeys.title")}
       />
 
       <SettingItem
-        onClick={() => configRef.current?.open()}
+        onClick={() => openViewer("config")}
         label={t("pages.settings.verge.runtimeConfig")}
       />
 
