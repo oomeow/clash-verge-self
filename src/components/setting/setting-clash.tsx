@@ -13,7 +13,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 
@@ -28,25 +28,15 @@ import { useClashLogStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
+import ClashCoreViewer from "./mods/clash-core-viewer";
+import ClashPortViewer from "./mods/clash-port-viewer";
+import ControllerViewer from "./mods/controller-viewer";
 import { GuardState } from "./mods/guard-state";
-import { lazyDialogViewer } from "./mods/lazy-dialog-viewer";
+import NetInfoViewer from "./mods/net-info-viewer";
+import ServiceViewer from "./mods/service-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
-
-const ClashCoreViewer = lazyDialogViewer<{ serviceActive: boolean }>(
-  () => import("./mods/clash-core-viewer"),
-);
-const ClashPortViewer = lazyDialogViewer(
-  () => import("./mods/clash-port-viewer"),
-);
-const ControllerViewer = lazyDialogViewer(
-  () => import("./mods/controller-viewer"),
-);
-const NetInfoViewer = lazyDialogViewer(() => import("./mods/net-info-viewer"));
-const ServiceViewer = lazyDialogViewer<{ enable: boolean }>(
-  () => import("./mods/service-viewer"),
-);
-const TunViewer = lazyDialogViewer(() => import("./mods/tun-viewer"));
-const WebUIViewer = lazyDialogViewer(() => import("./mods/web-ui-viewer"));
+import TunViewer from "./mods/tun-viewer";
+import WebUIViewer from "./mods/web-ui-viewer";
 
 const OS = getSystem();
 
@@ -134,17 +124,18 @@ const SettingClash = ({ onError }: Props) => {
     );
   };
 
-  const openReadyViewer = (viewer: ClashViewerKey) => {
-    if (pendingViewerRef.current !== viewer) return;
-
-    viewerRefs[viewer].current?.open();
-    pendingViewerRef.current = null;
-  };
-
   useEffect(() => {
     if (enableServiceMode === undefined) return;
     mutateCheckService();
   }, [enableServiceMode]);
+
+  useEffect(() => {
+    const viewer = pendingViewerRef.current;
+    if (!viewer || !mountedViewers[viewer]) return;
+
+    viewerRefs[viewer].current?.open();
+    pendingViewerRef.current = null;
+  }, [mountedViewers]);
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
   const onUpdateGeo = async () => {
@@ -184,46 +175,20 @@ const SettingClash = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("pages.settings.clash.title")}>
-      <Suspense fallback={null}>
-        {mountedViewers.tun && (
-          <TunViewer ref={tunRef} onReady={() => openReadyViewer("tun")} />
-        )}
-        {mountedViewers.web && (
-          <WebUIViewer ref={webRef} onReady={() => openReadyViewer("web")} />
-        )}
-        {mountedViewers.port && (
-          <ClashPortViewer
-            ref={portRef}
-            onReady={() => openReadyViewer("port")}
-          />
-        )}
-        {mountedViewers.controller && (
-          <ControllerViewer
-            ref={ctrlRef}
-            onReady={() => openReadyViewer("controller")}
-          />
-        )}
-        {mountedViewers.core && (
-          <ClashCoreViewer
-            ref={coreRef}
-            serviceActive={serviceStatus === "active"}
-            onReady={() => openReadyViewer("core")}
-          />
-        )}
-        {mountedViewers.service && (
-          <ServiceViewer
-            ref={serviceRef}
-            enable={!!enableServiceMode}
-            onReady={() => openReadyViewer("service")}
-          />
-        )}
-        {mountedViewers.netInfo && (
-          <NetInfoViewer
-            ref={netInfoRef}
-            onReady={() => openReadyViewer("netInfo")}
-          />
-        )}
-      </Suspense>
+      {mountedViewers.tun && <TunViewer ref={tunRef} />}
+      {mountedViewers.web && <WebUIViewer ref={webRef} />}
+      {mountedViewers.port && <ClashPortViewer ref={portRef} />}
+      {mountedViewers.controller && <ControllerViewer ref={ctrlRef} />}
+      {mountedViewers.core && (
+        <ClashCoreViewer
+          ref={coreRef}
+          serviceActive={serviceStatus === "active"}
+        />
+      )}
+      {mountedViewers.service && (
+        <ServiceViewer ref={serviceRef} enable={!!enableServiceMode} />
+      )}
+      {mountedViewers.netInfo && <NetInfoViewer ref={netInfoRef} />}
 
       <SettingItem
         disabled={disableTunSetting}

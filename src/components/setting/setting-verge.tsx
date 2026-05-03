@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { open } from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
@@ -49,17 +49,15 @@ import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
+import ConfigViewer from "./mods/config-viewer";
 import { GuardState } from "./mods/guard-state";
-import { lazyDialogViewer } from "./mods/lazy-dialog-viewer";
+import HotkeyViewer from "./mods/hotkey-viewer";
+import LayoutViewer from "./mods/layout-viewer";
+import MiscViewer from "./mods/misc-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import { ThemeModeSwitch } from "./mods/theme-mode-switch";
-
-const ConfigViewer = lazyDialogViewer(() => import("./mods/config-viewer"));
-const HotkeyViewer = lazyDialogViewer(() => import("./mods/hotkey-viewer"));
-const LayoutViewer = lazyDialogViewer(() => import("./mods/layout-viewer"));
-const MiscViewer = lazyDialogViewer(() => import("./mods/misc-viewer"));
-const ThemeViewer = lazyDialogViewer(() => import("./mods/theme-viewer"));
-const UpdateViewer = lazyDialogViewer(() => import("./mods/update-viewer"));
+import ThemeViewer from "./mods/theme-viewer";
+import UpdateViewer from "./mods/update-viewer";
 
 interface Props {
   onError?: (err: Error) => void;
@@ -125,12 +123,13 @@ const SettingVerge = ({ onError }: Props) => {
     );
   };
 
-  const openReadyViewer = (viewer: VergeViewerKey) => {
-    if (pendingViewerRef.current !== viewer) return;
+  useEffect(() => {
+    const viewer = pendingViewerRef.current;
+    if (!viewer || !mountedViewers[viewer]) return;
 
     viewerRefs[viewer].current?.open();
     pendingViewerRef.current = null;
-  };
+  }, [mountedViewers]);
 
   const onCheckUpdate = async () => {
     try {
@@ -260,41 +259,12 @@ const SettingVerge = ({ onError }: Props) => {
 
   return (
     <SettingList title={t("pages.settings.verge.title")}>
-      <Suspense fallback={null}>
-        {mountedViewers.theme && (
-          <ThemeViewer
-            ref={themeRef}
-            onReady={() => openReadyViewer("theme")}
-          />
-        )}
-        {mountedViewers.config && (
-          <ConfigViewer
-            ref={configRef}
-            onReady={() => openReadyViewer("config")}
-          />
-        )}
-        {mountedViewers.hotkey && (
-          <HotkeyViewer
-            ref={hotkeyRef}
-            onReady={() => openReadyViewer("hotkey")}
-          />
-        )}
-        {mountedViewers.misc && (
-          <MiscViewer ref={miscRef} onReady={() => openReadyViewer("misc")} />
-        )}
-        {mountedViewers.layout && (
-          <LayoutViewer
-            ref={layoutRef}
-            onReady={() => openReadyViewer("layout")}
-          />
-        )}
-        {mountedViewers.update && (
-          <UpdateViewer
-            ref={updateRef}
-            onReady={() => openReadyViewer("update")}
-          />
-        )}
-      </Suspense>
+      {mountedViewers.theme && <ThemeViewer ref={themeRef} />}
+      {mountedViewers.config && <ConfigViewer ref={configRef} />}
+      {mountedViewers.hotkey && <HotkeyViewer ref={hotkeyRef} />}
+      {mountedViewers.misc && <MiscViewer ref={miscRef} />}
+      {mountedViewers.layout && <LayoutViewer ref={layoutRef} />}
+      {mountedViewers.update && <UpdateViewer ref={updateRef} />}
       <BackupFilesViewer ref={backupFilesRef} />
 
       <SettingItem label={t("pages.settings.verge.misc.appLogLevel")}>
