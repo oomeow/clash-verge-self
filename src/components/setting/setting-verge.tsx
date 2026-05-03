@@ -23,7 +23,7 @@ import {
 } from "@mui/material";
 import { open } from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
@@ -102,26 +102,32 @@ const SettingVerge = ({ onError }: Props) => {
     Partial<Record<VergeViewerKey, boolean>>
   >({});
 
-  const viewerRefs = {
-    theme: themeRef,
-    config: configRef,
-    hotkey: hotkeyRef,
-    misc: miscRef,
-    layout: layoutRef,
-    update: updateRef,
-  };
+  const viewerRefs = useMemo(
+    () => ({
+      theme: themeRef,
+      config: configRef,
+      hotkey: hotkeyRef,
+      misc: miscRef,
+      layout: layoutRef,
+      update: updateRef,
+    }),
+    [],
+  );
 
-  const openViewer = (viewer: VergeViewerKey) => {
-    if (mountedViewers[viewer]) {
-      viewerRefs[viewer].current?.open();
-      return;
-    }
+  const openViewer = useCallback(
+    (viewer: VergeViewerKey) => {
+      if (mountedViewers[viewer]) {
+        viewerRefs[viewer].current?.open();
+        return;
+      }
 
-    pendingViewerRef.current = viewer;
-    setMountedViewers((prev) =>
-      prev[viewer] ? prev : { ...prev, [viewer]: true },
-    );
-  };
+      pendingViewerRef.current = viewer;
+      setMountedViewers((prev) =>
+        prev[viewer] ? prev : { ...prev, [viewer]: true },
+      );
+    },
+    [mountedViewers, viewerRefs],
+  );
 
   useEffect(() => {
     const viewer = pendingViewerRef.current;
@@ -129,7 +135,7 @@ const SettingVerge = ({ onError }: Props) => {
 
     viewerRefs[viewer].current?.open();
     pendingViewerRef.current = null;
-  }, [mountedViewers]);
+  }, [mountedViewers, viewerRefs]);
 
   const onCheckUpdate = async () => {
     try {
