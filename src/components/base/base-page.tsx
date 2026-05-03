@@ -18,9 +18,9 @@ export const BasePage: React.FC<Props> = (props) => {
 
   return (
     <BaseErrorBoundary>
-      <div className="h-full w-full">
+      <div className="flex h-full min-h-0 w-full flex-col">
         <div
-          className="flex h-12.5 items-center justify-between px-2"
+          className="flex h-12.5 shrink-0 items-center justify-between px-2"
           data-tauri-drag-region="true"
           style={{ userSelect: "none" }}>
           <Typography
@@ -32,11 +32,10 @@ export const BasePage: React.FC<Props> = (props) => {
           {header}
         </div>
 
-        <div
-          className={"h-[calc(100%-50px)] w-full bg-white dark:bg-[#1e1f27]"}>
+        <div className={"min-h-0 flex-1 bg-white dark:bg-[#1e1f27]"}>
           <div
             className={cn(
-              "bg-comment h-full w-full overflow-auto px-2 dark:bg-[#1e1f27]",
+              "bg-comment h-full min-h-0 w-full overflow-auto px-2 dark:bg-[#1e1f27]",
               { "p-0": full },
             )}
             style={contentStyle}>

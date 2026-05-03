@@ -194,7 +194,7 @@ const Layout = () => {
           }}
         />
 
-        <div className="flex h-full w-full flex-col overflow-hidden">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
           {!enableSystemTitleBar && (
             <div className="z-10 box-border flex shrink-0 grow-0 basis-8 justify-end">
               <div className="mt-1 w-full" data-tauri-drag-region="true" />
@@ -207,7 +207,7 @@ const Layout = () => {
             </div>
           )}
 
-          <div className="bg-comment relative flex-auto overflow-auto py-1 pr-1 dark:bg-[#1e1f27]">
+          <div className="bg-comment relative min-h-0 flex-1 overflow-hidden py-1 pr-1 dark:bg-[#1e1f27]">
             <Suspense fallback={<LoadingPage />}>
               <Outlet />
             </Suspense>
