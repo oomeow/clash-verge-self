@@ -10,7 +10,6 @@ import {
   Typography,
 } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { useMemoizedFn } from "ahooks";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -72,6 +71,38 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
   marginRight: "8px",
 }));
 
+const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
+const groupIconSrcCache = new Map<string, string>();
+const groupIconLoadingCache = new Map<string, Promise<string>>();
+
+const getGroupIconCacheKey = (groupName: string, groupIcon: string) =>
+  `${groupName}::${groupIcon}`;
+
+const getFileName = (url: string) => url.substring(url.lastIndexOf("/") + 1);
+
+const getGroupIconSrc = async (groupName: string, groupIcon: string) => {
+  const cacheKey = getGroupIconCacheKey(groupName, groupIcon);
+  const cachedSrc = groupIconSrcCache.get(cacheKey);
+  if (cachedSrc) return cachedSrc;
+
+  const loadingSrc = groupIconLoadingCache.get(cacheKey);
+  if (loadingSrc) return loadingSrc;
+
+  const fileName = groupName.replaceAll(" ", "") + "-" + getFileName(groupIcon);
+  const loadIcon = downloadIconCache(groupIcon, fileName)
+    .then((iconPath) => {
+      const iconSrc = convertFileSrc(iconPath);
+      groupIconSrcCache.set(cacheKey, iconSrc);
+      return iconSrc;
+    })
+    .finally(() => {
+      groupIconLoadingCache.delete(cacheKey);
+    });
+
+  groupIconLoadingCache.set(cacheKey, loadIcon);
+  return loadIcon;
+};
+
 const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
   const { item, delayVersion, onChangeProxy } = props;
   const { group, headState, proxyCol } = item;
@@ -118,34 +149,48 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
       }),
     [currentProfileUid, group.name],
   );
-  const [iconCachePath, setIconCachePath] = useState("");
   const groupIcon = group.icon?.trim() ?? "";
   const isHttpIcon = groupIcon.startsWith("http");
   const isDataIcon = groupIcon.startsWith("data");
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
-
-  const initIconCachePath = useMemoizedFn(
-    async (groupName: string, groupIcon: string) => {
-      if (isHttpIcon) {
-        const fileName =
-          groupName.replaceAll(" ", "") + "-" + getFileName(groupIcon);
-        const iconPath = await downloadIconCache(groupIcon, fileName);
-        setIconCachePath(convertFileSrc(iconPath));
-      }
-    },
+  const [iconCachePath, setIconCachePath] = useState(() =>
+    isHttpIcon
+      ? (groupIconSrcCache.get(getGroupIconCacheKey(group.name, groupIcon)) ??
+        "")
+      : "",
   );
-
-  const getFileName = useMemoizedFn((url: string) => {
-    return url.substring(url.lastIndexOf("/") + 1);
-  });
 
   useEffect(() => {
     if (!isHttpIcon) {
       setIconCachePath("");
       return;
     }
-    initIconCachePath(group.name, groupIcon);
-  }, [initIconCachePath, isHttpIcon, group.name, groupIcon]);
+
+    const cacheKey = getGroupIconCacheKey(group.name, groupIcon);
+    const cachedSrc = groupIconSrcCache.get(cacheKey);
+    if (cachedSrc) {
+      setIconCachePath(cachedSrc);
+      return;
+    }
+
+    let canceled = false;
+    setIconCachePath("");
+    getGroupIconSrc(group.name, groupIcon)
+      .then((iconSrc) => {
+        if (!canceled) {
+          setIconCachePath(iconSrc);
+        }
+      })
+      .catch(() => {
+        if (!canceled) {
+          setIconCachePath("");
+        }
+      });
+
+    return () => {
+      canceled = true;
+    };
+  }, [isHttpIcon, group.name, groupIcon]);
 
   if (type === 0) {
     return (
@@ -163,19 +208,11 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           transition: "background-color 0s",
         })}
         onClick={() => headStateActions.setOpen(!headState?.open)}>
-        {enableGroupIcon && isHttpIcon && (
-          <img
-            src={iconCachePath === "" ? groupIcon : iconCachePath}
-            width="32px"
-            style={{ marginRight: "12px", borderRadius: "6px" }}
-          />
+        {enableGroupIcon && isHttpIcon && iconCachePath && (
+          <img src={iconCachePath} width="32px" style={GROUP_ICON_STYLE} />
         )}
         {enableGroupIcon && isDataIcon && (
-          <img
-            src={groupIcon}
-            width="32px"
-            style={{ marginRight: "12px", borderRadius: "6px" }}
-          />
+          <img src={groupIcon} width="32px" style={GROUP_ICON_STYLE} />
         )}
         {enableGroupIcon && isInlineSvgIcon && (
           <img
