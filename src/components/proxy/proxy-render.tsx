@@ -256,7 +256,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
     return () => {
       canceled = true;
     };
-  }, [isHttpIcon, group.name, groupIcon]);
+  }, [isHttpIcon, groupIcon]);
 
   if (type === 0) {
     return (
