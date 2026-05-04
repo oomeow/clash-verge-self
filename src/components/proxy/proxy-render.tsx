@@ -136,6 +136,9 @@ const sanitizeExtension = (extension: string) => {
     : ".png";
 };
 
+const encodeSvgDataUri = (svg: string) =>
+  `data:image/svg+xml,${encodeURIComponent(svg)}`;
+
 const sha256Hex = async (value: string) => {
   const digest = await crypto.subtle.digest(
     "SHA-256",
@@ -299,8 +302,9 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
             )}
             {isInlineSvgIcon && (
               <img
-                src={`data:image/svg+xml;base64,${btoa(groupIcon)}`}
+                src={encodeSvgDataUri(groupIcon)}
                 width="32px"
+                style={GROUP_ICON_STYLE}
               />
             )}
           </>
