@@ -33,6 +33,7 @@
       "resetToDefault": "Сбросить настройки по умолчанию",
       "expandAll": "Расширить все",
       "collapseAll": "Свернуть все",
+      "scrollToTop": "Прокрутить вверх",
       "exit": "Выход"
     },
     "status": {

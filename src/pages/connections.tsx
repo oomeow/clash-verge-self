@@ -1,5 +1,6 @@
 import DeleteForeverRounded from "@mui/icons-material/DeleteForeverRounded";
 import Download from "@mui/icons-material/Download";
+import KeyboardArrowUpRounded from "@mui/icons-material/KeyboardArrowUpRounded";
 import TableChartRounded from "@mui/icons-material/TableChartRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
 import Upload from "@mui/icons-material/Upload";
@@ -16,7 +17,7 @@ import {
 import { useLockFn } from "ahooks";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Virtuoso } from "react-virtuoso";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
 
 import {
@@ -52,6 +53,7 @@ const ConnectionsPage = () => {
   const setOrderType = useConnectionsStore((s) => s.setOrderType);
   const [tabName, setTabName] = useState("active");
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<VirtuosoHandle>(null);
 
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
@@ -111,6 +113,19 @@ const ConnectionsPage = () => {
     }
   });
 
+  const scrollToTop = () => {
+    if (isTableLayout) {
+      tableContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    listRef.current?.scrollToIndex({
+      index: 0,
+      align: "start",
+      behavior: "smooth",
+    });
+  };
+
   return (
     <BasePage
       full
@@ -167,7 +182,7 @@ const ConnectionsPage = () => {
           </div>
         </div>
       }>
-      <div className="h-full w-full overflow-hidden">
+      <div className="relative h-full w-full overflow-hidden">
         <Box
           sx={{
             mb: "10px",
@@ -243,6 +258,7 @@ const ConnectionsPage = () => {
             />
           ) : (
             <Virtuoso
+              ref={listRef}
               data={filterConn}
               itemContent={(_, item) => (
                 <ConnectionItem
@@ -258,6 +274,21 @@ const ConnectionsPage = () => {
           )}
         </Box>
         <ConnectionDetail ref={detailRef} />
+        <Zoom in={filterConn.length > 0} unmountOnExit>
+          <Tooltip title={t("common.actions.scrollToTop")}>
+            <Fab
+              size="medium"
+              sx={{
+                position: "absolute",
+                right: 16,
+                bottom: !isActiveTab && filterConn.length > 0 ? 80 : 16,
+              }}
+              color="primary"
+              onClick={scrollToTop}>
+              <KeyboardArrowUpRounded />
+            </Fab>
+          </Tooltip>
+        </Zoom>
         <Zoom in={!isActiveTab && filterConn.length > 0} unmountOnExit>
           <Fab
             size="medium"
