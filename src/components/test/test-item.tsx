@@ -31,6 +31,9 @@ interface Props {
   onDelete: (uid: string) => void;
 }
 
+const encodeSvgDataUri = (svg: string) =>
+  `data:image/svg+xml,${encodeURIComponent(svg)}`;
+
 export const TestItem = (props: Props) => {
   const { isDragging, sx, itemData, onEdit, onDelete: onDeleteItem } = props;
 
@@ -120,10 +123,7 @@ export const TestItem = (props: Props) => {
                 <img src={icon} height="40px" />
               )}
               {icon.trim().startsWith("<svg") && (
-                <img
-                  src={`data:image/svg+xml;base64,${btoa(icon)}`}
-                  height="40px"
-                />
+                <img src={encodeSvgDataUri(icon)} height="40px" />
               )}
             </Box>
           ) : (

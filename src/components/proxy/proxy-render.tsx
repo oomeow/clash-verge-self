@@ -4,14 +4,15 @@ import InboxRounded from "@mui/icons-material/InboxRounded";
 import {
   alpha,
   Box,
+  CircularProgress,
   ListItemButton,
   ListItemText,
   styled,
   Typography,
 } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { useMemoizedFn } from "ahooks";
-import { memo, useEffect, useMemo, useState } from "react";
+import { useAsyncEffect } from "ahooks";
+import { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { downloadIconCache } from "@/services/cmds";
@@ -72,6 +73,113 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
   marginRight: "8px",
 }));
 
+const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
+const GROUP_ICON_LOADING_STYLE = {
+  ...GROUP_ICON_STYLE,
+  width: "32px",
+  height: "32px",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+const ICON_FILE_NAME_MAX_LENGTH = 32;
+const ICON_HASH_LENGTH = 16;
+const groupIconSrcCache = new Map<string, string>();
+const groupIconLoadingCache = new Map<string, Promise<string>>();
+
+const normalizeIconUrl = (url: string) => {
+  try {
+    const iconUrl = new URL(url);
+    return `${iconUrl.origin}${iconUrl.pathname}${iconUrl.search}${iconUrl.hash}`;
+  } catch {
+    return url;
+  }
+};
+
+const getIconFileName = (url: string) => {
+  try {
+    const pathname = new URL(url).pathname;
+    const fileName = pathname.substring(pathname.lastIndexOf("/") + 1);
+    if (fileName) return decodeURIComponent(fileName);
+  } catch {
+    // fallback for non-standard URL strings
+  }
+
+  const path = url.split(/[?#]/, 1)[0];
+  return path.substring(path.lastIndexOf("/") + 1);
+};
+
+const getIconFileParts = (fileName: string) => {
+  const extensionIndex = fileName.lastIndexOf(".");
+  if (extensionIndex <= 0 || extensionIndex === fileName.length - 1) {
+    return { stem: fileName, extension: ".png" };
+  }
+
+  return {
+    stem: fileName.slice(0, extensionIndex),
+    extension: fileName.slice(extensionIndex),
+  };
+};
+
+const sanitizeFileName = (fileName: string) =>
+  fileName
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[.\-\s]+|[.\-\s]+$/g, "")
+    .slice(0, ICON_FILE_NAME_MAX_LENGTH) || "icon";
+
+const sanitizeExtension = (extension: string) => {
+  const safeExtension = extension.replace(/[^a-zA-Z0-9.]/g, "").slice(0, 16);
+  return safeExtension.startsWith(".") && safeExtension.length > 1
+    ? safeExtension
+    : ".png";
+};
+
+const encodeSvgDataUri = (svg: string) =>
+  `data:image/svg+xml,${encodeURIComponent(svg)}`;
+
+const sha256Hex = async (value: string) => {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
+
+const getIconCacheFileName = async (groupIcon: string, cacheKey: string) => {
+  const hashName = (await sha256Hex(cacheKey)).slice(0, ICON_HASH_LENGTH);
+  const { stem, extension } = getIconFileParts(getIconFileName(groupIcon));
+  return `${sanitizeFileName(stem)}-${hashName}${sanitizeExtension(extension)}`;
+};
+
+const loadGroupIconSrc = async (groupIcon: string, cacheKey: string) => {
+  const fileName = await getIconCacheFileName(groupIcon, cacheKey);
+  const iconPath = await downloadIconCache(groupIcon, fileName);
+  const iconSrc = convertFileSrc(iconPath);
+  groupIconSrcCache.set(cacheKey, iconSrc);
+  return iconSrc;
+};
+
+const getGroupIconSrc = async (groupIcon: string) => {
+  const cacheKey = normalizeIconUrl(groupIcon);
+  const cachedSrc = groupIconSrcCache.get(cacheKey);
+  if (cachedSrc) return cachedSrc;
+
+  const loadingSrc = groupIconLoadingCache.get(cacheKey);
+  if (loadingSrc) return await loadingSrc;
+
+  const loadIcon = loadGroupIconSrc(groupIcon, cacheKey).finally(() => {
+    groupIconLoadingCache.delete(cacheKey);
+  });
+
+  groupIconLoadingCache.set(cacheKey, loadIcon);
+  return await loadIcon;
+};
+
 const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
   const { item, delayVersion, onChangeProxy } = props;
   const { group, headState, proxyCol } = item;
@@ -118,34 +226,50 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
       }),
     [currentProfileUid, group.name],
   );
-  const [iconCachePath, setIconCachePath] = useState("");
   const groupIcon = group.icon?.trim() ?? "";
   const isHttpIcon = groupIcon.startsWith("http");
   const isDataIcon = groupIcon.startsWith("data");
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
-
-  const initIconCachePath = useMemoizedFn(
-    async (groupName: string, groupIcon: string) => {
-      if (isHttpIcon) {
-        const fileName =
-          groupName.replaceAll(" ", "") + "-" + getFileName(groupIcon);
-        const iconPath = await downloadIconCache(groupIcon, fileName);
-        setIconCachePath(convertFileSrc(iconPath));
-      }
-    },
+  const shouldLoadHttpIcon = enableGroupIcon && isHttpIcon;
+  const iconCacheKey = shouldLoadHttpIcon ? normalizeIconUrl(groupIcon) : "";
+  const [iconCachePath, setIconCachePath] = useState(
+    () => groupIconSrcCache.get(iconCacheKey) ?? "",
+  );
+  const [iconLoading, setIconLoading] = useState(
+    () => shouldLoadHttpIcon && !groupIconSrcCache.has(iconCacheKey),
   );
 
-  const getFileName = useMemoizedFn((url: string) => {
-    return url.substring(url.lastIndexOf("/") + 1);
-  });
+  useAsyncEffect(
+    async function* () {
+      if (!shouldLoadHttpIcon) {
+        setIconCachePath("");
+        setIconLoading(false);
+        return;
+      }
 
-  useEffect(() => {
-    if (!isHttpIcon) {
+      const cachedIconSrc = groupIconSrcCache.get(iconCacheKey);
+      if (cachedIconSrc) {
+        setIconCachePath(cachedIconSrc);
+        setIconLoading(false);
+        return;
+      }
+
       setIconCachePath("");
-      return;
-    }
-    initIconCachePath(group.name, groupIcon);
-  }, [initIconCachePath, isHttpIcon, group.name, groupIcon]);
+      setIconLoading(true);
+
+      try {
+        const iconSrc = await getGroupIconSrc(groupIcon);
+        yield;
+        setIconCachePath(iconSrc);
+        setIconLoading(false);
+      } catch {
+        yield;
+        setIconCachePath("");
+        setIconLoading(false);
+      }
+    },
+    [shouldLoadHttpIcon, groupIcon, iconCacheKey],
+  );
 
   if (type === 0) {
     return (
@@ -163,25 +287,27 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           transition: "background-color 0s",
         })}
         onClick={() => headStateActions.setOpen(!headState?.open)}>
-        {enableGroupIcon && isHttpIcon && (
-          <img
-            src={iconCachePath === "" ? groupIcon : iconCachePath}
-            width="32px"
-            style={{ marginRight: "12px", borderRadius: "6px" }}
-          />
-        )}
-        {enableGroupIcon && isDataIcon && (
-          <img
-            src={groupIcon}
-            width="32px"
-            style={{ marginRight: "12px", borderRadius: "6px" }}
-          />
-        )}
-        {enableGroupIcon && isInlineSvgIcon && (
-          <img
-            src={`data:image/svg+xml;base64,${btoa(groupIcon)}`}
-            width="32px"
-          />
+        {enableGroupIcon && (
+          <>
+            {isHttpIcon && !iconCachePath && iconLoading && (
+              <Box sx={GROUP_ICON_LOADING_STYLE}>
+                <CircularProgress size={18} />
+              </Box>
+            )}
+            {isHttpIcon && iconCachePath && (
+              <img src={iconCachePath} width="32px" style={GROUP_ICON_STYLE} />
+            )}
+            {isDataIcon && (
+              <img src={groupIcon} width="32px" style={GROUP_ICON_STYLE} />
+            )}
+            {isInlineSvgIcon && (
+              <img
+                src={encodeSvgDataUri(groupIcon)}
+                width="32px"
+                style={GROUP_ICON_STYLE}
+              />
+            )}
+          </>
         )}
         <ListItemText
           primary={<StyledPrimary>{group.name}</StyledPrimary>}
