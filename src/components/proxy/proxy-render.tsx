@@ -4,6 +4,7 @@ import InboxRounded from "@mui/icons-material/InboxRounded";
 import {
   alpha,
   Box,
+  CircularProgress,
   ListItemButton,
   ListItemText,
   styled,
@@ -73,6 +74,14 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
 }));
 
 const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
+const GROUP_ICON_LOADING_STYLE = {
+  ...GROUP_ICON_STYLE,
+  width: "32px",
+  height: "32px",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
 const ICON_FILE_NAME_MAX_LENGTH = 32;
 const ICON_HASH_LENGTH = 16;
 const groupIconSrcCache = new Map<string, string>();
@@ -222,29 +231,37 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const [iconCachePath, setIconCachePath] = useState(
     () => groupIconSrcCache.get(iconCacheKey) ?? "",
   );
+  const [iconLoading, setIconLoading] = useState(
+    () => isHttpIcon && !groupIconSrcCache.has(iconCacheKey),
+  );
 
   useAsyncEffect(
     async function* () {
       if (!isHttpIcon) {
         setIconCachePath("");
+        setIconLoading(false);
         return;
       }
 
       const cachedIconSrc = groupIconSrcCache.get(iconCacheKey);
       if (cachedIconSrc) {
         setIconCachePath(cachedIconSrc);
+        setIconLoading(false);
         return;
       }
 
       setIconCachePath("");
+      setIconLoading(true);
 
       try {
         const iconSrc = await getGroupIconSrc(groupIcon);
         yield;
         setIconCachePath(iconSrc);
+        setIconLoading(false);
       } catch {
         yield;
         setIconCachePath("");
+        setIconLoading(false);
       }
     },
     [isHttpIcon, groupIcon, iconCacheKey],
@@ -268,6 +285,11 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         onClick={() => headStateActions.setOpen(!headState?.open)}>
         {enableGroupIcon && isHttpIcon && iconCachePath && (
           <img src={iconCachePath} width="32px" style={GROUP_ICON_STYLE} />
+        )}
+        {enableGroupIcon && isHttpIcon && !iconCachePath && iconLoading && (
+          <Box sx={GROUP_ICON_LOADING_STYLE}>
+            <CircularProgress size={18} />
+          </Box>
         )}
         {enableGroupIcon && isDataIcon && (
           <img src={groupIcon} width="32px" style={GROUP_ICON_STYLE} />
