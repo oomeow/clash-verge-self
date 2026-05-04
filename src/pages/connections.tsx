@@ -15,7 +15,7 @@ import {
   Zoom,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
@@ -113,7 +113,7 @@ const ConnectionsPage = () => {
     }
   });
 
-  const scrollToTop = () => {
+  const scrollToTop = useCallback(() => {
     if (isTableLayout) {
       tableContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -124,7 +124,7 @@ const ConnectionsPage = () => {
       align: "start",
       behavior: "smooth",
     });
-  };
+  }, [isTableLayout]);
 
   return (
     <BasePage
