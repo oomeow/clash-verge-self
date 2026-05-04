@@ -144,7 +144,7 @@ const ConnectionsPage = () => {
       ? tableContainerRef.current
       : listScrollerRef.current;
 
-    if (!scroller) {
+    if (!scroller || filterConn.length === 0) {
       setShowScrollTop(false);
       return;
     }
@@ -161,7 +161,7 @@ const ConnectionsPage = () => {
     return () => {
       scroller.removeEventListener("scroll", updateScrollTopVisible);
     };
-  }, [isTableLayout, tabName]);
+  }, [filterConn.length, isTableLayout, tabName]);
 
   return (
     <BasePage
