@@ -75,10 +75,7 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
 const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
 const ICON_FILE_NAME_MAX_LENGTH = 32;
 const ICON_HASH_LENGTH = 16;
-const groupIconMetaCache = new Map<
-  string,
-  Promise<{ cacheKey: string; fileName: string }>
->();
+const groupIconMetaCache = new Map<string, Promise<{ fileName: string }>>();
 const groupIconSrcCache = new Map<string, string>();
 const groupIconLoadingCache = new Map<string, Promise<string>>();
 
@@ -148,12 +145,12 @@ const getGroupIconMeta = (groupIcon: string) => {
   if (cachedMeta) return cachedMeta;
 
   const meta = sha256Hex(normalizedUrl).then((hash) => {
-    const cacheKey = hash.slice(0, ICON_HASH_LENGTH);
+    const hashName = hash.slice(0, ICON_HASH_LENGTH);
     const { stem, extension } = getIconFileParts(getIconFileName(groupIcon));
-    const fileName = `${sanitizeFileName(stem)}-${cacheKey}${sanitizeExtension(
+    const fileName = `${sanitizeFileName(stem)}-${hashName}${sanitizeExtension(
       extension,
     )}`;
-    return { cacheKey, fileName };
+    return { fileName };
   });
 
   groupIconMetaCache.set(normalizedUrl, meta);
@@ -161,7 +158,7 @@ const getGroupIconMeta = (groupIcon: string) => {
 };
 
 const getGroupIconSrc = async (groupIcon: string) => {
-  const { cacheKey, fileName } = await getGroupIconMeta(groupIcon);
+  const cacheKey = normalizeIconUrl(groupIcon);
   const cachedSrc = groupIconSrcCache.get(cacheKey);
   if (cachedSrc) return cachedSrc;
 
@@ -169,6 +166,7 @@ const getGroupIconSrc = async (groupIcon: string) => {
   if (loadingSrc) return await loadingSrc;
 
   const loadIcon = (async () => {
+    const { fileName } = await getGroupIconMeta(groupIcon);
     const iconPath = await downloadIconCache(groupIcon, fileName);
     const iconSrc = convertFileSrc(iconPath);
     groupIconSrcCache.set(cacheKey, iconSrc);
@@ -231,12 +229,21 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const isHttpIcon = groupIcon.startsWith("http");
   const isDataIcon = groupIcon.startsWith("data");
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
-  const [iconCachePath, setIconCachePath] = useState("");
+  const iconCacheKey = isHttpIcon ? normalizeIconUrl(groupIcon) : "";
+  const [iconCachePath, setIconCachePath] = useState(
+    () => groupIconSrcCache.get(iconCacheKey) ?? "",
+  );
 
   useAsyncEffect(
     async function* () {
       if (!isHttpIcon) {
         setIconCachePath("");
+        return;
+      }
+
+      const cachedIconSrc = groupIconSrcCache.get(iconCacheKey);
+      if (cachedIconSrc) {
+        setIconCachePath(cachedIconSrc);
         return;
       }
 
@@ -251,7 +258,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         setIconCachePath("");
       }
     },
-    [isHttpIcon, groupIcon],
+    [isHttpIcon, groupIcon, iconCacheKey],
   );
 
   if (type === 0) {
