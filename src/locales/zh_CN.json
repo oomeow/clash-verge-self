@@ -33,6 +33,7 @@
       "resetToDefault": "重置为默认值",
       "expandAll": "全部展开",
       "collapseAll": "全部折叠",
+      "scrollToTop": "回到顶部",
       "exit": "退出"
     },
     "status": {

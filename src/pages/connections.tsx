@@ -1,5 +1,6 @@
 import DeleteForeverRounded from "@mui/icons-material/DeleteForeverRounded";
 import Download from "@mui/icons-material/Download";
+import KeyboardArrowUpRounded from "@mui/icons-material/KeyboardArrowUpRounded";
 import TableChartRounded from "@mui/icons-material/TableChartRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
 import Upload from "@mui/icons-material/Upload";
@@ -14,9 +15,9 @@ import {
   Zoom,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Virtuoso } from "react-virtuoso";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
 
 import {
@@ -41,6 +42,11 @@ import parseTraffic from "@/utils/parse-traffic";
 
 type OrderFunc = (list: IClosedConnectionItem[]) => IClosedConnectionItem[];
 
+const SCROLL_TOP_VISIBLE_THRESHOLD = 240;
+
+const getScrollerTop = (scroller: HTMLElement | Window) =>
+  "scrollY" in scroller ? scroller.scrollY : scroller.scrollTop;
+
 const ConnectionsPage = () => {
   const { t } = useTranslation();
   const [match, setMatch] = useState(() => (_: string) => true);
@@ -52,6 +58,9 @@ const ConnectionsPage = () => {
   const setOrderType = useConnectionsStore((s) => s.setOrderType);
   const [tabName, setTabName] = useState("active");
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<VirtuosoHandle>(null);
+  const listScrollerRef = useRef<HTMLElement | Window | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
@@ -111,6 +120,49 @@ const ConnectionsPage = () => {
     }
   });
 
+  const scrollToTop = useCallback(() => {
+    if (isTableLayout) {
+      tableContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      listRef.current?.scrollToIndex({
+        index: 0,
+        align: "start",
+        behavior: "smooth",
+      });
+    }
+  }, [isTableLayout]);
+
+  const handleListScrollerRef = useCallback(
+    (ref: HTMLElement | Window | null) => {
+      listScrollerRef.current = ref;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const scroller = isTableLayout
+      ? tableContainerRef.current
+      : listScrollerRef.current;
+
+    if (!scroller || filterConn.length === 0) {
+      setShowScrollTop(false);
+      return;
+    }
+
+    const updateScrollTopVisible = () => {
+      setShowScrollTop(getScrollerTop(scroller) > SCROLL_TOP_VISIBLE_THRESHOLD);
+    };
+
+    updateScrollTopVisible();
+    scroller.addEventListener("scroll", updateScrollTopVisible, {
+      passive: true,
+    });
+
+    return () => {
+      scroller.removeEventListener("scroll", updateScrollTopVisible);
+    };
+  }, [filterConn.length > 0, isTableLayout, tabName]);
+
   return (
     <BasePage
       full
@@ -167,7 +219,7 @@ const ConnectionsPage = () => {
           </div>
         </div>
       }>
-      <div className="h-full w-full overflow-hidden">
+      <div className="relative h-full w-full overflow-hidden">
         <Box
           sx={{
             mb: "10px",
@@ -243,6 +295,8 @@ const ConnectionsPage = () => {
             />
           ) : (
             <Virtuoso
+              ref={listRef}
+              scrollerRef={handleListScrollerRef}
               data={filterConn}
               itemContent={(_, item) => (
                 <ConnectionItem
@@ -258,6 +312,21 @@ const ConnectionsPage = () => {
           )}
         </Box>
         <ConnectionDetail ref={detailRef} />
+        <Zoom in={showScrollTop} unmountOnExit>
+          <Tooltip title={t("common.actions.scrollToTop")}>
+            <Fab
+              size="medium"
+              sx={{
+                position: "absolute",
+                right: 16,
+                bottom: isActiveTab ? 16 : 80,
+              }}
+              color="primary"
+              onClick={scrollToTop}>
+              <KeyboardArrowUpRounded />
+            </Fab>
+          </Tooltip>
+        </Zoom>
         <Zoom in={!isActiveTab && filterConn.length > 0} unmountOnExit>
           <Fab
             size="medium"

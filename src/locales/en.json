@@ -33,6 +33,7 @@
       "resetToDefault": "Reset to Default",
       "expandAll": "Expand All",
       "collapseAll": "Collapse All",
+      "scrollToTop": "Scroll to Top",
       "exit": "Exit"
     },
     "status": {
