@@ -72,6 +72,8 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
 }));
 
 const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
+const ICON_FILE_NAME_MAX_LENGTH = 32;
+const ICON_HASH_LENGTH = 16;
 const groupIconSrcCache = new Map<string, string>();
 const groupIconLoadingCache = new Map<string, Promise<string>>();
 
@@ -118,7 +120,7 @@ const sanitizeFileName = (fileName: string) =>
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^[.\-\s]+|[.\-\s]+$/g, "")
-    .slice(0, 80) || "icon";
+    .slice(0, ICON_FILE_NAME_MAX_LENGTH) || "icon";
 
 const sanitizeExtension = (extension: string) => {
   const safeExtension = extension.replace(/[^a-zA-Z0-9.]/g, "").slice(0, 16);
@@ -141,9 +143,8 @@ const sha256Hex = async (value: string) => {
 const getIconCacheFileName = async (groupIcon: string) => {
   const { stem, extension } = splitFileName(getFileName(groupIcon));
   const cacheKey = getIconPathCacheKey(groupIcon);
-  return `${sanitizeFileName(stem)}-${await sha256Hex(cacheKey)}${sanitizeExtension(
-    extension,
-  )}`;
+  const hash = (await sha256Hex(cacheKey)).slice(0, ICON_HASH_LENGTH);
+  return `${sanitizeFileName(stem)}-${hash}${sanitizeExtension(extension)}`;
 };
 
 const getGroupIconSrc = async (groupIcon: string) => {
