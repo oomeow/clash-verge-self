@@ -281,7 +281,7 @@ const ConnectionsPage = () => {
               sx={{
                 position: "absolute",
                 right: 16,
-                bottom: !isActiveTab && filterConn.length > 0 ? 80 : 16,
+                bottom: isActiveTab ? 16 : 80,
               }}
               color="primary"
               onClick={scrollToTop}>
