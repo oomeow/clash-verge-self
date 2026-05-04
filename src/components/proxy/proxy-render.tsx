@@ -10,7 +10,8 @@ import {
   Typography,
 } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { memo, useEffect, useMemo, useState } from "react";
+import { useAsyncEffect } from "ahooks";
+import { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { downloadIconCache } from "@/services/cmds";
@@ -155,7 +156,7 @@ const getIconCacheFileName = (groupIcon: string, cacheKey: string) => {
   return `${sanitizeFileName(stem)}-${cacheKey}${sanitizeExtension(extension)}`;
 };
 
-const getGroupIconSrc = (groupIcon: string) => {
+const getGroupIconSrc = async (groupIcon: string) => {
   return getGroupIconCacheKey(groupIcon).then((cacheKey) => {
     const cachedSrc = groupIconSrcCache.get(cacheKey);
     if (cachedSrc) return cachedSrc;
@@ -231,30 +232,26 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
   const [iconCachePath, setIconCachePath] = useState("");
 
-  useEffect(() => {
-    if (!isHttpIcon) {
+  useAsyncEffect(
+    async function* () {
+      if (!isHttpIcon) {
+        setIconCachePath("");
+        return;
+      }
+
       setIconCachePath("");
-      return;
-    }
 
-    let canceled = false;
-    setIconCachePath("");
-    getGroupIconSrc(groupIcon)
-      .then((iconSrc) => {
-        if (!canceled) {
-          setIconCachePath(iconSrc);
-        }
-      })
-      .catch(() => {
-        if (!canceled) {
-          setIconCachePath("");
-        }
-      });
-
-    return () => {
-      canceled = true;
-    };
-  }, [isHttpIcon, groupIcon]);
+      try {
+        const iconSrc = await getGroupIconSrc(groupIcon);
+        yield;
+        setIconCachePath(iconSrc);
+      } catch {
+        yield;
+        setIconCachePath("");
+      }
+    },
+    [isHttpIcon, groupIcon],
+  );
 
   if (type === 0) {
     return (
