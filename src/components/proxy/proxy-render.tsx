@@ -75,7 +75,6 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
 const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
 const ICON_FILE_NAME_MAX_LENGTH = 32;
 const ICON_HASH_LENGTH = 16;
-const groupIconMetaCache = new Map<string, Promise<{ fileName: string }>>();
 const groupIconSrcCache = new Map<string, string>();
 const groupIconLoadingCache = new Map<string, Promise<string>>();
 
@@ -139,22 +138,18 @@ const sha256Hex = async (value: string) => {
     .join("");
 };
 
-const getGroupIconMeta = (groupIcon: string) => {
-  const normalizedUrl = normalizeIconUrl(groupIcon);
-  const cachedMeta = groupIconMetaCache.get(normalizedUrl);
-  if (cachedMeta) return cachedMeta;
+const getIconCacheFileName = async (groupIcon: string, cacheKey: string) => {
+  const hashName = (await sha256Hex(cacheKey)).slice(0, ICON_HASH_LENGTH);
+  const { stem, extension } = getIconFileParts(getIconFileName(groupIcon));
+  return `${sanitizeFileName(stem)}-${hashName}${sanitizeExtension(extension)}`;
+};
 
-  const meta = sha256Hex(normalizedUrl).then((hash) => {
-    const hashName = hash.slice(0, ICON_HASH_LENGTH);
-    const { stem, extension } = getIconFileParts(getIconFileName(groupIcon));
-    const fileName = `${sanitizeFileName(stem)}-${hashName}${sanitizeExtension(
-      extension,
-    )}`;
-    return { fileName };
-  });
-
-  groupIconMetaCache.set(normalizedUrl, meta);
-  return meta;
+const loadGroupIconSrc = async (groupIcon: string, cacheKey: string) => {
+  const fileName = await getIconCacheFileName(groupIcon, cacheKey);
+  const iconPath = await downloadIconCache(groupIcon, fileName);
+  const iconSrc = convertFileSrc(iconPath);
+  groupIconSrcCache.set(cacheKey, iconSrc);
+  return iconSrc;
 };
 
 const getGroupIconSrc = async (groupIcon: string) => {
@@ -165,13 +160,7 @@ const getGroupIconSrc = async (groupIcon: string) => {
   const loadingSrc = groupIconLoadingCache.get(cacheKey);
   if (loadingSrc) return await loadingSrc;
 
-  const loadIcon = (async () => {
-    const { fileName } = await getGroupIconMeta(groupIcon);
-    const iconPath = await downloadIconCache(groupIcon, fileName);
-    const iconSrc = convertFileSrc(iconPath);
-    groupIconSrcCache.set(cacheKey, iconSrc);
-    return iconSrc;
-  })().finally(() => {
+  const loadIcon = loadGroupIconSrc(groupIcon, cacheKey).finally(() => {
     groupIconLoadingCache.delete(cacheKey);
   });
 
