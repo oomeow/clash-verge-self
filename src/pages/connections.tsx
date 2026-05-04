@@ -140,14 +140,6 @@ const ConnectionsPage = () => {
   );
 
   useEffect(() => {
-    console.log(
-      "filterConn.length:",
-      filterConn.length,
-      "isTableLayout:",
-      isTableLayout,
-      "tabName:",
-      tabName,
-    );
     const scroller = isTableLayout
       ? tableContainerRef.current
       : listScrollerRef.current;
