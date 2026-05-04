@@ -227,17 +227,18 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const isHttpIcon = groupIcon.startsWith("http");
   const isDataIcon = groupIcon.startsWith("data");
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
-  const iconCacheKey = isHttpIcon ? normalizeIconUrl(groupIcon) : "";
+  const shouldLoadHttpIcon = enableGroupIcon && isHttpIcon;
+  const iconCacheKey = shouldLoadHttpIcon ? normalizeIconUrl(groupIcon) : "";
   const [iconCachePath, setIconCachePath] = useState(
     () => groupIconSrcCache.get(iconCacheKey) ?? "",
   );
   const [iconLoading, setIconLoading] = useState(
-    () => isHttpIcon && !groupIconSrcCache.has(iconCacheKey),
+    () => shouldLoadHttpIcon && !groupIconSrcCache.has(iconCacheKey),
   );
 
   useAsyncEffect(
     async function* () {
-      if (!isHttpIcon) {
+      if (!shouldLoadHttpIcon) {
         setIconCachePath("");
         setIconLoading(false);
         return;
@@ -264,7 +265,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         setIconLoading(false);
       }
     },
-    [isHttpIcon, groupIcon, iconCacheKey],
+    [shouldLoadHttpIcon, groupIcon, iconCacheKey],
   );
 
   if (type === 0) {
