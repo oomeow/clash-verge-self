@@ -78,7 +78,36 @@ const groupIconLoadingCache = new Map<string, Promise<string>>();
 const getGroupIconCacheKey = (groupName: string, groupIcon: string) =>
   `${groupName}::${groupIcon}`;
 
-const getFileName = (url: string) => url.substring(url.lastIndexOf("/") + 1);
+const getFileName = (url: string) => {
+  try {
+    const pathname = new URL(url).pathname;
+    const fileName = pathname.substring(pathname.lastIndexOf("/") + 1);
+    if (fileName) return decodeURIComponent(fileName);
+  } catch {
+    // fallback for non-standard URL strings
+  }
+
+  return url.substring(url.lastIndexOf("/") + 1);
+};
+
+const sanitizeFileName = (fileName: string) =>
+  fileName
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[.\-\s]+|[.\-\s]+$/g, "")
+    .slice(0, 80) || "icon";
+
+const sha256Hex = async (value: string) => {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value),
+  );
+
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+};
 
 const getGroupIconSrc = async (groupName: string, groupIcon: string) => {
   const cacheKey = getGroupIconCacheKey(groupName, groupIcon);
@@ -88,7 +117,9 @@ const getGroupIconSrc = async (groupName: string, groupIcon: string) => {
   const loadingSrc = groupIconLoadingCache.get(cacheKey);
   if (loadingSrc) return loadingSrc;
 
-  const fileName = groupName.replaceAll(" ", "") + "-" + getFileName(groupIcon);
+  const fileName = `${sanitizeFileName(getFileName(groupIcon))}-${await sha256Hex(
+    groupIcon,
+  )}`;
   const loadIcon = downloadIconCache(groupIcon, fileName)
     .then((iconPath) => {
       const iconSrc = convertFileSrc(iconPath);
