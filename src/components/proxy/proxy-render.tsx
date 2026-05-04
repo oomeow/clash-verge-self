@@ -283,22 +283,26 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           transition: "background-color 0s",
         })}
         onClick={() => headStateActions.setOpen(!headState?.open)}>
-        {enableGroupIcon && isHttpIcon && iconCachePath && (
-          <img src={iconCachePath} width="32px" style={GROUP_ICON_STYLE} />
-        )}
-        {enableGroupIcon && isHttpIcon && !iconCachePath && iconLoading && (
-          <Box sx={GROUP_ICON_LOADING_STYLE}>
-            <CircularProgress size={18} />
-          </Box>
-        )}
-        {enableGroupIcon && isDataIcon && (
-          <img src={groupIcon} width="32px" style={GROUP_ICON_STYLE} />
-        )}
-        {enableGroupIcon && isInlineSvgIcon && (
-          <img
-            src={`data:image/svg+xml;base64,${btoa(groupIcon)}`}
-            width="32px"
-          />
+        {enableGroupIcon && (
+          <>
+            {isHttpIcon && !iconCachePath && iconLoading && (
+              <Box sx={GROUP_ICON_LOADING_STYLE}>
+                <CircularProgress size={18} />
+              </Box>
+            )}
+            {isHttpIcon && iconCachePath && (
+              <img src={iconCachePath} width="32px" style={GROUP_ICON_STYLE} />
+            )}
+            {isDataIcon && (
+              <img src={groupIcon} width="32px" style={GROUP_ICON_STYLE} />
+            )}
+            {isInlineSvgIcon && (
+              <img
+                src={`data:image/svg+xml;base64,${btoa(groupIcon)}`}
+                width="32px"
+              />
+            )}
+          </>
         )}
         <ListItemText
           primary={<StyledPrimary>{group.name}</StyledPrimary>}
