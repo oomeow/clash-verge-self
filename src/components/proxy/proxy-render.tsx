@@ -155,8 +155,8 @@ const getGroupIconSrc = async (groupIcon: string) => {
   const loadingSrc = groupIconLoadingCache.get(cacheKey);
   if (loadingSrc) return loadingSrc;
 
-  const fileName = await getIconCacheFileName(groupIcon);
-  const loadIcon = downloadIconCache(groupIcon, fileName)
+  const loadIcon = getIconCacheFileName(groupIcon)
+    .then((fileName) => downloadIconCache(groupIcon, fileName))
     .then((iconPath) => {
       const iconSrc = convertFileSrc(iconPath);
       groupIconSrcCache.set(cacheKey, iconSrc);
