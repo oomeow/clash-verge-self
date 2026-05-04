@@ -15,7 +15,7 @@ import {
   Zoom,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
@@ -42,6 +42,11 @@ import parseTraffic from "@/utils/parse-traffic";
 
 type OrderFunc = (list: IClosedConnectionItem[]) => IClosedConnectionItem[];
 
+const SCROLL_TOP_VISIBLE_THRESHOLD = 240;
+
+const getScrollerTop = (scroller: HTMLElement | Window) =>
+  "scrollY" in scroller ? scroller.scrollY : scroller.scrollTop;
+
 const ConnectionsPage = () => {
   const { t } = useTranslation();
   const [match, setMatch] = useState(() => (_: string) => true);
@@ -54,6 +59,8 @@ const ConnectionsPage = () => {
   const [tabName, setTabName] = useState("active");
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<VirtuosoHandle>(null);
+  const listScrollerRef = useRef<HTMLElement | Window | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
@@ -124,6 +131,37 @@ const ConnectionsPage = () => {
       });
     }
   }, [isTableLayout]);
+
+  const handleListScrollerRef = useCallback(
+    (ref: HTMLElement | Window | null) => {
+      listScrollerRef.current = ref;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const scroller = isTableLayout
+      ? tableContainerRef.current
+      : listScrollerRef.current;
+
+    if (!scroller) {
+      setShowScrollTop(false);
+      return;
+    }
+
+    const updateScrollTopVisible = () => {
+      setShowScrollTop(getScrollerTop(scroller) > SCROLL_TOP_VISIBLE_THRESHOLD);
+    };
+
+    updateScrollTopVisible();
+    scroller.addEventListener("scroll", updateScrollTopVisible, {
+      passive: true,
+    });
+
+    return () => {
+      scroller.removeEventListener("scroll", updateScrollTopVisible);
+    };
+  }, [isTableLayout, tabName]);
 
   return (
     <BasePage
@@ -258,6 +296,7 @@ const ConnectionsPage = () => {
           ) : (
             <Virtuoso
               ref={listRef}
+              scrollerRef={handleListScrollerRef}
               data={filterConn}
               itemContent={(_, item) => (
                 <ConnectionItem
@@ -273,7 +312,7 @@ const ConnectionsPage = () => {
           )}
         </Box>
         <ConnectionDetail ref={detailRef} />
-        <Zoom in={filterConn.length > 0} unmountOnExit>
+        <Zoom in={showScrollTop} unmountOnExit>
           <Tooltip title={t("common.actions.scrollToTop")}>
             <Fab
               size="medium"
