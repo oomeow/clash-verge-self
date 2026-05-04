@@ -147,10 +147,10 @@ const getIconCacheFileName = async (groupIcon: string) => {
   return `${sanitizeFileName(stem)}-${hash}${sanitizeExtension(extension)}`;
 };
 
-const getGroupIconSrc = async (groupIcon: string) => {
+const getGroupIconSrc = (groupIcon: string) => {
   const cacheKey = getGroupIconCacheKey(groupIcon);
   const cachedSrc = groupIconSrcCache.get(cacheKey);
-  if (cachedSrc) return cachedSrc;
+  if (cachedSrc) return Promise.resolve(cachedSrc);
 
   const loadingSrc = groupIconLoadingCache.get(cacheKey);
   if (loadingSrc) return loadingSrc;
