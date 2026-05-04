@@ -140,6 +140,14 @@ const ConnectionsPage = () => {
   );
 
   useEffect(() => {
+    console.log(
+      "filterConn.length:",
+      filterConn.length,
+      "isTableLayout:",
+      isTableLayout,
+      "tabName:",
+      tabName,
+    );
     const scroller = isTableLayout
       ? tableContainerRef.current
       : listScrollerRef.current;
@@ -161,7 +169,7 @@ const ConnectionsPage = () => {
     return () => {
       scroller.removeEventListener("scroll", updateScrollTopVisible);
     };
-  }, [filterConn.length, isTableLayout, tabName]);
+  }, [filterConn.length > 0, isTableLayout, tabName]);
 
   return (
     <BasePage
