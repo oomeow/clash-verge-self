@@ -75,11 +75,14 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
 const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
 const ICON_FILE_NAME_MAX_LENGTH = 32;
 const ICON_HASH_LENGTH = 16;
-const groupIconCacheKeyCache = new Map<string, Promise<string>>();
+const groupIconMetaCache = new Map<
+  string,
+  Promise<{ cacheKey: string; fileName: string }>
+>();
 const groupIconSrcCache = new Map<string, string>();
 const groupIconLoadingCache = new Map<string, Promise<string>>();
 
-const getIconUrlCacheValue = (url: string) => {
+const normalizeIconUrl = (url: string) => {
   try {
     const iconUrl = new URL(url);
     return `${iconUrl.origin}${iconUrl.pathname}${iconUrl.search}${iconUrl.hash}`;
@@ -88,7 +91,7 @@ const getIconUrlCacheValue = (url: string) => {
   }
 };
 
-const getFileName = (url: string) => {
+const getIconFileName = (url: string) => {
   try {
     const pathname = new URL(url).pathname;
     const fileName = pathname.substring(pathname.lastIndexOf("/") + 1);
@@ -101,7 +104,7 @@ const getFileName = (url: string) => {
   return path.substring(path.lastIndexOf("/") + 1);
 };
 
-const splitFileName = (fileName: string) => {
+const getIconFileParts = (fileName: string) => {
   const extensionIndex = fileName.lastIndexOf(".");
   if (extensionIndex <= 0 || extensionIndex === fileName.length - 1) {
     return { stem: fileName, extension: ".png" };
@@ -139,40 +142,38 @@ const sha256Hex = async (value: string) => {
     .join("");
 };
 
-const getGroupIconCacheKey = (groupIcon: string) => {
-  const iconUrlCacheValue = getIconUrlCacheValue(groupIcon);
-  const cachedCacheKey = groupIconCacheKeyCache.get(iconUrlCacheValue);
-  if (cachedCacheKey) return cachedCacheKey;
+const getGroupIconMeta = (groupIcon: string) => {
+  const normalizedUrl = normalizeIconUrl(groupIcon);
+  const cachedMeta = groupIconMetaCache.get(normalizedUrl);
+  if (cachedMeta) return cachedMeta;
 
-  const cacheKey = sha256Hex(iconUrlCacheValue).then((hash) =>
-    hash.slice(0, ICON_HASH_LENGTH),
-  );
-  groupIconCacheKeyCache.set(iconUrlCacheValue, cacheKey);
-  return cacheKey;
-};
+  const meta = sha256Hex(normalizedUrl).then((hash) => {
+    const cacheKey = hash.slice(0, ICON_HASH_LENGTH);
+    const { stem, extension } = getIconFileParts(getIconFileName(groupIcon));
+    const fileName = `${sanitizeFileName(stem)}-${cacheKey}${sanitizeExtension(
+      extension,
+    )}`;
+    return { cacheKey, fileName };
+  });
 
-const getIconCacheFileName = (groupIcon: string, cacheKey: string) => {
-  const { stem, extension } = splitFileName(getFileName(groupIcon));
-  return `${sanitizeFileName(stem)}-${cacheKey}${sanitizeExtension(extension)}`;
-};
-
-const loadGroupIconSrc = async (groupIcon: string, cacheKey: string) => {
-  const fileName = getIconCacheFileName(groupIcon, cacheKey);
-  const iconPath = await downloadIconCache(groupIcon, fileName);
-  const iconSrc = convertFileSrc(iconPath);
-  groupIconSrcCache.set(cacheKey, iconSrc);
-  return iconSrc;
+  groupIconMetaCache.set(normalizedUrl, meta);
+  return meta;
 };
 
 const getGroupIconSrc = async (groupIcon: string) => {
-  const cacheKey = await getGroupIconCacheKey(groupIcon);
+  const { cacheKey, fileName } = await getGroupIconMeta(groupIcon);
   const cachedSrc = groupIconSrcCache.get(cacheKey);
   if (cachedSrc) return cachedSrc;
 
   const loadingSrc = groupIconLoadingCache.get(cacheKey);
   if (loadingSrc) return await loadingSrc;
 
-  const loadIcon = loadGroupIconSrc(groupIcon, cacheKey).finally(() => {
+  const loadIcon = (async () => {
+    const iconPath = await downloadIconCache(groupIcon, fileName);
+    const iconSrc = convertFileSrc(iconPath);
+    groupIconSrcCache.set(cacheKey, iconSrc);
+    return iconSrc;
+  })().finally(() => {
     groupIconLoadingCache.delete(cacheKey);
   });
 
