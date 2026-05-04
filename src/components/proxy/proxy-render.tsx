@@ -234,7 +234,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const [iconCachePath, setIconCachePath] = useState("");
 
   useAsyncEffect(
-    async function* () {
+    async function () {
       if (!isHttpIcon) {
         setIconCachePath("");
         return;
@@ -244,10 +244,8 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
 
       try {
         const iconSrc = await getGroupIconSrc(groupIcon);
-        yield;
         setIconCachePath(iconSrc);
       } catch {
-        yield;
         setIconCachePath("");
       }
     },
