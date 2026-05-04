@@ -75,8 +75,17 @@ const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
 const groupIconSrcCache = new Map<string, string>();
 const groupIconLoadingCache = new Map<string, Promise<string>>();
 
-const getGroupIconCacheKey = (groupName: string, groupIcon: string) =>
-  `${groupName}::${groupIcon}`;
+const getIconPathCacheKey = (url: string) => {
+  try {
+    const iconUrl = new URL(url);
+    return `${iconUrl.origin}${iconUrl.pathname}`;
+  } catch {
+    return url.split(/[?#]/, 1)[0];
+  }
+};
+
+const getGroupIconCacheKey = (groupIcon: string) =>
+  getIconPathCacheKey(groupIcon);
 
 const getFileName = (url: string) => {
   try {
@@ -87,7 +96,20 @@ const getFileName = (url: string) => {
     // fallback for non-standard URL strings
   }
 
-  return url.substring(url.lastIndexOf("/") + 1);
+  const cacheKey = getIconPathCacheKey(url);
+  return cacheKey.substring(cacheKey.lastIndexOf("/") + 1);
+};
+
+const splitFileName = (fileName: string) => {
+  const extensionIndex = fileName.lastIndexOf(".");
+  if (extensionIndex <= 0 || extensionIndex === fileName.length - 1) {
+    return { stem: fileName, extension: ".png" };
+  }
+
+  return {
+    stem: fileName.slice(0, extensionIndex),
+    extension: fileName.slice(extensionIndex),
+  };
 };
 
 const sanitizeFileName = (fileName: string) =>
@@ -97,6 +119,13 @@ const sanitizeFileName = (fileName: string) =>
     .replace(/-+/g, "-")
     .replace(/^[.\-\s]+|[.\-\s]+$/g, "")
     .slice(0, 80) || "icon";
+
+const sanitizeExtension = (extension: string) => {
+  const safeExtension = extension.replace(/[^a-zA-Z0-9.]/g, "").slice(0, 16);
+  return safeExtension.startsWith(".") && safeExtension.length > 1
+    ? safeExtension
+    : ".png";
+};
 
 const sha256Hex = async (value: string) => {
   const digest = await crypto.subtle.digest(
@@ -109,17 +138,23 @@ const sha256Hex = async (value: string) => {
     .join("");
 };
 
-const getGroupIconSrc = async (groupName: string, groupIcon: string) => {
-  const cacheKey = getGroupIconCacheKey(groupName, groupIcon);
+const getIconCacheFileName = async (groupIcon: string) => {
+  const { stem, extension } = splitFileName(getFileName(groupIcon));
+  const cacheKey = getIconPathCacheKey(groupIcon);
+  return `${sanitizeFileName(stem)}-${await sha256Hex(cacheKey)}${sanitizeExtension(
+    extension,
+  )}`;
+};
+
+const getGroupIconSrc = async (groupIcon: string) => {
+  const cacheKey = getGroupIconCacheKey(groupIcon);
   const cachedSrc = groupIconSrcCache.get(cacheKey);
   if (cachedSrc) return cachedSrc;
 
   const loadingSrc = groupIconLoadingCache.get(cacheKey);
   if (loadingSrc) return loadingSrc;
 
-  const fileName = `${sanitizeFileName(getFileName(groupIcon))}-${await sha256Hex(
-    groupIcon,
-  )}`;
+  const fileName = await getIconCacheFileName(groupIcon);
   const loadIcon = downloadIconCache(groupIcon, fileName)
     .then((iconPath) => {
       const iconSrc = convertFileSrc(iconPath);
@@ -186,8 +221,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
   const [iconCachePath, setIconCachePath] = useState(() =>
     isHttpIcon
-      ? (groupIconSrcCache.get(getGroupIconCacheKey(group.name, groupIcon)) ??
-        "")
+      ? (groupIconSrcCache.get(getGroupIconCacheKey(groupIcon)) ?? "")
       : "",
   );
 
@@ -197,7 +231,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
       return;
     }
 
-    const cacheKey = getGroupIconCacheKey(group.name, groupIcon);
+    const cacheKey = getGroupIconCacheKey(groupIcon);
     const cachedSrc = groupIconSrcCache.get(cacheKey);
     if (cachedSrc) {
       setIconCachePath(cachedSrc);
@@ -206,7 +240,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
 
     let canceled = false;
     setIconCachePath("");
-    getGroupIconSrc(group.name, groupIcon)
+    getGroupIconSrc(groupIcon)
       .then((iconSrc) => {
         if (!canceled) {
           setIconCachePath(iconSrc);
