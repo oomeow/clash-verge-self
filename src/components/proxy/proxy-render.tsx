@@ -77,17 +77,17 @@ const ICON_HASH_LENGTH = 16;
 const groupIconSrcCache = new Map<string, string>();
 const groupIconLoadingCache = new Map<string, Promise<string>>();
 
-const getIconPathCacheKey = (url: string) => {
+const getIconUrlCacheKey = (url: string) => {
   try {
     const iconUrl = new URL(url);
-    return `${iconUrl.origin}${iconUrl.pathname}`;
+    return `${iconUrl.origin}${iconUrl.pathname}${iconUrl.search}${iconUrl.hash}`;
   } catch {
-    return url.split(/[?#]/, 1)[0];
+    return url;
   }
 };
 
 const getGroupIconCacheKey = (groupIcon: string) =>
-  getIconPathCacheKey(groupIcon);
+  getIconUrlCacheKey(groupIcon);
 
 const getFileName = (url: string) => {
   try {
@@ -98,8 +98,8 @@ const getFileName = (url: string) => {
     // fallback for non-standard URL strings
   }
 
-  const cacheKey = getIconPathCacheKey(url);
-  return cacheKey.substring(cacheKey.lastIndexOf("/") + 1);
+  const path = url.split(/[?#]/, 1)[0];
+  return path.substring(path.lastIndexOf("/") + 1);
 };
 
 const splitFileName = (fileName: string) => {
@@ -142,7 +142,7 @@ const sha256Hex = async (value: string) => {
 
 const getIconCacheFileName = async (groupIcon: string) => {
   const { stem, extension } = splitFileName(getFileName(groupIcon));
-  const cacheKey = getIconPathCacheKey(groupIcon);
+  const cacheKey = getIconUrlCacheKey(groupIcon);
   const hash = (await sha256Hex(cacheKey)).slice(0, ICON_HASH_LENGTH);
   return `${sanitizeFileName(stem)}-${hash}${sanitizeExtension(extension)}`;
 };
