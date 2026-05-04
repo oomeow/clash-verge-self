@@ -74,6 +74,7 @@ const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
 const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
 const ICON_FILE_NAME_MAX_LENGTH = 32;
 const ICON_HASH_LENGTH = 16;
+const groupIconCacheKeyCache = new Map<string, Promise<string>>();
 const groupIconSrcCache = new Map<string, string>();
 const groupIconLoadingCache = new Map<string, Promise<string>>();
 
@@ -85,26 +86,6 @@ const getIconUrlCacheValue = (url: string) => {
     return url;
   }
 };
-
-const hashString = (value: string) => {
-  let hashA = 0x811c9dc5;
-  let hashB = 0x811c9dc5 ^ 0x9e3779b9;
-
-  for (let i = 0; i < value.length; i += 1) {
-    const charCode = value.charCodeAt(i);
-    hashA ^= charCode;
-    hashA = Math.imul(hashA, 0x01000193);
-    hashB ^= charCode;
-    hashB = Math.imul(hashB, 0x85ebca6b);
-  }
-
-  return `${(hashA >>> 0).toString(16).padStart(8, "0")}${(hashB >>> 0)
-    .toString(16)
-    .padStart(8, "0")}`;
-};
-
-const getGroupIconCacheKey = (groupIcon: string) =>
-  hashString(getIconUrlCacheValue(groupIcon));
 
 const getFileName = (url: string) => {
   try {
@@ -157,34 +138,45 @@ const sha256Hex = async (value: string) => {
     .join("");
 };
 
-const getIconCacheFileName = async (groupIcon: string) => {
-  const { stem, extension } = splitFileName(getFileName(groupIcon));
+const getGroupIconCacheKey = (groupIcon: string) => {
   const iconUrlCacheValue = getIconUrlCacheValue(groupIcon);
-  const hash = (await sha256Hex(iconUrlCacheValue)).slice(0, ICON_HASH_LENGTH);
-  return `${sanitizeFileName(stem)}-${hash}${sanitizeExtension(extension)}`;
+  const cachedCacheKey = groupIconCacheKeyCache.get(iconUrlCacheValue);
+  if (cachedCacheKey) return cachedCacheKey;
+
+  const cacheKey = sha256Hex(iconUrlCacheValue).then((hash) =>
+    hash.slice(0, ICON_HASH_LENGTH),
+  );
+  groupIconCacheKeyCache.set(iconUrlCacheValue, cacheKey);
+  return cacheKey;
+};
+
+const getIconCacheFileName = (groupIcon: string, cacheKey: string) => {
+  const { stem, extension } = splitFileName(getFileName(groupIcon));
+  return `${sanitizeFileName(stem)}-${cacheKey}${sanitizeExtension(extension)}`;
 };
 
 const getGroupIconSrc = (groupIcon: string) => {
-  const cacheKey = getGroupIconCacheKey(groupIcon);
-  const cachedSrc = groupIconSrcCache.get(cacheKey);
-  if (cachedSrc) return Promise.resolve(cachedSrc);
+  return getGroupIconCacheKey(groupIcon).then((cacheKey) => {
+    const cachedSrc = groupIconSrcCache.get(cacheKey);
+    if (cachedSrc) return cachedSrc;
 
-  const loadingSrc = groupIconLoadingCache.get(cacheKey);
-  if (loadingSrc) return loadingSrc;
+    const loadingSrc = groupIconLoadingCache.get(cacheKey);
+    if (loadingSrc) return loadingSrc;
 
-  const loadIcon = getIconCacheFileName(groupIcon)
-    .then((fileName) => downloadIconCache(groupIcon, fileName))
-    .then((iconPath) => {
-      const iconSrc = convertFileSrc(iconPath);
-      groupIconSrcCache.set(cacheKey, iconSrc);
-      return iconSrc;
-    })
-    .finally(() => {
-      groupIconLoadingCache.delete(cacheKey);
-    });
+    const fileName = getIconCacheFileName(groupIcon, cacheKey);
+    const loadIcon = downloadIconCache(groupIcon, fileName)
+      .then((iconPath) => {
+        const iconSrc = convertFileSrc(iconPath);
+        groupIconSrcCache.set(cacheKey, iconSrc);
+        return iconSrc;
+      })
+      .finally(() => {
+        groupIconLoadingCache.delete(cacheKey);
+      });
 
-  groupIconLoadingCache.set(cacheKey, loadIcon);
-  return loadIcon;
+    groupIconLoadingCache.set(cacheKey, loadIcon);
+    return loadIcon;
+  });
 };
 
 const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
@@ -237,22 +229,11 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const isHttpIcon = groupIcon.startsWith("http");
   const isDataIcon = groupIcon.startsWith("data");
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
-  const [iconCachePath, setIconCachePath] = useState(() =>
-    isHttpIcon
-      ? (groupIconSrcCache.get(getGroupIconCacheKey(groupIcon)) ?? "")
-      : "",
-  );
+  const [iconCachePath, setIconCachePath] = useState("");
 
   useEffect(() => {
     if (!isHttpIcon) {
       setIconCachePath("");
-      return;
-    }
-
-    const cacheKey = getGroupIconCacheKey(groupIcon);
-    const cachedSrc = groupIconSrcCache.get(cacheKey);
-    if (cachedSrc) {
-      setIconCachePath(cachedSrc);
       return;
     }
 
