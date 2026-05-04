@@ -156,28 +156,28 @@ const getIconCacheFileName = (groupIcon: string, cacheKey: string) => {
   return `${sanitizeFileName(stem)}-${cacheKey}${sanitizeExtension(extension)}`;
 };
 
+const loadGroupIconSrc = async (groupIcon: string, cacheKey: string) => {
+  const fileName = getIconCacheFileName(groupIcon, cacheKey);
+  const iconPath = await downloadIconCache(groupIcon, fileName);
+  const iconSrc = convertFileSrc(iconPath);
+  groupIconSrcCache.set(cacheKey, iconSrc);
+  return iconSrc;
+};
+
 const getGroupIconSrc = async (groupIcon: string) => {
-  return getGroupIconCacheKey(groupIcon).then((cacheKey) => {
-    const cachedSrc = groupIconSrcCache.get(cacheKey);
-    if (cachedSrc) return cachedSrc;
+  const cacheKey = await getGroupIconCacheKey(groupIcon);
+  const cachedSrc = groupIconSrcCache.get(cacheKey);
+  if (cachedSrc) return cachedSrc;
 
-    const loadingSrc = groupIconLoadingCache.get(cacheKey);
-    if (loadingSrc) return loadingSrc;
+  const loadingSrc = groupIconLoadingCache.get(cacheKey);
+  if (loadingSrc) return await loadingSrc;
 
-    const fileName = getIconCacheFileName(groupIcon, cacheKey);
-    const loadIcon = downloadIconCache(groupIcon, fileName)
-      .then((iconPath) => {
-        const iconSrc = convertFileSrc(iconPath);
-        groupIconSrcCache.set(cacheKey, iconSrc);
-        return iconSrc;
-      })
-      .finally(() => {
-        groupIconLoadingCache.delete(cacheKey);
-      });
-
-    groupIconLoadingCache.set(cacheKey, loadIcon);
-    return loadIcon;
+  const loadIcon = loadGroupIconSrc(groupIcon, cacheKey).finally(() => {
+    groupIconLoadingCache.delete(cacheKey);
   });
+
+  groupIconLoadingCache.set(cacheKey, loadIcon);
+  return await loadIcon;
 };
 
 const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
