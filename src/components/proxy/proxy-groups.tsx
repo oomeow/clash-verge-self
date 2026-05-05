@@ -28,7 +28,7 @@ interface Props {
 /// 固定的组高度，用于手动计算组高度偏移量
 export const FIXED_GROUP_HEIGHT = 70;
 /// 预估的项高度，用于 tanstack/react-virtual 动态计算高度
-const ESTIMATED_ITEM_HEIGHT = 64;
+const ESTIMATED_PROXY_ITEM_HEIGHT = 64;
 
 export const ProxyGroups = (props: Props) => {
   const { mode } = props;
@@ -49,6 +49,7 @@ export const ProxyGroups = (props: Props) => {
   const [groupDelayVersions, setGroupDelayVersions] = useState<
     Record<string, number>
   >({});
+
   const groupIndexes = useMemo(
     () =>
       renderList.reduce<number[]>((indexes, item, index) => {
@@ -65,18 +66,12 @@ export const ProxyGroups = (props: Props) => {
       })),
     [groupIndexes, renderList.length],
   );
-  const rowVirtualizer = useVirtualizer({
-    count: renderList.length,
-    getScrollElement: () => scrollParentRef.current,
-    estimateSize: (index) =>
-      renderList[index]?.type === 0
-        ? FIXED_GROUP_HEIGHT
-        : ESTIMATED_ITEM_HEIGHT,
-    getItemKey: (index) => renderList[index]?.key ?? index,
-    overscan: 8,
-  });
+  const groupNameList = useMemo(
+    () => renderList.filter((item) => item.type === 0).map((item) => item.key),
+    [renderList],
+  );
   const groupNamesForDelayCheck = useMemo(() => {
-    const names = Array.from(
+    return Array.from(
       new Set(
         renderList
           .filter((item) => item.type === 0)
@@ -84,8 +79,38 @@ export const ProxyGroups = (props: Props) => {
           .concat(["GLOBAL"]),
       ),
     );
-    return names;
   }, [renderList]);
+  const estimatedOffsets = useMemo(() => {
+    const offsets = new Array<number>(renderList.length + 1);
+    offsets[0] = 0;
+
+    for (let i = 0; i < renderList.length; i++) {
+      offsets[i + 1] =
+        offsets[i] +
+        (renderList[i].type === 0
+          ? FIXED_GROUP_HEIGHT
+          : ESTIMATED_PROXY_ITEM_HEIGHT);
+    }
+
+    return offsets;
+  }, [renderList]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: renderList.length,
+    estimateSize: (index) =>
+      renderList[index]?.type === 0
+        ? FIXED_GROUP_HEIGHT
+        : ESTIMATED_PROXY_ITEM_HEIGHT,
+    getItemKey: (index) => renderList[index]?.key ?? index,
+    getScrollElement: () => scrollParentRef.current,
+    overscan: 8,
+  });
+
+  const getVirtualOffset = useCallback(
+    (index: number) =>
+      rowVirtualizer.measurementsCache[index]?.start ?? estimatedOffsets[index],
+    [estimatedOffsets, rowVirtualizer],
+  );
 
   useEffect(() => {
     if (!groupNamesForDelayCheck.length) return;
@@ -243,17 +268,6 @@ export const ProxyGroups = (props: Props) => {
     [renderList, rowVirtualizer],
   );
 
-  const estimatedOffsets = useMemo(() => {
-    const offsets = new Array(renderList.length + 1);
-    offsets[0] = 0;
-    for (let i = 0; i < renderList.length; i++) {
-      offsets[i + 1] =
-        offsets[i] +
-        (renderList[i].type === 0 ? FIXED_GROUP_HEIGHT : ESTIMATED_ITEM_HEIGHT);
-    }
-    return offsets;
-  }, [renderList]);
-
   const handleGroupToggle = useCallback(
     async (group: IProxyGroupItem) => {
       const index = renderList.findIndex(
@@ -277,11 +291,11 @@ export const ProxyGroups = (props: Props) => {
         requestAnimationFrame(() => resolve());
       });
     },
-    [renderList, rowVirtualizer],
+    [estimatedOffsets, renderList, rowVirtualizer],
   );
 
   const renderProxyItem = useCallback(
-    (item: IRenderItem, _index: number, _total: number) => (
+    (item: IRenderItem) => (
       <div
         key={item.key}
         className={cn("pb-2", {
@@ -305,19 +319,6 @@ export const ProxyGroups = (props: Props) => {
       handleGroupToggle,
       handleLocation,
     ],
-  );
-
-  const groupNameList = renderList
-    .filter((item) => item.type === 0)
-    .map((item) => item.key);
-  const getVirtualOffset = useCallback(
-    (index: number) => {
-      return (
-        rowVirtualizer.measurementsCache[index]?.start ??
-        estimatedOffsets[index]
-      );
-    },
-    [renderList, rowVirtualizer],
   );
 
   if (isDirectMode) {
@@ -376,7 +377,7 @@ export const ProxyGroups = (props: Props) => {
                         top: 0,
                         zIndex: 1,
                       })}>
-                      {renderProxyItem(group, groupIndex, renderList.length)}
+                      {renderProxyItem(group)}
                     </Box>
                   </Box>
                 );
@@ -400,7 +401,7 @@ export const ProxyGroups = (props: Props) => {
                     width: "100%",
                     zIndex: 1,
                   }}>
-                  {renderProxyItem(item, virtualRow.index, renderList.length)}
+                  {renderProxyItem(item)}
                 </Box>
               );
             })}
