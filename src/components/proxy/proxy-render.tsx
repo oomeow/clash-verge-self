@@ -22,8 +22,8 @@ import {
   DEFAULT_STATE,
 } from "@/stores/proxyHeadStateStore";
 
+import { ProxyGroupTools } from "./proxy-group-tools";
 import { FIXED_GROUP_HEIGHT } from "./proxy-groups";
-import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
 import type { IRenderItem } from "./use-render-list";
@@ -47,17 +47,11 @@ const StyledPrimary = styled("span")`
   font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 `;
-const StyledSubtitle = styled("span")`
-  font-size: 13px;
-  overflow: hidden;
-  color: text.secondary;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-`;
+const StyledSubtitle = styled("span")(({ theme }) => ({
+  fontSize: "13px",
+  color: theme.palette.text.secondary,
+}));
 
 const ListItemTextChild = styled("span")`
   display: block;
@@ -326,28 +320,24 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           </>
         )}
         <ListItemText
+          sx={{ minWidth: 0 }}
           primary={<StyledPrimary>{group.name}</StyledPrimary>}
           secondary={
-            <ListItemTextChild
-              sx={{
-                overflow: "hidden",
-                display: "flex",
-                alignItems: "center",
-                pt: "2px",
-              }}>
-              <span style={{ marginTop: "2px", display: "block" }}>
-                <StyledTypeBox>{group.type}</StyledTypeBox>
-                <StyledSubtitle sx={{ color: "text.secondary" }}>
-                  {group.now}
-                </StyledSubtitle>
-              </span>
-            </ListItemTextChild>
+            <span className="mt-0.5 inline-block truncate">
+              <StyledTypeBox>{group.type}</StyledTypeBox>
+              <StyledSubtitle>{group.now}</StyledSubtitle>
+            </span>
           }
           slotProps={{
-            secondary: {
-              sx: { display: "flex", alignItems: "center", color: "#ccc" },
-            },
+            secondary: { sx: { display: "flex", alignItems: "center" } },
           }}
+        />
+
+        <ProxyGroupTools
+          sx={{ pr: 3 }}
+          groupName={group.name}
+          onLocation={() => onLocation(group)}
+          onCheckDelay={() => onCheckAll(group.name)}
         />
         {headState?.open ? <ExpandLessRounded /> : <ExpandMoreRounded />}
       </ListItemButton>
@@ -355,14 +345,15 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   }
 
   if (type === 1) {
-    return (
-      <ProxyHead
-        sx={{ pl: 2, pr: 3, pt: 1 }}
-        groupName={group.name}
-        onLocation={() => onLocation(group)}
-        onCheckDelay={() => onCheckAll(group.name)}
-      />
-    );
+    return null;
+    // return (
+    //   <ProxyHead
+    //     sx={{ pl: 2, pr: 3, pt: 1 }}
+    //     groupName={group.name}
+    //     onLocation={() => onLocation(group)}
+    //     onCheckDelay={() => onCheckAll(group.name)}
+    //   />
+    // );
   }
 
   if (type === 2) {
