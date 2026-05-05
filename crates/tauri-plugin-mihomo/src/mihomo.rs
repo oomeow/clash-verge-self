@@ -794,7 +794,7 @@ impl Mihomo {
     /// 更新该 key 在 Storage 下存储的值, 没有则创建
     pub async fn set_storage_value<T>(&self, key: &str, value: T) -> Result<()>
     where
-        T: Serialize + for<'de> Deserialize<'de>,
+        T: Serialize,
     {
         let response = self
             .build_request(Method::PUT, &format!("/storage/{key}"))?
