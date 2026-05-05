@@ -12,7 +12,7 @@ struct User {
 #[tokio::test]
 async fn mihomo_get_storage_value() -> Result<()> {
     let mihomo = common::mihomo();
-    let value = mihomo.get_storage_value::<User>("test").await?;
+    let value = mihomo.get_storage_value::<User>("test_get").await?;
     println!("{:?}", value);
     Ok(())
 }
@@ -21,21 +21,21 @@ async fn mihomo_get_storage_value() -> Result<()> {
 async fn mihomo_set_storage_value() -> Result<()> {
     let mihomo = common::mihomo();
     let value = User {
-        name: "Github".to_string(),
+        name: "Zhangsan".to_string(),
         age: 30,
     };
-    mihomo.set_storage_value("test", value).await?;
-    let retrieved_value = mihomo.get_storage_value::<User>("test").await?;
+    mihomo.set_storage_value("test_set", value).await?;
+    let retrieved_value = mihomo.get_storage_value::<User>("test_set").await?;
     assert!(retrieved_value.is_some());
-    assert_eq!(retrieved_value.unwrap().name, "Github");
+    assert_eq!(retrieved_value.unwrap().name, "Zhangsan");
     Ok(())
 }
 
 #[tokio::test]
 async fn mihomo_delete_storage_value() -> Result<()> {
     let mihomo = common::mihomo();
-    mihomo.delete_storage_value("test").await?;
-    let value = mihomo.get_storage_value::<User>("test").await?;
+    mihomo.delete_storage_value("test_del").await?;
+    let value = mihomo.get_storage_value::<User>("test_del").await?;
     assert!(value.is_none());
     Ok(())
 }
