@@ -32,6 +32,7 @@ interface RenderProps {
   delayVersion: number;
   onLocation: (group: IProxyGroupItem) => void;
   onCheckAll: (groupName: string) => void;
+  onGroupToggle?: (group: IProxyGroupItem) => void | Promise<void>;
   onChangeProxy: (group: IProxyGroupItem, proxy: IProxyItem) => void;
 }
 
@@ -209,7 +210,14 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
 });
 
 export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
-  const { item, delayVersion, onLocation, onCheckAll, onChangeProxy } = props;
+  const {
+    item,
+    delayVersion,
+    onLocation,
+    onCheckAll,
+    onGroupToggle,
+    onChangeProxy,
+  } = props;
   const { t } = useTranslation();
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
   const currentProfileUid = useProfilesStore(
@@ -286,7 +294,12 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           // borderRadius: "8px",
           transition: "background-color 0s",
         })}
-        onClick={() => headStateActions.setOpen(!headState?.open)}>
+        onClick={async () => {
+          if (headState?.open) {
+            await onGroupToggle?.(group);
+          }
+          headStateActions.setOpen(!headState?.open);
+        }}>
         {enableGroupIcon && (
           <>
             {isHttpIcon && !iconCachePath && iconLoading && (

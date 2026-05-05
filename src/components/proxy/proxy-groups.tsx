@@ -241,6 +241,41 @@ export const ProxyGroups = (props: Props) => {
     [renderList, rowVirtualizer],
   );
 
+  const handleGroupToggle = useCallback(
+    async (group: IProxyGroupItem) => {
+      const index = renderList.findIndex(
+        (item) => item.type === 0 && item.group.name === group.name,
+      );
+      if (index < 0) return;
+
+      const scroller = scrollParentRef.current;
+      const groupStart =
+        rowVirtualizer.measurementsCache[index]?.start ??
+        renderList
+          .slice(0, index)
+          .reduce(
+            (total, item) =>
+              total +
+              (item.type === 0
+                ? ESTIMATED_GROUP_HEIGHT
+                : ESTIMATED_ITEM_HEIGHT),
+            0,
+          );
+
+      if (!scroller || scroller.scrollTop <= groupStart + 1) return;
+
+      rowVirtualizer.scrollToIndex(index, {
+        align: "start",
+        behavior: "auto",
+      });
+
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+    },
+    [renderList, rowVirtualizer],
+  );
+
   const renderProxyItem = useCallback(
     (item: IRenderItem, index: number, total: number) => (
       <div
@@ -255,11 +290,18 @@ export const ProxyGroups = (props: Props) => {
           delayVersion={groupDelayVersions[item.group.name] ?? 0}
           onLocation={handleLocation}
           onCheckAll={handleCheckAll}
+          onGroupToggle={handleGroupToggle}
           onChangeProxy={handleChangeProxy}
         />
       </div>
     ),
-    [groupDelayVersions, handleChangeProxy, handleCheckAll, handleLocation],
+    [
+      groupDelayVersions,
+      handleChangeProxy,
+      handleCheckAll,
+      handleGroupToggle,
+      handleLocation,
+    ],
   );
 
   const groupNameList = renderList
@@ -324,7 +366,6 @@ export const ProxyGroups = (props: Props) => {
                       width: "100%",
                     }}>
                     <Box
-                      ref={rowVirtualizer.measureElement}
                       data-index={groupIndex}
                       sx={(theme) => ({
                         background: "#ffffff",
