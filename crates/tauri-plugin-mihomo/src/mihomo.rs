@@ -797,7 +797,7 @@ impl Mihomo {
         T: Serialize,
     {
         let response = self
-            .build_request(Method::PUT, &format!("/storage/{key}"))?
+            .build_request(Method::PUT, &format!("/storage/{}", urlencoding::encode(key)))?
             .json(&value)
             .send()
             .await?;
