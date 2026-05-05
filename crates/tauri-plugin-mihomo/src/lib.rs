@@ -142,6 +142,10 @@ impl Builder {
                 commands::upgrade_core,
                 commands::upgrade_ui,
                 commands::upgrade_geo,
+                // storage
+                commands::get_storage_value,
+                commands::set_storage_value,
+                commands::delete_storage_value,
                 // ws
                 commands::ws_traffic,
                 commands::ws_memory,

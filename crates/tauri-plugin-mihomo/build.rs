@@ -39,6 +39,10 @@ const COMMANDS: &[&str] = &[
     "upgrade_core",
     "upgrade_ui",
     "upgrade_geo",
+    // storage
+    "get_storage_value",
+    "set_storage_value",
+    "delete_storage_value",
     // ws
     "ws_traffic",
     "ws_memory",
