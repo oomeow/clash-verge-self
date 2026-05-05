@@ -782,7 +782,7 @@ impl Mihomo {
         T: for<'de> Deserialize<'de>,
     {
         let response = self
-            .build_request(Method::GET, &format!("/storage/{key}"))?
+            .build_request(Method::GET, &format!("/storage/{}", urlencoding::encode(key)))?
             .send()
             .await?;
         if !response.status().is_success() {
