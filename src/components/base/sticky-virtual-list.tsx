@@ -14,6 +14,25 @@ type ScrollToIndexOptions = {
   behavior?: ScrollBehavior;
 };
 
+const findGroupSectionIndex = (groupIndexes: number[], itemIndex: number) => {
+  let low = 0;
+  let high = groupIndexes.length - 1;
+  let matchedIndex = -1;
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+
+    if (groupIndexes[middle] <= itemIndex) {
+      matchedIndex = middle;
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+
+  return matchedIndex;
+};
+
 export interface StickyVirtualListHandle {
   getScrollElement: () => HTMLDivElement | null;
   isItemScrolledPastStart: (index: number, tolerance?: number) => boolean;
@@ -92,12 +111,37 @@ function StickyVirtualListInner<TItem>(
     getScrollElement: () => scrollParentRef.current,
     overscan,
   });
+  const virtualItems = rowVirtualizer.getVirtualItems();
 
   const getVirtualOffset = useCallback(
     (index: number) =>
       rowVirtualizer.measurementsCache[index]?.start ?? estimatedOffsets[index],
     [estimatedOffsets, rowVirtualizer],
   );
+  const visibleGroupSections = useMemo(() => {
+    if (!virtualItems.length || !groupSections.length) return [];
+
+    const firstVirtualIndex = virtualItems[0].index;
+    const lastVirtualIndex = virtualItems[virtualItems.length - 1].index;
+    const matchedFirstSectionIndex = findGroupSectionIndex(
+      groupIndexes,
+      firstVirtualIndex,
+    );
+    const lastSectionIndex = findGroupSectionIndex(
+      groupIndexes,
+      lastVirtualIndex,
+    );
+
+    if (lastSectionIndex < 0) return [];
+
+    const firstSectionIndex =
+      matchedFirstSectionIndex >= 0 ? matchedFirstSectionIndex : 0;
+
+    return groupSections.slice(
+      firstSectionIndex,
+      Math.min(lastSectionIndex + 2, groupSections.length),
+    );
+  }, [groupIndexes, groupSections, virtualItems]);
 
   useImperativeHandle(
     ref,
@@ -131,7 +175,7 @@ function StickyVirtualListInner<TItem>(
             position: "absolute",
             zIndex: 10,
           }}>
-          {groupSections.map(({ groupIndex, nextGroupIndex }) => {
+          {visibleGroupSections.map(({ groupIndex, nextGroupIndex }) => {
             const group = items[groupIndex];
             const start = getVirtualOffset(groupIndex);
             const end =
@@ -167,7 +211,7 @@ function StickyVirtualListInner<TItem>(
           })}
         </Box>
 
-        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+        {virtualItems.map((virtualRow) => {
           const item = items[virtualRow.index];
           if (isGroupItem(item, virtualRow.index)) return null;
 
