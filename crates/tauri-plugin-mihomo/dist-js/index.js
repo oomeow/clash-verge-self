@@ -298,13 +298,13 @@ async function upgradeGeo() {
 /**
  * 获取存储的值
  * @param key 存储的键
- * @returns 存储的值
+ * @returns 存储的值；当 key 不存在时返回 null
  */
 async function getStorageValue(key) {
     return await invoke("plugin:mihomo|get_storage_value", { key });
 }
 /**
- * 设置存储的值
+ * 设置存储的键值
  * @param key 存储的键
  * @param value 存储的值
  */
@@ -312,7 +312,7 @@ async function setStorageValue(key, value) {
     await invoke("plugin:mihomo|set_storage_value", { key, value });
 }
 /**
- * 删除存储的值
+ * 删除存储的键值
  * @param key 存储的键
  */
 async function deleteStorageValue(key) {

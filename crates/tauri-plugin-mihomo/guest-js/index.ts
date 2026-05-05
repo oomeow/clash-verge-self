@@ -387,14 +387,14 @@ export async function upgradeGeo(): Promise<void> {
 /**
  * 获取存储的值
  * @param key 存储的键
- * @returns 存储的值
+ * @returns 存储的值；当 key 不存在时返回 null
  */
 export async function getStorageValue<T>(key: string): Promise<T | undefined> {
   return await invoke<T>("plugin:mihomo|get_storage_value", { key });
 }
 
 /**
- * 设置存储的值
+ * 设置存储的键值
  * @param key 存储的键
  * @param value 存储的值
  */
@@ -403,7 +403,7 @@ export async function setStorageValue<T>(key: string, value: T): Promise<void> {
 }
 
 /**
- * 删除存储的值
+ * 删除存储的键值
  * @param key 存储的键
  */
 export async function deleteStorageValue(key: string): Promise<void> {
