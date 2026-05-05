@@ -6,6 +6,7 @@ use http::{
     header::{AUTHORIZATION, CONNECTION, CONTENT_TYPE, HOST, SEC_WEBSOCKET_KEY, SEC_WEBSOCKET_VERSION, UPGRADE},
 };
 use reqwest::{Method, RequestBuilder};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio_tungstenite::{
     client_async, connect_async,
@@ -771,6 +772,49 @@ impl Mihomo {
             .await?;
         if !response.status().is_success() {
             ret_failed_resp!("upgrade geo failed, {}", response.text().await?);
+        }
+        Ok(())
+    }
+
+    /// 获取该 key 在 Storage 下存储的值
+    pub async fn get_storage_value<T>(&self, key: &str) -> Result<Option<T>>
+    where
+        T: Serialize + for<'de> Deserialize<'de>,
+    {
+        let response = self
+            .build_request(Method::GET, &format!("/storage/{key}"))?
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            ret_failed_resp!("get storage value error, {}", response.text().await?);
+        }
+        Ok(response.json::<T>().await.ok())
+    }
+
+    /// 更新该 key 在 Storage 下存储的值, 没有则创建
+    pub async fn set_storage_value<T>(&self, key: &str, value: T) -> Result<()>
+    where
+        T: Serialize + for<'de> Deserialize<'de>,
+    {
+        let response = self
+            .build_request(Method::PUT, &format!("/storage/{key}"))?
+            .json(&value)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            ret_failed_resp!("update storage value error, {}", response.text().await?);
+        }
+        Ok(())
+    }
+
+    /// 删除该 key 在 Storage 下存储的键值
+    pub async fn delete_storage_value(&self, key: &str) -> Result<()> {
+        let response = self
+            .build_request(Method::DELETE, &format!("/storage/{key}"))?
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            ret_failed_resp!("delete storage key and value error, {}", response.text().await?);
         }
         Ok(())
     }

@@ -298,6 +298,29 @@ async function upgradeGeo() {
     await core.invoke("plugin:mihomo|upgrade_geo");
 }
 /**
+ * 获取存储的值
+ * @param key 存储的键
+ * @returns 存储的值
+ */
+async function getStorageValue(key) {
+    return await core.invoke("plugin:mihomo|get_storage_value", { key });
+}
+/**
+ * 设置存储的值
+ * @param key 存储的键
+ * @param value 存储的值
+ */
+async function setStorageValue(key, value) {
+    await core.invoke("plugin:mihomo|set_storage_value", { key, value });
+}
+/**
+ * 删除存储的值
+ * @param key 存储的键
+ */
+async function deleteStorageValue(key) {
+    await core.invoke("plugin:mihomo|delete_storage_value", { key });
+}
+/**
  * 清除 Rust 侧中所有的 WebSocket 连接
  */
 async function clearAllWsConnections() {
@@ -450,6 +473,7 @@ exports.closeAllConnections = closeAllConnections;
 exports.closeConnection = closeConnection;
 exports.delayGroup = delayGroup;
 exports.delayProxyByName = delayProxyByName;
+exports.deleteStorageValue = deleteStorageValue;
 exports.flushDNS = flushDNS;
 exports.flushFakeIp = flushFakeIp;
 exports.getBaseConfig = getBaseConfig;
@@ -462,6 +486,7 @@ exports.getProxyProviderByName = getProxyProviderByName;
 exports.getProxyProviders = getProxyProviders;
 exports.getRuleProviders = getRuleProviders;
 exports.getRules = getRules;
+exports.getStorageValue = getStorageValue;
 exports.getVersion = getVersion;
 exports.healthcheckNodeInProvider = healthcheckNodeInProvider;
 exports.healthcheckProxyProvider = healthcheckProxyProvider;
@@ -469,6 +494,7 @@ exports.patchBaseConfig = patchBaseConfig;
 exports.reloadConfig = reloadConfig;
 exports.restart = restart;
 exports.selectNodeForGroup = selectNodeForGroup;
+exports.setStorageValue = setStorageValue;
 exports.unfixedProxy = unfixedProxy;
 exports.updateController = updateController;
 exports.updateGeo = updateGeo;

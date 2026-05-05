@@ -314,3 +314,25 @@ pub(crate) async fn ws_disconnect(
 pub(crate) async fn clear_all_ws_connections(state: State<'_, RwLock<Mihomo>>) -> Result<()> {
     state.write().await.clear_all_ws_connections().await
 }
+
+#[command]
+pub(crate) async fn get_storage_value(
+    state: State<'_, RwLock<Mihomo>>,
+    key: &str,
+) -> Result<Option<serde_json::Value>> {
+    state.read().await.get_storage_value(key).await
+}
+
+#[command]
+pub(crate) async fn set_storage_value(
+    state: State<'_, RwLock<Mihomo>>,
+    key: &str,
+    value: serde_json::Value,
+) -> Result<()> {
+    state.read().await.set_storage_value(key, value).await
+}
+
+#[command]
+pub(crate) async fn delete_storage_value(state: State<'_, RwLock<Mihomo>>, key: &str) -> Result<()> {
+    state.read().await.delete_storage_value(key).await
+}

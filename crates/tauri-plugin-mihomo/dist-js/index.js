@@ -296,6 +296,29 @@ async function upgradeGeo() {
     await invoke("plugin:mihomo|upgrade_geo");
 }
 /**
+ * 获取存储的值
+ * @param key 存储的键
+ * @returns 存储的值
+ */
+async function getStorageValue(key) {
+    return await invoke("plugin:mihomo|get_storage_value", { key });
+}
+/**
+ * 设置存储的值
+ * @param key 存储的键
+ * @param value 存储的值
+ */
+async function setStorageValue(key, value) {
+    await invoke("plugin:mihomo|set_storage_value", { key, value });
+}
+/**
+ * 删除存储的值
+ * @param key 存储的键
+ */
+async function deleteStorageValue(key) {
+    await invoke("plugin:mihomo|delete_storage_value", { key });
+}
+/**
  * 清除 Rust 侧中所有的 WebSocket 连接
  */
 async function clearAllWsConnections() {
@@ -442,4 +465,4 @@ class MihomoWebSocket {
 }
 MihomoWebSocket.instances = new Set();
 
-export { MihomoWebSocket, clearAllWsConnections, closeAllConnections, closeConnection, delayGroup, delayProxyByName, flushDNS, flushFakeIp, getBaseConfig, getConnections, getGroupByName, getGroups, getProxies, getProxyByName, getProxyProviderByName, getProxyProviders, getRuleProviders, getRules, getVersion, healthcheckNodeInProvider, healthcheckProxyProvider, patchBaseConfig, reloadConfig, restart, selectNodeForGroup, unfixedProxy, updateController, updateGeo, updateProxyProvider, updateRuleProvider, updateRulesDisable, updateSecret, upgradeCore, upgradeGeo, upgradeUi };
+export { MihomoWebSocket, clearAllWsConnections, closeAllConnections, closeConnection, delayGroup, delayProxyByName, deleteStorageValue, flushDNS, flushFakeIp, getBaseConfig, getConnections, getGroupByName, getGroups, getProxies, getProxyByName, getProxyProviderByName, getProxyProviders, getRuleProviders, getRules, getStorageValue, getVersion, healthcheckNodeInProvider, healthcheckProxyProvider, patchBaseConfig, reloadConfig, restart, selectNodeForGroup, setStorageValue, unfixedProxy, updateController, updateGeo, updateProxyProvider, updateRuleProvider, updateRulesDisable, updateSecret, upgradeCore, upgradeGeo, upgradeUi };
