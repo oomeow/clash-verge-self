@@ -1,5 +1,4 @@
 import { Box } from "@mui/material";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { useLockFn, useMemoizedFn, useThrottleFn } from "ahooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,7 +17,11 @@ import delayManager from "@/services/delay";
 import { useProfilesStore, useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 
-import { BaseEmpty } from "../base";
+import {
+  BaseEmpty,
+  StickyVirtualList,
+  type StickyVirtualListHandle,
+} from "../base";
 import { type IRenderItem, useRenderList } from "./use-render-list";
 
 interface Props {
@@ -45,27 +48,11 @@ export const ProxyGroups = (props: Props) => {
   const currentProfile = useProfilesStore((s) => s.currentProfile);
   const patchCurrentProfile = useProfilesStore((s) => s.patchCurrentProfile);
 
-  const scrollParentRef = useRef<HTMLDivElement>(null);
+  const stickyListRef = useRef<StickyVirtualListHandle>(null);
   const [groupDelayVersions, setGroupDelayVersions] = useState<
     Record<string, number>
   >({});
 
-  const groupIndexes = useMemo(
-    () =>
-      renderList.reduce<number[]>((indexes, item, index) => {
-        if (item.type === 0) indexes.push(index);
-        return indexes;
-      }, []),
-    [renderList],
-  );
-  const groupSections = useMemo(
-    () =>
-      groupIndexes.map((groupIndex, index) => ({
-        groupIndex,
-        nextGroupIndex: groupIndexes[index + 1] ?? renderList.length,
-      })),
-    [groupIndexes, renderList.length],
-  );
   const groupNameList = useMemo(
     () => renderList.filter((item) => item.type === 0).map((item) => item.key),
     [renderList],
@@ -80,37 +67,6 @@ export const ProxyGroups = (props: Props) => {
       ),
     );
   }, [renderList]);
-  const estimatedOffsets = useMemo(() => {
-    const offsets = new Array<number>(renderList.length + 1);
-    offsets[0] = 0;
-
-    for (let i = 0; i < renderList.length; i++) {
-      offsets[i + 1] =
-        offsets[i] +
-        (renderList[i].type === 0
-          ? FIXED_GROUP_HEIGHT
-          : ESTIMATED_PROXY_ITEM_HEIGHT);
-    }
-
-    return offsets;
-  }, [renderList]);
-
-  const rowVirtualizer = useVirtualizer({
-    count: renderList.length,
-    estimateSize: (index) =>
-      renderList[index]?.type === 0
-        ? FIXED_GROUP_HEIGHT
-        : ESTIMATED_PROXY_ITEM_HEIGHT,
-    getItemKey: (index) => renderList[index]?.key ?? index,
-    getScrollElement: () => scrollParentRef.current,
-    overscan: 8,
-  });
-
-  const getVirtualOffset = useCallback(
-    (index: number) =>
-      rowVirtualizer.measurementsCache[index]?.start ?? estimatedOffsets[index],
-    [estimatedOffsets, rowVirtualizer],
-  );
 
   useEffect(() => {
     if (!groupNamesForDelayCheck.length) return;
@@ -218,7 +174,7 @@ export const ProxyGroups = (props: Props) => {
       );
 
       if (index >= 0) {
-        rowVirtualizer.scrollToIndex(index, {
+        stickyListRef.current?.scrollToIndex(index, {
           align: "start",
           behavior: "auto",
         });
@@ -242,7 +198,7 @@ export const ProxyGroups = (props: Props) => {
         highlightGroup();
       }
     },
-    [renderList, rowVirtualizer],
+    [renderList],
   );
 
   // 滚到对应的节点
@@ -259,13 +215,13 @@ export const ProxyGroups = (props: Props) => {
       );
 
       if (index >= 0) {
-        rowVirtualizer.scrollToIndex(index, {
+        stickyListRef.current?.scrollToIndex(index, {
           align: "center",
           behavior: "smooth",
         });
       }
     },
-    [renderList, rowVirtualizer],
+    [renderList],
   );
 
   const handleGroupToggle = useCallback(
@@ -275,14 +231,9 @@ export const ProxyGroups = (props: Props) => {
       );
       if (index < 0) return;
 
-      const scroller = scrollParentRef.current;
-      const groupStart =
-        rowVirtualizer.measurementsCache[index]?.start ??
-        estimatedOffsets[index];
+      if (!stickyListRef.current?.isItemScrolledPastStart(index, 1)) return;
 
-      if (!scroller || scroller.scrollTop <= groupStart + 1) return;
-
-      rowVirtualizer.scrollToIndex(index, {
+      stickyListRef.current.scrollToIndex(index, {
         align: "start",
         behavior: "auto",
       });
@@ -291,7 +242,7 @@ export const ProxyGroups = (props: Props) => {
         requestAnimationFrame(() => resolve());
       });
     },
-    [estimatedOffsets, renderList, rowVirtualizer],
+    [renderList],
   );
 
   const renderProxyItem = useCallback(
@@ -333,80 +284,24 @@ export const ProxyGroups = (props: Props) => {
         className={cn("h-full w-full", {
           "pr-7": isRuleMode,
         })}>
-        <Box ref={scrollParentRef} className="h-full overflow-auto">
-          <Box
-            sx={{
-              height: rowVirtualizer.getTotalSize(),
-              position: "relative",
-              width: "100%",
-            }}>
-            <Box
-              sx={{
-                inset: 0,
-                pointerEvents: "none",
-                position: "absolute",
-                zIndex: 10,
-              }}>
-              {groupSections.map(({ groupIndex, nextGroupIndex }) => {
-                const group = renderList[groupIndex];
-                const start = getVirtualOffset(groupIndex);
-                const end =
-                  nextGroupIndex < renderList.length
-                    ? getVirtualOffset(nextGroupIndex)
-                    : rowVirtualizer.getTotalSize();
-
-                return (
-                  <Box
-                    key={group.key}
-                    sx={{
-                      height: Math.max(end - start, FIXED_GROUP_HEIGHT),
-                      left: 0,
-                      position: "absolute",
-                      top: start,
-                      width: "100%",
-                    }}>
-                    <Box
-                      data-index={groupIndex}
-                      sx={(theme) => ({
-                        background: "#ffffff",
-                        ...theme.applyStyles("dark", {
-                          background: "#282A36",
-                        }),
-                        pointerEvents: "auto",
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 1,
-                      })}>
-                      {renderProxyItem(group)}
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Box>
-
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const item = renderList[virtualRow.index];
-              if (item.type === 0) return null;
-
-              return (
-                <Box
-                  key={virtualRow.key}
-                  ref={rowVirtualizer.measureElement}
-                  data-index={virtualRow.index}
-                  sx={{
-                    left: 0,
-                    position: "absolute",
-                    top: 0,
-                    transform: `translateY(${virtualRow.start}px)`,
-                    width: "100%",
-                    zIndex: 1,
-                  }}>
-                  {renderProxyItem(item)}
-                </Box>
-              );
-            })}
-          </Box>
-        </Box>
+        <StickyVirtualList
+          ref={stickyListRef}
+          className="h-full overflow-auto"
+          items={renderList}
+          isGroupItem={(item) => item.type === 0}
+          getItemKey={(item) => item.key}
+          estimateItemSize={(item) =>
+            item.type === 0 ? FIXED_GROUP_HEIGHT : ESTIMATED_PROXY_ITEM_HEIGHT
+          }
+          groupItemSize={FIXED_GROUP_HEIGHT}
+          stickyHeaderSx={(theme) => ({
+            background: "#ffffff",
+            ...theme.applyStyles("dark", {
+              background: "#282A36",
+            }),
+          })}
+          renderItem={renderProxyItem}
+        />
       </Box>
 
       {isRuleMode && (

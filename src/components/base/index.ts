@@ -15,4 +15,8 @@ export { Marquee } from "./marquee";
 export { MyNoticeContainer } from "./my-notice-container";
 export { NoticeProvider } from "./notifies";
 export { SortableItem } from "./sortable-item";
+export {
+  StickyVirtualList,
+  type StickyVirtualListHandle,
+} from "./sticky-virtual-list";
 export { TailwindIndicator } from "./tailwind-indicator";
