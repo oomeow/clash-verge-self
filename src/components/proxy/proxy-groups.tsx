@@ -25,7 +25,9 @@ interface Props {
   mode: string;
 }
 
-const ESTIMATED_GROUP_HEIGHT = 78;
+/// 固定的组高度，用于手动计算组高度偏移量
+export const FIXED_GROUP_HEIGHT = 70;
+/// 预估的项高度，用于 tanstack/react-virtual 动态计算高度
 const ESTIMATED_ITEM_HEIGHT = 64;
 
 export const ProxyGroups = (props: Props) => {
@@ -68,7 +70,7 @@ export const ProxyGroups = (props: Props) => {
     getScrollElement: () => scrollParentRef.current,
     estimateSize: (index) =>
       renderList[index]?.type === 0
-        ? ESTIMATED_GROUP_HEIGHT
+        ? FIXED_GROUP_HEIGHT
         : ESTIMATED_ITEM_HEIGHT,
     getItemKey: (index) => renderList[index]?.key ?? index,
     overscan: 8,
@@ -247,9 +249,7 @@ export const ProxyGroups = (props: Props) => {
     for (let i = 0; i < renderList.length; i++) {
       offsets[i + 1] =
         offsets[i] +
-        (renderList[i].type === 0
-          ? ESTIMATED_GROUP_HEIGHT
-          : ESTIMATED_ITEM_HEIGHT);
+        (renderList[i].type === 0 ? FIXED_GROUP_HEIGHT : ESTIMATED_ITEM_HEIGHT);
     }
     return offsets;
   }, [renderList]);
@@ -281,12 +281,11 @@ export const ProxyGroups = (props: Props) => {
   );
 
   const renderProxyItem = useCallback(
-    (item: IRenderItem, index: number, total: number) => (
+    (item: IRenderItem, _index: number, _total: number) => (
       <div
         key={item.key}
-        className={cn("py-1", {
-          // "pt-2": index === 0,
-          "pb-2": index === total - 1,
+        className={cn("pb-2", {
+          "py-0": item.type === 0,
         })}>
         <ProxyRender
           key={item.key}
@@ -359,7 +358,7 @@ export const ProxyGroups = (props: Props) => {
                   <Box
                     key={group.key}
                     sx={{
-                      height: Math.max(end - start, ESTIMATED_GROUP_HEIGHT),
+                      height: Math.max(end - start, FIXED_GROUP_HEIGHT),
                       left: 0,
                       position: "absolute",
                       top: start,

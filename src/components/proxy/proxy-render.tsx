@@ -22,6 +22,7 @@ import {
   DEFAULT_STATE,
 } from "@/stores/proxyHeadStateStore";
 
+import { FIXED_GROUP_HEIGHT } from "./proxy-groups";
 import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
@@ -289,7 +290,9 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           ...theme.applyStyles("dark", {
             background: "#282A36",
           }),
-          height: "70px",
+          height: `${FIXED_GROUP_HEIGHT}px`,
+          py: 0,
+          my: 0,
           // margin: "0 8px",
           // borderRadius: "8px",
           transition: "background-color 0s",
@@ -354,7 +357,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   if (type === 1) {
     return (
       <ProxyHead
-        sx={{ pl: 2, pr: 3 }}
+        sx={{ pl: 2, pr: 3, pt: 1 }}
         groupName={group.name}
         onLocation={() => onLocation(group)}
         onCheckDelay={() => onCheckAll(group.name)}
