@@ -6,7 +6,7 @@ use http::{
     header::{AUTHORIZATION, CONNECTION, CONTENT_TYPE, HOST, SEC_WEBSOCKET_KEY, SEC_WEBSOCKET_VERSION, UPGRADE},
 };
 use reqwest::{Method, RequestBuilder};
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_json::json;
 use tokio_tungstenite::{
     client_async, connect_async,
@@ -779,7 +779,7 @@ impl Mihomo {
     /// 获取该 key 在 Storage 下存储的值
     pub async fn get_storage_value<T>(&self, key: &str) -> Result<Option<T>>
     where
-        T: for<'de> Deserialize<'de>,
+        T: DeserializeOwned,
     {
         let response = self
             .build_request(Method::GET, &format!("/storage/{}", urlencoding::encode(key)))?
