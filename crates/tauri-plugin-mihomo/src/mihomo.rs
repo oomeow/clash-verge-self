@@ -779,7 +779,7 @@ impl Mihomo {
     /// 获取该 key 在 Storage 下存储的值
     pub async fn get_storage_value<T>(&self, key: &str) -> Result<Option<T>>
     where
-        T: Serialize + for<'de> Deserialize<'de>,
+        T: for<'de> Deserialize<'de>,
     {
         let response = self
             .build_request(Method::GET, &format!("/storage/{key}"))?
