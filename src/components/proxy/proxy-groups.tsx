@@ -241,6 +241,19 @@ export const ProxyGroups = (props: Props) => {
     [renderList, rowVirtualizer],
   );
 
+  const estimatedOffsets = useMemo(() => {
+    const offsets = new Array(renderList.length + 1);
+    offsets[0] = 0;
+    for (let i = 0; i < renderList.length; i++) {
+      offsets[i + 1] =
+        offsets[i] +
+        (renderList[i].type === 0
+          ? ESTIMATED_GROUP_HEIGHT
+          : ESTIMATED_ITEM_HEIGHT);
+    }
+    return offsets;
+  }, [renderList]);
+
   const handleGroupToggle = useCallback(
     async (group: IProxyGroupItem) => {
       const index = renderList.findIndex(
@@ -251,16 +264,7 @@ export const ProxyGroups = (props: Props) => {
       const scroller = scrollParentRef.current;
       const groupStart =
         rowVirtualizer.measurementsCache[index]?.start ??
-        renderList
-          .slice(0, index)
-          .reduce(
-            (total, item) =>
-              total +
-              (item.type === 0
-                ? ESTIMATED_GROUP_HEIGHT
-                : ESTIMATED_ITEM_HEIGHT),
-            0,
-          );
+        estimatedOffsets[index];
 
       if (!scroller || scroller.scrollTop <= groupStart + 1) return;
 
@@ -308,16 +312,12 @@ export const ProxyGroups = (props: Props) => {
     .filter((item) => item.type === 0)
     .map((item) => item.key);
   const getVirtualOffset = useCallback(
-    (index: number) =>
-      rowVirtualizer.measurementsCache[index]?.start ??
-      renderList
-        .slice(0, index)
-        .reduce(
-          (total, item) =>
-            total +
-            (item.type === 0 ? ESTIMATED_GROUP_HEIGHT : ESTIMATED_ITEM_HEIGHT),
-          0,
-        ),
+    (index: number) => {
+      return (
+        rowVirtualizer.measurementsCache[index]?.start ??
+        estimatedOffsets[index]
+      );
+    },
     [renderList, rowVirtualizer],
   );
 
