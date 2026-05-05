@@ -100,8 +100,6 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
             e.stopPropagation();
           }}
           onChange={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
             const text = e.target.value;
             setFilterTextInp(text);
             filterChange(text);
@@ -130,8 +128,6 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
             e.stopPropagation();
           }}
           onChange={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
             headStateActions.setTestUrl(e.target.value);
           }}
           sx={{
