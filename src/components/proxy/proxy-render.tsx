@@ -282,8 +282,8 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
             background: "#282A36",
           }),
           height: "70px",
-          margin: "0 8px",
-          borderRadius: "8px",
+          // margin: "0 8px",
+          // borderRadius: "8px",
           transition: "background-color 0s",
         })}
         onClick={() => headStateActions.setOpen(!headState?.open)}>

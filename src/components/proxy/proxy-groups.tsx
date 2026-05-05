@@ -1,8 +1,8 @@
 import { Box } from "@mui/material";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { useLockFn, useMemoizedFn, useThrottleFn } from "ahooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import {
   closeConnection,
   getConnections,
@@ -19,11 +19,14 @@ import { useProfilesStore, useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 
 import { BaseEmpty } from "../base";
-import { useRenderList } from "./use-render-list";
+import { type IRenderItem, useRenderList } from "./use-render-list";
 
 interface Props {
   mode: string;
 }
+
+const ESTIMATED_GROUP_HEIGHT = 78;
+const ESTIMATED_ITEM_HEIGHT = 64;
 
 export const ProxyGroups = (props: Props) => {
   const { mode } = props;
@@ -40,10 +43,36 @@ export const ProxyGroups = (props: Props) => {
   const currentProfile = useProfilesStore((s) => s.currentProfile);
   const patchCurrentProfile = useProfilesStore((s) => s.patchCurrentProfile);
 
-  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const scrollParentRef = useRef<HTMLDivElement>(null);
   const [groupDelayVersions, setGroupDelayVersions] = useState<
     Record<string, number>
   >({});
+  const groupIndexes = useMemo(
+    () =>
+      renderList.reduce<number[]>((indexes, item, index) => {
+        if (item.type === 0) indexes.push(index);
+        return indexes;
+      }, []),
+    [renderList],
+  );
+  const groupSections = useMemo(
+    () =>
+      groupIndexes.map((groupIndex, index) => ({
+        groupIndex,
+        nextGroupIndex: groupIndexes[index + 1] ?? renderList.length,
+      })),
+    [groupIndexes, renderList.length],
+  );
+  const rowVirtualizer = useVirtualizer({
+    count: renderList.length,
+    getScrollElement: () => scrollParentRef.current,
+    estimateSize: (index) =>
+      renderList[index]?.type === 0
+        ? ESTIMATED_GROUP_HEIGHT
+        : ESTIMATED_ITEM_HEIGHT,
+    getItemKey: (index) => renderList[index]?.key ?? index,
+    overscan: 8,
+  });
   const groupNamesForDelayCheck = useMemo(() => {
     const names = Array.from(
       new Set(
@@ -162,8 +191,7 @@ export const ProxyGroups = (props: Props) => {
       );
 
       if (index >= 0) {
-        virtuosoRef.current?.scrollToIndex?.({
-          index,
+        rowVirtualizer.scrollToIndex(index, {
           align: "start",
           behavior: "auto",
         });
@@ -187,7 +215,7 @@ export const ProxyGroups = (props: Props) => {
         highlightGroup();
       }
     },
-    [renderList, virtuosoRef],
+    [renderList, rowVirtualizer],
   );
 
   // 滚到对应的节点
@@ -204,19 +232,52 @@ export const ProxyGroups = (props: Props) => {
       );
 
       if (index >= 0) {
-        virtuosoRef.current?.scrollToIndex?.({
-          index,
+        rowVirtualizer.scrollToIndex(index, {
           align: "center",
           behavior: "smooth",
         });
       }
     },
-    [renderList, virtuosoRef],
+    [renderList, rowVirtualizer],
+  );
+
+  const renderProxyItem = useCallback(
+    (item: IRenderItem, index: number, total: number) => (
+      <div
+        key={item.key}
+        className={cn("py-1", {
+          // "pt-2": index === 0,
+          "pb-2": index === total - 1,
+        })}>
+        <ProxyRender
+          key={item.key}
+          item={item}
+          delayVersion={groupDelayVersions[item.group.name] ?? 0}
+          onLocation={handleLocation}
+          onCheckAll={handleCheckAll}
+          onChangeProxy={handleChangeProxy}
+        />
+      </div>
+    ),
+    [groupDelayVersions, handleChangeProxy, handleCheckAll, handleLocation],
   );
 
   const groupNameList = renderList
     .filter((item) => item.type === 0)
     .map((item) => item.key);
+  const getVirtualOffset = useCallback(
+    (index: number) =>
+      rowVirtualizer.measurementsCache[index]?.start ??
+      renderList
+        .slice(0, index)
+        .reduce(
+          (total, item) =>
+            total +
+            (item.type === 0 ? ESTIMATED_GROUP_HEIGHT : ESTIMATED_ITEM_HEIGHT),
+          0,
+        ),
+    [renderList, rowVirtualizer],
+  );
 
   if (isDirectMode) {
     return <BaseEmpty text={t("common.empty.directMode")} />;
@@ -230,30 +291,81 @@ export const ProxyGroups = (props: Props) => {
         className={cn("h-full w-full", {
           "pr-7": isRuleMode,
         })}>
-        <Virtuoso
-          ref={virtuosoRef}
-          style={{ height: "100%" }}
-          totalCount={renderList.length}
-          increaseViewportBy={256}
-          itemContent={(index) => (
-            <div
-              className={cn("py-1", {
-                "pt-2": index === 0,
-                "pb-2": index === renderList.length - 1,
-              })}>
-              <ProxyRender
-                key={renderList[index].key}
-                item={renderList[index]}
-                delayVersion={
-                  groupDelayVersions[renderList[index].group.name] ?? 0
-                }
-                onLocation={handleLocation}
-                onCheckAll={handleCheckAll}
-                onChangeProxy={handleChangeProxy}
-              />
-            </div>
-          )}
-        />
+        <Box ref={scrollParentRef} className="h-full overflow-auto">
+          <Box
+            sx={{
+              height: rowVirtualizer.getTotalSize(),
+              position: "relative",
+              width: "100%",
+            }}>
+            <Box
+              sx={{
+                inset: 0,
+                pointerEvents: "none",
+                position: "absolute",
+                zIndex: 10,
+              }}>
+              {groupSections.map(({ groupIndex, nextGroupIndex }) => {
+                const group = renderList[groupIndex];
+                const start = getVirtualOffset(groupIndex);
+                const end =
+                  nextGroupIndex < renderList.length
+                    ? getVirtualOffset(nextGroupIndex)
+                    : rowVirtualizer.getTotalSize();
+
+                return (
+                  <Box
+                    key={group.key}
+                    sx={{
+                      height: Math.max(end - start, ESTIMATED_GROUP_HEIGHT),
+                      left: 0,
+                      position: "absolute",
+                      top: start,
+                      width: "100%",
+                    }}>
+                    <Box
+                      ref={rowVirtualizer.measureElement}
+                      data-index={groupIndex}
+                      sx={(theme) => ({
+                        background: "#ffffff",
+                        ...theme.applyStyles("dark", {
+                          background: "#282A36",
+                        }),
+                        pointerEvents: "auto",
+                        position: "sticky",
+                        top: 0,
+                        zIndex: 1,
+                      })}>
+                      {renderProxyItem(group, groupIndex, renderList.length)}
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+
+            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+              const item = renderList[virtualRow.index];
+              if (item.type === 0) return null;
+
+              return (
+                <Box
+                  key={virtualRow.key}
+                  ref={rowVirtualizer.measureElement}
+                  data-index={virtualRow.index}
+                  sx={{
+                    left: 0,
+                    position: "absolute",
+                    top: 0,
+                    transform: `translateY(${virtualRow.start}px)`,
+                    width: "100%",
+                    zIndex: 1,
+                  }}>
+                  {renderProxyItem(item, virtualRow.index, renderList.length)}
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
       </Box>
 
       {isRuleMode && (
