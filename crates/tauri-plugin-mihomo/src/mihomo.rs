@@ -788,7 +788,7 @@ impl Mihomo {
         if !response.status().is_success() {
             ret_failed_resp!("get storage value error, {}", response.text().await?);
         }
-        Ok(response.json::<T>().await.ok())
+        Ok(response.json::<Option<T>>().await?)
     }
 
     /// 更新该 key 在 Storage 下存储的值, 没有则创建
