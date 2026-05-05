@@ -22,6 +22,7 @@ import {
   DEFAULT_STATE,
 } from "@/stores/proxyHeadStateStore";
 
+import { FIXED_GROUP_HEIGHT } from "./proxy-groups";
 import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
@@ -32,6 +33,7 @@ interface RenderProps {
   delayVersion: number;
   onLocation: (group: IProxyGroupItem) => void;
   onCheckAll: (groupName: string) => void;
+  onGroupToggle?: (group: IProxyGroupItem) => void | Promise<void>;
   onChangeProxy: (group: IProxyGroupItem, proxy: IProxyItem) => void;
 }
 
@@ -209,7 +211,14 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
 });
 
 export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
-  const { item, delayVersion, onLocation, onCheckAll, onChangeProxy } = props;
+  const {
+    item,
+    delayVersion,
+    onLocation,
+    onCheckAll,
+    onGroupToggle,
+    onChangeProxy,
+  } = props;
   const { t } = useTranslation();
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
   const currentProfileUid = useProfilesStore(
@@ -281,12 +290,19 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           ...theme.applyStyles("dark", {
             background: "#282A36",
           }),
-          height: "70px",
-          margin: "0 8px",
-          borderRadius: "8px",
+          height: `${FIXED_GROUP_HEIGHT}px`,
+          py: 0,
+          my: 0,
+          // margin: "0 8px",
+          // borderRadius: "8px",
           transition: "background-color 0s",
         })}
-        onClick={() => headStateActions.setOpen(!headState?.open)}>
+        onClick={async () => {
+          if (headState?.open) {
+            await onGroupToggle?.(group);
+          }
+          headStateActions.setOpen(!headState?.open);
+        }}>
         {enableGroupIcon && (
           <>
             {isHttpIcon && !iconCachePath && iconLoading && (
@@ -341,7 +357,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   if (type === 1) {
     return (
       <ProxyHead
-        sx={{ pl: 2, pr: 3 }}
+        sx={{ pl: 2, pr: 3, pt: 1 }}
         groupName={group.name}
         onLocation={() => onLocation(group)}
         onCheckDelay={() => onCheckAll(group.name)}

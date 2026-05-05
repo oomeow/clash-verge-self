@@ -2,7 +2,6 @@ import { Box } from "@mui/material";
 import { useLockFn, useMemoizedFn, useThrottleFn } from "ahooks";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import {
   closeConnection,
   getConnections,
@@ -18,12 +17,21 @@ import delayManager from "@/services/delay";
 import { useProfilesStore, useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 
-import { BaseEmpty } from "../base";
-import { useRenderList } from "./use-render-list";
+import {
+  BaseEmpty,
+  StickyVirtualList,
+  type StickyVirtualListHandle,
+} from "../base";
+import { type IRenderItem, useRenderList } from "./use-render-list";
 
 interface Props {
   mode: string;
 }
+
+/// 固定的组高度，用于手动计算组高度偏移量
+export const FIXED_GROUP_HEIGHT = 70;
+/// 预估的项高度，用于 tanstack/react-virtual 动态计算高度
+const ESTIMATED_PROXY_ITEM_HEIGHT = 64;
 
 export const ProxyGroups = (props: Props) => {
   const { mode } = props;
@@ -40,12 +48,17 @@ export const ProxyGroups = (props: Props) => {
   const currentProfile = useProfilesStore((s) => s.currentProfile);
   const patchCurrentProfile = useProfilesStore((s) => s.patchCurrentProfile);
 
-  const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const stickyListRef = useRef<StickyVirtualListHandle>(null);
   const [groupDelayVersions, setGroupDelayVersions] = useState<
     Record<string, number>
   >({});
+
+  const groupNameList = useMemo(
+    () => renderList.filter((item) => item.type === 0).map((item) => item.key),
+    [renderList],
+  );
   const groupNamesForDelayCheck = useMemo(() => {
-    const names = Array.from(
+    return Array.from(
       new Set(
         renderList
           .filter((item) => item.type === 0)
@@ -53,7 +66,6 @@ export const ProxyGroups = (props: Props) => {
           .concat(["GLOBAL"]),
       ),
     );
-    return names;
   }, [renderList]);
 
   useEffect(() => {
@@ -162,8 +174,7 @@ export const ProxyGroups = (props: Props) => {
       );
 
       if (index >= 0) {
-        virtuosoRef.current?.scrollToIndex?.({
-          index,
+        stickyListRef.current?.scrollToIndex(index, {
           align: "start",
           behavior: "auto",
         });
@@ -187,7 +198,7 @@ export const ProxyGroups = (props: Props) => {
         highlightGroup();
       }
     },
-    [renderList, virtuosoRef],
+    [renderList],
   );
 
   // 滚到对应的节点
@@ -204,19 +215,62 @@ export const ProxyGroups = (props: Props) => {
       );
 
       if (index >= 0) {
-        virtuosoRef.current?.scrollToIndex?.({
-          index,
+        stickyListRef.current?.scrollToIndex(index, {
           align: "center",
           behavior: "smooth",
         });
       }
     },
-    [renderList, virtuosoRef],
+    [renderList],
   );
 
-  const groupNameList = renderList
-    .filter((item) => item.type === 0)
-    .map((item) => item.key);
+  const handleGroupToggle = useCallback(
+    async (group: IProxyGroupItem) => {
+      const index = renderList.findIndex(
+        (item) => item.type === 0 && item.group.name === group.name,
+      );
+      if (index < 0) return;
+
+      if (!stickyListRef.current?.isItemScrolledPastStart(index, 1)) return;
+
+      stickyListRef.current.scrollToIndex(index, {
+        align: "start",
+        behavior: "auto",
+      });
+
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+    },
+    [renderList],
+  );
+
+  const renderProxyItem = useCallback(
+    (item: IRenderItem) => (
+      <div
+        key={item.key}
+        className={cn("pb-2", {
+          "py-0": item.type === 0,
+        })}>
+        <ProxyRender
+          key={item.key}
+          item={item}
+          delayVersion={groupDelayVersions[item.group.name] ?? 0}
+          onLocation={handleLocation}
+          onCheckAll={handleCheckAll}
+          onGroupToggle={handleGroupToggle}
+          onChangeProxy={handleChangeProxy}
+        />
+      </div>
+    ),
+    [
+      groupDelayVersions,
+      handleChangeProxy,
+      handleCheckAll,
+      handleGroupToggle,
+      handleLocation,
+    ],
+  );
 
   if (isDirectMode) {
     return <BaseEmpty text={t("common.empty.directMode")} />;
@@ -230,29 +284,23 @@ export const ProxyGroups = (props: Props) => {
         className={cn("h-full w-full", {
           "pr-7": isRuleMode,
         })}>
-        <Virtuoso
-          ref={virtuosoRef}
-          style={{ height: "100%" }}
-          totalCount={renderList.length}
-          increaseViewportBy={256}
-          itemContent={(index) => (
-            <div
-              className={cn("py-1", {
-                "pt-2": index === 0,
-                "pb-2": index === renderList.length - 1,
-              })}>
-              <ProxyRender
-                key={renderList[index].key}
-                item={renderList[index]}
-                delayVersion={
-                  groupDelayVersions[renderList[index].group.name] ?? 0
-                }
-                onLocation={handleLocation}
-                onCheckAll={handleCheckAll}
-                onChangeProxy={handleChangeProxy}
-              />
-            </div>
-          )}
+        <StickyVirtualList
+          ref={stickyListRef}
+          className="h-full overflow-auto"
+          items={renderList}
+          isGroupItem={(item) => item.type === 0}
+          getItemKey={(item) => item.key}
+          estimateItemSize={(item) =>
+            item.type === 0 ? FIXED_GROUP_HEIGHT : ESTIMATED_PROXY_ITEM_HEIGHT
+          }
+          groupItemSize={FIXED_GROUP_HEIGHT}
+          stickyHeaderSx={(theme) => ({
+            background: "#ffffff",
+            ...theme.applyStyles("dark", {
+              background: "#282A36",
+            }),
+          })}
+          renderItem={renderProxyItem}
         />
       </Box>
 
