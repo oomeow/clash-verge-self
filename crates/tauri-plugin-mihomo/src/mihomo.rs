@@ -810,7 +810,7 @@ impl Mihomo {
     /// 删除该 key 在 Storage 下存储的键值
     pub async fn delete_storage_value(&self, key: &str) -> Result<()> {
         let response = self
-            .build_request(Method::DELETE, &format!("/storage/{key}"))?
+            .build_request(Method::DELETE, &format!("/storage/{}", urlencoding::encode(key)))?
             .send()
             .await?;
         if !response.status().is_success() {
