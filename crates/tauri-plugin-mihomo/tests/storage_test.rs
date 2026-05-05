@@ -25,8 +25,9 @@ async fn mihomo_set_storage_value() -> Result<()> {
         age: 30,
     };
     mihomo.set_storage_value("test", value).await?;
-    let value = mihomo.get_storage_value::<User>("test").await?;
-    println!("{:?}", value);
+    let retrieved_value = mihomo.get_storage_value::<User>("test").await?;
+    assert!(retrieved_value.is_some());
+    assert_eq!(retrieved_value.unwrap().name, "Github");
     Ok(())
 }
 
