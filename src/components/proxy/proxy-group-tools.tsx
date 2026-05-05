@@ -31,7 +31,7 @@ interface Props {
   onCheckDelay: () => void;
 }
 
-export const ProxyGroupTools = memo(function ProxyHead(props: Props) {
+export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
   const { sx = {}, groupName } = props;
   const currentProfileUid = useProfilesStore(
     (s) => s.currentProfile?.uid ?? "",
@@ -146,7 +146,7 @@ export const ProxyGroupTools = memo(function ProxyHead(props: Props) {
         size="small"
         color="inherit"
         title={t("common.fields.location")}
-        onClick={async (e) => {
+        onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           props.onLocation();

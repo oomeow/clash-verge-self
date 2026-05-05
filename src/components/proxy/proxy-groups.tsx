@@ -29,7 +29,7 @@ interface Props {
 }
 
 /// 固定的组高度，用于手动计算组高度偏移量
-export const FIXED_GROUP_HEIGHT = 76;
+export const FIXED_GROUP_HEIGHT = 70;
 /// 预估的项高度，用于 tanstack/react-virtual 动态计算高度
 const ESTIMATED_PROXY_ITEM_HEIGHT = 64;
 
