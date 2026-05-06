@@ -24,6 +24,7 @@ import {
 import { cn } from "@/utils";
 
 import { ProxyGroupTools } from "./proxy-group-tools";
+import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
 import type { IRenderItem } from "./use-render-list";
@@ -187,6 +188,7 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
         display: "grid",
         gap: 1,
         px: 2,
+        my: "4px",
         gridTemplateColumns: `repeat(${item.col! || 2}, 1fr)`,
       }}>
       {proxyCol?.map((proxy) => (
@@ -368,16 +370,17 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
     );
   }
 
+  // TODO: 拆分该组件
+  // render list 数据已经移除该类型数据, 该 head 已经集成在 type === 0 的组件中
   if (type === 1) {
-    return null;
-    // return (
-    //   <ProxyHead
-    //     sx={{ pl: 2, pr: 3, pt: 1 }}
-    //     groupName={group.name}
-    //     onLocation={() => onLocation(group)}
-    //     onCheckDelay={() => onCheckAll(group.name)}
-    //   />
-    // );
+    return (
+      <ProxyHead
+        sx={{ pl: 2, pr: 3, pt: 1 }}
+        groupName={group.name}
+        onLocation={() => onLocation(group)}
+        onCheckDelay={() => onCheckAll(group.name)}
+      />
+    );
   }
 
   if (type === 2) {
@@ -389,7 +392,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         fixed={group.fixed === proxy?.name}
         showType={headState?.showType}
         delayVersion={delayVersion}
-        sx={{ py: 0, pl: 2 }}
+        sx={{ py: "4px", pl: 2 }}
         onClick={() => onChangeProxy(group, proxy!)}
       />
     );

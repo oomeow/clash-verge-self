@@ -83,7 +83,7 @@ export const useRenderList = (mode: string) => {
           headState.sortType,
         );
 
-        ret.push({ type: 1, key: `head-${group.name}`, group, headState });
+        // ret.push({ type: 1, key: `head-${group.name}`, group, headState });
 
         if (!proxies.length) {
           ret.push({ type: 3, key: `empty-${group.name}`, group, headState });

@@ -264,17 +264,15 @@ export const ProxyGroups = (props: Props) => {
 
   const renderProxyItem = useCallback(
     (item: IRenderItem) => (
-      <div key={item.key} className="pb-2">
-        <ProxyRender
-          key={item.key}
-          item={item}
-          delayVersion={groupDelayVersions[item.group.name] ?? 0}
-          onLocation={handleLocation}
-          onCheckAll={handleCheckAll}
-          onGroupToggle={handleGroupToggle}
-          onChangeProxy={handleChangeProxy}
-        />
-      </div>
+      <ProxyRender
+        key={item.key}
+        item={item}
+        delayVersion={groupDelayVersions[item.group.name] ?? 0}
+        onLocation={handleLocation}
+        onCheckAll={handleCheckAll}
+        onGroupToggle={handleGroupToggle}
+        onChangeProxy={handleChangeProxy}
+      />
     ),
     [
       groupDelayVersions,
