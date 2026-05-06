@@ -52,109 +52,6 @@ interface IConfigData {
   };
 }
 
-interface IRuleItem {
-  type: string;
-  payload: string;
-  proxy: string;
-  rules: string[];
-  matchPayloadItems: string[];
-  expanded: boolean;
-  behavior?: string;
-  format?: string;
-}
-
-interface IProxyItem {
-  name: string;
-  type: string;
-  udp: boolean;
-  xudp: boolean;
-  tfo: boolean;
-  history: {
-    time: string;
-    delay: number;
-  }[];
-  all?: string[];
-  now?: string;
-  hidden?: boolean;
-  icon?: string;
-  provider?: string; // 记录是否来自provider
-  fixed?: string; // 记录固定(优先)的节点
-}
-
-type IProxyGroupItem = Omit<IProxyItem, "all"> & {
-  all: IProxyItem[];
-};
-
-interface IProxyProviderItem {
-  name: string;
-  type: string;
-  proxies: IProxyItem[];
-  updatedAt: string;
-  vehicleType: string;
-  subscriptionInfo?: {
-    Upload: number;
-    Download: number;
-    Total: number;
-    Expire: number;
-  };
-}
-
-interface IRuleProviderItem {
-  name: string;
-  behavior: string;
-  format: string;
-  ruleCount: number;
-  type: string;
-  updatedAt: string;
-  vehicleType: string;
-}
-
-interface ITrafficItem {
-  up: number;
-  down: number;
-}
-
-interface IMemoryUsageItem {
-  inuse: number;
-  oslimit?: number;
-}
-
-interface ILogItem {
-  type: string;
-  time?: string;
-  payload: string;
-}
-
-interface IConnectionsItem {
-  id: string;
-  metadata: {
-    network: string;
-    type: string;
-    host: string;
-    sourceIP: string;
-    sourcePort: string;
-    destinationPort: string;
-    destinationIP?: string;
-    remoteDestination?: string;
-    process?: string;
-    processPath?: string;
-  };
-  upload: number;
-  download: number;
-  start: string;
-  chains: string[];
-  rule: string;
-  rulePayload: string;
-  curUpload?: number; // upload speed, calculate at runtime
-  curDownload?: number; // download speed, calculate at runtime
-}
-
-interface IConnections {
-  downloadTotal: number;
-  uploadTotal: number;
-  connections: IConnectionsItem[];
-}
-
 /**
  * Some interface for command
  */
@@ -227,6 +124,19 @@ interface IVergeTestItem {
   url: string;
 }
 
+interface IVergeThemeSettings {
+  primary_color?: string;
+  secondary_color?: string;
+  primary_text?: string;
+  secondary_text?: string;
+  info_color?: string;
+  error_color?: string;
+  warning_color?: string;
+  success_color?: string;
+  font_family?: string;
+  css_injection?: string;
+}
+
 interface IVergeConfig {
   app_log_level?: "trace" | "debug" | "info" | "warn" | "error" | string;
   language?: string;
@@ -265,42 +175,9 @@ interface IVergeConfig {
   hotkeys?: string[];
   app_hotkeys?: string[];
   // not a verge config, only use it to set the current theme of app
-  theme_setting?: {
-    primary_color?: string;
-    secondary_color?: string;
-    primary_text?: string;
-    secondary_text?: string;
-    info_color?: string;
-    error_color?: string;
-    warning_color?: string;
-    success_color?: string;
-    font_family?: string;
-    css_injection?: string;
-  };
-  light_theme_setting?: {
-    primary_color?: string;
-    secondary_color?: string;
-    primary_text?: string;
-    secondary_text?: string;
-    info_color?: string;
-    error_color?: string;
-    warning_color?: string;
-    success_color?: string;
-    font_family?: string;
-    css_injection?: string;
-  };
-  dark_theme_setting?: {
-    primary_color?: string;
-    secondary_color?: string;
-    primary_text?: string;
-    secondary_text?: string;
-    info_color?: string;
-    error_color?: string;
-    warning_color?: string;
-    success_color?: string;
-    font_family?: string;
-    css_injection?: string;
-  };
+  theme_setting?: IVergeThemeSettings;
+  light_theme_setting?: IVergeThemeSettings;
+  dark_theme_setting?: IVergeThemeSettings;
   auto_close_connection?: boolean;
   auto_check_update?: boolean;
   default_latency_test?: string;
@@ -318,78 +195,6 @@ interface IVergeConfig {
   enable_external_controller?: boolean;
 }
 
-type IClashConfigValue = any;
-
-interface IProfileMerge {
-  // clash config fields (default supports)
-  rules?: IClashConfigValue;
-  proxies?: IClashConfigValue;
-  "proxy-groups"?: IClashConfigValue;
-  "proxy-providers"?: IClashConfigValue;
-  "rule-providers"?: IClashConfigValue;
-  // clash config fields (use flag)
-  tun?: IClashConfigValue;
-  dns?: IClashConfigValue;
-  hosts?: IClashConfigValue;
-  script?: IClashConfigValue;
-  profile?: IClashConfigValue;
-  payload?: IClashConfigValue;
-  "interface-name"?: IClashConfigValue;
-  "routing-mark"?: IClashConfigValue;
-  // functional fields
-  use?: string[];
-  "prepend-rules"?: any[];
-  "append-rules"?: any[];
-  "prepend-proxies"?: any[];
-  "append-proxies"?: any[];
-  "prepend-proxy-groups"?: any[];
-  "append-proxy-groups"?: any[];
-  // fix
-  ebpf?: any;
-  experimental?: any;
-  iptables?: any;
-  sniffer?: any;
-  authentication?: any;
-  "bind-address"?: any;
-  "external-ui"?: any;
-  "auto-redir"?: any;
-  "socks-port"?: any;
-  "redir-port"?: any;
-  "tproxy-port"?: any;
-  "geodata-mode"?: any;
-  "tcp-concurrent"?: any;
-}
-
-// partial of the clash config
-type IProfileData = Partial<{
-  rules: any[];
-  proxies: any[];
-  "proxy-groups": any[];
-  "proxy-providers": any[];
-  "rule-providers": any[];
-
-  [k: string]: any;
-}>;
-
-interface IChainItem {
-  item: IProfileItem;
-  merge?: IProfileMerge;
-  script?: string;
-}
-
-interface IEnhancedPayload {
-  chain: IChainItem[];
-  valid: string[];
-  current: IProfileData;
-  callback: string;
-}
-
-interface IEnhancedResult {
-  data: IProfileData;
-  status: string;
-  error?: string;
-}
-
 interface IBackupFile {
   filename: string;
   href: string;
@@ -404,10 +209,6 @@ interface IWebDavConfig {
   username: string;
   password: string;
 }
-
-type FileDragDropPayload = {
-  paths: string[];
-};
 
 type RulePayload = {
   count: number;

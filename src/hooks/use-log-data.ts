@@ -1,10 +1,14 @@
 import dayjs from "dayjs";
 import { useEffect, useRef } from "react";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { Log, MihomoWebSocket } from "tauri-plugin-mihomo-api";
 
 import { getClashLogs } from "@/services/cmds";
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useClashLogStore, useRefreshLogsDateStore } from "@/stores";
+
+export type ILogItem = Log & {
+  time?: string;
+};
 
 const MAX_LOG_NUM = 1000;
 

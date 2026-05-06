@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { Memory, MihomoWebSocket } from "tauri-plugin-mihomo-api";
 
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useRefreshMemoryDateStore } from "@/stores";
@@ -13,7 +13,7 @@ export const useMemoryData = () => {
   const wsFirstConnection = useRef<boolean>(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const response = useSWRSubscription<IMemoryUsageItem, any, string | null>(
+  const response = useSWRSubscription<Memory, any, string | null>(
     subscriptKey,
     (_key, { next }) => {
       const reconnect = async () => {
@@ -31,10 +31,10 @@ export const useMemoryData = () => {
             ws_.addListener(async (msg) => {
               if (msg.type === "Text") {
                 if (msg.data.startsWith("Websocket error")) {
-                  next(msg.data, { inuse: 0 });
+                  next(msg.data, { inuse: 0 } as Memory);
                   await reconnect();
                 } else {
-                  const data = JSON.parse(msg.data) as IMemoryUsageItem;
+                  const data = JSON.parse(msg.data) as Memory;
                   next(null, data);
                 }
               }

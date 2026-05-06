@@ -2,7 +2,10 @@ import {
   getProxies,
   getProxyProviders,
   getRuleProviders,
+  Proxy,
 } from "tauri-plugin-mihomo-api";
+
+import { IProxyGroupItem } from "@/components/proxy/use-render-list";
 
 /// Get the Proxy information
 export const calcuProxies = async () => {
@@ -26,7 +29,7 @@ export const calcuProxies = async () => {
       xudp: false,
       tfo: false,
       history: [],
-    };
+    } as unknown as Proxy;
   };
 
   const { GLOBAL: global, DIRECT: direct, REJECT: reject } = proxyRecord;

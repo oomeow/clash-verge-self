@@ -1,4 +1,4 @@
-import { delayGroup, delayProxyByName } from "tauri-plugin-mihomo-api";
+import { delayGroup, delayProxyByName, Proxy } from "tauri-plugin-mihomo-api";
 
 const hashKey = (name: string, group: string) => `${group ?? ""}::${name}`;
 
@@ -68,11 +68,9 @@ class DelayManager {
   }
 
   /// 暂时修复provider的节点延迟排序的问题
-  getDelayFix(proxy: IProxyItem, group: string) {
-    if (!proxy.provider) {
-      const delay = this.getDelay(proxy.name, group);
-      if (delay >= 0 || delay === -2) return delay;
-    }
+  getDelayFix(proxy: Proxy, group: string) {
+    const delay = this.getDelay(proxy.name, group);
+    if (delay >= 0 || delay === -2) return delay;
 
     if (proxy.history.length > 0) {
       return proxy.history[proxy.history.length - 1].delay;

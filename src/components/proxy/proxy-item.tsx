@@ -11,14 +11,17 @@ import {
 } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { memo } from "react";
+import { Proxy } from "tauri-plugin-mihomo-api";
 
 import { BaseLoading } from "@/components/base";
 import delayManager from "@/services/delay";
 import { useVergeStore } from "@/stores";
 
+import { IProxyGroupItem } from "./use-render-list";
+
 interface Props {
   group: IProxyGroupItem;
-  proxy: IProxyItem;
+  proxy: Proxy;
   selected: boolean;
   fixed: boolean;
   showType?: boolean;
@@ -49,7 +52,11 @@ const TypeSpan = styled("span")(
     marginRight: "4px",
     marginTop: "auto",
     padding: "0 4px",
+    wordBreak: "keep-all",
     lineHeight: 1.5,
+    "&[data-proxy-provider]": {
+      backgroundColor: alpha(text.secondary, 0.2),
+    },
   }),
 );
 
@@ -121,8 +128,8 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
                 </span>
               </span>
               <span className="flex flex-nowrap">
-                {showType && !!proxy.provider && (
-                  <TypeSpan>{proxy.provider}</TypeSpan>
+                {showType && !!proxy.providerName && (
+                  <TypeSpan data-proxy-provider>{proxy.providerName}</TypeSpan>
                 )}
                 {showType && <TypeSpan>{proxy.type}</TypeSpan>}
                 {showType && proxy.udp && <TypeSpan>UDP</TypeSpan>}
@@ -141,8 +148,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
             </Widget>
           )}
 
-          {!proxy.provider && proxy.type !== "Direct" && delay !== -2 && (
-            // provider的节点不支持检测
+          {proxy.type !== "Direct" && delay !== -2 && (
             <Widget
               className="the-check"
               onClick={(e) => {
@@ -163,16 +169,13 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
             <Widget
               className="the-delay"
               onClick={(e) => {
-                if (proxy.provider) return;
                 e.preventDefault();
                 e.stopPropagation();
                 onDelay();
               }}
               sx={({ palette }) => ({
                 color: delayManager.formatDelayColor(delay, timeout),
-                ...(!proxy.provider && {
-                  ":hover": { bgcolor: alpha(palette.primary.main, 0.15) },
-                }),
+                ":hover": { bgcolor: alpha(palette.primary.main, 0.15) },
               })}>
               {delayManager.formatDelay(delay, timeout)}
             </Widget>

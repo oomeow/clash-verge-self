@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
 
 import { LogMessage } from "@/components/profile/profile-more";
+import { ILogItem } from "@/hooks/use-log-data";
 import getSystem from "@/utils/get-system";
 
 export interface MergeResult {

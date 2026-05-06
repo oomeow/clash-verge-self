@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { Proxy } from "tauri-plugin-mihomo-api";
 
 import { useWindowSize } from "@/hooks/use-window-size";
 import { useProxiesSWR } from "@/services/swr";
@@ -11,14 +12,18 @@ import {
 
 import { filterSort } from "./use-filter-sort";
 
+export type IProxyGroupItem = Omit<Proxy, "all"> & {
+  all: Proxy[];
+};
+
 export interface IRenderItem {
   // 组 ｜ head ｜ item ｜ empty | item col
   type: 0 | 1 | 2 | 3 | 4;
   key: string;
   group: IProxyGroupItem;
-  proxy?: IProxyItem;
+  proxy?: Proxy;
   col?: number;
-  proxyCol?: IProxyItem[];
+  proxyCol?: Proxy[];
   headState?: HeadState;
 }
 

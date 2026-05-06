@@ -1,8 +1,17 @@
 import { useEffect, useRef } from "react";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import {
+  Connection,
+  Connections,
+  MihomoWebSocket,
+} from "tauri-plugin-mihomo-api";
 
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useRefreshConnectionDateStore } from "@/stores";
+
+export type IConnectionsItem = Connection & {
+  curUpload?: number; // upload speed, calculate at runtime
+  curDownload?: number; // download speed, calculate at runtime
+};
 
 export type IClosedConnectionItem = IConnectionsItem & {
   closedTime: number;
@@ -58,7 +67,7 @@ export const useConnectionData = () => {
                   next(msg.data);
                   await reconnect();
                 } else {
-                  const data = JSON.parse(msg.data) as IConnections;
+                  const data = JSON.parse(msg.data) as Connections;
                   next(null, (old = initConnData) => {
                     const oldActiveConns = old.activeConnections;
                     const oldClosedConns = old.closedConnections;
@@ -66,19 +75,19 @@ export const useConnectionData = () => {
                       oldActiveConns.map((c, _i) => [c.id, c]),
                     );
 
-                    const activeConnections = (data.connections || []).map(
-                      (c) => {
-                        const prev = oldActiveConnMap.get(c.id);
-                        if (prev) {
-                          c.curUpload = c.upload - prev.upload;
-                          c.curDownload = c.download - prev.download;
-                        } else {
-                          c.curUpload = 0;
-                          c.curDownload = 0;
-                        }
-                        return { ...c, closedTime: 0 } as IClosedConnectionItem;
-                      },
-                    );
+                    const activeConnections = (
+                      (data.connections as IConnectionsItem[]) || []
+                    ).map((c) => {
+                      const prev = oldActiveConnMap.get(c.id);
+                      if (prev) {
+                        c.curUpload = c.upload - prev.upload;
+                        c.curDownload = c.download - prev.download;
+                      } else {
+                        c.curUpload = 0;
+                        c.curDownload = 0;
+                      }
+                      return { ...c, closedTime: 0 } as IClosedConnectionItem;
+                    });
 
                     const activeIds = new Set(
                       activeConnections.map((item) => item.id),

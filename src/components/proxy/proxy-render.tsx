@@ -14,6 +14,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { useAsyncEffect } from "ahooks";
 import { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Proxy } from "tauri-plugin-mihomo-api";
 
 import { downloadIconCache } from "@/services/cmds";
 import { useProfilesStore, useVergeStore } from "@/stores";
@@ -27,7 +28,7 @@ import { ProxyGroupTools } from "./proxy-group-tools";
 import { ProxyHead } from "./proxy-head";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
-import type { IRenderItem } from "./use-render-list";
+import type { IProxyGroupItem, IRenderItem } from "./use-render-list";
 
 interface RenderProps {
   item: IRenderItem;
@@ -36,13 +37,13 @@ interface RenderProps {
   onLocation: (group: IProxyGroupItem) => void;
   onCheckAll: (groupName: string) => void;
   onGroupToggle?: (group: IProxyGroupItem) => void | Promise<void>;
-  onChangeProxy: (group: IProxyGroupItem, proxy: IProxyItem) => void;
+  onChangeProxy: (group: IProxyGroupItem, proxy: Proxy) => void;
 }
 
 interface ProxyColProps {
   item: IRenderItem;
   delayVersion: number;
-  onChangeProxy: (group: IProxyGroupItem, proxy: IProxyItem) => void;
+  onChangeProxy: (group: IProxyGroupItem, proxy: Proxy) => void;
 }
 
 const StyledPrimary = styled("span")`
