@@ -11,10 +11,11 @@ import { IProxyGroupItem } from "@/components/proxy/use-render-list";
 export const calcuProxies = async () => {
   const proxyRecord = (await getProxies()).proxies;
   const providerRecord = await calcuProxyProviders();
+  // TODO: it's need?
   // provider name map
   const providerMap = Object.fromEntries(
-    Object.entries(providerRecord).flatMap(([provider, item]) =>
-      item!.proxies.map((p) => [p.name, { ...p, provider }]),
+    Object.entries(providerRecord).flatMap(([_provider, item]) =>
+      item!.proxies.map((p) => [p.name, p]),
     ),
   );
 
