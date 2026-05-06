@@ -159,7 +159,7 @@ export const ProxyGroups = (props: Props) => {
     { wait: 1000 },
   );
 
-  // 滚到对应的节点
+  // 滚到对应的分组
   const handleGroupLocation = useCallback(
     async (groupName: string) => {
       if (!groupName) return;
@@ -242,22 +242,16 @@ export const ProxyGroups = (props: Props) => {
 
   const renderGroupItem = useCallback(
     (item: IRenderItem, _index: number, stickyed: boolean) => (
-      <div
+      <ProxyRender
         key={item.key}
-        className={cn("pb-2", {
-          "py-0": item.type === 0,
-        })}>
-        <ProxyRender
-          key={item.key}
-          item={item}
-          stickyed={stickyed}
-          delayVersion={groupDelayVersions[item.group.name] ?? 0}
-          onLocation={handleLocation}
-          onCheckAll={handleCheckAll}
-          onGroupToggle={handleGroupToggle}
-          onChangeProxy={handleChangeProxy}
-        />
-      </div>
+        item={item}
+        stickyed={stickyed}
+        delayVersion={groupDelayVersions[item.group.name] ?? 0}
+        onLocation={handleLocation}
+        onCheckAll={handleCheckAll}
+        onGroupToggle={handleGroupToggle}
+        onChangeProxy={handleChangeProxy}
+      />
     ),
     [
       groupDelayVersions,
@@ -270,11 +264,7 @@ export const ProxyGroups = (props: Props) => {
 
   const renderProxyItem = useCallback(
     (item: IRenderItem) => (
-      <div
-        key={item.key}
-        className={cn("pb-2", {
-          "py-0": item.type === 0,
-        })}>
+      <div key={item.key} className="pb-2">
         <ProxyRender
           key={item.key}
           item={item}
