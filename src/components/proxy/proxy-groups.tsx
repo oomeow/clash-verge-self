@@ -287,13 +287,6 @@ export const ProxyGroups = (props: Props) => {
         <StickyVirtualList
           ref={stickyListRef}
           className="h-full overflow-auto"
-          items={renderList}
-          isGroupItem={(item) => item.type === 0}
-          getItemKey={(item) => item.key}
-          estimateItemSize={(item) =>
-            item.type === 0 ? FIXED_GROUP_HEIGHT : ESTIMATED_PROXY_ITEM_HEIGHT
-          }
-          groupItemSize={FIXED_GROUP_HEIGHT}
           stickyHeaderSx={(theme) => ({
             background: "#ffffff",
             ...theme.applyStyles("dark", {
@@ -302,6 +295,13 @@ export const ProxyGroups = (props: Props) => {
             boxShadow:
               "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
           })}
+          items={renderList}
+          isGroupItem={(item) => item.type === 0}
+          getItemKey={(item) => item.key}
+          fixedGroupItemHeight={FIXED_GROUP_HEIGHT}
+          estimateItemHeight={ESTIMATED_PROXY_ITEM_HEIGHT}
+          groupItemSize={FIXED_GROUP_HEIGHT}
+          renderGroupItem={renderProxyItem}
           renderItem={renderProxyItem}
         />
       </Box>

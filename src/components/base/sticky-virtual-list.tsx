@@ -43,8 +43,12 @@ export interface StickyVirtualListProps<TItem> {
   items: TItem[];
   isGroupItem: (item: TItem, index: number) => boolean;
   getItemKey: (item: TItem, index: number) => React.Key;
-  estimateItemSize: (item: TItem, index: number) => number;
+  // 组固定高度, 不可动态计算需精确
+  fixedGroupItemHeight: number;
+  // 非组项预估高度, 虚拟列表可动态计算
+  estimateItemHeight: number;
   groupItemSize: number;
+  renderGroupItem: (item: TItem, index: number) => ReactNode;
   renderItem: (item: TItem, index: number) => ReactNode;
   className?: string;
   overscan?: number;
@@ -59,8 +63,10 @@ function StickyVirtualListInner<TItem>(
     items,
     isGroupItem,
     getItemKey,
-    estimateItemSize,
+    fixedGroupItemHeight,
+    estimateItemHeight,
     groupItemSize,
+    renderGroupItem,
     renderItem,
     className,
     overscan = 8,
@@ -98,15 +104,22 @@ function StickyVirtualListInner<TItem>(
     offsets[0] = 0;
 
     for (let i = 0; i < items.length; i++) {
-      offsets[i + 1] = offsets[i] + estimateItemSize(items[i], i);
+      if (isGroupItem(items[i], i)) {
+        offsets[i + 1] = offsets[i] + fixedGroupItemHeight;
+      } else {
+        offsets[i + 1] = offsets[i] + estimateItemHeight;
+      }
     }
 
     return offsets;
-  }, [estimateItemSize, items]);
+  }, [fixedGroupItemHeight, estimateItemHeight, items]);
 
   const rowVirtualizer = useVirtualizer({
     count: items.length,
-    estimateSize: (index) => estimateItemSize(items[index], index),
+    estimateSize: (index) =>
+      isGroupItem(items[index], index)
+        ? fixedGroupItemHeight
+        : estimateItemHeight,
     getItemKey: (index) => getItemKey(items[index], index),
     getScrollElement: () => scrollParentRef.current,
     overscan,
@@ -204,7 +217,7 @@ function StickyVirtualListInner<TItem>(
                     },
                     ...stickyHeaderSxList,
                   ]}>
-                  {renderItem(group, groupIndex)}
+                  {renderGroupItem(group, groupIndex)}
                 </Box>
               </Box>
             );
