@@ -29,9 +29,9 @@
       "allowedVersions": "<10"
     },
     {
-      "matchPackageNames": ["/(tauri.*plugin)/"],
-      "groupName": "tauri plugin deps",
-      "minimumReleaseAge": "3 days"
+      "matchPackageNames": ["/(tauri)/"],
+      "groupName": "tauri monorepo"
+      // "minimumReleaseAge": "3 days"
     }
   ]
 }
