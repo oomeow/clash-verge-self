@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import { MihomoWebSocket, Traffic } from "tauri-plugin-mihomo-api";
 
 import { TrafficRef } from "@/components/layout/traffic-graph";
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
@@ -15,7 +15,7 @@ export const useTrafficData = () => {
   const wsFirstConnection = useRef<boolean>(true);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
-  const response = useSWRSubscription<ITrafficItem, any, string | null>(
+  const response = useSWRSubscription<Traffic, any, string | null>(
     subscriptKey,
     (_key, { next }) => {
       const reconnect = async () => {
@@ -36,7 +36,7 @@ export const useTrafficData = () => {
                   next(msg.data, { up: 0, down: 0 });
                   await reconnect();
                 } else {
-                  const data = JSON.parse(msg.data) as ITrafficItem;
+                  const data = JSON.parse(msg.data) as Traffic;
                   trafficRef.current?.appendData(data);
                   next(null, data);
                 }

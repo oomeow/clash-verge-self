@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   closeConnection,
   getConnections,
-  healthcheckProxyProvider,
+  Proxy,
   selectNodeForGroup,
   unfixedProxy,
 } from "tauri-plugin-mihomo-api";
@@ -22,7 +22,11 @@ import {
   StickyVirtualList,
   type StickyVirtualListHandle,
 } from "../base";
-import { type IRenderItem, useRenderList } from "./use-render-list";
+import {
+  IProxyGroupItem,
+  type IRenderItem,
+  useRenderList,
+} from "./use-render-list";
 
 interface Props {
   mode: string;
@@ -86,7 +90,7 @@ export const ProxyGroups = (props: Props) => {
 
   // 切换分组的节点代理
   const handleChangeProxy = useMemoizedFn(
-    useLockFn(async (group: IProxyGroupItem, proxy: IProxyItem) => {
+    useLockFn(async (group: IProxyGroupItem, proxy: Proxy) => {
       if (!["Selector", "URLTest", "Fallback"].includes(group.type)) return;
 
       const { name, type, fixed, now } = group;
@@ -141,18 +145,9 @@ export const ProxyGroups = (props: Props) => {
         )
         .flatMap((e) => e.proxyCol || e.proxy!)
         .filter(Boolean);
-      const providers = new Set(
-        proxies.map((p) => p!.provider!).filter(Boolean),
-      );
-
-      if (providers.size) {
-        Promise.allSettled(
-          [...providers].map((p) => healthcheckProxyProvider(p)),
-        ).then(() => onProxies());
-      }
       const names = proxies
-        .filter((p) => !p!.provider && p.type !== "Direct")
-        .map((p) => p!.name);
+        .filter((p) => p.type !== "Direct")
+        .map((p) => p.name);
       await delayManager.checkListDelay(names, groupName, timeout);
       onProxies();
     },

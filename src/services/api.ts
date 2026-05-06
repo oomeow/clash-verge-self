@@ -2,16 +2,20 @@ import {
   getProxies,
   getProxyProviders,
   getRuleProviders,
+  Proxy,
 } from "tauri-plugin-mihomo-api";
+
+import { IProxyGroupItem } from "@/components/proxy/use-render-list";
 
 /// Get the Proxy information
 export const calcuProxies = async () => {
   const proxyRecord = (await getProxies()).proxies;
   const providerRecord = await calcuProxyProviders();
+  // TODO: it's need?
   // provider name map
   const providerMap = Object.fromEntries(
-    Object.entries(providerRecord).flatMap(([provider, item]) =>
-      item!.proxies.map((p) => [p.name, { ...p, provider }]),
+    Object.entries(providerRecord).flatMap(([_provider, item]) =>
+      item!.proxies.map((p) => [p.name, p]),
     ),
   );
 
@@ -26,7 +30,7 @@ export const calcuProxies = async () => {
       xudp: false,
       tfo: false,
       history: [],
-    };
+    } as unknown as Proxy;
   };
 
   const { GLOBAL: global, DIRECT: direct, REJECT: reject } = proxyRecord;

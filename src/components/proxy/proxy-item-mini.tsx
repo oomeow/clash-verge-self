@@ -1,14 +1,17 @@
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { alpha, Box, ListItemButton, styled, Typography } from "@mui/material";
 import { memo } from "react";
+import { Proxy } from "tauri-plugin-mihomo-api";
 
 import { BaseLoading } from "@/components/base";
-import delayManager from "@/services/delay";
+import delayManager, { DEFAULT_LATENCY_TIMEOUT } from "@/services/delay";
 import { useVergeStore } from "@/stores";
 
+import { IProxyGroupItem } from "./use-render-list";
+
 interface Props {
-  groupName: string;
-  proxy: IProxyItem;
+  group: IProxyGroupItem;
+  proxy: Proxy;
   fixed: boolean;
   selected: boolean;
   showType?: boolean;
@@ -39,14 +42,18 @@ const TypeSpan = styled("span")(
     marginRight: "4px",
     marginTop: "auto",
     padding: "0 4px",
+    wordBreak: "keep-all",
     lineHeight: 1.5,
+    "&[data-proxy-provider]": {
+      backgroundColor: alpha(text.secondary, 0.2),
+    },
   }),
 );
 
 // 多列布局
 export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
   const {
-    groupName,
+    group,
     proxy,
     fixed,
     selected,
@@ -54,11 +61,13 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
     delayVersion,
     onClick,
   } = props;
-  const timeout = useVergeStore((s) => s.verge.default_latency_timeout ?? 5000);
-  const delay = delayManager.getDelayFix(proxy, groupName);
+  const timeout = useVergeStore(
+    (s) => s.verge.default_latency_timeout ?? DEFAULT_LATENCY_TIMEOUT,
+  );
+  const delay = delayManager.getDelayFix(proxy, group.name);
 
   const onDelay = async () => {
-    await delayManager.checkDelay(proxy.name, groupName, timeout);
+    await delayManager.checkDelay(proxy.name, group.name, timeout);
   };
 
   return (
@@ -154,13 +163,13 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
                 {proxy.now}
               </Typography>
             )}
-            {!!proxy.provider && (
-              <TypeSpan color="text.secondary">{proxy.provider}</TypeSpan>
+            {!!proxy.providerName && (
+              <TypeSpan data-proxy-provider>{proxy.providerName}</TypeSpan>
             )}
-            <TypeSpan color="text.secondary">{proxy.type}</TypeSpan>
-            {proxy.udp && <TypeSpan color="text.secondary">UDP</TypeSpan>}
-            {proxy.xudp && <TypeSpan color="text.secondary">XUDP</TypeSpan>}
-            {proxy.tfo && <TypeSpan color="text.secondary">TFO</TypeSpan>}
+            <TypeSpan>{proxy.type}</TypeSpan>
+            {proxy.udp && <TypeSpan>UDP</TypeSpan>}
+            {proxy.xudp && <TypeSpan>XUDP</TypeSpan>}
+            {proxy.tfo && <TypeSpan>TFO</TypeSpan>}
           </Box>
         )}
       </Box>
@@ -170,8 +179,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
             <BaseLoading />
           </Widget>
         )}
-        {!proxy.provider && proxy.type !== "Direct" && delay !== -2 && (
-          // provider的节点不支持检测
+        {proxy.type !== "Direct" && delay !== -2 && (
           <Widget
             className="the-check"
             onClick={(e) => {
@@ -192,16 +200,13 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
           <Widget
             className="the-delay"
             onClick={(e) => {
-              if (proxy.provider) return;
               e.preventDefault();
               e.stopPropagation();
               onDelay();
             }}
             sx={({ palette }) => ({
               color: delayManager.formatDelayColor(delay, timeout),
-              ...(!proxy.provider && {
-                ":hover": { bgcolor: alpha(palette.primary.main, 0.15) },
-              }),
+              ":hover": { bgcolor: alpha(palette.primary.main, 0.15) },
             })}>
             {delayManager.formatDelay(delay, timeout)}
           </Widget>

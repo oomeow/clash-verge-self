@@ -1,5 +1,7 @@
 import { styled } from "@mui/material";
 
+import { ILogItem } from "@/hooks/use-log-data";
+
 const Item = styled("div")(({ theme: { palette, typography } }) => ({
   padding: "8px 0",
   margin: "0 12px",
