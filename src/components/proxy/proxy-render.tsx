@@ -23,7 +23,6 @@ import {
 } from "@/stores/proxyHeadStateStore";
 
 import { ProxyGroupTools } from "./proxy-group-tools";
-import { FIXED_GROUP_HEIGHT } from "./proxy-groups";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
 import type { IRenderItem } from "./use-render-list";
@@ -276,71 +275,84 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
 
   if (type === 0) {
     return (
-      <ListItemButton
-        id={`group-${group.name}`}
-        dense
-        sx={(theme) => ({
-          background: "#ffffff",
-          ...theme.applyStyles("dark", {
-            background: "#282A36",
-          }),
-          height: `${FIXED_GROUP_HEIGHT}px`,
-          py: 0,
-          my: 0,
-          // margin: "0 8px",
-          // borderRadius: "8px",
-          transition: "background-color 0s",
-        })}
-        onClick={async () => {
-          if (headState?.open) {
-            await onGroupToggle?.(group);
-          }
-          headStateActions.setOpen(!headState?.open);
-        }}>
-        {enableGroupIcon && (
-          <>
-            {isHttpIcon && !iconCachePath && iconLoading && (
-              <Box sx={GROUP_ICON_LOADING_STYLE}>
-                <CircularProgress size={18} />
-              </Box>
-            )}
-            {isHttpIcon && iconCachePath && (
-              <img src={iconCachePath} width="32px" style={GROUP_ICON_STYLE} />
-            )}
-            {isDataIcon && (
-              <img src={groupIcon} width="32px" style={GROUP_ICON_STYLE} />
-            )}
-            {isInlineSvgIcon && (
-              <img
-                src={encodeSvgDataUri(groupIcon)}
-                width="32px"
-                style={GROUP_ICON_STYLE}
-              />
-            )}
-          </>
-        )}
-        <ListItemText
-          sx={{ minWidth: 0 }}
-          primary={<StyledPrimary>{group.name}</StyledPrimary>}
-          secondary={
-            <span className="mt-0.5 inline-block truncate">
-              <StyledTypeBox>{group.type}</StyledTypeBox>
-              <StyledSubtitle>{group.now}</StyledSubtitle>
-            </span>
-          }
-          slotProps={{
-            secondary: { sx: { display: "flex", alignItems: "center" } },
-          }}
-        />
+      <div className="py-1">
+        <ListItemButton
+          id={`group-${group.name}`}
+          dense
+          sx={(theme) => ({
+            background: "#ffffff",
+            ...theme.applyStyles("dark", {
+              background: "#282A36",
+            }),
+            ":hover": {
+              background: "#f5f5f5",
+              ...theme.applyStyles("dark", {
+                background: "#383A46",
+              }),
+            },
+            height: "70px",
+            margin: "0 8px",
+            borderRadius: "8px",
+            // boxSizing: "border-box",
+            boxShadow:
+              "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+            transition: "background-color 0s",
+          })}
+          onClick={async () => {
+            if (headState?.open) {
+              await onGroupToggle?.(group);
+            }
+            headStateActions.setOpen(!headState?.open);
+          }}>
+          {enableGroupIcon && (
+            <>
+              {isHttpIcon && !iconCachePath && iconLoading && (
+                <Box sx={GROUP_ICON_LOADING_STYLE}>
+                  <CircularProgress size={18} />
+                </Box>
+              )}
+              {isHttpIcon && iconCachePath && (
+                <img
+                  src={iconCachePath}
+                  width="32px"
+                  style={GROUP_ICON_STYLE}
+                />
+              )}
+              {isDataIcon && (
+                <img src={groupIcon} width="32px" style={GROUP_ICON_STYLE} />
+              )}
+              {isInlineSvgIcon && (
+                <img
+                  src={encodeSvgDataUri(groupIcon)}
+                  width="32px"
+                  style={GROUP_ICON_STYLE}
+                />
+              )}
+            </>
+          )}
+          <ListItemText
+            sx={{ minWidth: 0 }}
+            primary={<StyledPrimary>{group.name}</StyledPrimary>}
+            secondary={
+              <span className="mt-0.5 inline-block truncate">
+                <StyledTypeBox>{group.type}</StyledTypeBox>
+                <StyledSubtitle>{group.now}</StyledSubtitle>
+              </span>
+            }
+            slotProps={{
+              secondary: { sx: { display: "flex", alignItems: "center" } },
+            }}
+          />
 
-        <ProxyGroupTools
-          sx={{ pr: 3 }}
-          groupName={group.name}
-          onLocation={() => onLocation(group)}
-          onCheckDelay={() => onCheckAll(group.name)}
-        />
-        {headState?.open ? <ExpandLessRounded /> : <ExpandMoreRounded />}
-      </ListItemButton>
+          <ProxyGroupTools
+            sx={{ pr: 3 }}
+            groupName={group.name}
+            onLocation={() => onLocation(group)}
+            onCheckDelay={() => onCheckAll(group.name)}
+          />
+          {headState?.open ? <ExpandLessRounded /> : <ExpandMoreRounded />}
+        </ListItemButton>
+      </div>
     );
   }
 

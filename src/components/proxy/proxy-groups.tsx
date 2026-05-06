@@ -28,11 +28,6 @@ interface Props {
   mode: string;
 }
 
-/// 固定的组高度，用于手动计算组高度偏移量
-export const FIXED_GROUP_HEIGHT = 70;
-/// 预估的项高度，用于 tanstack/react-virtual 动态计算高度
-const ESTIMATED_PROXY_ITEM_HEIGHT = 64;
-
 export const ProxyGroups = (props: Props) => {
   const { mode } = props;
   const { t } = useTranslation();
@@ -286,21 +281,12 @@ export const ProxyGroups = (props: Props) => {
         })}>
         <StickyVirtualList
           ref={stickyListRef}
-          className="h-full overflow-auto"
-          stickyHeaderSx={(theme) => ({
-            background: "#ffffff",
-            ...theme.applyStyles("dark", {
-              background: "#282A36",
-            }),
-            boxShadow:
-              "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-          })}
+          className="h-full w-full"
           items={renderList}
           isGroupItem={(item) => item.type === 0}
           getItemKey={(item) => item.key}
-          fixedGroupItemHeight={FIXED_GROUP_HEIGHT}
-          estimateItemHeight={ESTIMATED_PROXY_ITEM_HEIGHT}
-          groupItemSize={FIXED_GROUP_HEIGHT}
+          estimateGroupItemHeight={70}
+          estimateItemHeight={64}
           renderGroupItem={renderProxyItem}
           renderItem={renderProxyItem}
         />

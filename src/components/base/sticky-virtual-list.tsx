@@ -1,4 +1,3 @@
-import { Box, type SxProps, type Theme } from "@mui/material";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   forwardRef,
@@ -43,16 +42,14 @@ export interface StickyVirtualListProps<TItem> {
   items: TItem[];
   isGroupItem: (item: TItem, index: number) => boolean;
   getItemKey: (item: TItem, index: number) => React.Key;
-  // 组固定高度, 不可动态计算需精确
-  fixedGroupItemHeight: number;
-  // 非组项预估高度, 虚拟列表可动态计算
+  // 组项预估高度
+  estimateGroupItemHeight: number;
+  // 非组项预估高度
   estimateItemHeight: number;
-  groupItemSize: number;
   renderGroupItem: (item: TItem, index: number) => ReactNode;
   renderItem: (item: TItem, index: number) => ReactNode;
   className?: string;
   overscan?: number;
-  stickyHeaderSx?: SxProps<Theme>;
 }
 
 function StickyVirtualListInner<TItem>(
@@ -63,14 +60,12 @@ function StickyVirtualListInner<TItem>(
     items,
     isGroupItem,
     getItemKey,
-    fixedGroupItemHeight,
+    estimateGroupItemHeight: estimateGroupItemHeight,
     estimateItemHeight,
-    groupItemSize,
     renderGroupItem,
     renderItem,
     className,
     overscan = 8,
-    stickyHeaderSx,
   } = props;
   const scrollParentRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +77,7 @@ function StickyVirtualListInner<TItem>(
       }, []),
     [isGroupItem, items],
   );
+
   const groupSections = useMemo(
     () =>
       groupIndexes.map((groupIndex, index) => ({
@@ -90,47 +86,47 @@ function StickyVirtualListInner<TItem>(
       })),
     [groupIndexes, items.length],
   );
-  const stickyHeaderSxList = useMemo(
-    () =>
-      stickyHeaderSx
-        ? Array.isArray(stickyHeaderSx)
-          ? stickyHeaderSx
-          : [stickyHeaderSx]
-        : [],
-    [stickyHeaderSx],
-  );
+
   const estimatedOffsets = useMemo(() => {
     const offsets = new Array<number>(items.length + 1);
     offsets[0] = 0;
 
     for (let i = 0; i < items.length; i++) {
       if (isGroupItem(items[i], i)) {
-        offsets[i + 1] = offsets[i] + fixedGroupItemHeight;
+        offsets[i + 1] = offsets[i] + estimateGroupItemHeight;
       } else {
         offsets[i + 1] = offsets[i] + estimateItemHeight;
       }
     }
 
     return offsets;
-  }, [fixedGroupItemHeight, estimateItemHeight, items]);
+  }, [estimateGroupItemHeight, estimateItemHeight, items]);
 
   const rowVirtualizer = useVirtualizer({
     count: items.length,
     estimateSize: (index) =>
       isGroupItem(items[index], index)
-        ? fixedGroupItemHeight
+        ? estimateGroupItemHeight
         : estimateItemHeight,
     getItemKey: (index) => getItemKey(items[index], index),
     getScrollElement: () => scrollParentRef.current,
     overscan,
   });
+
   const virtualItems = rowVirtualizer.getVirtualItems();
 
   const getVirtualOffset = useCallback(
-    (index: number) =>
-      rowVirtualizer.measurementsCache[index]?.start ?? estimatedOffsets[index],
+    (index: number) => {
+      // 动态计算后的缓存列表，包含所有索引/高度数据等等
+      // console.log(rowVirtualizer.measurementsCache);
+      return (
+        rowVirtualizer.measurementsCache[index]?.start ??
+        estimatedOffsets[index]
+      );
+    },
     [estimatedOffsets, rowVirtualizer],
   );
+
   const visibleGroupSections = useMemo(() => {
     if (!virtualItems.length || !groupSections.length) return [];
 
@@ -174,15 +170,22 @@ function StickyVirtualListInner<TItem>(
   );
 
   return (
-    <Box ref={scrollParentRef} className={className}>
-      <Box
-        sx={{
+    <div
+      ref={scrollParentRef}
+      className={className}
+      style={{
+        overflowY: "auto",
+        contain: "strict",
+        overflowAnchor: "none",
+      }}>
+      <div
+        style={{
           height: rowVirtualizer.getTotalSize(),
           position: "relative",
           width: "100%",
         }}>
-        <Box
-          sx={{
+        <div
+          style={{
             inset: 0,
             pointerEvents: "none",
             position: "absolute",
@@ -197,56 +200,59 @@ function StickyVirtualListInner<TItem>(
                 : rowVirtualizer.getTotalSize();
 
             return (
-              <Box
+              <div
                 key={getItemKey(group, groupIndex)}
-                sx={{
-                  height: Math.max(end - start, groupItemSize),
-                  left: 0,
+                style={{
                   position: "absolute",
                   top: start,
+                  left: 0,
                   width: "100%",
+                  height: Math.max(end - start, estimateGroupItemHeight),
                 }}>
-                <Box
+                <div
                   data-index={groupIndex}
-                  sx={[
-                    {
-                      pointerEvents: "auto",
-                      position: "sticky",
-                      top: 0,
-                      zIndex: 1,
-                    },
-                    ...stickyHeaderSxList,
-                  ]}>
+                  style={{
+                    pointerEvents: "auto",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 1,
+                  }}>
                   {renderGroupItem(group, groupIndex)}
-                </Box>
-              </Box>
+                </div>
+              </div>
             );
           })}
-        </Box>
+        </div>
 
         {virtualItems.map((virtualRow) => {
           const item = items[virtualRow.index];
-          if (isGroupItem(item, virtualRow.index)) return null;
+          const isGroup = isGroupItem(item, virtualRow.index);
 
           return (
-            <Box
+            <div
               key={virtualRow.key}
               ref={rowVirtualizer.measureElement}
               data-index={virtualRow.index}
-              sx={{
+              style={{
                 left: 0,
                 position: "absolute",
                 top: 0,
                 transform: `translateY(${virtualRow.start}px)`,
                 width: "100%",
                 zIndex: 1,
+                ...(isGroup && {
+                  opacity: 0,
+                  zIndex: -10,
+                }),
               }}>
-              {renderItem(item, virtualRow.index)}
-            </Box>
+              {isGroup
+                ? renderGroupItem(item, virtualRow.index) // 渲染组，以便动态计算组高度
+                : renderItem(item, virtualRow.index)}
+            </div>
           );
         })}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }
 
