@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
+import { DEFAULT_TEST_URL } from "@/services/delay";
 import { useVergeStore } from "@/stores";
 
 export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
@@ -208,7 +209,7 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
             spellCheck="false"
             sx={{ width: 250 }}
             value={values.defaultLatencyTest}
-            placeholder="https://www.gstatic.com/generate_204"
+            placeholder={DEFAULT_TEST_URL}
             onChange={(e) =>
               setValues((v) => ({ ...v, defaultLatencyTest: e.target.value }))
             }

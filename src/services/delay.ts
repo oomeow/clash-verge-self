@@ -1,5 +1,8 @@
 import { delayGroup, delayProxyByName, Proxy } from "tauri-plugin-mihomo-api";
 
+export const DEFAULT_TEST_URL = "https://www.gstatic.com/generate_204";
+export const DEFAULT_LATENCY_TIMEOUT = 5000;
+
 const hashKey = (name: string, group: string) => `${group ?? ""}::${name}`;
 
 class DelayManager {
@@ -13,11 +16,11 @@ class DelayManager {
   private groupListenerMap = new Map<string, Set<() => void>>();
 
   setUrl(group: string, url: string | undefined) {
-    this.urlMap.set(group, url ?? "https://www.gstatic.com/generate_204");
+    this.urlMap.set(group, url ?? DEFAULT_TEST_URL);
   }
 
   getUrl(group: string) {
-    return this.urlMap.get(group) || "https://www.gstatic.com/generate_204";
+    return this.urlMap.get(group) || DEFAULT_TEST_URL;
   }
 
   setListener(name: string, group: string, listener: (time: number) => void) {
@@ -68,8 +71,8 @@ class DelayManager {
   }
 
   /// 暂时修复provider的节点延迟排序的问题
-  getDelayFix(proxy: Proxy, group: string) {
-    const delay = this.getDelay(proxy.name, group);
+  getDelayFix(proxy: Proxy, groupName: string) {
+    const delay = this.getDelay(proxy.name, groupName);
     if (delay >= 0 || delay === -2) return delay;
 
     if (proxy.history.length > 0) {
@@ -143,7 +146,7 @@ class DelayManager {
     });
   }
 
-  formatDelay(delay: number, timeout = 5000) {
+  formatDelay(delay: number, timeout = DEFAULT_LATENCY_TIMEOUT) {
     if (delay < 0) return "Error";
     if (delay == 0) return "Timeout";
     if (delay > 1e5) return "Error";
@@ -151,7 +154,7 @@ class DelayManager {
     return `${delay}`;
   }
 
-  formatDelayColor(delay: number, timeout = 5000) {
+  formatDelayColor(delay: number, timeout = DEFAULT_LATENCY_TIMEOUT) {
     if (delay >= timeout) return "error.main";
     if (delay <= 0) return "error.main";
     if (delay > 500) return "warning.main";

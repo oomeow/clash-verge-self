@@ -4,11 +4,13 @@ import { memo } from "react";
 import { Proxy } from "tauri-plugin-mihomo-api";
 
 import { BaseLoading } from "@/components/base";
-import delayManager from "@/services/delay";
+import delayManager, { DEFAULT_LATENCY_TIMEOUT } from "@/services/delay";
 import { useVergeStore } from "@/stores";
 
+import { IProxyGroupItem } from "./use-render-list";
+
 interface Props {
-  groupName: string;
+  group: IProxyGroupItem;
   proxy: Proxy;
   fixed: boolean;
   selected: boolean;
@@ -51,7 +53,7 @@ const TypeSpan = styled("span")(
 // 多列布局
 export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
   const {
-    groupName,
+    group,
     proxy,
     fixed,
     selected,
@@ -59,11 +61,13 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
     delayVersion,
     onClick,
   } = props;
-  const timeout = useVergeStore((s) => s.verge.default_latency_timeout ?? 5000);
-  const delay = delayManager.getDelayFix(proxy, groupName);
+  const timeout = useVergeStore(
+    (s) => s.verge.default_latency_timeout ?? DEFAULT_LATENCY_TIMEOUT,
+  );
+  const delay = delayManager.getDelayFix(proxy, group.name);
 
   const onDelay = async () => {
-    await delayManager.checkDelay(proxy.name, groupName, timeout);
+    await delayManager.checkDelay(proxy.name, group.name, timeout);
   };
 
   return (

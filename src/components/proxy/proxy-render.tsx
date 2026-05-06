@@ -195,7 +195,7 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
       {proxyCol?.map((proxy) => (
         <ProxyItemMini
           key={item.key + proxy.name}
-          groupName={group.name}
+          group={group}
           proxy={proxy!}
           fixed={group.fixed === proxy.name}
           selected={group.now === proxy.name}
