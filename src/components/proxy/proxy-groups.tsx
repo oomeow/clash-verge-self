@@ -147,7 +147,7 @@ export const ProxyGroups = (props: Props) => {
         .filter(Boolean);
       const names = proxies
         .filter((p) => p.type !== "Direct")
-        .map((p) => p!.name);
+        .map((p) => p.name);
       await delayManager.checkListDelay(names, groupName, timeout);
       onProxies();
     },
