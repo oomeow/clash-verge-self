@@ -244,8 +244,8 @@ impl IVerge {
             if bypass.contains(";") {
                 #[cfg(target_os = "windows")]
                 {
-                    if config.windows_bypass.is_none() {
-                        config.windows_bypass = Some(bypass);
+                    if self.windows_bypass.is_none() {
+                        self.windows_bypass = Some(bypass);
                     }
                 }
             } else if bypass.contains(",") {
@@ -257,8 +257,8 @@ impl IVerge {
                 }
                 #[cfg(target_os = "linux")]
                 {
-                    if config.linux_bypass.is_none() {
-                        config.linux_bypass = Some(bypass);
+                    if self.linux_bypass.is_none() {
+                        self.linux_bypass = Some(bypass);
                     }
                 }
             }
