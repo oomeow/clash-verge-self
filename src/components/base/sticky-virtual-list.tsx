@@ -46,7 +46,7 @@ export interface StickyVirtualListProps<TItem> {
   estimateGroupItemHeight: number;
   // 非组项预估高度
   estimateItemHeight: number;
-  renderGroupItem: (item: TItem, index: number) => ReactNode;
+  renderGroupItem: (item: TItem, index: number, stickyed: boolean) => ReactNode;
   renderItem: (item: TItem, index: number) => ReactNode;
   className?: string;
   overscan?: number;
@@ -152,15 +152,22 @@ function StickyVirtualListInner<TItem>(
     );
   }, [groupIndexes, groupSections, virtualItems]);
 
+  const isGroupSticky = useCallback(
+    (groupIndex: number, tolerance = 0) => {
+      const scroller = scrollParentRef.current;
+      if (!scroller) return false;
+
+      return scroller.scrollTop > getVirtualOffset(groupIndex) + tolerance;
+    },
+    [scrollParentRef, getVirtualOffset],
+  );
+
   useImperativeHandle(
     ref,
     () => ({
       getScrollElement: () => scrollParentRef.current,
       isItemScrolledPastStart: (index, tolerance = 0) => {
-        const scroller = scrollParentRef.current;
-        if (!scroller) return false;
-
-        return scroller.scrollTop > getVirtualOffset(index) + tolerance;
+        return isGroupSticky(index, tolerance);
       },
       scrollToIndex: (index, options) => {
         rowVirtualizer.scrollToIndex(index, options);
@@ -198,6 +205,7 @@ function StickyVirtualListInner<TItem>(
               nextGroupIndex < items.length
                 ? getVirtualOffset(nextGroupIndex)
                 : rowVirtualizer.getTotalSize();
+            const stickyed = isGroupSticky(groupIndex, 1);
 
             return (
               <div
@@ -217,7 +225,7 @@ function StickyVirtualListInner<TItem>(
                     top: 0,
                     zIndex: 1,
                   }}>
-                  {renderGroupItem(group, groupIndex)}
+                  {renderGroupItem(group, groupIndex, stickyed)}
                 </div>
               </div>
             );
@@ -246,7 +254,7 @@ function StickyVirtualListInner<TItem>(
                 }),
               }}>
               {isGroup
-                ? renderGroupItem(item, virtualRow.index) // 渲染组，以便动态计算组高度
+                ? renderGroupItem(item, virtualRow.index, false) // 渲染组，以便动态计算组高度
                 : renderItem(item, virtualRow.index)}
             </div>
           );

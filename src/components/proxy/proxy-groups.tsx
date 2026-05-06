@@ -240,6 +240,34 @@ export const ProxyGroups = (props: Props) => {
     [renderList],
   );
 
+  const renderGroupItem = useCallback(
+    (item: IRenderItem, _index: number, stickyed: boolean) => (
+      <div
+        key={item.key}
+        className={cn("pb-2", {
+          "py-0": item.type === 0,
+        })}>
+        <ProxyRender
+          key={item.key}
+          item={item}
+          stickyed={stickyed}
+          delayVersion={groupDelayVersions[item.group.name] ?? 0}
+          onLocation={handleLocation}
+          onCheckAll={handleCheckAll}
+          onGroupToggle={handleGroupToggle}
+          onChangeProxy={handleChangeProxy}
+        />
+      </div>
+    ),
+    [
+      groupDelayVersions,
+      handleChangeProxy,
+      handleCheckAll,
+      handleGroupToggle,
+      handleLocation,
+    ],
+  );
+
   const renderProxyItem = useCallback(
     (item: IRenderItem) => (
       <div
@@ -287,7 +315,7 @@ export const ProxyGroups = (props: Props) => {
           getItemKey={(item) => item.key}
           estimateGroupItemHeight={70}
           estimateItemHeight={64}
-          renderGroupItem={renderProxyItem}
+          renderGroupItem={renderGroupItem}
           renderItem={renderProxyItem}
         />
       </Box>

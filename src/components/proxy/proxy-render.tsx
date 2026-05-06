@@ -21,6 +21,7 @@ import {
   createScopedHeadStateActions,
   DEFAULT_STATE,
 } from "@/stores/proxyHeadStateStore";
+import { cn } from "@/utils";
 
 import { ProxyGroupTools } from "./proxy-group-tools";
 import { ProxyItem } from "./proxy-item";
@@ -29,6 +30,7 @@ import type { IRenderItem } from "./use-render-list";
 
 interface RenderProps {
   item: IRenderItem;
+  stickyed?: boolean;
   delayVersion: number;
   onLocation: (group: IProxyGroupItem) => void;
   onCheckAll: (groupName: string) => void;
@@ -206,6 +208,7 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
 export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const {
     item,
+    stickyed,
     delayVersion,
     onLocation,
     onCheckAll,
@@ -275,7 +278,10 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
 
   if (type === 0) {
     return (
-      <div className="py-1">
+      <div
+        className={cn("py-1", {
+          "py-0": stickyed && headState.open,
+        })}>
         <ListItemButton
           id={`group-${group.name}`}
           dense
@@ -294,9 +300,15 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
             margin: "0 8px",
             borderRadius: "8px",
             // boxSizing: "border-box",
-            boxShadow:
-              "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-            transition: "background-color 0s",
+            transition:
+              "background-color 0s, margin 0.1s, border-radius 0.1s, box-shadow 0.1s",
+            ...(stickyed &&
+              headState.open && {
+                margin: "0",
+                borderRadius: "0",
+                boxShadow:
+                  "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+              }),
           })}
           onClick={async () => {
             if (headState?.open) {
