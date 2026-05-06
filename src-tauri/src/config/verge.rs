@@ -227,72 +227,75 @@ impl IVerge {
     pub fn new() -> Self {
         match dirs::verge_path().and_then(|path| help::read_yaml::<IVerge>(&path)) {
             Ok(mut config) => {
-                // 对旧字段的兼容处理
-                // 将 system_proxy_bypass 设置到对应的平台，后续将移除 system_proxy_bypass
-                if let Some(bypass) = config.system_proxy_bypass.clone() {
-                    if bypass.contains(";") {
-                        #[cfg(target_os = "windows")]
-                        {
-                            if config.windows_bypass.is_none() {
-                                config.windows_bypass = Some(bypass);
-                            }
-                        }
-                    } else if bypass.contains(",") {
-                        #[cfg(target_os = "macos")]
-                        {
-                            if config.macos_bypass.is_none() {
-                                config.macos_bypass = Some(bypass);
-                            }
-                        }
-                        #[cfg(target_os = "linux")]
-                        {
-                            if config.linux_bypass.is_none() {
-                                config.linux_bypass = Some(bypass);
-                            }
-                        }
-                    }
-                }
-
-                if let Some(enable_silent_start) = config.enable_silent_start
-                    && config.silent_start_mode.is_none()
-                {
-                    if enable_silent_start {
-                        config.silent_start_mode = Some(SilentStartMode::Global);
-                    } else {
-                        config.silent_start_mode = Some(SilentStartMode::Off);
-                    }
-                }
-
-                if let Some(clash_core) = config.clash_core.as_ref()
-                    && clash_core.contains("verge-mihomo")
-                {
-                    let new_clash_core = clash_core.replace("verge-mihomo", "self-mihomo");
-                    config.clash_core = Some(new_clash_core)
-                }
-
-                #[cfg(target_os = "macos")]
-                if let Some(enable_system_title_bar) = config.enable_system_title_bar
-                    && !enable_system_title_bar
-                {
-                    config.enable_system_title_bar = Some(true)
-                }
-
-                if let Some(language) = config.language.as_ref()
-                    && language == "zh"
-                {
-                    config.language = Some("zh_CN".into());
-                }
-
-                if config.app_hotkeys.is_none() {
-                    config.app_hotkeys = Some(default_app_hotkeys());
-                }
-
+                config.migrate();
                 config
             }
             Err(err) => {
                 tracing::error!("{err}");
                 Self::template()
             }
+        }
+    }
+
+    fn migrate(&mut self) {
+        if let Some(bypass) = self.system_proxy_bypass.clone() {
+            // 对旧字段的兼容处理
+            // 将 system_proxy_bypass 设置到对应的平台，后续将移除 system_proxy_bypass
+            if bypass.contains(";") {
+                #[cfg(target_os = "windows")]
+                {
+                    if self.windows_bypass.is_none() {
+                        self.windows_bypass = Some(bypass);
+                    }
+                }
+            } else if bypass.contains(",") {
+                #[cfg(target_os = "macos")]
+                {
+                    if self.macos_bypass.is_none() {
+                        self.macos_bypass = Some(bypass);
+                    }
+                }
+                #[cfg(target_os = "linux")]
+                {
+                    if self.linux_bypass.is_none() {
+                        self.linux_bypass = Some(bypass);
+                    }
+                }
+            }
+        }
+
+        if let Some(enable_silent_start) = self.enable_silent_start
+            && self.silent_start_mode.is_none()
+        {
+            if enable_silent_start {
+                self.silent_start_mode = Some(SilentStartMode::Global);
+            } else {
+                self.silent_start_mode = Some(SilentStartMode::Off);
+            }
+        }
+
+        if let Some(clash_core) = self.clash_core.as_ref()
+            && clash_core.contains("verge-mihomo")
+        {
+            let new_clash_core = clash_core.replace("verge-mihomo", "self-mihomo");
+            self.clash_core = Some(new_clash_core)
+        }
+
+        #[cfg(target_os = "macos")]
+        if let Some(enable_system_title_bar) = self.enable_system_title_bar
+            && !enable_system_title_bar
+        {
+            self.enable_system_title_bar = Some(true)
+        }
+
+        if let Some(language) = self.language.as_ref()
+            && language == "zh"
+        {
+            self.language = Some("zh_CN".into());
+        }
+
+        if self.app_hotkeys.is_none() {
+            self.app_hotkeys = Some(default_app_hotkeys());
         }
     }
 
