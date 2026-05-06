@@ -43,59 +43,7 @@ impl IProfiles {
                 if profiles.items.is_none() {
                     profiles.items = Some(vec![]);
                 }
-
-                // This is old bug since 2.0.0 ~ 2.1.4 version
-                // clear profile data and delete invalid profile files
-                let mut save_file = false;
-                let mut available_files = Vec::new();
-
-                let enabled_global_chain = profiles.chain.as_deref().unwrap_or_default();
-                // compatible with the old old old version
-                if let Some(items) = profiles.items.as_mut() {
-                    let items_ = items.clone();
-                    let all_uids: Vec<String> = items_.iter().filter_map(|i| i.uid.clone()).collect();
-                    available_files = items_.iter().filter_map(|i| i.file.clone()).collect();
-                    for item in items.iter_mut() {
-                        if item.uid.is_none() {
-                            item.uid = Some(help::get_uid("d"));
-                        }
-                        if let Some(chain) = item.chain.as_mut() {
-                            // This is old bug since 2.0.0 ~ 2.1.4 version
-                            // remove invalid chains
-                            chain.retain(|i| all_uids.contains(i));
-                            save_file = true;
-                        }
-                        match item.itype {
-                            Some(ProfileType::Merge) | Some(ProfileType::Script) if item.scope.is_none() => {
-                                let uid = item.uid.as_ref().unwrap();
-                                item.scope = Some(ScopeType::Global);
-                                item.enable = Some(enabled_global_chain.contains(uid));
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-                if save_file {
-                    log_err!(profiles.save_file());
-                }
-                // This is old bug since 2.0.0 ~ 2.1.4 version
-                // delete invalid files in profiles dir
-                if let Ok(dir) = dirs::app_profiles_dir()
-                    && let Ok(dir) = std::fs::read_dir(dir)
-                {
-                    for entry in dir.flatten() {
-                        if let Ok(file_name) = entry.file_name().into_string()
-                            && !available_files.contains(&file_name)
-                        {
-                            let _ = std::fs::remove_file(entry.path());
-                            tracing::debug!(
-                                "delete invalid profile {}, {}",
-                                entry.file_name().display(),
-                                entry.path().display()
-                            );
-                        }
-                    }
-                }
+                profiles.migrate();
                 profiles
             }
             Err(err) => {
@@ -110,6 +58,72 @@ impl IProfiles {
                     }
                 }
                 Self::template()
+            }
+        }
+    }
+
+    fn migrate(&mut self) {
+        // This is old bug since 2.0.0 ~ 2.1.4 version
+        // clear profile data and delete invalid profile files
+        let mut save_file = false;
+        let mut available_files = Vec::new();
+
+        let enabled_global_chain = self.chain.as_deref().unwrap_or_default();
+        // compatible with the old old old version
+        if let Some(items) = self.items.as_mut() {
+            let items_ = items.clone();
+            let all_uids: Vec<String> = items_.iter().filter_map(|i| i.uid.clone()).collect();
+            available_files = items_.iter().filter_map(|i| i.file.clone()).collect();
+            for item in items.iter_mut() {
+                if item.uid.is_none() {
+                    item.uid = Some(help::get_uid("d"));
+                }
+                if let Some(chain) = item.chain.as_mut() {
+                    // This is old bug since 2.0.0 ~ 2.1.4 version
+                    // remove invalid chains
+                    chain.retain(|i| all_uids.contains(i));
+                    save_file = true;
+                }
+                match item.itype {
+                    Some(ProfileType::Merge) | Some(ProfileType::Script) if item.scope.is_none() => {
+                        let uid = item.uid.as_ref().unwrap();
+                        item.scope = Some(ScopeType::Global);
+                        item.enable = Some(enabled_global_chain.contains(uid));
+                    }
+                    _ => {}
+                }
+            }
+        }
+        if save_file {
+            log_err!(self.save_file());
+        }
+        // This is old bug since 2.0.0 ~ 2.1.4 version
+        // delete invalid files in profiles dir
+        if let Ok(dir) = dirs::app_profiles_dir()
+            && let Ok(dir) = std::fs::read_dir(dir)
+        {
+            for entry in dir.flatten() {
+                if let Ok(file_name) = entry.file_name().into_string()
+                    && !available_files.contains(&file_name)
+                {
+                    match std::fs::remove_file(entry.path()) {
+                        Ok(_) => {
+                            tracing::debug!(
+                                "delete invalid profile {}, {}",
+                                entry.file_name().display(),
+                                entry.path().display()
+                            );
+                        }
+                        Err(err) => {
+                            tracing::warn!(
+                                "failed to delete invalid profile {}, {}, error: {}",
+                                entry.file_name().display(),
+                                entry.path().display(),
+                                err
+                            );
+                        }
+                    }
+                }
             }
         }
     }
