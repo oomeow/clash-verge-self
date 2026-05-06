@@ -242,37 +242,29 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const [iconCachePath, setIconCachePath] = useState(
     () => groupIconSrcCache.get(iconCacheKey) ?? "",
   );
-  const [iconLoading, setIconLoading] = useState(
-    () => shouldLoadHttpIcon && !groupIconSrcCache.has(iconCacheKey),
-  );
 
   useAsyncEffect(
     async function* () {
       if (!shouldLoadHttpIcon) {
         setIconCachePath("");
-        setIconLoading(false);
         return;
       }
 
       const cachedIconSrc = groupIconSrcCache.get(iconCacheKey);
       if (cachedIconSrc) {
         setIconCachePath(cachedIconSrc);
-        setIconLoading(false);
         return;
       }
 
       setIconCachePath("");
-      setIconLoading(true);
 
       try {
         const iconSrc = await getGroupIconSrc(groupIcon);
         yield;
         setIconCachePath(iconSrc);
-        setIconLoading(false);
       } catch {
         yield;
         setIconCachePath("");
-        setIconLoading(false);
       }
     },
     [shouldLoadHttpIcon, groupIcon, iconCacheKey],
@@ -320,7 +312,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           }}>
           {enableGroupIcon && (
             <>
-              {isHttpIcon && !iconCachePath && iconLoading && (
+              {isHttpIcon && !iconCachePath && (
                 <Box sx={GROUP_ICON_LOADING_STYLE}>
                   <CircularProgress size={18} />
                 </Box>
