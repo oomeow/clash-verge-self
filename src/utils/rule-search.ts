@@ -70,12 +70,15 @@ const getExplicitRulePayload = (payload: string, ruleTypes: Set<string>) => {
 export const normalizeDomain = (value: string) => {
   const trimmed = value.trim().toLowerCase();
   const rawHost = (() => {
-    try {
-      return new URL(trimmed).hostname;
-    } catch {
-      const withoutScheme = trimmed.replace(/^[a-z][a-z\d+.-]*:\/\//, "");
-      return withoutScheme.split(/[/?#]/)[0] ?? "";
+    if (trimmed.includes("://")) {
+      try {
+        return new URL(trimmed).hostname;
+      } catch {
+        // fall through
+      }
     }
+    const withoutScheme = trimmed.replace(/^[a-z][a-z\d+.-]*:\/\//, "");
+    return withoutScheme.split(/[/?#]/)[0] ?? "";
   })();
   const withoutPort = rawHost.replace(/:\d+$/, "");
 
