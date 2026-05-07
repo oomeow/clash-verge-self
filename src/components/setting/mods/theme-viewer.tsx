@@ -116,7 +116,7 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
                   resetDarkThemeSetting();
                 }
               }}>
-              {t("pages.settings.verge.theme.colors.default")}
+              {t("pages.settings.verge.theme.default")}
             </Button>
             <ButtonGroup size="small">
               <Button

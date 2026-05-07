@@ -367,8 +367,8 @@
         },
         "theme": {
           "title": "Theme Setting",
+          "default": "Default Setting",
           "colors": {
-            "default": "Default Color",
             "primary": "Primary Color",
             "secondary": "Secondary Color",
             "primaryText": "Primary Text",

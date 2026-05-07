@@ -367,8 +367,8 @@
         },
         "theme": {
           "title": "تنظیمات تم",
+          "default": "تنظیمات پیش‌فرض",
           "colors": {
-            "default": "رنگ پیش‌فرض",
             "primary": "رنگ اصلی",
             "secondary": "رنگ ثانویه",
             "primaryText": "متن اصلی",

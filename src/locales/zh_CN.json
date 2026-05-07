@@ -367,8 +367,8 @@
         },
         "theme": {
           "title": "主题设置",
+          "default": "默认设置",
           "colors": {
-            "default": "默认颜色",
             "primary": "主要颜色",
             "secondary": "次要颜色",
             "primaryText": "主要文本颜色",
