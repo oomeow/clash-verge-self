@@ -207,14 +207,16 @@ const parseIpValue = (value: string) => {
 };
 
 const parseCidrRange = (value: string): IpRange | null => {
-  const [address = "", prefixText] = value.trim().split("/");
+  const parts = value.trim().split("/");
+  if (parts.length > 2) return null;
+  const [address = "", prefixText] = parts;
   const parsedIp = parseIpValue(address);
   if (!parsedIp) return null;
 
   const bitSize = parsedIp.version === 4 ? 32 : 128;
+  if (prefixText !== undefined && !/^\d+$/.test(prefixText)) return null;
   const prefix = prefixText === undefined ? bitSize : Number(prefixText);
   if (!Number.isInteger(prefix) || prefix < 0 || prefix > bitSize) return null;
-
   const hostBits = BigInt(bitSize - prefix);
   const blockSize = BigInt(1) << hostBits;
   const start = (parsedIp.value >> hostBits) << hostBits;
