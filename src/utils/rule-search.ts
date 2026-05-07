@@ -30,7 +30,7 @@ const DOMAIN_RULE_TYPES = new Set([
   "GEOSITE",
 ]);
 
-const CIDR_RULE_TYPES = new Set(["IP-CIDR", "SRC-IP-CIDR"]);
+const CIDR_RULE_TYPES = new Set(["IP-CIDR", "IP-CIDR6", "SRC-IP-CIDR"]);
 
 const normalizeRuleType = (type: string) => {
   const ruleTypeMap: Record<string, string> = {
@@ -52,6 +52,20 @@ const splitRuleParts = (payload: string) =>
     .split(",")
     .map((part) => part.trim())
     .filter(Boolean);
+
+const getExplicitRulePayload = (payload: string, ruleTypes: Set<string>) => {
+  const parts = splitRuleParts(payload);
+  const explicitType = parts[0] ? normalizeRuleType(parts[0]) : undefined;
+
+  if (!explicitType || !ruleTypes.has(explicitType)) {
+    return null;
+  }
+
+  const source = parts[1] ?? "";
+  if (!source) return null;
+
+  return { type: explicitType, source };
+};
 
 export const normalizeDomain = (value: string) => {
   const trimmed = value.trim().toLowerCase();
@@ -75,11 +89,20 @@ export const normalizeDomain = (value: string) => {
 
 const getDomainSearchPayload = (rule: SearchableRule, payload: string) => {
   if (!payload) return null;
-  const ruleType = normalizeRuleType(rule.type);
+  const explicitPayload = getExplicitRulePayload(payload, DOMAIN_RULE_TYPES);
+
+  if (explicitPayload) {
+    return {
+      type: explicitPayload.type,
+      value: normalizeDomain(explicitPayload.source),
+    };
+  }
 
   if (rule.behavior && rule.behavior.toLowerCase() !== "domain") {
     return null;
   }
+
+  const ruleType = normalizeRuleType(rule.type);
   if (!rule.behavior && !DOMAIN_RULE_TYPES.has(ruleType)) {
     return null;
   }
@@ -207,30 +230,22 @@ const rangesOverlap = (left: IpRange, right: IpRange) =>
   right.start <= left.end;
 
 const getCidrSearchPayload = (rule: SearchableRule, payload: string) => {
-  const parts = splitRuleParts(payload);
-  const explicitType = parts[0] ? normalizeRuleType(parts[0]) : undefined;
-  const hasExplicitType = explicitType
-    ? CIDR_RULE_TYPES.has(explicitType)
-    : false;
-  const source = (hasExplicitType ? parts[1] : payload) ?? "";
-  const ruleType =
-    hasExplicitType && explicitType
-      ? explicitType
-      : normalizeRuleType(rule.type);
+  const explicitPayload = getExplicitRulePayload(payload, CIDR_RULE_TYPES);
+  if (explicitPayload) {
+    return explicitPayload.source;
+  }
 
-  if (!source) return null;
-  if (
-    !hasExplicitType &&
-    rule.behavior &&
-    rule.behavior.toLowerCase() !== "ipcidr"
-  ) {
+  if (!payload) return null;
+  if (rule.behavior && rule.behavior.toLowerCase() !== "ipcidr") {
     return null;
   }
+
+  const ruleType = normalizeRuleType(rule.type);
   if (!rule.behavior && !CIDR_RULE_TYPES.has(ruleType)) {
     return null;
   }
 
-  return source;
+  return payload;
 };
 
 const cidrMatches = (
