@@ -85,7 +85,6 @@ export const normalizeDomain = (value: string) => {
   return withoutPort
     .replace(/^\*\./, "")
     .replace(/^\+\./, "")
-    .replace(/^www\d*\./, "")
     .replace(/^\./, "")
     .replace(/\.$/, "");
 };
