@@ -82,7 +82,7 @@
       "filterConditions": "过滤条件",
       "domain": "域名",
       "domainPlaceholder": "搜索域名，例如 google.com",
-      "cidrPlaceholder": "搜索 CIDR，例如 8.8.8.0/24",
+      "cidrPlaceholder": "搜索 IP 或 CIDR，例如 8.8.8.8 或 8.8.8.0/24",
       "rulesTotal": "共 {{count}} 条规则",
       "rulesMatched": "{{mode}}：{{text}} · 命中 {{groups}} 组 / {{items}} 条",
       "searching": "正在搜索...",

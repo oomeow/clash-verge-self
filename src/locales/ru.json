@@ -82,7 +82,7 @@
       "filterConditions": "Условия фильтрации",
       "domain": "Домен",
       "domainPlaceholder": "Поиск домена, например google.com",
-      "cidrPlaceholder": "Поиск CIDR, например 8.8.8.0/24",
+      "cidrPlaceholder": "Поиск IP или CIDR, например 8.8.8.8 или 8.8.8.0/24",
       "rulesTotal": "Всего правил: {{count}}",
       "rulesMatched": "{{mode}}: {{text}} · {{groups}} групп / {{items}} записей",
       "searching": "Поиск...",
