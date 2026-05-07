@@ -127,5 +127,5 @@
       "prettier-plugin-tailwindcss"
     ]
   },
-  "packageManager": "pnpm@11.0.4"
+  "packageManager": "pnpm@11.0.5"
 }
