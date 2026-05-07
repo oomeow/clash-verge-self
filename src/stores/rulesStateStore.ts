@@ -42,14 +42,9 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
       );
       const rulesSignature = newRules
         .map((rule) =>
-          [
-            rule.index,
-            rule.type,
-            rule.payload,
-            rule.proxy,
-            rule.size,
-            JSON.stringify(rule.extra),
-          ].join("\u0000"),
+          [rule.index, rule.type, rule.payload, rule.proxy, rule.size].join(
+            "\u0000",
+          ),
         )
         .join("\u0001");
 

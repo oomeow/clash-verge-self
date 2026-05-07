@@ -58,16 +58,23 @@ const parseColor = (text: string) => {
 
 export const RuleItem = (props: Props) => {
   const { index, value, matchPayloadItems } = props;
-  const isRuleSet = value.type === "RuleSet";
-  const expanded = useRulesStateStore((s) => {
-    if (!isRuleSet) return false;
-    return !!s.rules.find((rule) => rule.payload === value.payload)?.expanded;
-  });
+  const currentValue = useRulesStateStore(
+    (s) =>
+      s.rules.find(
+        (rule) => rule.index === value.index && rule.payload === value.payload,
+      ) ?? value,
+  );
+  const isRuleSet = currentValue.type === "RuleSet";
+  const expanded = isRuleSet && currentValue.expanded;
   const toggleRuleExpanded = useRulesStateStore((s) => s.toggleRuleExpanded);
   const disableRules = useRulesStateStore((s) => s.disableRules);
 
-  const showHit = !!(value.extra?.hitCount && value.extra.hitCount > 0);
-  const showMiss = !!(value.extra?.missCount && value.extra.missCount > 0);
+  const showHit = !!(
+    currentValue.extra?.hitCount && currentValue.extra.hitCount > 0
+  );
+  const showMiss = !!(
+    currentValue.extra?.missCount && currentValue.extra.missCount > 0
+  );
 
   return (
     <Card
@@ -80,7 +87,7 @@ export const RuleItem = (props: Props) => {
           const bgcolor = mode === "light" ? "#ffffff" : "#282A36";
           return {
             bgcolor,
-            opacity: value.extra?.disabled ? action.disabledOpacity : 1,
+            opacity: currentValue.extra?.disabled ? action.disabledOpacity : 1,
             "& ::-webkit-scrollbar-thumb": {
               backgroundColor: alpha(primary.main, 0.35),
             },
@@ -100,7 +107,7 @@ export const RuleItem = (props: Props) => {
             }),
             borderBottom: "1px solid var(--divider-color)",
           }),
-          ...(value.extra?.disabled && {
+          ...(currentValue.extra?.disabled && {
             bgcolor: theme.palette.action.disabledBackground,
             ":hover": {
               bgcolor: theme.palette.action.disabledBackground,
@@ -108,18 +115,25 @@ export const RuleItem = (props: Props) => {
           }),
         })}
         onClick={() => {
-          if (value.type === "RuleSet") {
-            toggleRuleExpanded(value.payload);
+          if (currentValue.type === "RuleSet") {
+            toggleRuleExpanded(currentValue.payload);
           }
         }}>
         <div className="w-full">
           <div className="flex w-full items-center justify-center">
             <Switch
               size="small"
-              checked={!value.extra?.disabled}
-              onChange={async (e) => {
+              checked={!currentValue.extra?.disabled}
+              onClick={(e) => {
                 e.stopPropagation();
-                await disableRules({ [value.index]: !value.extra?.disabled });
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+              onChange={async () => {
+                await disableRules({
+                  [currentValue.index]: !currentValue.extra?.disabled,
+                });
               }}
               sx={{ mr: 0.5 }}
             />
@@ -137,14 +151,16 @@ export const RuleItem = (props: Props) => {
                   component="h6"
                   variant="subtitle1"
                   color={
-                    value.extra?.disabled ? "text.disabled" : "text.primary"
+                    currentValue.extra?.disabled
+                      ? "text.disabled"
+                      : "text.primary"
                   }
                   sx={
-                    value.extra?.disabled
+                    currentValue.extra?.disabled
                       ? { textDecoration: "line-through" }
                       : undefined
                   }>
-                  {value.payload || "-"}
+                  {currentValue.payload || "-"}
                 </Typography>
               </div>
 
@@ -154,10 +170,10 @@ export const RuleItem = (props: Props) => {
                   variant="body2"
                   color="text.secondary"
                   sx={{ mr: 3, minWidth: 120, display: "inline-block" }}>
-                  {value.type}
+                  {currentValue.type}
                   {isRuleSet && (
                     <span className="text-primary-main bg-primary-alpha-20 ml-2 inline-block rounded-full px-2 text-xs">
-                      {value.behavior}
+                      {currentValue.behavior}
                     </span>
                   )}
                 </Typography>
@@ -165,13 +181,13 @@ export const RuleItem = (props: Props) => {
                 <Typography
                   component="span"
                   variant="body2"
-                  color={parseColor(value.proxy)}
+                  color={parseColor(currentValue.proxy)}
                   sx={
-                    value.extra?.disabled
+                    currentValue.extra?.disabled
                       ? { textDecoration: "line-through" }
                       : undefined
                   }>
-                  {value.proxy}
+                  {currentValue.proxy}
                 </Typography>
               </div>
             </div>
@@ -180,11 +196,11 @@ export const RuleItem = (props: Props) => {
               {isRuleSet && (
                 <div className="flex items-center justify-end">
                   <div className="bg-primary-alpha-20 text-primary-main rounded-full px-2 text-sm">
-                    {value.ruleCount}
+                    {currentValue.ruleCount}
                   </div>
                   <div className="text-primary-main bg-primary-alpha-20 ml-2 flex items-center rounded-full px-2 py-0.5 text-xs">
                     <Update className="mr-1" fontSize="small" />
-                    <span>{dayjs(value.updatedAt).fromNow()}</span>
+                    <span>{dayjs(currentValue.updatedAt).fromNow()}</span>
                   </div>
                 </div>
               )}
@@ -195,13 +211,13 @@ export const RuleItem = (props: Props) => {
                       <div>
                         Hit:
                         <span className="text-primary-main inline-block h-fit w-fit px-1">
-                          {value.extra?.hitCount}
+                          {currentValue.extra?.hitCount}
                         </span>
                       </div>
                       <div>
                         At:
                         <span className="text-primary-main inline-block h-fit w-fit px-1">
-                          {dayjs(value.extra?.hitAt).format(
+                          {dayjs(currentValue.extra?.hitAt).format(
                             "YYYY-MM-DD HH:mm:ss",
                           )}
                         </span>
@@ -249,7 +265,7 @@ export const RuleItem = (props: Props) => {
           sx={[
             ({ palette: { primary, action } }) => ({
               bgcolor: alpha(primary.main, 0.15),
-              ...(value.extra?.disabled && {
+              ...(currentValue.extra?.disabled && {
                 bgcolor: action.disabledBackground,
                 opacity: action.disabledOpacity,
               }),
