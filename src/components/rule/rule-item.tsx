@@ -59,7 +59,10 @@ const parseColor = (text: string) => {
 export const RuleItem = (props: Props) => {
   const { index, value, matchPayloadItems } = props;
   const isRuleSet = value.type === "RuleSet";
-  const expanded = isRuleSet && value.expanded;
+  const expanded = useRulesStateStore((s) => {
+    if (!isRuleSet) return false;
+    return !!s.rules.find((rule) => rule.payload === value.payload)?.expanded;
+  });
   const toggleRuleExpanded = useRulesStateStore((s) => s.toggleRuleExpanded);
   const disableRules = useRulesStateStore((s) => s.disableRules);
 
