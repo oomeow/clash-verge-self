@@ -153,19 +153,45 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
       }}
       onOk={onSave}>
       <List sx={{ pt: 0 }}>
-        <ThemeColorSelect label="Primary Color" themeKey="primary_color" />
-        <ThemeColorSelect label="Secondary Color" themeKey="secondary_color" />
-        <ThemeColorSelect label="Primary Text" themeKey="primary_text" />
-        <ThemeColorSelect label="Secondary Text" themeKey="secondary_text" />
-        <ThemeColorSelect label="Info Color" themeKey="info_color" />
-        <ThemeColorSelect label="Error Color" themeKey="error_color" />
-        <ThemeColorSelect label="Warning Color" themeKey="warning_color" />
-        <ThemeColorSelect label="Success Color" themeKey="success_color" />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.primary")}
+          themeKey="primary_color"
+        />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.secondary")}
+          themeKey="secondary_color"
+        />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.primaryText")}
+          themeKey="primary_text"
+        />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.secondaryText")}
+          themeKey="secondary_text"
+        />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.info")}
+          themeKey="info_color"
+        />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.error")}
+          themeKey="error_color"
+        />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.warning")}
+          themeKey="warning_color"
+        />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.success")}
+          themeKey="success_color"
+        />
 
         <Item>
-          <ListItemText primary="Font Family" />
+          <ListItemText primary={t("pages.settings.verge.theme.fontFamily")} />
           <TextField
             {...textProps}
+            variant="standard"
+            sx={{ width: 230 }}
             value={theme.font_family ?? ""}
             onChange={handleChange("font_family")}
             onKeyDown={(e) => e.key === "Enter" && onSave()}
@@ -173,7 +199,9 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
         </Item>
 
         <Item>
-          <ListItemText primary="CSS Injection" />
+          <ListItemText
+            primary={t("pages.settings.verge.theme.cssInjection")}
+          />
           <Input
             value={theme.css_injection ?? ""}
             disabled
