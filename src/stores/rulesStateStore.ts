@@ -17,6 +17,8 @@ export type CustomRule = Rule &
 
 type RulesState = {
   rules: CustomRule[];
+  rulesSignature: string;
+  rulesDataVersion: number;
 };
 
 type RulesActions = {
@@ -31,28 +33,47 @@ type RulesActions = {
 export const useRulesStateStore = create<RulesState & RulesActions>()(
   (set, get) => ({
     rules: [],
+    rulesSignature: "",
+    rulesDataVersion: 0,
     fetchRules: async () => {
       const rules = await getRules();
       const newRules = rules.rules.map(
         (rule) => ({ ...rule, expanded: false }) as CustomRule,
       );
+      const rulesSignature = newRules
+        .map((rule) =>
+          [rule.index, rule.type, rule.payload, rule.proxy, rule.size].join(
+            "\u0000",
+          ),
+        )
+        .join("\u0001");
 
       set((state) => {
+        const shouldPreserveRuleState = state.rulesSignature === rulesSignature;
         const existingRulesByPayload = new Map(
           state.rules.map((rule) => [rule.payload, rule]),
         );
 
-        // 基于旧数据合并 expanded 状态
         const mergedRules = newRules.map((newRule) => {
           const existingRule = existingRulesByPayload.get(newRule.payload);
+          if (!shouldPreserveRuleState || !existingRule) {
+            return newRule;
+          }
+
           return {
             ...existingRule,
             ...newRule,
-            expanded: existingRule ? existingRule.expanded : newRule.expanded,
+            expanded: existingRule.expanded,
           };
         });
 
-        return { rules: mergedRules };
+        return {
+          rules: mergedRules,
+          rulesSignature,
+          rulesDataVersion: shouldPreserveRuleState
+            ? state.rulesDataVersion
+            : state.rulesDataVersion + 1,
+        };
       });
     },
 
@@ -93,14 +114,17 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
           return mergedProviderRule ? { ...rule, ...mergedProviderRule } : rule;
         });
 
-        return { rules: mergedRules };
+        return {
+          rules: mergedRules,
+          rulesDataVersion: state.rulesDataVersion + 1,
+        };
       });
     },
     expandAllRules: () => {
       set((state) => ({
         rules: state.rules.map((rule) => ({
           ...rule,
-          expanded: true,
+          expanded: rule.type === "RuleSet",
         })),
       }));
     },

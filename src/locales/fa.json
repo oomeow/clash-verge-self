@@ -80,6 +80,12 @@
     "search": {
       "filter": "فیلتر",
       "filterConditions": "شرایط فیلتر",
+      "domain": "دامنه",
+      "domainPlaceholder": "جستجوی دامنه، مانند google.com",
+      "cidrPlaceholder": "جستجوی IP یا CIDR، مانند 8.8.8.8 یا 8.8.8.0/24",
+      "rulesTotal": "{{count}} قاعده",
+      "rulesMatched": "{{mode}}: {{text}} · {{groups}} گروه / {{items}} مورد",
+      "searching": "در حال جستجو...",
       "matchCase": "تطبیق حروف کوچک و بزرگ",
       "matchWholeWord": "تطبیق کل کلمه",
       "useRegularExpression": "استفاده از عبارت منظم"
