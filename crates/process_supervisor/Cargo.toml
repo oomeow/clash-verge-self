@@ -11,4 +11,4 @@ thiserror.workspace = true
 tokio = { workspace = true, features = ["fs", "io-util", "process", "rt", "sync", "time"] }
 tracing.workspace = true
 
-sysinfo = "0.38"
+sysinfo = "0.39"
