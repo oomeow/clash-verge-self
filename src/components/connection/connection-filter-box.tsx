@@ -365,6 +365,7 @@ export const ConnectionFilterBox = ({
                 onClick={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
+                  onHostSearchChange("");
                   setOpen(true);
                 }}>
                 <FilterAltRounded fontSize="small" />
