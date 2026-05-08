@@ -312,7 +312,7 @@ export const ConnectionFilterBox = ({
     });
 
     return nextMap;
-  }, [connections, filters, hostSearch]);
+  }, [connections, filters, hostSearch, open]);
 
   const activeFieldValues = fieldValuesMap.get(activeField) ?? EMPTY_VALUES;
 

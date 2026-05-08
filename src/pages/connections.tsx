@@ -47,6 +47,29 @@ const SCROLL_TOP_VISIBLE_THRESHOLD = 240;
 const getScrollerTop = (scroller: HTMLElement | Window) =>
   "scrollY" in scroller ? scroller.scrollY : scroller.scrollTop;
 
+const orderOpts: Record<
+  ConnectionsOrderType,
+  { labelKey: string; sort: OrderFunc }
+> = {
+  Default: {
+    labelKey: "common.status.default",
+    sort: (list) =>
+      list.sort(
+        (a, b) =>
+          new Date(b.start || "0").getTime()! -
+          new Date(a.start || "0").getTime()!,
+      ),
+  },
+  "Upload Speed": {
+    labelKey: "pages.connections.columns.uploadSpeed",
+    sort: (list) => list.sort((a, b) => b.curUpload! - a.curUpload!),
+  },
+  "Download Speed": {
+    labelKey: "pages.connections.columns.downloadSpeed",
+    sort: (list) => list.sort((a, b) => b.curDownload! - a.curDownload!),
+  },
+};
+
 const ConnectionsPage = () => {
   const { t } = useTranslation();
   const [filters, setFilters] = useState<ConnectionFilter[]>([]);
@@ -65,29 +88,6 @@ const ConnectionsPage = () => {
 
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
-
-  const orderOpts: Record<
-    ConnectionsOrderType,
-    { labelKey: string; sort: OrderFunc }
-  > = {
-    Default: {
-      labelKey: "common.status.default",
-      sort: (list) =>
-        list.sort(
-          (a, b) =>
-            new Date(b.start || "0").getTime()! -
-            new Date(a.start || "0").getTime()!,
-        ),
-    },
-    "Upload Speed": {
-      labelKey: "pages.connections.columns.uploadSpeed",
-      sort: (list) => list.sort((a, b) => b.curUpload! - a.curUpload!),
-    },
-    "Download Speed": {
-      labelKey: "pages.connections.columns.downloadSpeed",
-      sort: (list) => list.sort((a, b) => b.curDownload! - a.curDownload!),
-    },
-  };
 
   const {
     response: { data: connData = initConnData },
@@ -138,7 +138,6 @@ const ConnectionsPage = () => {
     matchesConnectionFilters,
     matchesHostSearch,
     normalizedHostSearch,
-    orderFunc,
   ]);
 
   const onCloseAll = useLockFn(async () => {
