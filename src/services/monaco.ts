@@ -49,6 +49,7 @@ let pacCompletionRegistered = false;
 // YAML configuration editor
 export const configureYaml = async () => {
   if (yamlConfigured) return;
+  yamlConfigured = true;
 
   const [monaco, { configureMonacoYaml }, metaSchemaModule, mergeSchemaModule] =
     await Promise.all([
@@ -76,8 +77,6 @@ export const configureYaml = async () => {
       },
     ],
   });
-
-  yamlConfigured = true;
 };
 
 export const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
@@ -101,19 +100,20 @@ export const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
 // PAC definition
 export const registerPacFunctionLib = async () => {
   if (pacLibRegistered) return;
+  pacLibRegistered = true;
 
   const [monaco, pac] = await Promise.all([loadMonaco(), loadPacDefinition()]);
-  const disposable = monaco.typescript.javascriptDefaults.addExtraLib(
+  const disposable = monaco.languages.typescript.javascriptDefaults.addExtraLib(
     pac,
     "pac.d.ts",
   );
 
-  pacLibRegistered = true;
   return disposable;
 };
 
 export const registerPacCompletion = async () => {
   if (pacCompletionRegistered) return;
+  pacCompletionRegistered = true;
 
   const monaco = await loadMonaco();
   const disposable = monaco.languages.registerCompletionItemProvider(
@@ -137,7 +137,6 @@ export const registerPacCompletion = async () => {
     },
   );
 
-  pacCompletionRegistered = true;
   return disposable;
 };
 
