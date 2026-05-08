@@ -43,11 +43,7 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
       spellCheck="false"
       value={text}
       placeholder={
-        mode === "content"
-          ? t("common.search.contentPlaceholder")
-          : mode === "domain"
-            ? t("common.search.domainPlaceholder")
-            : t("common.search.cidrPlaceholder")
+        t(`common.search.${mode}Placeholder`)
       }
       sx={[
         {
