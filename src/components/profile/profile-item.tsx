@@ -265,7 +265,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
             <CircularProgress size={20} />
           </Box>
         )}
-        <Box position="relative">
+        <Box sx={{ position: "relative" }}>
           <div className="w-[calc(100%-36px)]">
             <Marquee pauseOnHover>
               <Typography
@@ -327,11 +327,13 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
               )}
               {hasUrl && (
                 <Typography
-                  noWrap
-                  flex="1 0 auto"
-                  fontSize={14}
-                  textAlign="right"
-                  title={`${t("common.fields.updatedTime")}: ${parseExpire(updated)}`}>
+                  title={`${t("common.fields.updatedTime")}: ${parseExpire(updated)}`}
+                  sx={{
+                    flex: "1 0 auto",
+                    fontSize: 14,
+                    textAlign: "right",
+                  }}
+                  noWrap>
                   {updated > 0 ? dayjs(updated * 1000).fromNow() : ""}
                 </Typography>
               )}
@@ -355,7 +357,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         )}
         {hasExtra && <LinearProgress variant="determinate" value={progress} />}
       </ProfileDiv>
-
       <Menu
         open={!!anchorEl}
         anchorEl={anchorEl}
@@ -386,7 +387,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
           </MenuItem>
         ))}
       </Menu>
-
       <ProfileEditorViewer
         open={open}
         profileItem={itemData}

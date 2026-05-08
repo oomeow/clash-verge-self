@@ -1,5 +1,5 @@
-import CheckCircleOutline from "@mui/icons-material/CheckCircleOutline";
-import ErrorOutline from "@mui/icons-material/ErrorOutline";
+import CheckCircleOutline from "@mui/icons-material/CheckCircleOutlined";
+import ErrorOutline from "@mui/icons-material/ErrorOutlined";
 import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked";
 import Restore from "@mui/icons-material/Restore";
 import Save from "@mui/icons-material/Save";

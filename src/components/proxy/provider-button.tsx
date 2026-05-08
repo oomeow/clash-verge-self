@@ -73,11 +73,15 @@ export const ProviderButton = () => {
         onClick={() => setOpen(true)}>
         {t("pages.proxies.provider")}
       </Button>
-
       <BaseDialog
         open={open}
         title={
-          <Box display="flex" justifyContent="space-between" gap={1}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 1,
+            }}>
             <Typography variant="h6">{t("pages.proxies.provider")}</Typography>
             <Button
               variant="contained"

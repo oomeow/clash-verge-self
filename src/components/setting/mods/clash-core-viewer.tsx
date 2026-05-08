@@ -150,7 +150,11 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
     <BaseDialog
       open={open}
       title={
-        <Box display="flex" justifyContent="space-between">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+          }}>
           {t("pages.settings.clash.core.label")}
           <Box>
             <Button

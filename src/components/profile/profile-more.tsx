@@ -197,10 +197,12 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
           </Box>
         )}
         <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={0.5}>
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 0.5,
+          }}>
           <div className="w-[calc(100%-52px)]">
             <Marquee pauseOnHover>
               <Typography
@@ -257,7 +259,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
           )}
         </Box>
       </ProfileDiv>
-
       <Menu
         open={!!anchorEl}
         anchorEl={anchorEl}
@@ -290,7 +291,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
             </MenuItem>
           ))}
       </Menu>
-
       <ProfileEditorViewer
         open={fileOpen}
         profileItem={itemData}

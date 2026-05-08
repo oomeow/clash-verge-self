@@ -52,16 +52,21 @@ export const LayoutTraffic = () => {
   };
   const valStyle: any = {
     component: "span",
-    // color: "primary",
-    textAlign: "center",
-    sx: { flex: "1 1 56px", userSelect: "none" },
+    sx: {
+      flex: "1 1 56px",
+      userSelect: "none",
+      textAlign: "center",
+    },
   };
   const unitStyle: any = {
     component: "span",
     color: "grey.500",
-    fontSize: "12px",
-    textAlign: "right",
-    sx: { flex: "0 1 27px", userSelect: "none" },
+    sx: {
+      flex: "0 1 27px",
+      userSelect: "none",
+      fontSize: "12px",
+      textAlign: "right",
+    },
   };
 
   const restartClashCore = debounce(async () => {
@@ -74,15 +79,21 @@ export const LayoutTraffic = () => {
   }, 500);
 
   return (
-    <Box width={"100%"} onClick={trafficRef.current?.toggleStyle}>
+    <Box sx={{ width: "100%" }} onClick={trafficRef.current?.toggleStyle}>
       {trafficGraph && pageVisible && (
         <div style={{ width: "100%", height: 60, marginBottom: 6 }}>
           <TrafficGraph ref={trafficRef} />
         </div>
       )}
 
-      <Box display="flex" flexDirection="column" gap={0.75}>
-        <Box display="flex" alignItems="center" whiteSpace="nowrap">
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 0.75,
+        }}>
+        <Box
+          sx={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
           <ArrowUpward
             {...iconStyle}
             color={+up > 0 ? "secondary" : "disabled"}
@@ -93,7 +104,8 @@ export const LayoutTraffic = () => {
           <Typography {...unitStyle}>{upUnit}/s</Typography>
         </Box>
 
-        <Box display="flex" alignItems="center" whiteSpace="nowrap">
+        <Box
+          sx={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
           <ArrowDownward
             {...iconStyle}
             color={+down > 0 ? "primary" : "disabled"}
@@ -105,7 +117,12 @@ export const LayoutTraffic = () => {
         </Box>
 
         {displayMemory && (
-          <Box display="flex" alignItems="center" whiteSpace="nowrap">
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              whiteSpace: "nowrap",
+            }}>
             <Tooltip title={t("common.actions.restart")}>
               <IconButton
                 color="primary"
@@ -119,9 +136,7 @@ export const LayoutTraffic = () => {
             </Tooltip>
             <Box
               title={t("pages.settings.verge.layout.memoryUsage")}
-              display={"flex"}
-              flexGrow={1}
-              alignItems={"center"}>
+              sx={{ display: "flex", flexGrow: 1, alignItems: "center" }}>
               <Typography {...valStyle}>{inuse}</Typography>
               <Typography {...unitStyle}>{inuseUnit}</Typography>
             </Box>

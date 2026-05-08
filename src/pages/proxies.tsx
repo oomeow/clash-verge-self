@@ -43,7 +43,12 @@ const ProxyPage = () => {
       contentStyle={{ height: "100%" }}
       title={t("pages.proxies.groups")}
       header={
-        <Box display="flex" alignItems="center" gap={1}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}>
           <ProviderButton key={"provider"} />
 
           <ButtonGroup size="small">

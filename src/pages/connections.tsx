@@ -270,18 +270,22 @@ const ConnectionsPage = () => {
         </Box>
 
         <Box
-          height="calc(100% - 50px)"
-          sx={(theme) => ({
-            userSelect: "text",
-            mx: "10px",
-            mb: "4px",
-            borderRadius: "8px",
-            bgcolor: "#ffffff",
-            ...theme.applyStyles("dark", {
-              bgcolor: "#282a36",
+          sx={[
+            {
+              height: "calc(100% - 50px)",
+            },
+            (theme) => ({
+              userSelect: "text",
+              mx: "10px",
+              mb: "4px",
+              borderRadius: "8px",
+              bgcolor: "#ffffff",
+              ...theme.applyStyles("dark", {
+                bgcolor: "#282a36",
+              }),
+              boxSizing: "border-box",
             }),
-            boxSizing: "border-box",
-          })}>
+          ]}>
           {filterConn.length === 0 ? (
             <BaseEmpty text={t("common.empty.noConnections")} />
           ) : isTableLayout ? (
