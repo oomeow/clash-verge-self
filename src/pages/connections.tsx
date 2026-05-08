@@ -107,7 +107,7 @@ const ConnectionsPage = () => {
     [filters],
   );
   const filterConn = useMemo(() => {
-    let filteredConnections = conns.filter(matchesConnectionFilters);
+    let filteredConnections = filters.length > 0 ? conns.filter(matchesConnectionFilters) : [...conns];
     if (orderFunc) filteredConnections = orderFunc(filteredConnections);
     if (!isActiveTab) {
       filteredConnections = filteredConnections.sort(
