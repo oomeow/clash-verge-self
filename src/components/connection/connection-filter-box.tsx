@@ -55,9 +55,12 @@ type ConnectionFilterFieldConfig = {
 };
 
 const compactValues = (values: Array<string | number | null | undefined>) => {
-  return values
-    .map((value) => String(value ?? "").trim())
-    .filter((value) => value.length > 0);
+  const result: string[] = [];
+  for (const value of values) {
+    const trimmed = String(value ?? "").trim();
+    if (trimmed.length > 0) result.push(trimmed);
+  }
+  return result;
 };
 
 const getFilterKey = ({ field, value }: ConnectionFilter) =>
