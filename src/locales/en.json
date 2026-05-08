@@ -221,6 +221,16 @@
         "rule": "Rule",
         "dragToReorder": "Drag to reorder columns",
         "startAt": "Start at {{time}}"
+      },
+      "filters": {
+        "placeholder": "Filter by connection fields",
+        "noOptions": "No filter values",
+        "destinationIP": "Destination IP",
+        "destinationPort": "Destination Port",
+        "sourceIP": "Source IP",
+        "sourcePort": "Source Port",
+        "network": "Network",
+        "inbound": "Inbound"
       }
     },
     "rules": {

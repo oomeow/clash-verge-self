@@ -15,21 +15,21 @@ import {
   Zoom,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
 
-import {
-  BaseEmpty,
-  BasePage,
-  BaseSearchBox,
-  BaseStyledSelect,
-} from "@/components/base";
+import { BaseEmpty, BasePage, BaseStyledSelect } from "@/components/base";
 import {
   ConnectionDetail,
   ConnectionDetailRef,
 } from "@/components/connection/connection-detail";
+import {
+  ConnectionFilter,
+  ConnectionFilterBox,
+  createConnectionFilterMatcher,
+} from "@/components/connection/connection-filter-box";
 import { ConnectionItem } from "@/components/connection/connection-item";
 import { ConnectionTable } from "@/components/connection/connection-table";
 import {
@@ -49,7 +49,7 @@ const getScrollerTop = (scroller: HTMLElement | Window) =>
 
 const ConnectionsPage = () => {
   const { t } = useTranslation();
-  const [match, setMatch] = useState(() => (_: string) => true);
+  const [filters, setFilters] = useState<ConnectionFilter[]>([]);
   const connLayout = useConnectionsStore((s) => s.layout);
   const setConnectionsLayout = useConnectionsStore(
     (s) => s.setConnectionsLayout,
@@ -102,12 +102,21 @@ const ConnectionsPage = () => {
   // filter connections
   const orderFunc = orderOpts[curOrderOpt]?.sort;
   const conns = isActiveTab ? activeConns : closedConns;
-  let filterConn = conns.filter((conn) =>
-    match(conn.metadata.host || conn.metadata.destinationIP || ""),
+  const matchesConnectionFilters = useMemo(
+    () => createConnectionFilterMatcher(filters),
+    [filters],
   );
-  if (orderFunc) filterConn = orderFunc(filterConn);
-  if (!isActiveTab)
-    filterConn = filterConn.sort((a, b) => b.closedTime - a.closedTime);
+  const filterConn = useMemo(() => {
+    let filteredConnections = conns.filter(matchesConnectionFilters);
+    if (orderFunc) filteredConnections = orderFunc(filteredConnections);
+    if (!isActiveTab) {
+      filteredConnections = filteredConnections.sort(
+        (a, b) => b.closedTime - a.closedTime,
+      );
+    }
+
+    return filteredConnections;
+  }, [conns, isActiveTab, matchesConnectionFilters, orderFunc]);
 
   const onCloseAll = useLockFn(async () => {
     if (
@@ -266,7 +275,11 @@ const ConnectionsPage = () => {
               ))}
             </BaseStyledSelect>
           )}
-          <BaseSearchBox onSearch={(match) => setMatch(() => match)} />
+          <ConnectionFilterBox
+            connections={conns}
+            filters={filters}
+            onChange={setFilters}
+          />
         </Box>
 
         <Box

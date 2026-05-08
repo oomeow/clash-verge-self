@@ -221,6 +221,16 @@
         "rule": "规则",
         "dragToReorder": "拖动以调整列顺序",
         "startAt": "开始于{{time}}"
+      },
+      "filters": {
+        "placeholder": "按连接字段过滤",
+        "noOptions": "暂无可过滤值",
+        "destinationIP": "目标 IP",
+        "destinationPort": "目标端口",
+        "sourceIP": "源 IP",
+        "sourcePort": "源端口",
+        "network": "网络",
+        "inbound": "入站"
       }
     },
     "rules": {

@@ -221,6 +221,16 @@
         "rule": "قانون",
         "dragToReorder": "برای تغییر ترتیب ستون‌ها بکشید",
         "startAt": "شروع در {{time}}"
+      },
+      "filters": {
+        "placeholder": "فیلتر بر اساس فیلدهای اتصال",
+        "noOptions": "مقداری برای فیلتر نیست",
+        "destinationIP": "IP مقصد",
+        "destinationPort": "پورت مقصد",
+        "sourceIP": "IP مبدا",
+        "sourcePort": "پورت مبدا",
+        "network": "شبکه",
+        "inbound": "ورودی"
       }
     },
     "rules": {
