@@ -276,7 +276,7 @@ export const createRuleSearchMatcher = (search: RuleSearchState) => {
   if (search.mode === "content") {
     const normalizedQuery = search.text.trim().toLowerCase();
     return (_rule: SearchableRule, payload: string) =>
-      payload.toLowerCase().includes(normalizedQuery);
+      !!payload && payload.toLowerCase().includes(normalizedQuery);
   }
 
   if (search.mode === "domain") {
