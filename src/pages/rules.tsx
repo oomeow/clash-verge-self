@@ -90,8 +90,14 @@ const RulesPage = () => {
     }, 0);
 
     return t("common.search.rulesMatched", {
-      mode: search.mode === "domain" ? t("common.search.domain") : "CIDR",
-      text: normalizeDomain(search.text),
+      mode:
+        search.mode === "content"
+          ? t("common.search.content")
+          : search.mode === "domain"
+            ? t("common.search.domain")
+            : "CIDR",
+      text:
+        search.mode === "domain" ? normalizeDomain(search.text) : search.text,
       groups: filterRules.length,
       items: matchedItems,
     });

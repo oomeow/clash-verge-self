@@ -1,3 +1,4 @@
+import ArticleRounded from "@mui/icons-material/ArticleRounded";
 import ClearRounded from "@mui/icons-material/ClearRounded";
 import DnsRounded from "@mui/icons-material/DnsRounded";
 import LanguageRounded from "@mui/icons-material/LanguageRounded";
@@ -23,7 +24,7 @@ type Props = {
 export const RuleSearchBox = ({ onSearch }: Props) => {
   const { t } = useTranslation();
   const [text, setText] = useState("");
-  const [mode, setMode] = useState<RuleSearchMode>("domain");
+  const [mode, setMode] = useState<RuleSearchMode>("content");
 
   const submitSearch = useCallback(
     (nextMode = mode, nextText = text) => {
@@ -42,9 +43,11 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
       spellCheck="false"
       value={text}
       placeholder={
-        mode === "domain"
-          ? t("common.search.domainPlaceholder")
-          : t("common.search.cidrPlaceholder")
+        mode === "content"
+          ? t("common.search.contentPlaceholder")
+          : mode === "domain"
+            ? t("common.search.domainPlaceholder")
+            : t("common.search.cidrPlaceholder")
       }
       sx={[
         {
@@ -85,6 +88,13 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
                     py: 0,
                   },
                 }}>
+                <ToggleButton
+                  value="content"
+                  aria-label={t("common.search.content")}>
+                  <Tooltip title={t("common.search.content")}>
+                    <ArticleRounded fontSize="small" />
+                  </Tooltip>
+                </ToggleButton>
                 <ToggleButton
                   value="domain"
                   aria-label={t("common.search.domain")}>

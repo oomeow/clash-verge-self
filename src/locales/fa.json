@@ -80,6 +80,8 @@
     "search": {
       "filter": "فیلتر",
       "filterConditions": "شرایط فیلتر",
+      "content": "محتوا",
+      "contentPlaceholder": "جستجوی محتوای قاعده",
       "domain": "دامنه",
       "domainPlaceholder": "جستجوی دامنه، مانند google.com",
       "cidrPlaceholder": "جستجوی IP یا CIDR، مانند 8.8.8.8 یا 8.8.8.0/24",

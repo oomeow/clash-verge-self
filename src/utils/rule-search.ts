@@ -9,7 +9,7 @@ type IpRange = {
   end: bigint;
 };
 
-export type RuleSearchMode = "domain" | "cidr";
+export type RuleSearchMode = "content" | "domain" | "cidr";
 
 export type RuleSearchState = {
   mode: RuleSearchMode;
@@ -17,7 +17,7 @@ export type RuleSearchState = {
 };
 
 export const EMPTY_RULE_SEARCH: RuleSearchState = {
-  mode: "domain",
+  mode: "content",
   text: "",
 };
 
@@ -272,6 +272,12 @@ const cidrMatches = (
 
 export const createRuleSearchMatcher = (search: RuleSearchState) => {
   if (!search.text) return () => true;
+
+  if (search.mode === "content") {
+    const normalizedQuery = search.text.trim().toLowerCase();
+    return (_rule: SearchableRule, payload: string) =>
+      payload.toLowerCase().includes(normalizedQuery);
+  }
 
   if (search.mode === "domain") {
     const normalizedQuery = normalizeDomain(search.text);

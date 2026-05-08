@@ -80,6 +80,8 @@
     "search": {
       "filter": "Filter",
       "filterConditions": "Filter conditions",
+      "content": "Content",
+      "contentPlaceholder": "Search rule content",
       "domain": "Domain",
       "domainPlaceholder": "Search domain, e.g. google.com",
       "cidrPlaceholder": "Search IP or CIDR, e.g. 8.8.8.8 or 8.8.8.0/24",
