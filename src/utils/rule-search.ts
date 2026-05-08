@@ -9,7 +9,7 @@ type IpRange = {
   end: bigint;
 };
 
-export type RuleSearchMode = "domain" | "cidr";
+export type RuleSearchMode = "content" | "domain" | "cidr";
 
 export type RuleSearchState = {
   mode: RuleSearchMode;
@@ -17,7 +17,7 @@ export type RuleSearchState = {
 };
 
 export const EMPTY_RULE_SEARCH: RuleSearchState = {
-  mode: "domain",
+  mode: "content",
   text: "",
 };
 
@@ -52,6 +52,17 @@ const splitRuleParts = (payload: string) =>
     .split(",")
     .map((part) => part.trim())
     .filter(Boolean);
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const createFuzzyMatcher = (query: string) => {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) return () => true;
+
+  const matcher = new RegExp(escapeRegExp(normalizedQuery), "i");
+  return (value: string) => matcher.test(value);
+};
 
 const getExplicitRulePayload = (payload: string, ruleTypes: Set<string>) => {
   const parts = splitRuleParts(payload);
@@ -272,6 +283,12 @@ const cidrMatches = (
 
 export const createRuleSearchMatcher = (search: RuleSearchState) => {
   if (!search.text) return () => true;
+
+  if (search.mode === "content") {
+    const matchesContent = createFuzzyMatcher(search.text);
+    return (_rule: SearchableRule, payload: string) =>
+      !!payload && matchesContent(payload);
+  }
 
   if (search.mode === "domain") {
     const normalizedQuery = normalizeDomain(search.text);
