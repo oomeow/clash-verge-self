@@ -54,6 +54,11 @@ type ConnectionFilterFieldConfig = {
   getValues: (connection: IClosedConnectionItem) => string[];
 };
 
+type CachedConnectionFilterValues = {
+  hostMatched: boolean;
+  valuesMap: Map<ConnectionFilterField, string[]>;
+};
+
 const compactValues = (values: Array<string | number | null | undefined>) => {
   const result: string[] = [];
   for (const value of values) {
@@ -227,27 +232,75 @@ export const ConnectionFilterBox = ({
 
   const fieldValuesMap = useMemo(() => {
     const normalizedHostSearch = hostSearch.trim().toLowerCase();
-    const nextMap = new Map<ConnectionFilterField, string[]>();
-    CONNECTION_FILTER_FIELDS.forEach(({ field, getValues }) => {
-      const matchesOtherFields = createConnectionFilterMatcher(filters, field);
-      const uniqueValues = new Set<string>();
+    // 先按字段聚合已选过滤值，避免为每个候选字段重复构建匹配器。
+    const filtersByField = new Map<ConnectionFilterField, Set<string>>();
+    filters.forEach(({ field, value }) => {
+      const values = filtersByField.get(field) ?? new Set<string>();
+      values.add(value.toLowerCase());
+      filtersByField.set(field, values);
+    });
 
-      connections.forEach((connection) => {
-        if (normalizedHostSearch) {
-          const host =
-            connection.metadata.host || connection.metadata.destinationIP || "";
-          if (!host.toLowerCase().includes(normalizedHostSearch)) return;
-        }
+    // 连接数据会随 WebSocket 高频刷新。这里按连接预计算所有字段值，
+    // 后续生成各字段候选列表时直接复用。
+    const cachedConnections = connections.map<CachedConnectionFilterValues>(
+      (connection) => {
+        const host =
+          connection.metadata.host || connection.metadata.destinationIP || "";
+        const valuesMap = new Map<ConnectionFilterField, string[]>();
 
-        if (!matchesOtherFields(connection)) return;
-        getValues(connection).forEach((value) => uniqueValues.add(value));
+        CONNECTION_FILTER_FIELDS.forEach(({ field, getValues }) => {
+          valuesMap.set(field, getValues(connection));
+        });
+
+        return {
+          hostMatched:
+            !normalizedHostSearch ||
+            host.toLowerCase().includes(normalizedHostSearch),
+          valuesMap,
+        };
+      },
+    );
+
+    const uniqueValuesByField = new Map<ConnectionFilterField, Set<string>>();
+    CONNECTION_FILTER_FIELDS.forEach(({ field }) => {
+      uniqueValuesByField.set(field, new Set<string>());
+    });
+
+    cachedConnections.forEach(({ hostMatched, valuesMap }) => {
+      if (!hostMatched) return;
+
+      // 某个字段的候选值应受其他已选字段限制，但不受自身限制。
+      // 记录当前连接未命中的字段，用于判断它还能贡献给哪些字段候选项。
+      const unmatchedFilterFields = new Set<ConnectionFilterField>();
+      for (const [filterField, expectedValues] of filtersByField) {
+        const values = valuesMap.get(filterField) ?? EMPTY_VALUES;
+        const matched = values.some((value) =>
+          expectedValues.has(value.toLowerCase()),
+        );
+        if (!matched) unmatchedFilterFields.add(filterField);
+      }
+
+      CONNECTION_FILTER_FIELDS.forEach(({ field }) => {
+        const canUseConnection =
+          unmatchedFilterFields.size === 0 ||
+          (unmatchedFilterFields.size === 1 &&
+            unmatchedFilterFields.has(field));
+
+        if (!canUseConnection) return;
+        const uniqueValues = uniqueValuesByField.get(field);
+        valuesMap.get(field)?.forEach((value) => uniqueValues?.add(value));
       });
+    });
 
+    const nextMap = new Map<ConnectionFilterField, string[]>();
+    CONNECTION_FILTER_FIELDS.forEach(({ field }) => {
+      const uniqueValues = uniqueValuesByField.get(field) ?? new Set<string>();
       const values = Array.from(uniqueValues).sort((left, right) =>
         left.localeCompare(right),
       );
       const signature = values.join("\u0000");
       const cached = fieldValuesCacheRef.current.get(field);
+      // 候选值未变化时复用数组引用，减少右侧列表重渲染并保留滚动位置。
       if (cached?.signature === signature) {
         nextMap.set(field, cached.values);
         return;
