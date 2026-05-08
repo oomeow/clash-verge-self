@@ -30,7 +30,7 @@
     "@emotion/styled": "^11.14.1",
     "@juggle/resize-observer": "^3.4.0",
     "@mui/icons-material": "^9.0.0",
-    "@mui/lab": "7.0.1-beta.24",
+    "@mui/lab": "9.0.0-beta.3",
     "@mui/material": "^9.0.0",
     "@tanstack/react-router": "^1.168.10",
     "@tanstack/react-router-devtools": "^1.166.11",
