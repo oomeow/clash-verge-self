@@ -84,6 +84,7 @@
       "contentPlaceholder": "Search rule content",
       "domain": "Domain",
       "domainPlaceholder": "Search domain, e.g. google.com",
+      "cidr": "CIDR",
       "cidrPlaceholder": "Search IP or CIDR, e.g. 8.8.8.8 or 8.8.8.0/24",
       "rulesTotal": "{{count}} rules",
       "rulesMatched": "{{mode}}: {{text}} · {{groups}} groups / {{items}} entries",

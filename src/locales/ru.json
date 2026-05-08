@@ -84,6 +84,7 @@
       "contentPlaceholder": "Поиск по содержимому правила",
       "domain": "Домен",
       "domainPlaceholder": "Поиск домена, например google.com",
+      "cidr": "CIDR",
       "cidrPlaceholder": "Поиск IP или CIDR, например 8.8.8.8 или 8.8.8.0/24",
       "rulesTotal": "Всего правил: {{count}}",
       "rulesMatched": "{{mode}}: {{text}} · {{groups}} групп / {{items}} записей",

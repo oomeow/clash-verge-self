@@ -102,8 +102,8 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
                     <LanguageRounded fontSize="small" />
                   </Tooltip>
                 </ToggleButton>
-                <ToggleButton value="cidr" aria-label="CIDR">
-                  <Tooltip title="CIDR">
+                <ToggleButton value="cidr" aria-label={t("common.search.cidr")}>
+                  <Tooltip title={t("common.search.cidr")}>
                     <DnsRounded fontSize="small" />
                   </Tooltip>
                 </ToggleButton>

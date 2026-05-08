@@ -84,6 +84,7 @@
       "contentPlaceholder": "搜索规则内容",
       "domain": "域名",
       "domainPlaceholder": "搜索域名，例如 google.com",
+      "cidr": "CIDR",
       "cidrPlaceholder": "搜索 IP 或 CIDR，例如 8.8.8.8 或 8.8.8.0/24",
       "rulesTotal": "共 {{count}} 条规则",
       "rulesMatched": "{{mode}}：{{text}} · 命中 {{groups}} 组 / {{items}} 条",

@@ -95,7 +95,7 @@ const RulesPage = () => {
           ? t("common.search.content")
           : search.mode === "domain"
             ? t("common.search.domain")
-            : "CIDR",
+            : t("common.search.cidr"),
       text:
         search.mode === "domain" ? normalizeDomain(search.text) : search.text,
       groups: filterRules.length,
