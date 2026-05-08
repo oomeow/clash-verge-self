@@ -410,7 +410,7 @@ export const ConnectionFilterBox = ({
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
-              setOpen(true);
+              setOpen(!open);
             }}>
             <FilterAltRounded fontSize="small" />
           </IconButton>
