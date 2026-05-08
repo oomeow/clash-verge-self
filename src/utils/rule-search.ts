@@ -53,6 +53,17 @@ const splitRuleParts = (payload: string) =>
     .map((part) => part.trim())
     .filter(Boolean);
 
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const createFuzzyMatcher = (query: string) => {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) return () => true;
+
+  const matcher = new RegExp(escapeRegExp(normalizedQuery), "i");
+  return (value: string) => matcher.test(value);
+};
+
 const getExplicitRulePayload = (payload: string, ruleTypes: Set<string>) => {
   const parts = splitRuleParts(payload);
   const explicitType = parts[0] ? normalizeRuleType(parts[0]) : undefined;
@@ -274,9 +285,9 @@ export const createRuleSearchMatcher = (search: RuleSearchState) => {
   if (!search.text) return () => true;
 
   if (search.mode === "content") {
-    const normalizedQuery = search.text.trim().toLowerCase();
+    const matchesContent = createFuzzyMatcher(search.text);
     return (_rule: SearchableRule, payload: string) =>
-      !!payload && payload.toLowerCase().includes(normalizedQuery);
+      !!payload && matchesContent(payload);
   }
 
   if (search.mode === "domain") {
