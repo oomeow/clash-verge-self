@@ -231,6 +231,7 @@ export const ConnectionFilterBox = ({
   }, [t]);
 
   const fieldValuesMap = useMemo(() => {
+    if (!open) return new Map<ConnectionFilterField, string[]>();
     const normalizedHostSearch = hostSearch.trim().toLowerCase();
     // 先按字段聚合已选过滤值，避免为每个候选字段重复构建匹配器。
     const filtersByField = new Map<ConnectionFilterField, Set<string>>();
