@@ -41,14 +41,14 @@ const loadPacDefinition = async () => {
   return pacDefinition;
 };
 
-// 缓存配置
-let yamlConfigured = false;
-let pacLibRegistered = false;
-let pacCompletionRegistered = false;
+// 缓存 yaml schemas 配置
+let yamlSchemasConfigured = false;
 
 // YAML configuration editor
 export const configureYaml = async () => {
-  if (yamlConfigured) return;
+  if (yamlSchemasConfigured) return;
+  // 提前返回，避免多次注入 schemas 配置
+  yamlSchemasConfigured = true;
 
   const [monaco, { configureMonacoYaml }, metaSchemaModule, mergeSchemaModule] =
     await Promise.all([
@@ -76,8 +76,6 @@ export const configureYaml = async () => {
       },
     ],
   });
-
-  yamlConfigured = true;
 };
 
 export const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
@@ -100,21 +98,16 @@ export const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
 
 // PAC definition
 export const registerPacFunctionLib = async () => {
-  if (pacLibRegistered) return;
-
   const [monaco, pac] = await Promise.all([loadMonaco(), loadPacDefinition()]);
-  const disposable = monaco.typescript.javascriptDefaults.addExtraLib(
+  const disposable = monaco.languages.typescript.javascriptDefaults.addExtraLib(
     pac,
     "pac.d.ts",
   );
 
-  pacLibRegistered = true;
   return disposable;
 };
 
 export const registerPacCompletion = async () => {
-  if (pacCompletionRegistered) return;
-
   const monaco = await loadMonaco();
   const disposable = monaco.languages.registerCompletionItemProvider(
     "javascript",
@@ -137,7 +130,6 @@ export const registerPacCompletion = async () => {
     },
   );
 
-  pacCompletionRegistered = true;
   return disposable;
 };
 

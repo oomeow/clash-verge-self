@@ -32,6 +32,11 @@
       "matchPackageNames": ["/(tauri)/"],
       "groupName": "tauri monorepo"
       // "minimumReleaseAge": "3 days"
+    },
+    {
+      "matchPackageNames": ["monaco-editor"],
+      "groupName": "monaco deps",
+      "allowedVersions": "<0.55.0"
     }
   ]
 }
