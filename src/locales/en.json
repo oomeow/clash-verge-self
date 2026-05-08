@@ -224,6 +224,7 @@
       },
       "filters": {
         "placeholder": "Filter by connection fields",
+        "hostPlaceholder": "Search host",
         "noOptions": "No filter values",
         "destinationIP": "Destination IP",
         "destinationPort": "Destination Port",

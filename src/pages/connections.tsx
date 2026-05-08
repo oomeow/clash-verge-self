@@ -50,6 +50,7 @@ const getScrollerTop = (scroller: HTMLElement | Window) =>
 const ConnectionsPage = () => {
   const { t } = useTranslation();
   const [filters, setFilters] = useState<ConnectionFilter[]>([]);
+  const [hostSearch, setHostSearch] = useState("");
   const connLayout = useConnectionsStore((s) => s.layout);
   const setConnectionsLayout = useConnectionsStore(
     (s) => s.setConnectionsLayout,
@@ -106,8 +107,22 @@ const ConnectionsPage = () => {
     () => createConnectionFilterMatcher(filters),
     [filters],
   );
+  const normalizedHostSearch = hostSearch.trim().toLowerCase();
+  const matchesHostSearch = useMemo(() => {
+    if (!normalizedHostSearch) return () => true;
+
+    return (conn: IClosedConnectionItem) => {
+      const host = conn.metadata.host || conn.metadata.destinationIP || "";
+      return host.toLowerCase().includes(normalizedHostSearch);
+    };
+  }, [normalizedHostSearch]);
   const filterConn = useMemo(() => {
-    let filteredConnections = filters.length > 0 ? conns.filter(matchesConnectionFilters) : [...conns];
+    let filteredConnections =
+      filters.length > 0 || normalizedHostSearch
+        ? conns.filter(
+            (conn) => matchesConnectionFilters(conn) && matchesHostSearch(conn),
+          )
+        : [...conns];
     if (orderFunc) filteredConnections = orderFunc(filteredConnections);
     if (!isActiveTab) {
       filteredConnections = filteredConnections.sort(
@@ -116,7 +131,15 @@ const ConnectionsPage = () => {
     }
 
     return filteredConnections;
-  }, [conns, isActiveTab, matchesConnectionFilters, orderFunc]);
+  }, [
+    conns,
+    filters.length,
+    isActiveTab,
+    matchesConnectionFilters,
+    matchesHostSearch,
+    normalizedHostSearch,
+    orderFunc,
+  ]);
 
   const onCloseAll = useLockFn(async () => {
     if (
@@ -278,7 +301,9 @@ const ConnectionsPage = () => {
           <ConnectionFilterBox
             connections={conns}
             filters={filters}
+            hostSearch={hostSearch}
             onChange={setFilters}
+            onHostSearchChange={setHostSearch}
           />
         </Box>
 

@@ -189,13 +189,17 @@ export const createConnectionFilterMatcher = (
 type Props = {
   connections: IClosedConnectionItem[];
   filters: ConnectionFilter[];
+  hostSearch: string;
   onChange: (filters: ConnectionFilter[]) => void;
+  onHostSearchChange: (value: string) => void;
 };
 
 export const ConnectionFilterBox = ({
   connections,
   filters,
+  hostSearch,
   onChange,
+  onHostSearchChange,
 }: Props) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -298,13 +302,19 @@ export const ConnectionFilterBox = ({
     [filters, onChange],
   );
 
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleValueSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     resetValueListScroll();
     setValueSearch(event.target.value);
   };
 
   const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== "Backspace" || filters.length === 0) return;
+    if (
+      event.key !== "Backspace" ||
+      hostSearch.length > 0 ||
+      filters.length === 0
+    ) {
+      return;
+    }
     event.preventDefault();
     onChange(filters.slice(0, -1));
   };
@@ -313,6 +323,7 @@ export const ConnectionFilterBox = ({
     event.preventDefault();
     event.stopPropagation();
     onChange([]);
+    onHostSearchChange("");
   };
 
   return (
@@ -320,7 +331,6 @@ export const ConnectionFilterBox = ({
       <Box sx={{ minWidth: 0, flex: 1 }}>
         <Box
           ref={anchorRef}
-          onClick={() => setOpen(true)}
           sx={[
             {
               height: 32,
@@ -347,7 +357,19 @@ export const ConnectionFilterBox = ({
             }),
           ]}>
           <InputAdornment position="start" sx={{ mr: 0, flexShrink: 0 }}>
-            <FilterAltRounded fontSize="small" color="action" />
+            <Tooltip title={t("pages.connections.filters.placeholder")}>
+              <IconButton
+                size="small"
+                color={open ? "primary" : "default"}
+                sx={{ p: 0.25 }}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setOpen(true);
+                }}>
+                <FilterAltRounded fontSize="small" />
+              </IconButton>
+            </Tooltip>
           </InputAdornment>
           <Box
             sx={{
@@ -391,10 +413,12 @@ export const ConnectionFilterBox = ({
             <InputBase
               placeholder={
                 filters.length === 0
-                  ? t("pages.connections.filters.placeholder")
+                  ? t("pages.connections.filters.hostPlaceholder")
                   : undefined
               }
-              onFocus={() => setOpen(true)}
+              value={hostSearch}
+              readOnly={open}
+              onChange={(event) => onHostSearchChange(event.target.value)}
               onKeyDown={handleInputKeyDown}
               sx={{
                 minWidth: filters.length > 0 ? 64 : 120,
@@ -407,7 +431,7 @@ export const ConnectionFilterBox = ({
               }}
             />
           </Box>
-          {filters.length > 0 && (
+          {(filters.length > 0 || hostSearch.length > 0) && (
             <Tooltip title={t("common.actions.clear")}>
               <IconButton
                 size="small"
@@ -521,7 +545,7 @@ export const ConnectionFilterBox = ({
                     <InputBase
                       value={valueSearch}
                       placeholder={t("common.search.filter")}
-                      onChange={handleInputChange}
+                      onChange={handleValueSearchChange}
                       sx={{
                         minWidth: 0,
                         flex: 1,

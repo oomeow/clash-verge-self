@@ -224,6 +224,7 @@
       },
       "filters": {
         "placeholder": "Фильтр по полям соединения",
+        "hostPlaceholder": "Поиск хоста",
         "noOptions": "Нет значений фильтра",
         "destinationIP": "IP назначения",
         "destinationPort": "Порт назначения",

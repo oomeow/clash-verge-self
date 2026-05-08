@@ -224,6 +224,7 @@
       },
       "filters": {
         "placeholder": "فیلتر بر اساس فیلدهای اتصال",
+        "hostPlaceholder": "جستجوی میزبان",
         "noOptions": "مقداری برای فیلتر نیست",
         "destinationIP": "IP مقصد",
         "destinationPort": "پورت مقصد",

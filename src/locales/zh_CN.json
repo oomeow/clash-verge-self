@@ -224,6 +224,7 @@
       },
       "filters": {
         "placeholder": "按连接字段过滤",
+        "hostPlaceholder": "搜索主机",
         "noOptions": "暂无可过滤值",
         "destinationIP": "目标 IP",
         "destinationPort": "目标端口",
