@@ -117,6 +117,7 @@ const CONNECTION_FILTER_FIELDS: ConnectionFilterFieldConfig[] = [
     field: "chains",
     labelKey: "pages.connections.columns.chains",
     getValues: ({ chains }) => {
+      if (!chains?.length) return [];
       const formatChains = [...chains].reverse().join(" / ");
       return compactValues([formatChains]);
     },
