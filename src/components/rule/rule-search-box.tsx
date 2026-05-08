@@ -101,7 +101,7 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
             </InputAdornment>
           ),
           endAdornment: (
-            <Box display="flex" alignItems="center" gap={0.5}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               {text !== "" && (
                 <Tooltip title={t("common.actions.clear")}>
                   <IconButton

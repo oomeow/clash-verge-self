@@ -116,7 +116,7 @@ export const BaseSearchBox = (props: SearchProps) => {
         slotProps={{
           input: {
             endAdornment: (
-              <Box display="flex">
+              <Box sx={{ display: "flex" }}>
                 {filterText !== "" && (
                   <Tooltip title={t("common.actions.clear")}>
                     <IconButton

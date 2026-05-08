@@ -84,7 +84,11 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
     <BaseDialog
       open={open}
       title={
-        <Box display="flex" justifyContent="space-between">
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+          }}>
           {t("pages.settings.clash.webUi.label")}
           <Button
             variant="contained"
@@ -107,13 +111,16 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
         <BaseEmpty
           text={t("common.empty.empty")}
           extra={
-            <Typography mt={2} sx={{ fontSize: "12px" }}>
+            <Typography
+              sx={{
+                mt: 2,
+                fontSize: "12px",
+              }}>
               {t("pages.settings.clash.webUi.replaceTemplateHint")}
             </Typography>
           }
         />
       )}
-
       {webUIList.map((item, index) => (
         <WebUIItem
           key={index}

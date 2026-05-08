@@ -122,14 +122,16 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
         },
       ]}>
       <Box
-        width={"100%"}
         title={`${proxy.name}${proxy.now ? "\n" + proxy.now : ""}`}
-        sx={{ overflow: "hidden" }}>
+        sx={{
+          width: "100%",
+          overflow: "hidden",
+        }}>
         <Typography
           variant="body2"
           component="div"
-          color="text.primary"
           sx={{
+            color: "text.primary",
             display: "block",
             textOverflow: "ellipsis",
             wordBreak: "break-all",
@@ -151,8 +153,8 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
               <Typography
                 variant="body2"
                 component="div"
-                color="text.secondary"
                 sx={{
+                  color: "text.secondary",
                   display: "block",
                   textOverflow: "ellipsis",
                   wordBreak: "break-all",
@@ -219,7 +221,6 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
           />
         )}
       </Box>
-
       {fixed && (
         // 展示fixed状态
         <span className={selected ? "the-pin" : "the-unpin"}>📌</span>

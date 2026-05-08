@@ -490,10 +490,18 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
       )}
       <HeaderWrapper>
         <span />
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+          }}>
           {t("pages.settings.verge.hotkeys.global")}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+          }}>
           {t("pages.settings.verge.hotkeys.app")}
         </Typography>
       </HeaderWrapper>

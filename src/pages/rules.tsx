@@ -110,7 +110,12 @@ const RulesPage = () => {
       title={t("pages.rules.title")}
       contentStyle={{ height: "100%" }}
       header={
-        <Box display="flex" alignItems="center" gap={1}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}>
           {hasRuleSet && (
             <>
               <IconButton
@@ -147,8 +152,8 @@ const RulesPage = () => {
         <Typography
           title={searchStatus}
           variant="caption"
-          color="text.secondary"
           sx={{
+            color: "text.secondary",
             flexShrink: 0,
             maxWidth: "40%",
             overflow: "hidden",
@@ -158,10 +163,9 @@ const RulesPage = () => {
           {searchStatus}
         </Typography>
       </Box>
-
       <Box
-        height={"calc(100% - 50px)"}
         sx={{
+          height: "calc(100% - 50px)",
           position: "relative",
           boxSizing: "border-box",
           mb: "4px",

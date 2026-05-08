@@ -116,7 +116,12 @@ export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
     <BaseDialog
       open={open}
       title={
-        <Box display="flex" justifyContent="space-between" gap={1}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 1,
+          }}>
           <Typography variant="h6">
             {t("pages.settings.clash.tun.label")}
           </Typography>

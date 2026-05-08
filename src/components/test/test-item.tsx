@@ -110,7 +110,11 @@ export const TestItem = (props: Props) => {
           setAnchorEl(event.currentTarget);
           event.preventDefault();
         }}>
-        <Box position="relative" sx={{ cursor: "move" }}>
+        <Box
+          sx={{
+            position: "relative",
+            cursor: "move",
+          }}>
           {icon && icon.trim() !== "" ? (
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               {icon.trim().startsWith("http") && (
@@ -186,7 +190,6 @@ export const TestItem = (props: Props) => {
           )}
         </Box>
       </TestDiv>
-
       <Menu
         open={!!anchorEl}
         anchorEl={anchorEl}

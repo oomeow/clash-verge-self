@@ -84,11 +84,11 @@ const LogPage = () => {
         <BaseSearchBox onSearch={(match) => setMatch(() => match)} />
       </Box>
       <Box
-        height="calc(100% - 50px)"
         sx={(theme) => ({
           pb: "6px",
           mb: "4px",
           mx: "10px",
+          height: "calc(100% - 50px)",
           borderRadius: "8px",
           bgcolor: "#ffffff",
           ...theme.applyStyles("dark", {

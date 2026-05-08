@@ -139,9 +139,13 @@ export const RuleItem = (props: Props) => {
             />
 
             <Typography
-              color="text.secondary"
               variant="body2"
-              sx={{ lineHeight: 2, minWidth: 30, textAlign: "center" }}>
+              sx={{
+                color: "text.secondary",
+                lineHeight: 2,
+                minWidth: 30,
+                textAlign: "center",
+              }}>
               {index}
             </Typography>
 
@@ -168,8 +172,12 @@ export const RuleItem = (props: Props) => {
                 <Typography
                   component="span"
                   variant="body2"
-                  color="text.secondary"
-                  sx={{ mr: 3, minWidth: 120, display: "inline-block" }}>
+                  sx={{
+                    color: "text.secondary",
+                    mr: 3,
+                    minWidth: 120,
+                    display: "inline-block",
+                  }}>
                   {currentValue.type}
                   {isRuleSet && (
                     <span className="text-primary-main bg-primary-alpha-20 ml-2 inline-block rounded-full px-2 text-xs">
@@ -289,7 +297,9 @@ export const RuleItem = (props: Props) => {
                     unselectable="on"
                     component="span"
                     variant="body2"
-                    color="text.primary">
+                    sx={{
+                      color: "text.primary",
+                    }}>
                     {item}
                   </Typography>
                 </div>

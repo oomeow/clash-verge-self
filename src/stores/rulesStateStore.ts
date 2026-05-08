@@ -38,7 +38,11 @@ export const useRulesStateStore = create<RulesState & RulesActions>()(
     fetchRules: async () => {
       const rules = await getRules();
       const newRules = rules.rules.map(
-        (rule) => ({ ...rule, expanded: false }) as CustomRule,
+        (rule) =>
+          ({
+            ...rule,
+            expanded: false,
+          }) as CustomRule,
       );
       const rulesSignature = newRules
         .map((rule) =>

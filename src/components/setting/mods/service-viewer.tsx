@@ -82,7 +82,12 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
       contentStyle={{ width: 360, userSelect: "text" }}
       hideFooter
       onClose={() => setOpen(false)}>
-      <Box display="flex" flexDirection={"row"} gap={1}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 1,
+        }}>
         {state === "active" || state === "installed" ? (
           <Check color="success" />
         ) : (
@@ -99,13 +104,17 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
             {t(`common.status.service.${state}`)}
           </Typography>
           {(state === "unknown" || state === "uninstall") && (
-            <Typography mt={1} fontSize={14} color={"text.secondary"}>
+            <Typography
+              sx={{
+                mt: 1,
+                fontSize: 14,
+                color: "text.secondary",
+              }}>
               {t("pages.settings.clash.serviceMode.info")}
             </Typography>
           )}
         </Box>
       </Box>
-
       <Stack
         direction="row"
         spacing={1}
