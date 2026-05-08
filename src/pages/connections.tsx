@@ -153,12 +153,12 @@ const ConnectionsPage = () => {
 
   const scrollToTop = useCallback(() => {
     if (isTableLayout) {
-      tableContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      tableContainerRef.current?.scrollTo({ top: 0, behavior: "auto" });
     } else {
       listRef.current?.scrollToIndex({
         index: 0,
         align: "start",
-        behavior: "smooth",
+        behavior: "auto",
       });
     }
   }, [isTableLayout]);
