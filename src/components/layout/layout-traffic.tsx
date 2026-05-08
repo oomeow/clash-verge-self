@@ -52,16 +52,21 @@ export const LayoutTraffic = () => {
   };
   const valStyle: any = {
     component: "span",
-    // color: "primary",
-    textAlign: "center",
-    sx: { flex: "1 1 56px", userSelect: "none" },
+    sx: {
+      flex: "1 1 56px",
+      userSelect: "none",
+      textAlign: "center",
+    },
   };
   const unitStyle: any = {
     component: "span",
     color: "grey.500",
-    fontSize: "12px",
-    textAlign: "right",
-    sx: { flex: "0 1 27px", userSelect: "none" },
+    sx: {
+      flex: "0 1 27px",
+      userSelect: "none",
+      fontSize: "12px",
+      textAlign: "right",
+    },
   };
 
   const restartClashCore = debounce(async () => {
