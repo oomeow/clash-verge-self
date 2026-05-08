@@ -205,7 +205,7 @@ export const ConnectionFilterBox = ({
   const [open, setOpen] = useState(false);
   const [activeField, setActiveField] = useState<ConnectionFilterField>("host");
   const [valueSearch, setValueSearch] = useState("");
-  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const filterButtonRef = useRef<HTMLButtonElement | null>(null);
   const valueListRef = useRef<HTMLDivElement | null>(null);
   const fieldValuesCacheRef = useRef(
     new Map<
@@ -226,12 +226,19 @@ export const ConnectionFilterBox = ({
   }, [t]);
 
   const fieldValuesMap = useMemo(() => {
+    const normalizedHostSearch = hostSearch.trim().toLowerCase();
     const nextMap = new Map<ConnectionFilterField, string[]>();
     CONNECTION_FILTER_FIELDS.forEach(({ field, getValues }) => {
       const matchesOtherFields = createConnectionFilterMatcher(filters, field);
       const uniqueValues = new Set<string>();
 
       connections.forEach((connection) => {
+        if (normalizedHostSearch) {
+          const host =
+            connection.metadata.host || connection.metadata.destinationIP || "";
+          if (!host.toLowerCase().includes(normalizedHostSearch)) return;
+        }
+
         if (!matchesOtherFields(connection)) return;
         getValues(connection).forEach((value) => uniqueValues.add(value));
       });
@@ -251,7 +258,7 @@ export const ConnectionFilterBox = ({
     });
 
     return nextMap;
-  }, [connections, filters]);
+  }, [connections, filters, hostSearch]);
 
   const activeFieldValues = fieldValuesMap.get(activeField) ?? EMPTY_VALUES;
 
@@ -328,14 +335,40 @@ export const ConnectionFilterBox = ({
 
   return (
     <ClickAwayListener onClickAway={() => setOpen(false)}>
-      <Box sx={{ minWidth: 0, flex: 1 }}>
+      <Box sx={{ minWidth: 0, flex: 1, display: "flex", gap: 0.5 }}>
+        <Tooltip title={t("pages.connections.filters.placeholder")}>
+          <IconButton
+            ref={filterButtonRef}
+            size="small"
+            color={open || filters.length > 0 ? "primary" : "default"}
+            sx={[
+              {
+                flexShrink: 0,
+                width: 32,
+                height: 32,
+                border: "1px solid",
+                borderColor: "divider",
+                borderRadius: 1,
+              },
+              ({ palette: { mode } }) => ({
+                ...(mode === "light" && { backgroundColor: "#fff" }),
+              }),
+            ]}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setOpen(true);
+            }}>
+            <FilterAltRounded fontSize="small" />
+          </IconButton>
+        </Tooltip>
         <Box
-          ref={anchorRef}
           sx={[
             {
               height: 32,
               width: "100%",
               minWidth: 0,
+              flex: 1,
               display: "flex",
               alignItems: "center",
               gap: 0.5,
@@ -357,20 +390,7 @@ export const ConnectionFilterBox = ({
             }),
           ]}>
           <InputAdornment position="start" sx={{ mr: 0, flexShrink: 0 }}>
-            <Tooltip title={t("pages.connections.filters.placeholder")}>
-              <IconButton
-                size="small"
-                color={open ? "primary" : "default"}
-                sx={{ p: 0.25 }}
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  onHostSearchChange("");
-                  setOpen(true);
-                }}>
-                <FilterAltRounded fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <SearchRounded fontSize="small" color="action" />
           </InputAdornment>
           <Box
             sx={{
@@ -418,8 +438,8 @@ export const ConnectionFilterBox = ({
                   : undefined
               }
               value={hostSearch}
-              readOnly={open}
               onChange={(event) => onHostSearchChange(event.target.value)}
+              onFocus={() => setOpen(false)}
               onKeyDown={handleInputKeyDown}
               sx={{
                 minWidth: filters.length > 0 ? 64 : 120,
@@ -447,7 +467,7 @@ export const ConnectionFilterBox = ({
 
         <Popper
           open={open}
-          anchorEl={anchorRef.current}
+          anchorEl={filterButtonRef.current}
           placement="bottom-start"
           sx={{ zIndex: (theme) => theme.zIndex.modal + 1 }}>
           <Paper elevation={6} sx={{ mt: 0.5 }}>
@@ -572,6 +592,7 @@ export const ConnectionFilterBox = ({
                 </Box>
                 <Box
                   ref={valueListRef}
+                  role="listbox"
                   sx={{
                     display: "flex",
                     flexDirection: "column",
