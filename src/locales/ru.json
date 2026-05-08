@@ -221,6 +221,17 @@
         "rule": "Правило",
         "dragToReorder": "Перетаскивайте для изменения порядка столбцов",
         "startAt": "Начато в {{time}}"
+      },
+      "filters": {
+        "placeholder": "Фильтр по полям соединения",
+        "hostPlaceholder": "Поиск хоста",
+        "noOptions": "Нет значений фильтра",
+        "destinationIP": "IP назначения",
+        "destinationPort": "Порт назначения",
+        "sourceIP": "IP источника",
+        "sourcePort": "Порт источника",
+        "network": "Сеть",
+        "inbound": "Входящее"
       }
     },
     "rules": {

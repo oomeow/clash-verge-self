@@ -15,21 +15,21 @@ import {
   Zoom,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
 
-import {
-  BaseEmpty,
-  BasePage,
-  BaseSearchBox,
-  BaseStyledSelect,
-} from "@/components/base";
+import { BaseEmpty, BasePage, BaseStyledSelect } from "@/components/base";
 import {
   ConnectionDetail,
   ConnectionDetailRef,
 } from "@/components/connection/connection-detail";
+import {
+  ConnectionFilter,
+  ConnectionFilterBox,
+  createConnectionFilterMatcher,
+} from "@/components/connection/connection-filter-box";
 import { ConnectionItem } from "@/components/connection/connection-item";
 import { ConnectionTable } from "@/components/connection/connection-table";
 import {
@@ -47,9 +47,33 @@ const SCROLL_TOP_VISIBLE_THRESHOLD = 240;
 const getScrollerTop = (scroller: HTMLElement | Window) =>
   "scrollY" in scroller ? scroller.scrollY : scroller.scrollTop;
 
+const orderOpts: Record<
+  ConnectionsOrderType,
+  { labelKey: string; sort: OrderFunc }
+> = {
+  Default: {
+    labelKey: "common.status.default",
+    sort: (list) =>
+      list.sort(
+        (a, b) =>
+          new Date(b.start || "0").getTime()! -
+          new Date(a.start || "0").getTime()!,
+      ),
+  },
+  "Upload Speed": {
+    labelKey: "pages.connections.columns.uploadSpeed",
+    sort: (list) => list.sort((a, b) => b.curUpload! - a.curUpload!),
+  },
+  "Download Speed": {
+    labelKey: "pages.connections.columns.downloadSpeed",
+    sort: (list) => list.sort((a, b) => b.curDownload! - a.curDownload!),
+  },
+};
+
 const ConnectionsPage = () => {
   const { t } = useTranslation();
-  const [match, setMatch] = useState(() => (_: string) => true);
+  const [filters, setFilters] = useState<ConnectionFilter[]>([]);
+  const [hostSearch, setHostSearch] = useState("");
   const connLayout = useConnectionsStore((s) => s.layout);
   const setConnectionsLayout = useConnectionsStore(
     (s) => s.setConnectionsLayout,
@@ -65,29 +89,6 @@ const ConnectionsPage = () => {
   const isTableLayout = connLayout === "table";
   const isActiveTab = tabName === "active";
 
-  const orderOpts: Record<
-    ConnectionsOrderType,
-    { labelKey: string; sort: OrderFunc }
-  > = {
-    Default: {
-      labelKey: "common.status.default",
-      sort: (list) =>
-        list.sort(
-          (a, b) =>
-            new Date(b.start || "0").getTime()! -
-            new Date(a.start || "0").getTime()!,
-        ),
-    },
-    "Upload Speed": {
-      labelKey: "pages.connections.columns.uploadSpeed",
-      sort: (list) => list.sort((a, b) => b.curUpload! - a.curUpload!),
-    },
-    "Download Speed": {
-      labelKey: "pages.connections.columns.downloadSpeed",
-      sort: (list) => list.sort((a, b) => b.curDownload! - a.curDownload!),
-    },
-  };
-
   const {
     response: { data: connData = initConnData },
     clearClosedConnections,
@@ -102,12 +103,42 @@ const ConnectionsPage = () => {
   // filter connections
   const orderFunc = orderOpts[curOrderOpt]?.sort;
   const conns = isActiveTab ? activeConns : closedConns;
-  let filterConn = conns.filter((conn) =>
-    match(conn.metadata.host || conn.metadata.destinationIP || ""),
+  const matchesConnectionFilters = useMemo(
+    () => createConnectionFilterMatcher(filters),
+    [filters],
   );
-  if (orderFunc) filterConn = orderFunc(filterConn);
-  if (!isActiveTab)
-    filterConn = filterConn.sort((a, b) => b.closedTime - a.closedTime);
+  const normalizedHostSearch = hostSearch.trim().toLowerCase();
+  const matchesHostSearch = useMemo(() => {
+    if (!normalizedHostSearch) return () => true;
+
+    return (conn: IClosedConnectionItem) => {
+      const host = conn.metadata.host || conn.metadata.destinationIP || "";
+      return host.toLowerCase().includes(normalizedHostSearch);
+    };
+  }, [normalizedHostSearch]);
+  const filterConn = useMemo(() => {
+    let filteredConnections =
+      filters.length > 0 || normalizedHostSearch
+        ? conns.filter(
+            (conn) => matchesConnectionFilters(conn) && matchesHostSearch(conn),
+          )
+        : [...conns];
+    if (orderFunc) filteredConnections = orderFunc(filteredConnections);
+    if (!isActiveTab) {
+      filteredConnections = filteredConnections.sort(
+        (a, b) => b.closedTime - a.closedTime,
+      );
+    }
+
+    return filteredConnections;
+  }, [
+    conns,
+    filters.length,
+    isActiveTab,
+    matchesConnectionFilters,
+    matchesHostSearch,
+    normalizedHostSearch,
+  ]);
 
   const onCloseAll = useLockFn(async () => {
     if (
@@ -266,7 +297,13 @@ const ConnectionsPage = () => {
               ))}
             </BaseStyledSelect>
           )}
-          <BaseSearchBox onSearch={(match) => setMatch(() => match)} />
+          <ConnectionFilterBox
+            connections={conns}
+            filters={filters}
+            hostSearch={hostSearch}
+            onChange={setFilters}
+            onHostSearchChange={setHostSearch}
+          />
         </Box>
 
         <Box
