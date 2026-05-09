@@ -75,7 +75,7 @@
     "@tailwindcss/vite": "4.2.4",
     "@tanstack/router-cli": "1.166.42",
     "@tanstack/router-plugin": "1.167.34",
-    "@tauri-apps/cli": "2.11.0",
+    "@tauri-apps/cli": "2.11.1",
     "@types/adm-zip": "0.5.8",
     "@types/cli-color": "2.0.6",
     "@types/fs-extra": "11.0.4",
