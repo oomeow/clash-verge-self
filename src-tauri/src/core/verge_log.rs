@@ -150,8 +150,7 @@ impl VergeLog {
     }
 }
 
-// Parse log filename format %Y-%m-%d-%H%M to NaiveDateTime
-fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
+// Parse log filename format %Y-%m-%d-%H%M to NaiveDateTime, but only use the date part
 fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
     let sa = s.split('-').collect::<Vec<&str>>();
     if sa.len() != 4 {
