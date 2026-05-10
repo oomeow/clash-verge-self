@@ -139,6 +139,7 @@ fn buffer_or_forward_mihomo_log_ws_message(
         && log_buffer.buffering
         && let Some(data) = data.take()
     {
+        tracing::debug!("log snapshot not send done, buffering log data");
         log_buffer.messages.push(data);
     }
 
