@@ -168,9 +168,9 @@ fn delete_old_logs(file: DirEntry, retention_days: i64) -> Result<()> {
     } else {
         let file_name = file.file_name();
         let file_name = file_name.to_str().unwrap_or_default();
+        let now = Local::now();
 
         if file_name.ends_with(".log") {
-            let now = Local::now();
             if let Ok(created_time) = parse_time_str(file_name.trim_end_matches(".log")) {
                 let file_time = Local
                     .from_local_datetime(&created_time)
