@@ -184,7 +184,7 @@ fn process_file(file: DirEntry, day: i64) -> Result<()> {
                 Ok(created_time) => {
                     let file_time = Local
                         .from_local_datetime(&created_time)
-                        .single()
+                        .earliest()
                         .context("invalid local datetime")?;
 
                     let duration = now.signed_duration_since(file_time);
