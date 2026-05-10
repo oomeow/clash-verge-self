@@ -73,6 +73,7 @@ fn websocket_error_message(error: impl std::fmt::Display) -> Value {
 }
 
 fn normalize_websocket_text(text: String) -> (Value, bool) {
+    // related to [crates/tauri-plugin-mihomo/src/error.rs::WebSocket]
     if text.starts_with("Websocket error") || text.starts_with("websocket error") {
         return (
             serde_json::to_value(WebSocketMessage::Text(text)).unwrap_or(Value::Null),
