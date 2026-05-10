@@ -46,7 +46,7 @@ export const subscribeManagedMihomoWebSocketText = ({
         if (
           disposed ||
           message.type !== "Text" ||
-          message.data.startsWith("Websocket error")
+          /^(?:[Ww]ebsocket error)/.test(message.data)
         ) {
           return;
         }
