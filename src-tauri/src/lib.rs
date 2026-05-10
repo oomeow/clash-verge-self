@@ -11,7 +11,7 @@ mod utils;
 use core::verge_log::VergeLog;
 #[cfg(target_os = "linux")]
 use std::sync::LazyLock;
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use anyhow::Result;
 use once_cell::sync::OnceCell;
@@ -22,6 +22,7 @@ use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_mihomo::models::Protocol;
 
 use crate::{
+    cmds::mihomo_ws::CANCEL_MIHOMO_WS_RECONNECT,
     config::Config,
     core::handle,
     utils::{init, resolve},
@@ -245,6 +246,7 @@ pub fn run() -> Result<()> {
         tauri::RunEvent::ExitRequested { code, api, .. } => {
             tauri::async_runtime::block_on(async move {
                 tracing::info!("exit requested, clear all ws connections");
+                CANCEL_MIHOMO_WS_RECONNECT.store(true, Ordering::SeqCst);
                 let _ = handle::Handle::mihomo().await.clear_all_ws_connections().await;
             });
             if code.is_none() {

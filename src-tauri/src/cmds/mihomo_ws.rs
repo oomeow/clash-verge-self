@@ -2,7 +2,7 @@ use std::{
     collections::{HashMap, VecDeque},
     sync::{
         Arc, Mutex,
-        atomic::{AtomicU32, AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering},
     },
     time::Duration,
 };
@@ -88,6 +88,8 @@ struct OpenedMihomoWsConnection {
     backend_id: WebSocketConnectionId,
     log_buffer: Option<Arc<Mutex<BufferedLogMessages>>>,
 }
+
+pub static CANCEL_MIHOMO_WS_RECONNECT: AtomicBool = AtomicBool::new(false);
 
 static NEXT_WS_CONNECTION_ID: AtomicU32 = AtomicU32::new(1);
 static MIHOMO_WS_GENERATION: AtomicU64 = AtomicU64::new(0);
@@ -347,6 +349,10 @@ async fn run_mihomo_ws_connection(
     let mut reconnect_delay = WS_RECONNECT_DELAY;
 
     loop {
+        if CANCEL_MIHOMO_WS_RECONNECT.load(Ordering::Relaxed) {
+            break;
+        }
+
         if *shutdown_rx.borrow() {
             break;
         }
