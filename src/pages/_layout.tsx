@@ -8,11 +8,11 @@ import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import i18next from "i18next";
-import { debounce } from "lodash-es";
+import debounce from "lodash-es/debounce";
 import { Suspense, useEffect, useRef, useState } from "react";
 
-import { TailwindIndicator } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
+import { TailwindIndicator } from "@/components/base/tailwind-indicator";
 import { LayoutControl } from "@/components/layout/layout-control";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useAppHotkeys } from "@/hooks/use-app-hotkeys";
@@ -20,7 +20,9 @@ import { usePortable } from "@/hooks/use-portable";
 import { useVisibility } from "@/hooks/use-visibility";
 import LoadingPage from "@/pages/loading";
 import { appSWRConfig, refreshClashSWR, SWRConfig } from "@/services/swr";
-import { useProfilesStore, useRulesStateStore, useVergeStore } from "@/stores";
+import { useProfilesStore } from "@/stores/profilesStore";
+import { useRulesStateStore } from "@/stores/rulesStateStore";
+import { useVergeStore } from "@/stores/vergeStore";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 
@@ -45,9 +47,6 @@ const Layout = () => {
   const enableSystemTitleBar = useVergeStore(
     (s) => s.verge.enable_system_title_bar ?? false,
   );
-  const enableKeepUiActive = useVergeStore(
-    (s) => s.verge.enable_keep_ui_active ?? false,
-  );
   const appHotkeys = useVergeStore((s) => s.verge.app_hotkeys);
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
   const refreshProfilesConfig = useProfilesStore((s) => s.refreshConfig);
@@ -62,8 +61,10 @@ const Layout = () => {
     visitedPathsRef.current.add(pathname);
   }, [pathname]);
 
-  const handleClose = (keepUIActive: boolean) => {
+  const handleClose = () => {
     const appWindow = getCurrentWebviewWindow();
+    const keepUIActive =
+      useVergeStore.getState().verge.enable_keep_ui_active ?? false;
     if (keepUIActive) {
       appWindow.hide();
     } else {
@@ -199,10 +200,7 @@ const Layout = () => {
             <div className="z-10 box-border flex shrink-0 grow-0 basis-8 justify-end">
               <div className="mt-1 w-full" data-tauri-drag-region="true" />
               {OS !== "macos" && (
-                <LayoutControl
-                  maximized={isMaximized}
-                  onClose={() => handleClose(enableKeepUiActive)}
-                />
+                <LayoutControl maximized={isMaximized} onClose={handleClose} />
               )}
             </div>
           )}
