@@ -1,7 +1,7 @@
 use std::{
     collections::{HashMap, VecDeque},
     sync::{
-        Arc,
+        Arc, Mutex,
         atomic::{AtomicU32, Ordering},
     },
     time::Duration,
@@ -49,6 +49,16 @@ struct MihomoWsConnection {
     active_id: Arc<RwLock<Option<WebSocketConnectionId>>>,
     shutdown_tx: watch::Sender<bool>,
     task: JoinHandle<()>,
+}
+
+struct BufferedLogMessages {
+    buffering: bool,
+    messages: Vec<Value>,
+}
+
+struct OpenedMihomoWsConnection {
+    backend_id: WebSocketConnectionId,
+    log_buffer: Option<Arc<Mutex<BufferedLogMessages>>>,
 }
 
 static NEXT_WS_CONNECTION_ID: AtomicU32 = AtomicU32::new(1);
@@ -116,6 +126,42 @@ fn forward_mihomo_ws_message(
     if should_reconnect {
         let _ = event_tx.send(MihomoWsEvent::Reconnect);
     }
+}
+
+fn buffer_or_forward_mihomo_log_ws_message(
+    data: Value,
+    on_message: &Channel<Value>,
+    event_tx: &mpsc::UnboundedSender<MihomoWsEvent>,
+    log_buffer: &Arc<Mutex<BufferedLogMessages>>,
+) {
+    let mut data = Some(data);
+    if let Ok(mut log_buffer) = log_buffer.lock()
+        && log_buffer.buffering
+        && let Some(data) = data.take()
+    {
+        log_buffer.messages.push(data);
+    }
+
+    if let Some(data) = data {
+        forward_mihomo_ws_message(data, on_message, event_tx);
+    }
+}
+
+fn flush_mihomo_log_ws_buffer(
+    log_buffer: Arc<Mutex<BufferedLogMessages>>,
+    on_message: &Channel<Value>,
+    event_tx: &mpsc::UnboundedSender<MihomoWsEvent>,
+) -> bool {
+    let Ok(mut log_buffer) = log_buffer.lock() else {
+        return false;
+    };
+
+    log_buffer.buffering = false;
+    for data in log_buffer.messages.drain(..) {
+        forward_mihomo_ws_message(data, on_message, event_tx);
+    }
+
+    true
 }
 
 fn quoted_log_value<'a>(line: &'a str, key: &str) -> Option<&'a str> {
@@ -215,41 +261,62 @@ async fn open_mihomo_ws_connection(
     endpoint: &MihomoWsEndpoint,
     on_message: Arc<Channel<Value>>,
     event_tx: mpsc::UnboundedSender<MihomoWsEvent>,
-) -> anyhow::Result<WebSocketConnectionId> {
+) -> anyhow::Result<OpenedMihomoWsConnection> {
     match endpoint {
         MihomoWsEndpoint::Traffic => {
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
-            Ok(handle::Handle::mihomo()
+            let backend_id = handle::Handle::mihomo()
                 .await
                 .ws_traffic(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
-                .await?)
+                .await?;
+            Ok(OpenedMihomoWsConnection {
+                backend_id,
+                log_buffer: None,
+            })
         }
         MihomoWsEndpoint::Memory => {
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
-            Ok(handle::Handle::mihomo()
+            let backend_id = handle::Handle::mihomo()
                 .await
                 .ws_memory(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
-                .await?)
+                .await?;
+            Ok(OpenedMihomoWsConnection {
+                backend_id,
+                log_buffer: None,
+            })
         }
         MihomoWsEndpoint::Connections => {
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
-            Ok(handle::Handle::mihomo()
+            let backend_id = handle::Handle::mihomo()
                 .await
                 .ws_connections(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
-                .await?)
+                .await?;
+            Ok(OpenedMihomoWsConnection {
+                backend_id,
+                log_buffer: None,
+            })
         }
         MihomoWsEndpoint::Logs(level) => {
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
-            Ok(handle::Handle::mihomo()
+            let log_buffer = Arc::new(Mutex::new(BufferedLogMessages {
+                buffering: true,
+                messages: Vec::new(),
+            }));
+            let callback_log_buffer = log_buffer.clone();
+            let backend_id = handle::Handle::mihomo()
                 .await
                 .ws_logs(*level, move |data| {
-                    forward_mihomo_ws_message(data, &on_message, &event_tx)
+                    buffer_or_forward_mihomo_log_ws_message(data, &on_message, &event_tx, &callback_log_buffer)
                 })
-                .await?)
+                .await?;
+            Ok(OpenedMihomoWsConnection {
+                backend_id,
+                log_buffer: Some(log_buffer),
+            })
         }
     }
 }
@@ -313,12 +380,18 @@ async fn run_mihomo_ws_connection(
         }
 
         let (event_tx, event_rx) = mpsc::unbounded_channel();
-        match open_mihomo_ws_connection(&endpoint, on_message.clone(), event_tx).await {
-            Ok(backend_id) => {
+        match open_mihomo_ws_connection(&endpoint, on_message.clone(), event_tx.clone()).await {
+            Ok(connection) => {
+                let backend_id = connection.backend_id;
                 *active_id.write().await = Some(backend_id);
                 reconnect_delay = WS_RECONNECT_DELAY;
 
                 if matches!(&endpoint, MihomoWsEndpoint::Logs(_)) && !send_log_snapshot(&on_message).await {
+                    break;
+                }
+                if let Some(log_buffer) = connection.log_buffer
+                    && !flush_mihomo_log_ws_buffer(log_buffer, &on_message, &event_tx)
+                {
                     break;
                 }
 
