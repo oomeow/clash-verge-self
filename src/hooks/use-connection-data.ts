@@ -44,14 +44,9 @@ const updateConnections = (
     (data.connections as IConnectionsItem[]) || []
   ).map((c) => {
     const prev = oldActiveConnMap.get(c.id);
-    if (prev) {
-      c.curUpload = c.upload - prev.upload;
-      c.curDownload = c.download - prev.download;
-    } else {
-      c.curUpload = 0;
-      c.curDownload = 0;
-    }
-    return { ...c, closedTime: 0 } as IClosedConnectionItem;
+    const curUpload = prev ? c.upload - prev.upload : 0;
+    const curDownload = prev ? c.download - prev.download : 0;
+    return { ...c, curUpload, curDownload, closedTime: 0 } as IClosedConnectionItem;
   });
 
   const activeIds = new Set(activeConnections.map((item) => item.id));
