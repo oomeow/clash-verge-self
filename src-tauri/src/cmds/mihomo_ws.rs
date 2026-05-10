@@ -8,6 +8,7 @@ use std::{
 };
 
 use chrono::{DateTime, Local};
+use clash_verge_self_utils::{RawMihomLog, parse_raw_mihomo_log};
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use serde_json::Value;
@@ -25,11 +26,38 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Serialize)]
-struct CmdLogItem {
+struct SnapshotLogItem {
     time: String,
     #[serde(rename = "type")]
     log_type: String,
     payload: String,
+}
+
+impl SnapshotLogItem {
+    fn normalize_log_type(log_type: &str) -> String {
+        match log_type.to_ascii_lowercase().as_str() {
+            "warn" => "warning".to_string(),
+            "err" => "error".to_string(),
+            "inf" => "info".to_string(),
+            value => value.to_string(),
+        }
+    }
+
+    fn format_log_time(time: &str) -> String {
+        DateTime::parse_from_rfc3339(time)
+            .map(|time| time.with_timezone(&Local).format("%m-%d %H:%M:%S").to_string())
+            .unwrap_or_else(|_| time.to_string())
+    }
+}
+
+impl From<RawMihomLog> for SnapshotLogItem {
+    fn from(log: RawMihomLog) -> Self {
+        Self {
+            time: Self::format_log_time(&log.time),
+            log_type: Self::normalize_log_type(&log.level),
+            payload: log.msg,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -166,64 +194,6 @@ fn flush_mihomo_log_ws_buffer(
     true
 }
 
-fn quoted_log_value<'a>(line: &'a str, key: &str) -> Option<&'a str> {
-    let pattern = format!("{key}=\"");
-    let start = line.find(&pattern)? + pattern.len();
-    let end = line[start..].find('"')?;
-    Some(&line[start..start + end])
-}
-
-fn unquoted_log_value<'a>(line: &'a str, key: &str) -> Option<&'a str> {
-    let pattern = format!("{key}=");
-    let start = line.find(&pattern)? + pattern.len();
-    let end = line[start..].find(char::is_whitespace).unwrap_or(line.len() - start);
-    Some(&line[start..start + end])
-}
-
-fn split_once_whitespace(value: &str) -> Option<(&str, &str)> {
-    let index = value.find(char::is_whitespace)?;
-    Some((&value[..index], value[index..].trim_start()))
-}
-
-fn normalize_log_type(log_type: &str) -> String {
-    match log_type.to_ascii_lowercase().as_str() {
-        "warn" => "warning".to_string(),
-        "err" => "error".to_string(),
-        "inf" => "info".to_string(),
-        value => value.to_string(),
-    }
-}
-
-fn format_log_time(time: &str) -> String {
-    DateTime::parse_from_rfc3339(time)
-        .map(|time| time.with_timezone(&Local).format("%m-%d %H:%M:%S").to_string())
-        .unwrap_or_else(|_| time.to_string())
-}
-
-fn parse_clash_log_line(line: &str) -> Option<CmdLogItem> {
-    if let (Some(time), Some(log_type), Some(payload)) = (
-        quoted_log_value(line, "time"),
-        unquoted_log_value(line, "level"),
-        quoted_log_value(line, "msg"),
-    ) {
-        return Some(CmdLogItem {
-            time: format_log_time(time),
-            log_type: normalize_log_type(log_type),
-            payload: payload.to_string(),
-        });
-    }
-
-    let line = line.trim_start();
-    let (time, rest) = split_once_whitespace(line)?;
-    let (log_type, payload) = split_once_whitespace(rest)?;
-
-    Some(CmdLogItem {
-        time: time.to_string(),
-        log_type: normalize_log_type(log_type),
-        payload: payload.to_string(),
-    })
-}
-
 async fn collect_clash_log_lines() -> anyhow::Result<VecDeque<String>> {
     let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or_default();
     let logs = if enable_service_mode {
@@ -245,7 +215,7 @@ async fn send_log_snapshot(on_message: &Channel<Value>) -> bool {
     };
     let logs = logs
         .iter()
-        .filter_map(|line| parse_clash_log_line(line))
+        .filter_map(|line| parse_raw_mihomo_log(line).map(SnapshotLogItem::from))
         .collect::<Vec<_>>();
 
     let text = match serde_json::to_string(&logs) {

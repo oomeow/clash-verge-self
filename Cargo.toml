@@ -1,5 +1,12 @@
 [workspace]
-members = ["src-tauri", "crates/mihomo-rule-parser", "crates/mihomo-config", "crates/tauri-plugin-mihomo", "crates/process_supervisor", "crates/clash-verge-self-utils"]
+members = [
+  "src-tauri",
+  "crates/mihomo-rule-parser",
+  "crates/mihomo-config",
+  "crates/tauri-plugin-mihomo",
+  "crates/process_supervisor",
+  "crates/clash-verge-self-utils"
+]
 default-members = ["src-tauri"]
 resolver = "2"
 
@@ -9,7 +16,6 @@ edition = "2024"
 
 [workspace.dependencies]
 mihomo-rule-parser = { path = "crates/mihomo-rule-parser" }
-mihomo-config = { path = "crates/mihomo-config" }
 tauri-plugin-mihomo = { path = "crates/tauri-plugin-mihomo" }
 process_supervisor = { path = "crates/process_supervisor" }
 clash-verge-self-utils = { path = "crates/clash-verge-self-utils" }
