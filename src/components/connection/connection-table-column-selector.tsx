@@ -1,12 +1,10 @@
 import { isSortable } from "@dnd-kit/dom/sortable";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable } from "@dnd-kit/react/sortable";
-import CancelIcon from "@mui/icons-material/Close";
+import CloseRounded from "@mui/icons-material/CloseRounded";
 import DragIndicatorRounded from "@mui/icons-material/DragIndicatorRounded";
 import { Backdrop, Box, Checkbox, IconButton } from "@mui/material";
 import { useRef, useState } from "react";
-
-import { cn } from "@/utils";
 
 import { ColumnOption } from "./connection-table.types";
 
@@ -28,17 +26,27 @@ const SortableColumnOption = ({
     handle: handleRef,
   });
   return (
-    <div
-      className={cn("bg-white", {
-        "shadow-[0_0_10px_5px_rgba(0,0,0,0.2)]": isDragging,
-      })}
+    <Box
       ref={setElement}
-      data-show={isDragging || undefined}>
-      <div className="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-[rgba(0,0,0,0.04)]">
+      data-show={isDragging || undefined}
+      sx={(theme) => ({
+        bgcolor: "background.paper",
+        ...(isDragging && {
+          boxShadow: theme.shadows[8],
+        }),
+      })}>
+      <Box
+        className="flex items-center gap-2 px-3 py-2"
+        sx={{
+          borderRadius: 1,
+          "&:hover": {
+            bgcolor: "action.hover",
+          },
+        }}>
         <button
           ref={handleRef}
           type="button"
-          className="cursor-grab text-[rgba(0,0,0,0.48)] active:cursor-grabbing"
+          className="cursor-grab active:cursor-grabbing"
           aria-label={`Drag ${option.label}`}>
           <DragIndicatorRounded fontSize="small" />
         </button>
@@ -49,8 +57,8 @@ const SortableColumnOption = ({
           <Checkbox checked={option.visible} size="small" tabIndex={-1} />
           <span className="truncate">{option.label}</span>
         </button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 
@@ -86,7 +94,7 @@ export const ConnectionTableColumnSelector = ({
           maxHeight: "min(560px, calc(100vh - 32px))",
           overflow: "hidden",
           border: `1px solid ${theme.palette.divider}`,
-          borderRadius: "14px",
+          borderRadius: 1,
           bgcolor: theme.palette.background.paper,
           boxShadow: theme.shadows[16],
         })}>
@@ -100,22 +108,24 @@ export const ConnectionTableColumnSelector = ({
             <div className="text-xs opacity-60">{description}</div>
           </div>
           <IconButton size="small" onClick={onClose}>
-            <CancelIcon fontSize="small" />
+            <CloseRounded fontSize="small" />
           </IconButton>
         </Box>
 
-        <div className="max-h-105 overflow-y-auto px-2 py-2">
+        <Box
+          sx={{
+            maxHeight: "calc(min(560px, calc(100vh - 32px)) - 65px)",
+            overflowY: "auto",
+            px: 1,
+            py: 1,
+          }}>
           <DragDropProvider
             onDragEnd={(event) => {
               const { operation, canceled } = event;
               const { source, target } = operation;
-              if (canceled) return;
+              if (canceled || !target || !isSortable(source)) return;
 
-              if (target && isSortable(source)) {
-                const newIndex = source.sortable.index;
-                const oldIndex = source.sortable.initialIndex;
-                onDragEnd(oldIndex, newIndex);
-              }
+              onDragEnd(source.sortable.initialIndex, source.sortable.index);
             }}>
             <div className="space-y-1">
               {columns.map((column, index) => (
@@ -128,7 +138,7 @@ export const ConnectionTableColumnSelector = ({
               ))}
             </div>
           </DragDropProvider>
-        </div>
+        </Box>
       </Box>
     </Backdrop>
   );

@@ -37,10 +37,17 @@ import {
   initConnData,
   useConnectionData,
 } from "@/hooks/use-connection-data";
-import { type ConnectionsOrderType, useConnectionsStore } from "@/stores";
+import {
+  type ConnectionsOrderType,
+  type ConnectionsTabName,
+  useConnectionsStore,
+} from "@/stores";
 import parseTraffic from "@/utils/parse-traffic";
 
-type OrderFunc = (list: IClosedConnectionItem[]) => IClosedConnectionItem[];
+type OrderCompare = (
+  a: IClosedConnectionItem,
+  b: IClosedConnectionItem,
+) => number;
 
 const SCROLL_TOP_VISIBLE_THRESHOLD = 240;
 
@@ -49,26 +56,25 @@ const getScrollerTop = (scroller: HTMLElement | Window) =>
 
 const orderOpts: Record<
   ConnectionsOrderType,
-  { labelKey: string; sort: OrderFunc }
+  { labelKey: string; compare: OrderCompare }
 > = {
   Default: {
     labelKey: "common.status.default",
-    sort: (list) =>
-      list.sort(
-        (a, b) =>
-          new Date(b.start || "0").getTime()! -
-          new Date(a.start || "0").getTime()!,
-      ),
+    compare: (a, b) =>
+      new Date(b.start || "0").getTime() - new Date(a.start || "0").getTime(),
   },
   "Upload Speed": {
     labelKey: "pages.connections.columns.uploadSpeed",
-    sort: (list) => list.sort((a, b) => b.curUpload! - a.curUpload!),
+    compare: (a, b) => (b.curUpload ?? 0) - (a.curUpload ?? 0),
   },
   "Download Speed": {
     labelKey: "pages.connections.columns.downloadSpeed",
-    sort: (list) => list.sort((a, b) => b.curDownload! - a.curDownload!),
+    compare: (a, b) => (b.curDownload ?? 0) - (a.curDownload ?? 0),
   },
 };
+
+const compareClosedConnections: OrderCompare = (a, b) =>
+  b.closedTime - a.closedTime;
 
 const ConnectionsPage = () => {
   const { t } = useTranslation();
@@ -80,7 +86,7 @@ const ConnectionsPage = () => {
   );
   const curOrderOpt = useConnectionsStore((s) => s.curOrderOpt);
   const setOrderType = useConnectionsStore((s) => s.setOrderType);
-  const [tabName, setTabName] = useState("active");
+  const [tabName, setTabName] = useState<ConnectionsTabName>("active");
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<VirtuosoHandle>(null);
   const listScrollerRef = useRef<HTMLElement | Window | null>(null);
@@ -100,54 +106,36 @@ const ConnectionsPage = () => {
   const activeConns = connData.activeConnections;
   const closedConns = connData.closedConnections;
 
-  // filter connections
-  const orderFunc = orderOpts[curOrderOpt]?.sort;
-  const conns = isActiveTab ? activeConns : closedConns;
-  const matchesConnectionFilters = useMemo(
-    () => createConnectionFilterMatcher(filters),
-    [filters],
-  );
-  const normalizedHostSearch = hostSearch.trim().toLowerCase();
-  const matchesHostSearch = useMemo(() => {
-    if (!normalizedHostSearch) return () => true;
+  const currentConnections = isActiveTab ? activeConns : closedConns;
+  const filteredConnections = useMemo(() => {
+    const normalizedHostSearch = hostSearch.trim().toLowerCase();
+    const matchesFilters = createConnectionFilterMatcher(filters);
+    const compareConnections = isActiveTab
+      ? (orderOpts[curOrderOpt] ?? orderOpts.Default).compare
+      : compareClosedConnections;
 
-    return (conn: IClosedConnectionItem) => {
-      const host = conn.metadata.host || conn.metadata.destinationIP || "";
-      return host.toLowerCase().includes(normalizedHostSearch);
-    };
-  }, [normalizedHostSearch]);
-  const filterConn = useMemo(() => {
-    let filteredConnections =
-      filters.length > 0 || normalizedHostSearch
-        ? conns.filter(
-            (conn) => matchesConnectionFilters(conn) && matchesHostSearch(conn),
-          )
-        : [...conns];
-    if (orderFunc) filteredConnections = orderFunc(filteredConnections);
-    if (!isActiveTab) {
-      filteredConnections = filteredConnections.sort(
-        (a, b) => b.closedTime - a.closedTime,
-      );
-    }
+    return currentConnections
+      .filter((conn) => {
+        const host = conn.metadata.host || conn.metadata.destinationIP || "";
+        const matchesHost =
+          !normalizedHostSearch ||
+          host.toLowerCase().includes(normalizedHostSearch);
 
-    return filteredConnections;
-  }, [
-    conns,
-    filters.length,
-    isActiveTab,
-    matchesConnectionFilters,
-    matchesHostSearch,
-    normalizedHostSearch,
-  ]);
+        return matchesHost && matchesFilters(conn);
+      })
+      .sort(compareConnections);
+  }, [currentConnections, curOrderOpt, filters, hostSearch, isActiveTab]);
 
   const onCloseAll = useLockFn(async () => {
     if (
       !isActiveTab ||
-      filterConn.length === connData.activeConnections.length
+      filteredConnections.length === connData.activeConnections.length
     ) {
       await closeAllConnections();
     } else {
-      await Promise.all(filterConn.map((conn) => closeConnection(conn.id)));
+      await Promise.all(
+        filteredConnections.map((conn) => closeConnection(conn.id)),
+      );
     }
   });
 
@@ -163,6 +151,15 @@ const ConnectionsPage = () => {
     }
   }, [isTableLayout]);
 
+  const handleTabChange = useCallback(
+    (nextTab: ConnectionsTabName) => {
+      setTabName(nextTab);
+      setShowScrollTop(false);
+      requestAnimationFrame(scrollToTop);
+    },
+    [scrollToTop],
+  );
+
   const handleListScrollerRef = useCallback(
     (ref: HTMLElement | Window | null) => {
       listScrollerRef.current = ref;
@@ -175,7 +172,7 @@ const ConnectionsPage = () => {
       ? tableContainerRef.current
       : listScrollerRef.current;
 
-    if (!scroller || filterConn.length === 0) {
+    if (!scroller || filteredConnections.length === 0) {
       setShowScrollTop(false);
       return;
     }
@@ -192,7 +189,7 @@ const ConnectionsPage = () => {
     return () => {
       scroller.removeEventListener("scroll", updateScrollTopVisible);
     };
-  }, [filterConn.length > 0, isTableLayout, tabName]);
+  }, [filteredConnections.length, isTableLayout, tabName]);
 
   return (
     <BasePage
@@ -204,17 +201,17 @@ const ConnectionsPage = () => {
       }
       contentStyle={{ height: "100%" }}
       header={
-        <div className="mx-2 flex items-center overflow-hidden">
-          <div className="flex w-full items-center space-x-2 p-2">
-            <div className="flex w-fit items-center space-x-4">
-              <div className="flex w-full items-center space-x-1">
+        <div className="mx-2 flex min-w-0 items-center gap-2 overflow-hidden p-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="flex w-fit shrink-0 items-center gap-4">
+              <div className="flex items-center gap-1">
                 <Tooltip title={t("pages.connections.columns.totalUploaded")}>
                   <Upload fontSize="small" />
                 </Tooltip>
                 <span className="text-sm">{totalUpload[0]}</span>
                 <span className="text-sm">{totalUpload[1]}</span>
               </div>
-              <div className="flex w-full items-center space-x-1">
+              <div className="flex items-center gap-1">
                 <Tooltip title={t("pages.connections.columns.totalDownloaded")}>
                   <Download fontSize="small" />
                 </Tooltip>
@@ -222,65 +219,55 @@ const ConnectionsPage = () => {
                 <span className="text-sm">{totalDownload[1]}</span>
               </div>
             </div>
-            <IconButton
-              color="inherit"
-              size="small"
+            <Tooltip
               title={
                 isTableLayout
                   ? t("pages.connections.view.list")
                   : t("pages.connections.view.table")
-              }
-              onClick={() =>
-                setConnectionsLayout(isTableLayout ? "list" : "table")
               }>
-              {isTableLayout ? (
-                <TableRowsRounded fontSize="inherit" />
-              ) : (
-                <TableChartRounded fontSize="inherit" />
-              )}
-            </IconButton>
+              <IconButton
+                color="inherit"
+                size="small"
+                onClick={() =>
+                  setConnectionsLayout(isTableLayout ? "list" : "table")
+                }>
+                {isTableLayout ? (
+                  <TableRowsRounded fontSize="inherit" />
+                ) : (
+                  <TableChartRounded fontSize="inherit" />
+                )}
+              </IconButton>
+            </Tooltip>
           </div>
-          <div>
-            <Button size="small" variant="contained" onClick={onCloseAll}>
-              <span style={{ whiteSpace: "nowrap" }}>
-                {t("pages.connections.actions.closeAll")}{" "}
-                {isActiveTab ? filterConn.length : activeConns.length}
-              </span>
-            </Button>
-          </div>
+          <Button size="small" variant="contained" onClick={onCloseAll}>
+            <span className="whitespace-nowrap">
+              {t("pages.connections.actions.closeAll")}{" "}
+              {isActiveTab ? filteredConnections.length : activeConns.length}
+            </span>
+          </Button>
         </div>
       }>
-      <div className="relative h-full w-full overflow-hidden">
+      <div className="relative flex h-full w-full flex-col overflow-hidden">
         <Box
           sx={{
-            mb: "10px",
-            pt: "10px",
             mx: "10px",
-            height: "36px",
+            py: "10px",
             display: "flex",
             alignItems: "center",
+            gap: 1,
+            flexShrink: 0,
             userSelect: "text",
             boxSizing: "border-box",
           }}>
-          <ButtonGroup size="small" className="mr-2 w-fit shrink-0 grow-0">
+          <ButtonGroup size="small" className="w-fit shrink-0 grow-0">
             <Button
               variant={isActiveTab ? "contained" : "outlined"}
-              onClick={() => {
-                setTabName("active");
-                if (isTableLayout && tableContainerRef.current) {
-                  tableContainerRef.current.scrollTo({ top: 0 });
-                }
-              }}>
+              onClick={() => handleTabChange("active")}>
               {t("common.status.active")} {activeConns.length}
             </Button>
             <Button
               variant={!isActiveTab ? "contained" : "outlined"}
-              onClick={() => {
-                setTabName("closed");
-                if (isTableLayout && tableContainerRef.current) {
-                  tableContainerRef.current.scrollTo({ top: 0 });
-                }
-              }}>
+              onClick={() => handleTabChange("closed")}>
               {t("common.status.closed")} {closedConns.length}
             </Button>
           </ButtonGroup>
@@ -298,7 +285,7 @@ const ConnectionsPage = () => {
             </BaseStyledSelect>
           )}
           <ConnectionFilterBox
-            connections={conns}
+            connections={currentConnections}
             filters={filters}
             hostSearch={hostSearch}
             onChange={setFilters}
@@ -309,7 +296,8 @@ const ConnectionsPage = () => {
         <Box
           sx={[
             {
-              height: "calc(100% - 50px)",
+              flex: 1,
+              minHeight: 0,
             },
             (theme) => ({
               userSelect: "text",
@@ -323,12 +311,12 @@ const ConnectionsPage = () => {
               boxSizing: "border-box",
             }),
           ]}>
-          {filterConn.length === 0 ? (
+          {filteredConnections.length === 0 ? (
             <BaseEmpty text={t("common.empty.noConnections")} />
           ) : isTableLayout ? (
             <ConnectionTable
               tableContainerRef={tableContainerRef}
-              connections={filterConn}
+              connections={filteredConnections}
               isActive={isActiveTab}
               onShowDetail={(detail) =>
                 detailRef.current?.open(detail, isActiveTab)
@@ -338,7 +326,7 @@ const ConnectionsPage = () => {
             <Virtuoso
               ref={listRef}
               scrollerRef={handleListScrollerRef}
-              data={filterConn}
+              data={filteredConnections}
               itemContent={(_, item) => (
                 <ConnectionItem
                   key={item.id}
@@ -368,7 +356,7 @@ const ConnectionsPage = () => {
             </Fab>
           </Tooltip>
         </Zoom>
-        <Zoom in={!isActiveTab && filterConn.length > 0} unmountOnExit>
+        <Zoom in={!isActiveTab && filteredConnections.length > 0} unmountOnExit>
           <Fab
             size="medium"
             variant="extended"
