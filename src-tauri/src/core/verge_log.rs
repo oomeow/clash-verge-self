@@ -5,7 +5,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use chrono::{Local, TimeZone};
+use chrono::{Local, NaiveDateTime, TimeZone};
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 use time::macros::format_description;
@@ -123,74 +123,81 @@ impl VergeLog {
         let auto_log_clean = {
             let verge = Config::verge();
             let verge = verge.data();
-            verge.auto_log_clean.unwrap_or(0)
+            verge.auto_log_clean.unwrap_or(1)
         };
 
         let day = match auto_log_clean {
             1 => 7,
             2 => 30,
             3 => 90,
-            _ => return Ok(()),
+            _ => 7, // default to 7 days
         };
 
         tracing::debug!("try to delete log files, day: {day}");
 
-        // %Y-%m-%d to NaiveDateTime
-        let parse_time_str = |s: &str| {
-            let sa = s.split('-').collect::<Vec<&str>>();
-            if sa.len() != 4 {
-                anyhow::bail!("invalid time str: {s}.log");
-            }
-
-            let year = i32::from_str(sa[0])?;
-            let month = u32::from_str(sa[1])?;
-            let day = u32::from_str(sa[2])?;
-            let time = chrono::NaiveDate::from_ymd_opt(year, month, day)
-                .context("invalid time str")?
-                .and_hms_opt(0, 0, 0)
-                .context("invalid time str")?;
-            Ok(time)
-        };
-
-        let process_file = |file: DirEntry| -> Result<()> {
-            let file_name = file.file_name();
-            let file_name = file_name.to_str().unwrap_or_default();
-
-            if file_name.ends_with(".log") {
-                let now = Local::now();
-                match parse_time_str(&file_name[0..file_name.len() - 4]) {
-                    Ok(created_time) => {
-                        let file_time = Local
-                            .from_local_datetime(&created_time)
-                            .single()
-                            .context("invalid local datetime")?;
-
-                        let duration = now.signed_duration_since(file_time);
-                        if duration.num_days() > day {
-                            let file_path = file.path();
-                            log_err!(fs::remove_file(file_path), "delete file failed");
-                            tracing::info!("delete log file: {file_name}");
-                        }
-                    }
-                    Err(e) => {
-                        tracing::warn!("ignore log file [{file_name}], {e}");
-                    }
-                }
-            }
-            Ok(())
-        };
-
         for file in fs::read_dir(&log_dir)?.flatten() {
-            log_err!(process_file(file));
+            log_err!(process_file(file, day));
         }
 
         let service_log_dir = log_dir.join("service");
         if service_log_dir.exists() {
             for file in fs::read_dir(service_log_dir)?.flatten() {
-                log_err!(process_file(file));
+                log_err!(process_file(file, day));
             }
         }
 
         Ok(())
     }
+}
+
+// %Y-%m-%d to NaiveDateTime
+fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
+    let sa = s.split('-').collect::<Vec<&str>>();
+    if sa.len() != 4 {
+        anyhow::bail!("invalid time str: {s}.log");
+    }
+
+    let year = i32::from_str(sa[0])?;
+    let month = u32::from_str(sa[1])?;
+    let day = u32::from_str(sa[2])?;
+    let time = chrono::NaiveDate::from_ymd_opt(year, month, day)
+        .context("invalid time str")?
+        .and_hms_opt(0, 0, 0)
+        .context("invalid time str")?;
+    Ok(time)
+}
+
+fn process_file(file: DirEntry, day: i64) -> Result<()> {
+    if file.file_type()?.is_dir() {
+        tracing::trace!("delete log process dir: {}", file.path().display());
+        for file in fs::read_dir(file.path())?.flatten() {
+            process_file(file, day)?;
+        }
+    } else {
+        let file_name = file.file_name();
+        let file_name = file_name.to_str().unwrap_or_default();
+
+        if file_name.ends_with(".log") {
+            let now = Local::now();
+            match parse_time_str(&file_name[0..file_name.len() - 4]) {
+                Ok(created_time) => {
+                    let file_time = Local
+                        .from_local_datetime(&created_time)
+                        .single()
+                        .context("invalid local datetime")?;
+
+                    let duration = now.signed_duration_since(file_time);
+                    if duration.num_days() > day {
+                        let file_path = file.path();
+                        log_err!(fs::remove_file(file_path), "delete file failed");
+                        tracing::info!("delete log file: {file_name}");
+                    }
+                }
+                Err(e) => {
+                    tracing::warn!("ignore log file [{file_name}], {e}");
+                }
+            }
+        }
+    }
+    Ok(())
 }
