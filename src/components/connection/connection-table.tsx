@@ -167,7 +167,7 @@ const ConnectionTableBody = memo(
       estimateSize: () => ROW_HEIGHT,
       getScrollElement: () => tableContainerElement,
       getItemKey: (index) => rows[index]?.id ?? index,
-      overscan: 3,
+      overscan: 5,
     });
 
     return (
