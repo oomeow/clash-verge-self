@@ -91,11 +91,13 @@ const ConnectionTableBodyRow = memo(
         data-body-row="true"
         onClick={() => onShowDetail(row.original.connectionData)}
         style={{
+          contain: "layout style paint",
           display: "flex",
           position: "absolute",
-          transform: `translateY(${virtualRow.start}px)`,
+          transform: `translate3d(0, ${virtualRow.start}px, 0)`,
           width: "100%",
           height: `${virtualRow.size}px`,
+          willChange: "transform",
         }}>
         {row.getVisibleCells().map((cell) => {
           const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
@@ -104,7 +106,6 @@ const ConnectionTableBodyRow = memo(
             cell.column.columnDef.cell,
             cell.getContext(),
           );
-          const tooltipText = getCellTooltipText(cell);
 
           return (
             <td
@@ -119,23 +120,23 @@ const ConnectionTableBodyRow = memo(
                 position: "relative",
                 justifyContent,
               }}>
-              <Tooltip
-                followCursor
-                title={tooltipText}
-                disableHoverListener={!tooltipText}>
-                <span
-                  className="flex h-full w-full items-center overflow-hidden text-sm text-ellipsis whitespace-nowrap"
-                  style={{ justifyContent }}
-                  data-column-content="true">
-                  <span className="min-w-0 overflow-hidden leading-tight text-ellipsis whitespace-nowrap">
-                    {renderedCell}
-                  </span>
-                </span>
-              </Tooltip>
               <span
-                className="pointer-events-none invisible absolute px-3 whitespace-nowrap"
-                data-column-measure="true">
-                {renderedCell}
+                className="flex h-full w-full items-center overflow-hidden text-sm text-ellipsis whitespace-nowrap"
+                style={{ justifyContent }}
+                onPointerEnter={(event) => {
+                  const tooltipText = getCellTooltipText(cell);
+                  if (tooltipText) {
+                    event.currentTarget.title = tooltipText;
+                    return;
+                  }
+
+                  event.currentTarget.removeAttribute("title");
+                }}>
+                <span
+                  className="min-w-0 overflow-hidden leading-tight text-ellipsis whitespace-nowrap"
+                  data-column-content="true">
+                  {renderedCell}
+                </span>
               </span>
             </td>
           );
@@ -172,12 +173,14 @@ const ConnectionTableBody = memo(
     return (
       <tbody
         style={{
+          contain: "layout style paint",
           display: "grid",
           height: `${rowVirtualizer.getTotalSize()}px`,
           position: "relative",
         }}>
         {rowVirtualizer.getVirtualItems().map((virtualRow) => {
           const row = rows[virtualRow.index];
+          if (!row) return null;
 
           return (
             <ConnectionTableBodyRow
@@ -367,7 +370,7 @@ export const ConnectionTable = (props: Props) => {
           ? CSS.escape(columnId)
           : columnId;
       const contents = container.querySelectorAll<HTMLElement>(
-        `[data-column-id="${selectorColumnId}"] [data-column-measure="true"]`,
+        `[data-column-id="${selectorColumnId}"] [data-column-content="true"]`,
       );
       if (contents.length === 0) return;
 
@@ -503,10 +506,10 @@ export const ConnectionTable = (props: Props) => {
                         : "100%",
                     }}
                     onClick={header.column.getToggleSortingHandler()}>
-                    <span className="truncate" data-column-content="true">
+                    <span className="truncate">
                       <span
                         className="inline-block max-w-none"
-                        data-column-measure="true">
+                        data-column-content="true">
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -587,7 +590,7 @@ export const ConnectionTable = (props: Props) => {
 
   return (
     <Box className="flex h-full min-h-0 flex-col">
-      <Box className="flex items-center px-1 py-1">
+      <Box className="flex shrink-0 items-center justify-end px-1 py-1">
         <Tooltip title={t("pages.connections.columns.actions")}>
           <IconButton
             size="small"

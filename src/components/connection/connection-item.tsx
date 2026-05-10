@@ -39,7 +39,15 @@ export const ConnectionItem = (props: Props) => {
   const { id, metadata, chains, start, curUpload, curDownload } = value;
 
   const onDelete = useLockFn(async () => closeConnection(id));
-  const showTraffic = curUpload! >= 100 || curDownload! >= 100;
+  const uploadSpeed = curUpload ?? 0;
+  const downloadSpeed = curDownload ?? 0;
+  const chainText = chains?.length ? [...chains].reverse().join(" / ") : "";
+  const showTraffic = uploadSpeed >= 100 || downloadSpeed >= 100;
+  const trafficText = showTraffic
+    ? `${parseTraffic(uploadSpeed).join(" ")} / ${parseTraffic(
+        downloadSpeed,
+      ).join(" ")}`
+    : "";
 
   return (
     <ListItem
@@ -70,9 +78,7 @@ export const ConnectionItem = (props: Props) => {
 
             {!!metadata.process && <Tag>{metadata.process}</Tag>}
 
-            {chains?.length > 0 && (
-              <Tag>{[...chains].reverse().join(" / ")}</Tag>
-            )}
+            {!!chainText && <Tag>{chainText}</Tag>}
 
             <Tag>
               {t("pages.connections.columns.startAt", {
@@ -80,11 +86,7 @@ export const ConnectionItem = (props: Props) => {
               })}
             </Tag>
 
-            {showTraffic && (
-              <Tag>
-                {parseTraffic(curUpload!)} / {parseTraffic(curDownload!)}
-              </Tag>
-            )}
+            {!!trafficText && <Tag>{trafficText}</Tag>}
           </span>
         }
       />
