@@ -37,7 +37,7 @@ enum MihomoWsEndpoint {
     Traffic,
     Memory,
     Connections,
-    Logs(String),
+    Logs(LogLevel),
 }
 
 enum MihomoWsEvent {
@@ -114,16 +114,6 @@ fn forward_mihomo_ws_message(
     }
     if should_reconnect {
         let _ = event_tx.send(MihomoWsEvent::Reconnect);
-    }
-}
-
-fn log_level_from_str(level: &str) -> LogLevel {
-    match level {
-        "debug" => LogLevel::DEBUG,
-        "warning" => LogLevel::WARNING,
-        "error" => LogLevel::ERROR,
-        "silent" => LogLevel::SILENT,
-        _ => LogLevel::INFO,
     }
 }
 
@@ -251,12 +241,11 @@ async fn open_mihomo_ws_connection(
                 .await?)
         }
         MihomoWsEndpoint::Logs(level) => {
-            let level = log_level_from_str(level);
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
             Ok(handle::Handle::mihomo()
                 .await
-                .ws_logs(level, move |data| {
+                .ws_logs(*level, move |data| {
                     forward_mihomo_ws_message(data, &on_message, &event_tx)
                 })
                 .await?)
@@ -430,7 +419,7 @@ pub async fn ws_connections(on_message: Channel<Value>) -> CommandResult<WebSock
 
 #[tauri::command]
 pub async fn ws_logs(level: LogLevel, on_message: Channel<Value>) -> CommandResult<WebSocketConnectionId> {
-    into_command_result(connect_mihomo_ws(MihomoWsEndpoint::Logs(level.to_string()), on_message).await)
+    into_command_result(connect_mihomo_ws(MihomoWsEndpoint::Logs(level), on_message).await)
 }
 
 #[tauri::command]
