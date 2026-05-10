@@ -1,10 +1,9 @@
-import { useEffect, useRef } from "react";
-import {
-  Connection,
-  Connections,
-  MihomoWebSocket,
-} from "tauri-plugin-mihomo-api";
+import type { Connection, Connections } from "tauri-plugin-mihomo-api";
 
+import {
+  ManagedMihomoWebSocket,
+  subscribeManagedMihomoWebSocketText,
+} from "@/services/mihomo-websocket";
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useRefreshConnectionDateStore } from "@/stores";
 
@@ -33,14 +32,48 @@ export const initConnData: ConnectionMonitorData = {
 
 const MAX_CLOSED_CONNS = 500;
 
+const updateConnections = (
+  data: Connections,
+  old: ConnectionMonitorData = initConnData,
+): ConnectionMonitorData => {
+  const oldActiveConns = old.activeConnections;
+  const oldClosedConns = old.closedConnections;
+  const oldActiveConnMap = new Map(oldActiveConns.map((c) => [c.id, c]));
+
+  const activeConnections = (
+    (data.connections as IConnectionsItem[]) || []
+  ).map((c) => {
+    const prev = oldActiveConnMap.get(c.id);
+    if (prev) {
+      c.curUpload = c.upload - prev.upload;
+      c.curDownload = c.download - prev.download;
+    } else {
+      c.curUpload = 0;
+      c.curDownload = 0;
+    }
+    return { ...c, closedTime: 0 } as IClosedConnectionItem;
+  });
+
+  const activeIds = new Set(activeConnections.map((item) => item.id));
+  const closed = oldActiveConns
+    .filter((item) => !activeIds.has(item.id))
+    .map((item) => ({ ...item, closedTime: Date.now() }));
+  const closedConnections = [...oldClosedConns, ...closed].slice(
+    -MAX_CLOSED_CONNS,
+  );
+
+  return {
+    uploadTotal: data.uploadTotal,
+    downloadTotal: data.downloadTotal,
+    activeConnections,
+    closedConnections,
+  };
+};
+
 export const useConnectionData = () => {
   const date = useRefreshConnectionDateStore((s) => s.date);
   const refresh = useRefreshConnectionDateStore((s) => s.refresh);
   const subscriptKey = `getClashConnection-${date}`;
-
-  const ws = useRef<MihomoWebSocket | null>(null);
-  const wsFirstConnection = useRef<boolean>(true);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const response = useSWRSubscription<
     ConnectionMonitorData,
@@ -48,113 +81,32 @@ export const useConnectionData = () => {
     string | null
   >(
     subscriptKey,
-    (_key, { next }) => {
-      const reconnect = async () => {
-        await ws.current?.close();
-        ws.current = null;
-        timeoutRef.current = setTimeout(async () => await connect(), 500);
-      };
-
-      const connect = () =>
-        MihomoWebSocket.connect_connections()
-          .then((ws_) => {
-            ws.current = ws_;
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-            ws_.addListener(async (msg) => {
-              if (msg.type === "Text") {
-                if (msg.data.startsWith("Websocket error")) {
-                  next(msg.data);
-                  await reconnect();
-                } else {
-                  const data = JSON.parse(msg.data) as Connections;
-                  next(null, (old = initConnData) => {
-                    const oldActiveConns = old.activeConnections;
-                    const oldClosedConns = old.closedConnections;
-                    const oldActiveConnMap = new Map(
-                      oldActiveConns.map((c, _i) => [c.id, c]),
-                    );
-
-                    const activeConnections = (
-                      (data.connections as IConnectionsItem[]) || []
-                    ).map((c) => {
-                      const prev = oldActiveConnMap.get(c.id);
-                      if (prev) {
-                        c.curUpload = c.upload - prev.upload;
-                        c.curDownload = c.download - prev.download;
-                      } else {
-                        c.curUpload = 0;
-                        c.curDownload = 0;
-                      }
-                      return { ...c, closedTime: 0 } as IClosedConnectionItem;
-                    });
-
-                    const activeIds = new Set(
-                      activeConnections.map((item) => item.id),
-                    );
-                    const closed = oldActiveConns
-                      .filter((item) => !activeIds.has(item.id))
-                      .map((item) => ({ ...item, closedTime: Date.now() }));
-                    const closedConnections = [
-                      ...oldClosedConns,
-                      ...closed,
-                    ].slice(-MAX_CLOSED_CONNS);
-
-                    return {
-                      uploadTotal: data.uploadTotal,
-                      downloadTotal: data.downloadTotal,
-                      activeConnections,
-                      closedConnections,
-                    };
-                  });
-                }
-              }
-            });
-          })
-          .catch((_) => {
-            if (!ws.current) {
-              timeoutRef.current = setTimeout(async () => await connect(), 500);
-            }
-          });
-
-      if (
-        wsFirstConnection.current ||
-        (ws.current && !wsFirstConnection.current)
-      ) {
-        wsFirstConnection.current = false;
-        if (ws.current) {
-          ws.current.close();
-          ws.current = null;
-        }
-        connect();
-      }
-
-      return () => {
-        ws.current?.close();
-      };
-    },
+    (_key, { next }) =>
+      subscribeManagedMihomoWebSocketText({
+        connect: ManagedMihomoWebSocket.connectConnections,
+        onText: (text) =>
+          next(null, (old = initConnData) =>
+            updateConnections(JSON.parse(text) as Connections, old),
+          ),
+        onError: next,
+      }),
     {
       fallbackData: initConnData,
       keepPreviousData: true,
     },
   );
 
-  useEffect(() => {
-    mutate(swrSubscriptionKey(subscriptKey));
-  }, [date, subscriptKey]);
-
-  const refreshGetClashConnection = () => {
-    refresh();
-  };
-
   const clearClosedConnections = () => {
+    const current = response.data ?? initConnData;
     mutate(swrSubscriptionKey(subscriptKey), {
-      uploadTotal: response.data?.uploadTotal ?? 0,
-      downloadTotal: response.data?.downloadTotal ?? 0,
-      activeConnections: response.data?.activeConnections ?? [],
+      ...current,
       closedConnections: [],
     });
   };
 
-  return { response, refreshGetClashConnection, clearClosedConnections };
+  return {
+    response,
+    refreshGetClashConnection: refresh,
+    clearClosedConnections,
+  };
 };

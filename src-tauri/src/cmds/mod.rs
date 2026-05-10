@@ -7,6 +7,7 @@ use crate::core::handle;
 pub mod backup;
 pub mod clash;
 pub mod common;
+pub mod mihomo_ws;
 pub mod profile;
 pub mod service;
 pub mod verge;

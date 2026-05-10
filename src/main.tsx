@@ -4,7 +4,8 @@ import "@/services/i18n";
 import { ResizeObserver } from "@juggle/resize-observer";
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { MihomoWebSocket } from "tauri-plugin-mihomo-api";
+
+import { ManagedMihomoWebSocket } from "@/services/mihomo-websocket";
 
 import App from "./App";
 
@@ -45,13 +46,13 @@ document.addEventListener("keydown", (event) => {
 window.addEventListener("beforeunload", async () => {
   console.log("beforeunload");
   // 强制清理所有 WebSocket 实例
-  await MihomoWebSocket.cleanupAll();
+  await ManagedMihomoWebSocket.cleanupAll();
 });
 
 window.addEventListener("DOMContentLoaded", async () => {
   console.log("DOMContentLoaded");
   // 强制清理所有 WebSocket 实例
-  await MihomoWebSocket.cleanupAll();
+  await ManagedMihomoWebSocket.cleanupAll();
 });
 
 createRoot(container).render(

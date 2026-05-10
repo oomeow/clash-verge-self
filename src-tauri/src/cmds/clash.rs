@@ -1,4 +1,4 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::HashMap;
 
 use anyhow::Context;
 use mihomo_rule_parser::{RuleBehavior, RuleFormat, RulePayload};
@@ -9,7 +9,7 @@ use serde_yaml::Mapping;
 use crate::{
     cmds::{CommandResult, into_command_result},
     config::{ClashInfo, Config},
-    core::{CoreManager, logger, service},
+    core::CoreManager,
     enhance::{self, LogMessage, MergeResult},
     feat,
 };
@@ -79,23 +79,6 @@ pub async fn patch_clash_config(payload: Mapping) -> CommandResult<()> {
 #[tauri::command]
 pub async fn change_clash_core(clash_core: Option<String>) -> CommandResult<()> {
     into_command_result(CoreManager::global().change_core(clash_core).await)
-}
-
-#[tauri::command]
-pub async fn get_clash_logs() -> CommandResult<VecDeque<String>> {
-    into_command_result(
-        async {
-            let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or_default();
-            let logs = if enable_service_mode {
-                let res = service::get_logs().await?;
-                res.data.unwrap_or_default()
-            } else {
-                logger::Logger::global().get_logs().clone()
-            };
-            Ok(logs)
-        }
-        .await,
-    )
 }
 
 #[tauri::command]

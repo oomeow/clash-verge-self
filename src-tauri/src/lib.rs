@@ -167,7 +167,6 @@ pub fn run() -> Result<()> {
             cmds::common::exit_app,
             // clash
             cmds::clash::get_clash_info,
-            cmds::clash::get_clash_logs,
             cmds::clash::patch_clash_config,
             cmds::clash::change_clash_core,
             cmds::clash::get_runtime_config,
@@ -176,6 +175,12 @@ pub fn run() -> Result<()> {
             cmds::clash::get_pre_merge_result,
             cmds::clash::test_merge_chain,
             cmds::clash::get_rule_provider_payload,
+            cmds::mihomo_ws::ws_traffic,
+            cmds::mihomo_ws::ws_memory,
+            cmds::mihomo_ws::ws_connections,
+            cmds::mihomo_ws::ws_logs,
+            cmds::mihomo_ws::ws_disconnect,
+            cmds::mihomo_ws::clear_all_ws_connections,
             // verge
             cmds::verge::get_verge_config,
             cmds::verge::patch_verge_config,
