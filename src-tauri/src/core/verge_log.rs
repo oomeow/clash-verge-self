@@ -20,7 +20,6 @@ use tracing_subscriber::{
 
 use crate::{
     config::Config,
-    log_err,
     utils::dirs::{self},
 };
 
@@ -114,7 +113,7 @@ impl VergeLog {
         Ok(())
     }
 
-    pub fn delete_log() -> Result<()> {
+    pub fn delete_logs() -> Result<()> {
         let log_dir = dirs::app_logs_dir()?;
         if !log_dir.exists() {
             return Ok(());
@@ -126,24 +125,17 @@ impl VergeLog {
             verge.auto_log_clean.unwrap_or(1)
         };
 
-        let day = match auto_log_clean {
+        let retention_days = match auto_log_clean {
             1 => 7,
             2 => 30,
             3 => 90,
             _ => return Ok(()),
         };
 
-        tracing::debug!("try to delete log files, day: {day}");
+        tracing::debug!("try to delete log files, day: {retention_days}");
 
         for file in fs::read_dir(&log_dir)?.flatten() {
-            log_err!(delete_log_file(file, day));
-        }
-
-        let service_log_dir = log_dir.join("service");
-        if service_log_dir.exists() {
-            for file in fs::read_dir(service_log_dir)?.flatten() {
-                log_err!(delete_log_file(file, day));
-            }
+            delete_old_logs(file, retention_days)?;
         }
 
         Ok(())
@@ -167,11 +159,11 @@ fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
     Ok(time)
 }
 
-fn delete_log_file(file: DirEntry, day: i64) -> Result<()> {
+fn delete_old_logs(file: DirEntry, retention_days: i64) -> Result<()> {
     if file.file_type()?.is_dir() {
         tracing::trace!("delete log process dir: {}", file.path().display());
         for file in fs::read_dir(file.path())?.flatten() {
-            delete_log_file(file, day)?;
+            delete_old_logs(file, retention_days)?;
         }
     } else {
         let file_name = file.file_name();
@@ -179,23 +171,19 @@ fn delete_log_file(file: DirEntry, day: i64) -> Result<()> {
 
         if file_name.ends_with(".log") {
             let now = Local::now();
-            match parse_time_str(&file_name[0..file_name.len() - 4]) {
-                Ok(created_time) => {
-                    let file_time = Local
-                        .from_local_datetime(&created_time)
-                        .earliest()
-                        .context("invalid local datetime")?;
+            if let Ok(created_time) = parse_time_str(file_name.trim_end_matches(".log")) {
+                let file_time = Local
+                    .from_local_datetime(&created_time)
+                    .earliest()
+                    .context("invalid local datetime")?;
 
-                    let duration = now.signed_duration_since(file_time);
-                    if duration.num_days() > day {
-                        let file_path = file.path();
-                        log_err!(fs::remove_file(file_path), "delete file failed");
-                        tracing::info!("delete log file: {file_name}");
-                    }
+                if now.signed_duration_since(file_time).num_days() > retention_days {
+                    let file_path = file.path();
+                    fs::remove_file(file_path).with_context(|| format!("delete file failed: {}", file_name))?;
+                    tracing::info!("delete log file: {file_name}");
                 }
-                Err(e) => {
-                    tracing::warn!("ignore log file [{file_name}], {e}");
-                }
+            } else {
+                tracing::warn!("parse time failed, skip delete log file [{file_name}]");
             }
         }
     }
