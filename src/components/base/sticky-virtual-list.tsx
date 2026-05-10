@@ -60,7 +60,7 @@ function StickyVirtualListInner<TItem>(
     items,
     isGroupItem,
     getItemKey,
-    estimateGroupItemHeight: estimateGroupItemHeight,
+    estimateGroupItemHeight,
     estimateItemHeight,
     renderGroupItem,
     renderItem,
