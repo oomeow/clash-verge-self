@@ -2,7 +2,12 @@
 
 # GitNexus — Code Intelligence
 
+<<<<<<< HEAD
 This project is indexed by GitNexus as **clash-verge-self** (5955 symbols, 10603 relationships, 297 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+=======
+This project is indexed by GitNexus as **clash-verge-self** (5898 symbols, 10436 relationships, 291 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> > > > > > > origin/dev
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

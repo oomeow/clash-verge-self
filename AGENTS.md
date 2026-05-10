@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+
 # AGENTS.md
 
 ## Project Overview
@@ -128,13 +130,56 @@ For frontend changes, at minimum verify with `pnpm web:build` and `pnpm lint`.
 - Run `pnpm lint` and `cargo clippy` before submitting
 - Frontend changes: verify with `pnpm web:build`
 - Rust changes: verify with `cargo check`
-- PRs should include a concise summary, changed areas, validation commands, linked issues when applicable, and screenshots/recordings for visible UI changes
+- # PRs should include a concise summary, changed areas, validation commands, linked issues when applicable, and screenshots/recordings for visible UI changes
+
+# Repository Guidelines
+
+## Project Structure & Module Organization
+
+This repository is a Tauri desktop app with a React/Vite frontend and a Rust workspace backend. Frontend code lives in `src/`: routes in `src/routes`, page shells in `src/pages`, reusable UI in `src/components`, services in `src/services`, assets in `src/assets`, and translations in `src/locales`. Tauri code lives in `src-tauri`. Shared Rust crates are under `crates/`, including `tauri-plugin-mihomo`, `mihomo-config`, and `mihomo-rule-parser`. Packaging files are in `scripts/` and `archbuild/`.
+
+## Build, Test, and Development Commands
+
+- `pnpm install`: install dependencies and prepare hooks.
+- `pnpm check`: download or verify required Mihomo/Clash binaries.
+- `pnpm dev`: run the full Tauri app with `src-tauri/tauri.conf-dev.json`.
+- `pnpm dev:diff`: run a second development instance.
+- `pnpm web:dev`: run only the Vite frontend.
+- `pnpm build`: build the full desktop application.
+- `pnpm web:build`: type-check and build the frontend.
+- `pnpm lint` / `pnpm lint:fix`: check or automatically fix ESLint issues.
+- `cargo check`: verify Rust workspace compilation.
+- `cargo test --workspace`: run all Rust tests.
+- `just clippy` and `just fmt`: run strict Rust linting and formatting tasks.
+
+## Coding Style & Naming Conventions
+
+Use TypeScript, React function components, and existing local patterns before adding abstractions. Prettier uses 2 spaces, semicolons, double quotes, LF endings, and Tailwind class sorting. ESLint enforces React hooks rules, sorted imports/exports, and unused-variable checks; prefix intentionally unused bindings with `_`. Rust uses edition 2024 and `rustfmt` with 4 spaces and a 120-column width. Use `snake_case` for Rust modules/functions and `PascalCase` for React components.
+
+## Testing Guidelines
+
+Rust integration tests live in crate-local `tests/` directories, for example `crates/tauri-plugin-mihomo/tests/*_test.rs`. Add focused tests near the crate being changed. Run `cargo test --workspace` before broad backend changes, or `cargo test -p <crate>` for targeted loops. Frontend changes should pass at least `pnpm web:build` and `pnpm lint`.
+
+## Commit & Pull Request Guidelines
+
+Recent history follows Conventional Commits, such as `refactor(sticky-virtual-list): ...` and `chore(deps): ...`. Keep commit subjects scoped and imperative. Pull requests should include a concise summary, changed areas, validation commands, linked issues when applicable, and screenshots or recordings for visible UI changes.
+
+## Agent-Specific Instructions
+
+This project is indexed by GitNexus as `clash-verge-self`. Before editing any function, class, or method, run upstream impact analysis for that symbol and report direct callers, affected flows, and risk. Warn before editing HIGH or CRITICAL risk symbols. Before committing, run GitNexus change detection to confirm the affected scope.
+
+> > > > > > > origin/dev
 
 <!-- gitnexus:start -->
 
 # GitNexus — Code Intelligence
 
+<<<<<<< HEAD
 This project is indexed by GitNexus as **clash-verge-self** (5955 symbols, 10603 relationships, 297 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+=======
+This project is indexed by GitNexus as **clash-verge-self** (5898 symbols, 10436 relationships, 291 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+
+> > > > > > > origin/dev
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
