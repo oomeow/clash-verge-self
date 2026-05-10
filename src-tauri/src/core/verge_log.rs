@@ -134,8 +134,9 @@ impl VergeLog {
         };
 
         tracing::debug!("try to delete log files, retention_days: {retention_days}");
+        let now = Local::now();
         for file in fs::read_dir(&log_dir)?.flatten() {
-            log_err!(delete_old_logs(file, retention_days))
+            log_err!(delete_old_logs(file, now, retention_days))
         }
 
         Ok(())
@@ -159,18 +160,17 @@ fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
     Ok(time)
 }
 
-fn delete_old_logs(file: DirEntry, retention_days: i64) -> Result<()> {
+fn delete_old_logs(file: DirEntry, now: chrono::DateTime<Local>, retention_days: i64) -> Result<()> {
     if file.file_type()?.is_dir() {
         if let Ok(files) = fs::read_dir(file.path()) {
             tracing::trace!("delete log process dir: {}", file.path().display());
             for file in files.flatten() {
-                log_err!(delete_old_logs(file, retention_days))
+                log_err!(delete_old_logs(file, now, retention_days))
             }
         }
     } else {
         let file_name = file.file_name();
         let file_name = file_name.to_str().unwrap_or_default();
-        let now = Local::now();
 
         if file_name.ends_with(".log") {
             if let Ok(created_time) = parse_time_str(file_name.trim_end_matches(".log")) {
