@@ -106,7 +106,6 @@ const ConnectionTableBodyRow = memo(
             cell.column.columnDef.cell,
             cell.getContext(),
           );
-          const tooltipText = getCellTooltipText(cell);
 
           return (
             <td
@@ -122,9 +121,17 @@ const ConnectionTableBodyRow = memo(
                 justifyContent,
               }}>
               <span
-                title={tooltipText || undefined}
                 className="flex h-full w-full items-center overflow-hidden text-sm text-ellipsis whitespace-nowrap"
-                style={{ justifyContent }}>
+                style={{ justifyContent }}
+                onPointerEnter={(event) => {
+                  const tooltipText = getCellTooltipText(cell);
+                  if (tooltipText) {
+                    event.currentTarget.title = tooltipText;
+                    return;
+                  }
+
+                  event.currentTarget.removeAttribute("title");
+                }}>
                 <span
                   className="min-w-0 overflow-hidden leading-tight text-ellipsis whitespace-nowrap"
                   data-column-content="true">
