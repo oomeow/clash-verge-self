@@ -1,4 +1,7 @@
-use std::backtrace::{Backtrace, BacktraceStatus};
+use std::{
+    backtrace::{Backtrace, BacktraceStatus},
+    sync::atomic::Ordering,
+};
 
 use anyhow::Result;
 use rust_i18n::t;
@@ -6,6 +9,7 @@ use tauri::{AppHandle, CloseRequestApi, Manager};
 
 use crate::{
     APP_HANDLE, AppState,
+    cmds::mihomo_ws::CANCEL_MIHOMO_WS_RECONNECT,
     config::{Config, PrfItem, PrfOption, SilentStartMode},
     core::{verge_log::VergeLog, *},
     log_err, shutdown, trace_err,
@@ -125,6 +129,7 @@ pub async fn resolve_reset() {
 
 /// create main window
 pub fn create_window() {
+    CANCEL_MIHOMO_WS_RECONNECT.store(false, Ordering::SeqCst);
     let app_handle = handle::Handle::app_handle();
     if let Some(window) = app_handle.get_webview_window("main") {
         trace_err!(window.unminimize(), "set win unminimize");

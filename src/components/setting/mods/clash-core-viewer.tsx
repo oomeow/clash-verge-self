@@ -14,11 +14,7 @@ import { debounce } from "lodash-es";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PulseLoader } from "react-spinners";
-import {
-  closeAllConnections,
-  MihomoWebSocket,
-  upgradeCore,
-} from "tauri-plugin-mihomo-api";
+import { closeAllConnections, upgradeCore } from "tauri-plugin-mihomo-api";
 
 import MetaIcon from "@/assets/image/Meta.svg?react";
 import { BaseDialog, DialogRef } from "@/components/base";
@@ -40,6 +36,13 @@ interface Props {
 }
 
 const OS = getSystem();
+
+// const refreshMihomoWebSocketData = () => {
+//   useRefreshTrafficDateStore.getState().refresh();
+//   useRefreshMemoryDateStore.getState().refresh();
+//   useRefreshConnectionDateStore.getState().refresh();
+//   useRefreshLogsDateStore.getState().refresh();
+// };
 
 export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   const { t } = useTranslation();
@@ -80,10 +83,11 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
 
     try {
       setChangingCore(core);
-      closeAllConnections();
+      // await ManagedMihomoWebSocket.cleanupAll();
+      await closeAllConnections().catch(() => undefined);
       await changeClashCore(core);
       patchVerge({ clash_core: core });
-      await MihomoWebSocket.cleanupAll();
+      // refreshMihomoWebSocketData();
       notice(
         "success",
         t("messages.clash.core.switched", { core: `${core}` }),

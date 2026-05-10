@@ -9,7 +9,7 @@ use std::{
 };
 
 use anyhow::{Context, Result};
-use clash_verge_self_utils::format_mihomo_log_line;
+use clash_verge_self_utils::format_raw_mihomo_log_line;
 use once_cell::sync::OnceCell;
 use process_supervisor::{ProcessEvent, ProcessLogConfig, ProcessSpec, ProcessSupervisor, RestartPolicy};
 use serde_yaml::Mapping;
@@ -222,7 +222,7 @@ impl CoreManager {
         spec.log_config = ProcessLogConfig {
             log_file: Some(log_file),
             truncate_on_start: false,
-            line_formatter: Some(Arc::new(format_mihomo_log_line)),
+            line_formatter: Some(Arc::new(format_raw_mihomo_log_line)),
         };
         Ok(spec)
     }

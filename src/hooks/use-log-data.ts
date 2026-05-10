@@ -1,8 +1,10 @@
 import dayjs from "dayjs";
-import { useEffect, useRef } from "react";
-import { Log, MihomoWebSocket } from "tauri-plugin-mihomo-api";
+import type { Log, LogLevel } from "tauri-plugin-mihomo-api";
 
-import { getClashLogs } from "@/services/cmds";
+import {
+  ManagedMihomoWebSocket,
+  subscribeManagedMihomoWebSocketText,
+} from "@/services/managedMihomoWs";
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useClashLogStore, useRefreshLogsDateStore } from "@/stores";
 
@@ -12,117 +14,99 @@ export type ILogItem = Log & {
 
 const MAX_LOG_NUM = 1000;
 
+const filterLogsByLevel = (logs: ILogItem[], logLevel: LogLevel) => {
+  switch (logLevel) {
+    case "debug":
+      return logs.filter((i) =>
+        ["debug", "info", "warning", "error"].includes(i.type),
+      );
+    case "info":
+      return logs.filter((i) => ["info", "warning", "error"].includes(i.type));
+    case "warning":
+      return logs.filter((i) => ["warning", "error"].includes(i.type));
+    case "error":
+      return logs.filter((i) => i.type === "error");
+    case "silent":
+      return [];
+    default:
+      return logs;
+  }
+};
+
+const parseLogMessage = (text: string) => {
+  const data = JSON.parse(text) as ILogItem | ILogItem[];
+  const snapshot = Array.isArray(data);
+  const logs = snapshot ? data : [data];
+  const now = dayjs().format("MM-DD HH:mm:ss");
+
+  return {
+    logs: logs.map((log) => ({
+      ...log,
+      time: log.time ?? now,
+    })),
+    snapshot,
+  };
+};
+
 export const useLogData = () => {
-  const enableLog = useClashLogStore((s) => s.enable);
+  // const enableLog = useClashLogStore((s) => s.enable);
   const logLevel = useClashLogStore((s) => s.logLevel);
 
   const date = useRefreshLogsDateStore((s) => s.date);
   const refresh = useRefreshLogsDateStore((s) => s.refresh);
-  const subscriptKey = enableLog ? `getClashLog-${date}` : null;
+  const subscriptKey = `getClashLog-${logLevel}-${date}`;
 
-  const ws = useRef<MihomoWebSocket | null>(null);
-  const wsFirstConnection = useRef<boolean>(true);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  const response = useSWRSubscription<ILogItem[], any, string | null>(
+  const response = useSWRSubscription<ILogItem[], any, string>(
     subscriptKey,
     (_key, { next }) => {
-      const reconnect = async () => {
-        await ws.current?.close();
-        ws.current = null;
-        timeoutRef.current = setTimeout(async () => await connect(), 500);
+      let disposed = false;
+      const buffer: ILogItem[] = [];
+      let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const flush = () => {
+        if (disposed) return;
+        if (buffer.length > 0) {
+          next(null, (l) => {
+            let newList = [...(l ?? []), ...buffer.splice(0)];
+            if (newList.length > MAX_LOG_NUM) {
+              newList = newList.slice(-Math.min(MAX_LOG_NUM, newList.length));
+            }
+            return newList;
+          });
+        }
+        flushTimer = null;
       };
 
-      const connect = () =>
-        MihomoWebSocket.connect_logs(logLevel)
-          .then(async (ws_) => {
-            ws.current = ws_;
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      const unsubscribe = subscribeManagedMihomoWebSocketText({
+        connect: () => ManagedMihomoWebSocket.connectLogs(logLevel),
+        onText: (text) => {
+          if (!useClashLogStore.getState().enable) return;
+          const { logs, snapshot } = parseLogMessage(text);
+          const filteredLogs = filterLogsByLevel(logs, logLevel);
 
-            const logs = await getClashLogs();
-            let filterLogs: ILogItem[] = [];
-            switch (logLevel) {
-              case "debug":
-                filterLogs = logs.filter((i) =>
-                  ["debug", "info", "warning", "error"].includes(i.type),
-                );
-                break;
-              case "info":
-                filterLogs = logs.filter((i) =>
-                  ["info", "warning", "error"].includes(i.type),
-                );
-                break;
-              case "warning":
-                filterLogs = logs.filter((i) =>
-                  ["warning", "error"].includes(i.type),
-                );
-                break;
-              case "error":
-                filterLogs = logs.filter((i) => i.type === "error");
-                break;
-              case "silent":
-                filterLogs = [];
-                break;
-              default:
-                filterLogs = logs;
-                break;
-            }
-            next(null, filterLogs);
+          if (snapshot) {
+            const nextLogs = [...filteredLogs, ...buffer.splice(0)].slice(
+              -MAX_LOG_NUM,
+            );
+            if (flushTimer) clearTimeout(flushTimer);
+            flushTimer = null;
+            next(null, nextLogs);
+            return;
+          }
 
-            const buffer: ILogItem[] = [];
-            let flushTimer: ReturnType<typeof setTimeout> | null = null;
-            const flush = () => {
-              if (buffer.length > 0) {
-                next(null, (l) => {
-                  let newList = [...(l ?? []), ...buffer.splice(0)];
-                  if (newList.length > MAX_LOG_NUM) {
-                    newList = newList.slice(
-                      -Math.min(MAX_LOG_NUM, newList.length),
-                    );
-                  }
-                  return newList;
-                });
-              }
-              flushTimer = null;
-            };
-            ws_.addListener(async (msg) => {
-              if (msg.type === "Text") {
-                if (msg.data.startsWith("Websocket error")) {
-                  next(msg.data);
-                  await reconnect();
-                } else {
-                  const data = JSON.parse(msg.data) as ILogItem;
-                  data.time = dayjs().format("MM-DD HH:mm:ss");
-                  buffer.push(data);
+          buffer.push(...filteredLogs);
 
-                  // flush data
-                  if (!flushTimer) {
-                    flushTimer = setTimeout(flush, 50);
-                  }
-                }
-              }
-            });
-          })
-          .catch((_) => {
-            if (!ws.current) {
-              timeoutRef.current = setTimeout(async () => await connect(), 500);
-            }
-          });
-
-      if (
-        wsFirstConnection.current ||
-        (ws.current && !wsFirstConnection.current)
-      ) {
-        wsFirstConnection.current = false;
-        if (ws.current) {
-          ws.current.close();
-          ws.current = null;
-        }
-        connect();
-      }
+          if (!flushTimer) {
+            flushTimer = setTimeout(flush, 50);
+          }
+        },
+        onError: next,
+      });
 
       return () => {
-        ws.current?.close();
+        disposed = true;
+        if (flushTimer) clearTimeout(flushTimer);
+        unsubscribe();
       };
     },
     {
@@ -131,23 +115,13 @@ export const useLogData = () => {
     },
   );
 
-  useEffect(() => {
-    mutate(swrSubscriptionKey(subscriptKey));
-  }, [date, subscriptKey]);
-
-  useEffect(() => {
-    if (!logLevel) return;
-    ws.current?.close();
-    refresh();
-  }, [logLevel, refresh]);
-
-  const refreshGetClashLog = (clear = false) => {
-    if (clear) {
+  const refreshOrClearClashLog = (option: "refresh" | "clear") => {
+    if (option === "clear") {
       mutate(swrSubscriptionKey(subscriptKey), []);
     } else {
       refresh();
     }
   };
 
-  return { response, refreshGetClashLog };
+  return { response, refreshOrClearClashLog };
 };

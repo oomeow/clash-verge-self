@@ -6,4 +6,5 @@ edition.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+
 logfmt = "0.0.2"

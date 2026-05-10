@@ -20,7 +20,7 @@ const LogPage = () => {
   const { t } = useTranslation();
   const {
     response: { data: logData = [] },
-    refreshGetClashLog,
+    refreshOrClearClashLog,
   } = useLogData();
   const logEnable = useClashLogStore((s) => s.enable);
   const logState = useClashLogStore((s) => s.logFilter);
@@ -58,7 +58,7 @@ const LogPage = () => {
             variant="contained"
             // useSWRSubscription adds a prefix "$sub$" to the cache key
             // https://github.com/vercel/swr/blob/1585a3e37d90ad0df8097b099db38f1afb43c95d/src/subscription/index.ts#L37
-            onClick={() => refreshGetClashLog(true)}>
+            onClick={() => refreshOrClearClashLog("clear")}>
             {t("common.actions.clear")}
           </Button>
         </Box>

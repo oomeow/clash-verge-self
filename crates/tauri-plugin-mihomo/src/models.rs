@@ -6,7 +6,7 @@ use ts_rs::TS;
 
 use crate::stream::WsWriteKind;
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Protocol {
     #[default]
@@ -316,7 +316,7 @@ pub struct BrutalOption {
     pub down: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, TS)]
+#[derive(Debug, Serialize, Deserialize, TS, Clone, Copy)]
 #[ts(export)]
 #[serde(rename_all = "lowercase")]
 pub enum LogLevel {
@@ -388,7 +388,7 @@ impl Display for CoreUpdaterChannel {
 }
 
 /// clash mode enum
-#[derive(Debug, Clone, Serialize, Deserialize, TS, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, TS, PartialEq, Eq)]
 #[ts(export)]
 #[serde(rename_all = "lowercase")]
 pub enum ClashMode {

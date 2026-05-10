@@ -1,3 +1,135 @@
+# AGENTS.md
+
+## Project Overview
+
+**Clash Verge Self** is a Tauri v2 desktop GUI for [Mihomo](https://github.com/MetaCubeX/mihomo) (a proxy tool). It is a continuation of Clash Verge with custom features. This repo is a fork of Clash Verge Rev v1.6.0.
+
+- **Frontend**: React 19 + TypeScript + Vite 8 + MUI 9 + TailwindCSS 4 + TanStack Router
+- **Backend**: Rust (Tauri v2) with workspace crates
+- **Package manager**: pnpm 11 (workspace-based)
+
+### Project Structure
+
+Frontend code lives in `src/`: routes in `src/routes`, page shells in `src/pages`, reusable UI in `src/components`, services in `src/services`, assets in `src/assets`, and translations in `src/locales`. Tauri code lives in `src-tauri`. Shared Rust crates are under `crates/`:
+
+| Crate                    | Purpose                             |
+| ------------------------ | ----------------------------------- |
+| `tauri-plugin-mihomo`    | Tauri plugin for Mihomo integration |
+| `mihomo-config`          | Mihomo configuration management     |
+| `mihomo-rule-parser`     | Rule parsing utilities              |
+| `process_supervisor`     | Process lifecycle management        |
+| `clash-verge-self-utils` | Shared utility functions            |
+
+Packaging files are in `scripts/` and `archbuild/`.
+
+## Setup Commands
+
+- Install all dependencies and prepare hooks: `pnpm i`
+- Download/verify required Mihomo/Clash binaries: `pnpm check`
+- Force update to latest binary: `pnpm check -- --force`
+- Build mihomo-api workspace package: `pnpm build:mihomo-api`
+
+### Prerequisites
+
+- Rust toolchain (install via `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
+- Node.js (version 24 used in CI)
+- pnpm 11: `npm i -g pnpm@11`
+- Linux: GTK3, WebKit2GTK, and other system libraries (see CI workflow for details)
+
+## Development Workflow
+
+### Frontend
+
+- Web-only dev server (no Tauri): `pnpm web:dev`
+- Build frontend only: `pnpm web:build`
+- Preview web build: `pnpm web:preview`
+- Generate TanStack Router routes: `pnpm generate-routes`
+- Watch routes: `pnpm watch-routes`
+
+### Tauri Desktop
+
+- Start Tauri dev server: `pnpm dev`
+- Start second dev instance: `pnpm dev:diff`
+- Production build: `pnpm build`
+
+### Rust
+
+- Check compilation: `cargo check`
+- Run Clippy (strict): `cargo clippy --all-targets --all-features --tests --benches -- -D warnings`
+- Auto-fix Clippy: `cargo clippy --fix --allow-dirty`
+- Format (nightly): `cargo +nightly fmt`
+- Build a specific crate: `cargo build -p <crate-name>`
+
+### Utility
+
+- `just clippy` / `just fmt`: strict Rust linting and formatting via justfile
+- `pnpm lint` / `pnpm lint:fix`: ESLint check/fix (zero warnings required)
+- Run scripts via tsx: `pnpm <script>`
+
+## Testing Instructions
+
+Rust integration tests live in crate-local `tests/` directories (e.g., `crates/tauri-plugin-mihomo/tests/*_test.rs`). There are no frontend test suites configured.
+
+- Run all Rust tests: `cargo test --workspace`
+- Test a specific crate: `cargo test -p <crate-name>`
+- Run a specific test by name: `cargo test <test_name>`
+- Broad backend changes: run `cargo test --workspace`
+- Targeted crate changes: run `cargo test -p <crate>`
+
+For frontend changes, at minimum verify with `pnpm web:build` and `pnpm lint`.
+
+## Code Style
+
+### TypeScript / React
+
+- React function components with hooks
+- Prettier: 2 spaces, semicolons, double quotes, LF endings, Tailwind class sorting
+- ESLint: enforces React hooks rules, sorted imports/exports, unused-variable checks
+- Path alias: `@/*` maps to `./src/*`
+- Prefix intentionally unused bindings with `_`
+- Follow existing local patterns before adding abstractions
+- State management: Zustand
+- Routing: TanStack Router
+
+### Rust
+
+- Edition 2024
+- `rustfmt` (nightly): 4 spaces, 120-column width
+- Naming: `snake_case` for modules/functions, `CamelCase` for types
+- Error handling: `anyhow` for application code, `thiserror` for library crates
+- Linting: Clippy with `-D warnings` in CI
+
+## Build and Deployment
+
+- Production desktop build: `pnpm build`
+- Cross-compilation: `cd archbuild/local_build && ./build.sh`
+- Container builds: CI workflow at `.github/workflows/build-and-push-container.yaml`
+- Alpha builds: CI at `.github/workflows/alpha.yml`
+- Release builds: CI at `.github/workflows/release.yml`
+- Updater builds: CI at `.github/workflows/updater.yml`
+- Rust cache is used in CI; `CARGO_INCREMENTAL=0` is set
+
+### CI
+
+| Workflow                        | Trigger         | Action                                       |
+| ------------------------------- | --------------- | -------------------------------------------- |
+| `pr-check.yml`                  | Pull requests   | Lint + build                                 |
+| `test.yml`                      | Manual dispatch | Cross-platform build (Windows, macOS, Linux) |
+| `release.yml`                   | Release         | Production build + release                   |
+| `updater.yml`                   | Updater         | Build for auto-update                        |
+| `alpha.yml`                     | Alpha           | Pre-release builds                           |
+| `build-and-push-container.yaml` | Container       | Docker image build                           |
+
+## Pull Request Guidelines
+
+- Recent history follows Conventional Commits: `refactor(sticky-virtual-list): ...`, `chore(deps): ...`, `fix(logs): ...`
+- Keep commit subjects scoped and imperative
+- PR checks must pass (lint + build from `pr-check.yml`)
+- Run `pnpm lint` and `cargo clippy` before submitting
+- Frontend changes: verify with `pnpm web:build`
+- Rust changes: verify with `cargo check`
+- PRs should include a concise summary, changed areas, validation commands, linked issues when applicable, and screenshots/recordings for visible UI changes
+
 # Repository Guidelines
 
 ## Project Structure & Module Organization
@@ -38,7 +170,7 @@ This project is indexed by GitNexus as `clash-verge-self`. Before editing any fu
 
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **clash-verge-self** (5898 symbols, 10436 relationships, 291 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **clash-verge-self** (5980 symbols, 10639 relationships, 298 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
