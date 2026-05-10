@@ -49,16 +49,18 @@ const parseLogMessage = (text: string) => {
 };
 
 export const useLogData = () => {
-  const enableLog = useClashLogStore((s) => s.enable);
+  // const enableLog = useClashLogStore((s) => s.enable);
   const logLevel = useClashLogStore((s) => s.logLevel);
 
   const date = useRefreshLogsDateStore((s) => s.date);
   const refresh = useRefreshLogsDateStore((s) => s.refresh);
-  const subscriptKey = enableLog ? `getClashLog-${logLevel}-${date}` : null;
+  const subscriptKey = `getClashLog-${logLevel}-${date}`;
 
   const response = useSWRSubscription<ILogItem[], any, string | null>(
     subscriptKey,
     (_key, { next }) => {
+      if (!useClashLogStore.getState().enable) return () => {};
+
       let disposed = false;
       const buffer: ILogItem[] = [];
       let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -80,6 +82,7 @@ export const useLogData = () => {
       const unsubscribe = subscribeManagedMihomoWebSocketText({
         connect: () => ManagedMihomoWebSocket.connectLogs(logLevel),
         onText: (text) => {
+          if (!useClashLogStore.getState().enable) return;
           const { logs, snapshot } = parseLogMessage(text);
           const filteredLogs = filterLogsByLevel(logs, logLevel);
 
@@ -114,13 +117,13 @@ export const useLogData = () => {
     },
   );
 
-  const refreshGetClashLog = (clear = false) => {
-    if (clear) {
+  const refreshOrClearClashLog = (option: "refresh" | "clear") => {
+    if (option === "clear") {
       mutate(swrSubscriptionKey(subscriptKey), []);
     } else {
       refresh();
     }
   };
 
-  return { response, refreshGetClashLog };
+  return { response, refreshOrClearClashLog };
 };
