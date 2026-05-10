@@ -20,6 +20,7 @@ use tracing_subscriber::{
 
 use crate::{
     config::Config,
+    log_err,
     utils::dirs::{self},
 };
 
@@ -132,10 +133,9 @@ impl VergeLog {
             _ => return Ok(()),
         };
 
-        tracing::debug!("try to delete log files, day: {retention_days}");
-
+        tracing::debug!("try to delete log files, retention_days: {retention_days}");
         for file in fs::read_dir(&log_dir)?.flatten() {
-            delete_old_logs(file, retention_days)?;
+            log_err!(delete_old_logs(file, retention_days))
         }
 
         Ok(())
@@ -161,9 +161,11 @@ fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
 
 fn delete_old_logs(file: DirEntry, retention_days: i64) -> Result<()> {
     if file.file_type()?.is_dir() {
-        tracing::trace!("delete log process dir: {}", file.path().display());
-        for file in fs::read_dir(file.path())?.flatten() {
-            delete_old_logs(file, retention_days)?;
+        if let Ok(files) = fs::read_dir(file.path()) {
+            tracing::trace!("delete log process dir: {}", file.path().display());
+            for file in files.flatten() {
+                log_err!(delete_old_logs(file, retention_days))
+            }
         }
     } else {
         let file_name = file.file_name();
@@ -179,8 +181,10 @@ fn delete_old_logs(file: DirEntry, retention_days: i64) -> Result<()> {
 
                 if now.signed_duration_since(file_time).num_days() > retention_days {
                     let file_path = file.path();
-                    fs::remove_file(file_path).with_context(|| format!("delete file failed: {}", file_name))?;
-                    tracing::info!("delete log file: {file_name}");
+                    match fs::remove_file(&file_path) {
+                        Ok(_) => tracing::info!("delete log file: {file_name}"),
+                        Err(e) => tracing::warn!("Failed to delete log file {}: {}", file_path.display(), e),
+                    }
                 }
             } else {
                 tracing::warn!("parse time failed, skip delete log file [{file_name}]");
