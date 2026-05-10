@@ -130,7 +130,7 @@ For frontend changes, at minimum verify with `pnpm web:build` and `pnpm lint`.
 - Run `pnpm lint` and `cargo clippy` before submitting
 - Frontend changes: verify with `pnpm web:build`
 - Rust changes: verify with `cargo check`
-- # PRs should include a concise summary, changed areas, validation commands, linked issues when applicable, and screenshots/recordings for visible UI changes
+- PRs should include a concise summary, changed areas, validation commands, linked issues when applicable, and screenshots/recordings for visible UI changes
 
 # Repository Guidelines
 
