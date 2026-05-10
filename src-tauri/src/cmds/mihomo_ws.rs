@@ -2,7 +2,7 @@ use std::{
     collections::{HashMap, VecDeque},
     sync::{
         Arc, Mutex,
-        atomic::{AtomicU32, Ordering},
+        atomic::{AtomicU32, AtomicU64, Ordering},
     },
     time::Duration,
 };
@@ -62,6 +62,7 @@ struct OpenedMihomoWsConnection {
 }
 
 static NEXT_WS_CONNECTION_ID: AtomicU32 = AtomicU32::new(1);
+static MIHOMO_WS_GENERATION: AtomicU64 = AtomicU64::new(0);
 static MIHOMO_WS_CONNECTIONS: Lazy<RwLock<HashMap<WebSocketConnectionId, MihomoWsConnection>>> =
     Lazy::new(|| RwLock::new(HashMap::new()));
 
@@ -425,6 +426,7 @@ async fn connect_mihomo_ws(
     on_message: Channel<Value>,
 ) -> anyhow::Result<WebSocketConnectionId> {
     let connection_id = next_ws_connection_id();
+    let generation = MIHOMO_WS_GENERATION.load(Ordering::Acquire);
     let active_id = Arc::new(RwLock::new(None));
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
     let (start_tx, start_rx) = oneshot::channel();
@@ -436,7 +438,14 @@ async fn connect_mihomo_ws(
         run_mihomo_ws_connection(connection_id, endpoint, on_message, task_active_id, shutdown_rx).await;
     });
 
-    MIHOMO_WS_CONNECTIONS.write().await.insert(
+    let mut connections = MIHOMO_WS_CONNECTIONS.write().await;
+    if generation != MIHOMO_WS_GENERATION.load(Ordering::Acquire) {
+        let _ = shutdown_tx.send(true);
+        task.abort();
+        anyhow::bail!("mihomo websocket connection was cleared before start");
+    }
+
+    connections.insert(
         connection_id,
         MihomoWsConnection {
             active_id,
@@ -459,6 +468,7 @@ async fn disconnect_mihomo_ws(id: WebSocketConnectionId, force_timeout: Option<u
 }
 
 async fn clear_mihomo_ws_connections() -> anyhow::Result<()> {
+    MIHOMO_WS_GENERATION.fetch_add(1, Ordering::AcqRel);
     let connections = {
         let mut connections = MIHOMO_WS_CONNECTIONS.write().await;
         connections
