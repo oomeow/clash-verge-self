@@ -17,7 +17,13 @@ export const useMemoryData = () => {
     (_key, { next }) =>
       subscribeManagedMihomoWebSocketText({
         connect: ManagedMihomoWebSocket.connectMemory,
-        onText: (text) => next(null, JSON.parse(text) as Memory),
+        onText: (text) => {
+          try {
+            next(null, JSON.parse(text) as Memory);
+          } catch (e) {
+            next(e, { inuse: 0 } as Memory);
+          }
+        },
         onError: (err) => next(err, { inuse: 0 } as Memory),
       }),
     {
