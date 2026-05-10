@@ -56,11 +56,9 @@ export const useLogData = () => {
   const refresh = useRefreshLogsDateStore((s) => s.refresh);
   const subscriptKey = `getClashLog-${logLevel}-${date}`;
 
-  const response = useSWRSubscription<ILogItem[], any, string | null>(
+  const response = useSWRSubscription<ILogItem[], any, string>(
     subscriptKey,
     (_key, { next }) => {
-      if (!useClashLogStore.getState().enable) return () => {};
-
       let disposed = false;
       const buffer: ILogItem[] = [];
       let flushTimer: ReturnType<typeof setTimeout> | null = null;
