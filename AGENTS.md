@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 # AGENTS.md
 
 ## Project Overview
@@ -168,18 +166,11 @@ Recent history follows Conventional Commits, such as `refactor(sticky-virtual-li
 
 This project is indexed by GitNexus as `clash-verge-self`. Before editing any function, class, or method, run upstream impact analysis for that symbol and report direct callers, affected flows, and risk. Warn before editing HIGH or CRITICAL risk symbols. Before committing, run GitNexus change detection to confirm the affected scope.
 
-> > > > > > > origin/dev
-
 <!-- gitnexus:start -->
 
 # GitNexus — Code Intelligence
 
-<<<<<<< HEAD
 This project is indexed by GitNexus as **clash-verge-self** (5955 symbols, 10603 relationships, 297 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
-=======
-This project is indexed by GitNexus as **clash-verge-self** (5898 symbols, 10436 relationships, 291 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
-
-> > > > > > > origin/dev
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
