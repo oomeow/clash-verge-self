@@ -3,7 +3,7 @@ import type { Connection, Connections } from "tauri-plugin-mihomo-api";
 import {
   ManagedMihomoWebSocket,
   subscribeManagedMihomoWebSocketText,
-} from "@/services/mihomo-websocket";
+} from "@/services/managedMihomoWs";
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 import { useRefreshConnectionDateStore } from "@/stores";
 

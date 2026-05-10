@@ -5,7 +5,7 @@ import { ResizeObserver } from "@juggle/resize-observer";
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-import { ManagedMihomoWebSocket } from "@/services/mihomo-websocket";
+import { ManagedMihomoWebSocket } from "@/services/managedMihomoWs";
 
 import App from "./App";
 

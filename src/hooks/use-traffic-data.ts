@@ -3,7 +3,7 @@ import type { Traffic } from "tauri-plugin-mihomo-api";
 import {
   ManagedMihomoWebSocket,
   subscribeManagedMihomoWebSocketText,
-} from "@/services/mihomo-websocket";
+} from "@/services/managedMihomoWs";
 import { useSWRSubscription } from "@/services/swr";
 import { useRefreshTrafficDateStore } from "@/stores";
 
