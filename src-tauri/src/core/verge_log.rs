@@ -130,7 +130,7 @@ impl VergeLog {
             1 => 7,
             2 => 30,
             3 => 90,
-            _ => 7, // default to 7 days
+            _ => return Ok(()),
         };
 
         tracing::debug!("try to delete log files, day: {day}");
