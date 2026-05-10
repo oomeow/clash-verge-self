@@ -8,7 +8,7 @@ use std::{
 };
 
 use chrono::{DateTime, Local};
-use clash_verge_self_utils::{RawMihomLog, parse_raw_mihomo_log};
+use clash_verge_self_utils::{RawMihomoLog, parse_raw_mihomo_log};
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use serde_json::Value;
@@ -50,8 +50,8 @@ impl SnapshotLogItem {
     }
 }
 
-impl From<RawMihomLog> for SnapshotLogItem {
-    fn from(log: RawMihomLog) -> Self {
+impl From<RawMihomoLog> for SnapshotLogItem {
+    fn from(log: RawMihomoLog) -> Self {
         Self {
             time: Self::format_log_time(&log.time),
             log_type: Self::normalize_log_type(&log.level),

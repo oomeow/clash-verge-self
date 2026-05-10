@@ -2,13 +2,13 @@ use std::path::Path;
 
 use anyhow::{Result, anyhow};
 
-pub struct RawMihomLog {
+pub struct RawMihomoLog {
     pub time: String,
     pub level: String,
     pub msg: String,
 }
 
-pub fn parse_raw_mihomo_log(line: &str) -> Option<RawMihomLog> {
+pub fn parse_raw_mihomo_log(line: &str) -> Option<RawMihomoLog> {
     let line = logfmt::parse(line);
     let mut time = String::new();
     let mut level = String::new();
@@ -24,7 +24,7 @@ pub fn parse_raw_mihomo_log(line: &str) -> Option<RawMihomLog> {
     if time.is_empty() || level.is_empty() || msg.is_empty() {
         return None;
     }
-    Some(RawMihomLog { time, level, msg })
+    Some(RawMihomoLog { time, level, msg })
 }
 
 pub fn format_raw_mihomo_log_line(line: &str) -> String {
