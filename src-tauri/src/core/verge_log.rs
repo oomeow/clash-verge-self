@@ -136,13 +136,13 @@ impl VergeLog {
         tracing::debug!("try to delete log files, day: {day}");
 
         for file in fs::read_dir(&log_dir)?.flatten() {
-            log_err!(process_file(file, day));
+            log_err!(delete_log_file(file, day));
         }
 
         let service_log_dir = log_dir.join("service");
         if service_log_dir.exists() {
             for file in fs::read_dir(service_log_dir)?.flatten() {
-                log_err!(process_file(file, day));
+                log_err!(delete_log_file(file, day));
             }
         }
 
@@ -150,7 +150,7 @@ impl VergeLog {
     }
 }
 
-// Parse log filename format %Y-%m-%d-%H%M to NaiveDateTime, but only use the date part
+/// parse log filename format %Y-%m-%d-%H%M to NaiveDateTime, but only use the date part
 fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
     let sa = s.split('-').collect::<Vec<&str>>();
     if sa.len() != 4 {
@@ -167,11 +167,11 @@ fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
     Ok(time)
 }
 
-fn process_file(file: DirEntry, day: i64) -> Result<()> {
+fn delete_log_file(file: DirEntry, day: i64) -> Result<()> {
     if file.file_type()?.is_dir() {
         tracing::trace!("delete log process dir: {}", file.path().display());
         for file in fs::read_dir(file.path())?.flatten() {
-            process_file(file, day)?;
+            delete_log_file(file, day)?;
         }
     } else {
         let file_name = file.file_name();
