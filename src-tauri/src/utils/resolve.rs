@@ -272,27 +272,6 @@ pub fn save_window_size_position(app_handle: &AppHandle) -> Result<()> {
     Ok(())
 }
 
-pub async fn resolve_scheme(param: String) {
-    let url = param
-        .trim_start_matches("clash://install-config/?url=")
-        .trim_start_matches("clash://install-config?url=");
-    let option = PrfOption {
-        user_agent: None,
-        with_proxy: Some(true),
-        self_proxy: None,
-        danger_accept_invalid_certs: None,
-        update_interval: None,
-    };
-    if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
-        if Config::profiles().data_mut().append_item(item).is_ok() {
-            handle::Handle::notify("Clash Verge", t!("notice.import.success"));
-        };
-    } else {
-        handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
-        tracing::error!("failed to parse url: {}", url);
-    }
-}
-
 pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
     let urls: Vec<String> = urls.into_iter().collect();
     tauri::async_runtime::spawn(async move {
@@ -301,7 +280,24 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
                 tracing::debug!("ignored unsupported deep link: {url}");
                 continue;
             }
-            resolve_scheme(url).await;
+            let url = url
+                .trim_start_matches("clash://install-config/?url=")
+                .trim_start_matches("clash://install-config?url=");
+            let option = PrfOption {
+                user_agent: None,
+                with_proxy: Some(true),
+                self_proxy: None,
+                danger_accept_invalid_certs: None,
+                update_interval: None,
+            };
+            if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
+                if Config::profiles().data_mut().append_item(item).is_ok() {
+                    handle::Handle::notify("Clash Verge", t!("notice.import.success"));
+                };
+            } else {
+                handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
+                tracing::error!("failed to parse url: {}", url);
+            }
         }
     });
 }
