@@ -97,7 +97,7 @@ pub fn setup_panic_hook() {
                 .split(APP_ID)
                 .last()
                 .unwrap_or_default()
-                .trim_start_matches('/')
+                .trim_start_matches(['/', '\\'])
                 .to_string()
         };
         let app_log_file = get_relative_path(VergeLog::global().get_app_log_file());
