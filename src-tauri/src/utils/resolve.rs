@@ -90,8 +90,13 @@ pub fn setup_panic_hook() {
 
         tracing::error!("panicked at {}:\n{}\n{}", location, payload, backtrace);
         let limit_backtrace = backtrace.lines().take(10).collect::<Vec<_>>().join("\n");
-        let log_file = VergeLog::global().get_log_file().unwrap_or_default();
-        let log_file = log_file.split(APP_ID).last().unwrap_or_default();
+        let log_file = VergeLog::global().get_app_log_file();
+        let log_file = log_file
+            .to_str()
+            .unwrap_or_default()
+            .split(APP_ID)
+            .last()
+            .unwrap_or_default();
         let content = t!(
             "dialog.panic.content",
             location = location,

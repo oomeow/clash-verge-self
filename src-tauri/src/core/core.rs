@@ -104,6 +104,8 @@ impl CoreManager {
     pub async fn run_core(&self) -> Result<()> {
         tracing::info!("run core");
         Logger::global().clear_logs();
+        tracing::info!("create new clash log file");
+        VergeLog::global().create_clash_log_file()?;
 
         let config_path = Config::generate_file(ConfigType::Run)?;
 
@@ -202,9 +204,7 @@ impl CoreManager {
         let program = current_exe()?.with_file_name(exe_name);
         let config_path = dirs::path_to_str(config_path)?;
         let app_dir = dirs::path_to_str(&app_dir)?;
-        // TODO:
-        // let log_file = VergeLog::global().get_log_file().map(PathBuf::from);
-        let log_file = dirs::clash_logs_dir()?.join(dirs::generate_log_file());
+        let log_file = VergeLog::global().create_clash_log_file()?;
 
         let mut spec = ProcessSpec::new("mihomo", program);
         spec.args = vec![
@@ -268,17 +268,10 @@ impl CoreManager {
         }
 
         tracing::debug!("try to run core in service mode");
-        let verge_log = VergeLog::global();
-        let log_path = match verge_log.get_service_log_file() {
-            Some(log_path) => log_path,
-            None => {
-                tracing::info!("creating service log file");
-                verge_log.create_service_log_file()?
-            }
-        };
-        tracing::info!("service log file: {log_path}");
+        let clash_log_file = VergeLog::global().get_clash_log_file();
+        tracing::info!("clash log file: {}", clash_log_file.display());
 
-        match service::run_core_by_service(config_path, &PathBuf::from(log_path)).await {
+        match service::run_core_by_service(config_path, &clash_log_file).await {
             Ok(_) => {
                 tracing::info!("run core by service successfully");
                 Ok(true)
@@ -292,9 +285,8 @@ impl CoreManager {
     }
 
     fn prepare_sidecar_mode(&self) -> Result<()> {
-        VergeLog::global().reset_service_log_file();
-
         if cfg!(target_os = "linux") && dirs::is_portable_version() {
+            // Linux portable can grant permissions to mihom core and then enable tun mode
             return Ok(());
         }
 

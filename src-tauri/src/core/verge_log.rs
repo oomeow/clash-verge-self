@@ -1,5 +1,6 @@
 use std::{
     fs::{self, DirEntry},
+    path::PathBuf,
     str::FromStr,
     sync::Arc,
 };
@@ -25,9 +26,9 @@ use crate::{
 
 #[derive(Debug, Default)]
 pub struct VergeLog {
-    log_handle: Arc<Mutex<Option<Handle<LevelFilter, Registry>>>>,
-    log_file: Arc<Mutex<Option<String>>>,
-    service_log_file: Arc<Mutex<Option<String>>>,
+    app_log_handle: Arc<Mutex<Option<Handle<LevelFilter, Registry>>>>,
+    app_log_file: Arc<Mutex<PathBuf>>,
+    clash_log_file: Arc<Mutex<PathBuf>>,
 }
 
 impl VergeLog {
@@ -36,31 +37,31 @@ impl VergeLog {
         VERGE_LOG.get_or_init(VergeLog::default)
     }
 
-    pub fn get_log_file(&self) -> Option<String> {
-        self.log_file.lock().clone()
+    pub fn get_app_log_file(&self) -> PathBuf {
+        self.app_log_file.lock().clone()
     }
 
-    pub fn get_service_log_file(&self) -> Option<String> {
-        self.service_log_file.lock().clone()
+    pub fn get_clash_log_file(&self) -> PathBuf {
+        self.clash_log_file.lock().clone()
     }
 
-    pub fn reset_service_log_file(&self) {
-        *self.service_log_file.lock() = None;
-    }
-
-    pub fn create_service_log_file(&self) -> Result<String> {
-        let service_log_file = dirs::clash_logs_dir()?
-            .join(dirs::generate_log_file())
-            .to_string_lossy()
-            .to_string();
-        *self.service_log_file.lock() = Some(service_log_file.clone());
-        Ok(service_log_file)
+    pub fn create_clash_log_file(&self) -> Result<PathBuf> {
+        let clash_log_file = dirs::clash_logs_dir()?.join(dirs::generate_log_filename());
+        *self.clash_log_file.lock() = clash_log_file.clone();
+        Ok(clash_log_file)
     }
 
     /// 必须返回 WorkerGuard，并且仅在它的生命周期中，才能写入到日志文件
     ///
     /// 因此，必须确保返回的 WorkerGuard 的生命周期足够长
     pub fn init(&self) -> Result<WorkerGuard> {
+        // generate log file
+        let log_filename = dirs::generate_log_filename();
+        let app_log_file = dirs::app_home_dir()?.join(&log_filename);
+        *self.app_log_file.lock() = app_log_file.clone();
+        let clash_log_file = dirs::clash_logs_dir()?.join(log_filename);
+        *self.clash_log_file.lock() = clash_log_file.clone();
+
         let log_level = Config::verge().latest().get_log_level();
         let timer = tracing_subscriber::fmt::time::LocalTime::new(format_description!(
             "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:3]"
@@ -68,6 +69,7 @@ impl VergeLog {
         let exclude_filter = filter::filter_fn(|metadata| {
             !(metadata.target().contains("tungstenite") && *metadata.level() == Level::TRACE)
         });
+
         // 输出到终端
         let (level_filter, reload_handle) = reload::Layer::new(log_level);
         let console_layer = tracing_subscriber::fmt::layer()
@@ -80,9 +82,7 @@ impl VergeLog {
 
         // 输出到日志文件
         let log_dir = dirs::app_logs_dir()?;
-        let local_time = Local::now().format("%Y-%m-%d-%H%M").to_string();
-        let log_file_name = format!("{local_time}.log");
-        let file_appender = rolling::never(log_dir, log_file_name);
+        let file_appender = rolling::never(log_dir, app_log_file);
         let (non_blocking_appender, guard) = non_blocking(file_appender);
         let file_layer = tracing_subscriber::fmt::layer()
             .compact()
@@ -98,14 +98,14 @@ impl VergeLog {
             .with(console_layer)
             .init();
 
-        *self.log_handle.lock() = Some(reload_handle);
+        *self.app_log_handle.lock() = Some(reload_handle);
 
         Ok(guard)
     }
 
-    pub fn update_log_level(log_level: LevelFilter) -> Result<()> {
-        let handle = Self::global().log_handle.lock();
-        if let Some(handle) = handle.as_ref() {
+    pub fn update_app_log_level(log_level: LevelFilter) -> Result<()> {
+        let log_handle = Self::global().app_log_handle.lock();
+        if let Some(handle) = log_handle.as_ref() {
             handle.modify(|filter| *filter = log_level)?;
         } else {
             anyhow::bail!("log handle is none, need to init log");
