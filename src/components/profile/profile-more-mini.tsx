@@ -146,9 +146,7 @@ export default function ProfileMoreMini(props: Props) {
             <Marquee
               pauseOnHover
               className="text-secondary-text min-w-0 text-xs">
-              <span>
-                {item.desc || t("pages.profiles.actions.enhanceScripts")}
-              </span>
+              <span>{item.desc || "-"}</span>
             </Marquee>
           </div>
 
@@ -286,9 +284,13 @@ export default function ProfileMoreMini(props: Props) {
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   "& .MuiBadge-badge": {
-    right: 0,
-    top: 3,
-    border: `2px solid ${theme.palette.background.paper}`,
-    padding: "0 4px",
+    right: 2,
+    top: 4,
+    height: 14,
+    minWidth: 14,
+    border: `1px solid ${theme.palette.background.paper}`,
+    padding: "0 3px",
+    fontSize: 9,
+    lineHeight: "14px",
   },
 }));

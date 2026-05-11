@@ -118,11 +118,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
   const typeLabel = enhanceTypeLabel[isScript ? "script" : "merge"];
   const showConsole = isScript && selected;
   const profileName = itemData.name || typeLabel;
-  const description =
-    itemData.desc ||
-    (isScript
-      ? t("pages.profiles.runtime.scriptConsole")
-      : t("pages.profiles.actions.enhanceScripts"));
+  const description = itemData.desc || "-";
 
   const menus = [
     {
