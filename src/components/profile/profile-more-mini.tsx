@@ -8,7 +8,6 @@ import {
   Badge,
   BadgeProps,
   Box,
-  Chip,
   CircularProgress,
   IconButton,
   styled,
@@ -19,6 +18,7 @@ import { useRef, useState } from "react";
 
 import { LogViewer } from "@/components/profile/log-viewer";
 import { LogMessage } from "@/components/profile/profile-more";
+import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { useProfilesStore } from "@/stores";
 import { cn } from "@/utils";
 
@@ -62,7 +62,6 @@ export default function ProfileMoreMini(props: Props) {
   const isScriptMerge = item.type === "script";
   const hasError = isScriptMerge && !!logs?.find((item) => item.exception);
   const showConsole = isScriptMerge && item.enable;
-  const typeLabel = item.type === "merge" ? "Merge" : "JS";
   const unselectedbackgroundColor =
     theme.palette.mode === "light" ? "#ffffff" : "#282A36";
   const selectedBackgroundColor =
@@ -126,18 +125,10 @@ export default function ProfileMoreMini(props: Props) {
 
           <div className="box-border flex h-full min-w-0 flex-1 flex-col justify-center gap-1 overflow-hidden text-sm">
             <div className="flex min-w-0 items-center gap-1.5">
-              <Chip
-                size="small"
-                label={typeLabel}
-                sx={{
-                  height: 18,
-                  borderRadius: "5px",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: theme.palette.primary.main,
-                  bgcolor: alpha(theme.palette.primary.main, 0.1),
-                  "& .MuiChip-label": { px: 0.625 },
-                }}
+              <ProfileTypeChip
+                type={item.type}
+                variant="enhance"
+                density="compact"
               />
               <Marquee pauseOnHover className="text-primary-main min-w-0">
                 <span className="font-medium">{item.name}</span>

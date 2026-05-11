@@ -7,9 +7,7 @@ import Home from "@mui/icons-material/Home";
 import Refresh from "@mui/icons-material/Refresh";
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import {
-  alpha,
   Box,
-  Chip,
   CircularProgress,
   IconButton,
   LinearProgress,
@@ -27,6 +25,7 @@ import { useTranslation } from "react-i18next";
 
 import { Marquee } from "@/components/base";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
+import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { openWebUrl, viewProfile } from "@/services/cmds";
 import {
   useLoadingCacheStore,
@@ -39,13 +38,6 @@ import parseTraffic from "@/utils/parse-traffic";
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
-
-const profileTypeLabel: Record<NonNullable<IProfileItem["type"]>, string> = {
-  local: "Local",
-  remote: "Remote",
-  merge: "Merge",
-  script: "Script",
-};
 
 const formatTraffic = (value: number) => parseTraffic(value).join(" ");
 
@@ -85,7 +77,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
   const setLoading = useLoadingCacheStore((s) => s.setLoading);
 
   const { uid, name = "Profile", extra, updated = 0 } = itemData;
-  const typeLabel = profileTypeLabel[itemData.type ?? "local"];
   // remote file mode
   const hasUrl = !!itemData.url;
   const hasExtra = !!extra; // only subscription url has extra info
@@ -310,19 +301,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
               gap: 0.75,
               pr: hasUrl ? 4 : 0,
             }}>
-            <Chip
-              size="small"
-              label={typeLabel}
-              sx={(theme) => ({
-                height: 20,
-                borderRadius: "5px",
-                fontSize: 11,
-                fontWeight: 700,
-                color: theme.palette.primary.main,
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-                "& .MuiChip-label": { px: 0.75 },
-              })}
-            />
+            <ProfileTypeChip type={itemData.type} />
             <Marquee pauseOnHover>
               <Typography
                 sx={{

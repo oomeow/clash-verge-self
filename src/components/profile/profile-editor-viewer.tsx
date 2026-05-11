@@ -5,7 +5,6 @@ import Add from "@mui/icons-material/Add";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import {
   Button,
-  Chip,
   Collapse,
   Divider,
   IconButton,
@@ -27,6 +26,7 @@ import {
   SortableItem,
   SwitchLovely,
 } from "@/components/base";
+import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { useProfilesStore } from "@/stores";
 import { sleep } from "@/utils";
 
@@ -261,12 +261,7 @@ export const ProfileEditorViewer = (props: Props) => {
                 <Marquee pauseOnHover>
                   <span className="text-md font-bold">{profileName}</span>
                 </Marquee>
-                <Chip
-                  label={t(`pages.proxies.modes.${formType || "local"}`)}
-                  size="small"
-                  color="primary"
-                  className="mr-1 ml-2"
-                />
+                <ProfileTypeChip type={currentProfile?.type} />
                 <IconButton size="small">
                   <ExpandMore
                     fontSize="inherit"

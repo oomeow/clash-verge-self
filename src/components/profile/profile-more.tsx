@@ -9,7 +9,6 @@ import {
   Badge,
   BadgeProps,
   Box,
-  Chip,
   CircularProgress,
   IconButton,
   ListItemIcon,
@@ -27,6 +26,7 @@ import { useTranslation } from "react-i18next";
 import { Marquee } from "@/components/base";
 import { LogViewer } from "@/components/profile/log-viewer";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
+import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { viewProfile } from "@/services/cmds";
 import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
@@ -34,11 +34,6 @@ import { cn } from "@/utils";
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
-
-const enhanceTypeLabel: Record<"merge" | "script", string> = {
-  merge: "Merge",
-  script: "JS",
-};
 
 export interface LogMessage {
   method: string;
@@ -115,9 +110,8 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
   };
   const hasError = !!logs.find((e) => e.exception);
   const isScript = type === "script";
-  const typeLabel = enhanceTypeLabel[isScript ? "script" : "merge"];
   const showConsole = isScript && selected;
-  const profileName = itemData.name || typeLabel;
+  const profileName = itemData.name || (isScript ? "JS" : "Merge");
   const description = itemData.desc || "-";
 
   const menus = [
@@ -218,19 +212,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
             height: 30,
             mb: 0.5,
           }}>
-          <Chip
-            size="small"
-            label={typeLabel}
-            sx={(theme) => ({
-              height: 20,
-              borderRadius: "5px",
-              fontSize: 11,
-              fontWeight: 700,
-              color: theme.palette.primary.main,
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              "& .MuiChip-label": { px: 0.75 },
-            })}
-          />
+          <ProfileTypeChip type={type} variant="enhance" />
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Marquee pauseOnHover>
               <Typography
