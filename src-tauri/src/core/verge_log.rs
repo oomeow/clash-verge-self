@@ -159,22 +159,25 @@ fn parse_time_str(s: &str) -> Result<NaiveDateTime> {
 }
 
 fn delete_old_logs(file: DirEntry, now: chrono::DateTime<Local>, retention_days: i64) {
+    let Ok(file_type) = file.file_type() else {
+        return;
+    };
     let file_path = file.path();
     let file_name = file.file_name();
     let file_name = file_name.to_str().unwrap_or_default();
-    if !file_name.ends_with(".log") {
-        tracing::debug!("skip non-log file: {}", file_name);
-        return;
-    }
 
-    if file.file_type().is_ok_and(|f| f.is_dir()) {
+    if file_type.is_dir() {
         if let Ok(files) = fs::read_dir(&file_path) {
             tracing::debug!("process dir: {}", file_name);
             files
                 .flatten()
                 .for_each(|file| delete_old_logs(file, now, retention_days));
         }
-    } else if file.file_type().is_ok_and(|f| f.is_file()) {
+    } else if file_type.is_file() {
+        if !file_name.ends_with(".log") {
+            tracing::debug!("skip non-log file: {}", file_name);
+            return;
+        }
         if let Ok(created_time) = parse_time_str(file_name.trim_end_matches(".log")) {
             if let Some(file_time) = Local.from_local_datetime(&created_time).earliest() {
                 if now.signed_duration_since(file_time).num_days() > retention_days {
