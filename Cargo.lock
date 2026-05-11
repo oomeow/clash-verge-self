@@ -1064,7 +1064,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "signal-hook 0.4.4",
- "sysinfo 0.39.0",
+ "sysinfo 0.39.1",
  "sysproxy",
  "tauri",
  "tauri-build",
@@ -5016,7 +5016,7 @@ name = "process_supervisor"
 version = "0.1.0"
 dependencies = [
  "parking_lot",
- "sysinfo 0.39.0",
+ "sysinfo 0.39.1",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -6459,9 +6459,9 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.39.0"
+version = "0.39.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd9f9fe3d2b7b75cf4f2805e5b9926e8ac47146667b16b86298c4a8bf08cc469"
+checksum = "a4deba334e1190ba7cb498327affa11e5ece10d26a30ab2f27fcf09504b8d8b6"
 dependencies = [
  "libc",
  "memchr",
