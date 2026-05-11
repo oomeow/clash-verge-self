@@ -47,7 +47,7 @@ pub fn async_initialization() {
         tracing::trace!("init startup script");
         log_err!(init::startup_script().await);
         tracing::trace!("delete old log files");
-        log_err!(VergeLog::delete_log());
+        log_err!(VergeLog::delete_logs());
         tracing::trace!("launch embed server");
         server::embed_server().await;
         tracing::trace!("init autolaunch");

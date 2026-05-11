@@ -155,7 +155,7 @@ pub struct IVerge {
     /// 测试网站列表
     pub test_list: Option<Vec<IVergeTestItem>>,
 
-    /// 日志清理
+    /// 日志清理, 默认 7 天
     /// 0: 不清理; 1: 7天; 2: 30天; 3: 90天
     pub auto_log_clean: Option<i32>,
 
@@ -331,7 +331,7 @@ impl IVerge {
             proxy_guard_duration: Some(30),
             auto_close_connection: Some(true),
             auto_check_update: Some(true),
-            auto_log_clean: Some(3),
+            auto_log_clean: Some(1),
             enable_tray: Some(true),
             keep_in_dock: Some(true),
             enable_external_controller: Some(false),
