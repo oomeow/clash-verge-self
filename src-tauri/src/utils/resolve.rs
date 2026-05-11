@@ -92,13 +92,15 @@ pub fn setup_panic_hook() {
         let limit_backtrace = backtrace.lines().take(10).collect::<Vec<_>>().join("\n");
 
         let get_relative_path = |path: std::path::PathBuf| {
-            path.to_str()
-                .unwrap_or_default()
-                .split(APP_ID)
-                .last()
-                .unwrap_or_default()
-                .trim_start_matches(['/', '\\'])
-                .to_string()
+            let path_str = path.to_string_lossy();
+            if let Some((_, suffix)) = path_str.split_once(APP_ID) {
+                suffix.trim_start_matches(['/', '\\']).to_string()
+            } else {
+                path.file_name()
+                    .and_then(|n| n.to_str())
+                    .unwrap_or(path_str.as_ref())
+                    .to_string()
+            }
         };
         let app_log_file = get_relative_path(VergeLog::global().get_app_log_file());
         let clash_log_file = get_relative_path(VergeLog::global().get_clash_log_file());
