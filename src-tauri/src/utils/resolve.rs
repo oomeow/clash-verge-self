@@ -90,20 +90,18 @@ pub fn setup_panic_hook() {
 
         tracing::error!("panicked at {}:\n{}\n{}", location, payload, backtrace);
         let limit_backtrace = backtrace.lines().take(10).collect::<Vec<_>>().join("\n");
-        let app_log_file = VergeLog::global().get_app_log_file();
-        let app_log_file = app_log_file
-            .to_str()
-            .unwrap_or_default()
-            .split(APP_ID)
-            .last()
-            .unwrap_or_default();
-        let clash_log_file = VergeLog::global().get_clash_log_file();
-        let clash_log_file = clash_log_file
-            .to_str()
-            .unwrap_or_default()
-            .split(APP_ID)
-            .last()
-            .unwrap_or_default();
+
+        let get_relative_path = |path: std::path::PathBuf| {
+            path.to_str()
+                .unwrap_or_default()
+                .split(APP_ID)
+                .last()
+                .unwrap_or_default()
+                .trim_start_matches('/')
+                .to_string()
+        };
+        let app_log_file = get_relative_path(VergeLog::global().get_app_log_file());
+        let clash_log_file = get_relative_path(VergeLog::global().get_clash_log_file());
 
         let content = t!(
             "dialog.panic.content",
