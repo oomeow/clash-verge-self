@@ -57,7 +57,7 @@ impl VergeLog {
     pub fn init(&self) -> Result<WorkerGuard> {
         // generate log file
         let log_filename = dirs::generate_log_filename();
-        let app_log_file = dirs::app_home_dir()?.join(&log_filename);
+        let app_log_file = dirs::app_logs_dir()?.join(&log_filename);
         *self.app_log_file.lock() = app_log_file.clone();
         let clash_log_file = dirs::clash_logs_dir()?.join(log_filename);
         *self.clash_log_file.lock() = clash_log_file.clone();
