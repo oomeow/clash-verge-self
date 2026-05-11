@@ -56,7 +56,7 @@ dialog:
     title: خرابی Clash Verge Self
     backtrace: "ردیابی پشته:\n%{backtrace}"
     displayBacktraceNote: "نکته: برای نمایش backtrace برنامه را با متغیر محیطی `RUST_BACKTRACE=1` اجرا کنید"
-    content: "موقعیت: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nبرای اطلاعات بیشتر درباره panic، فایل گزارش را بررسی کنید:\n  %{log_file}"
+    content: "موقعیت: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nبرای اطلاعات بیشتر درباره panic، فایل‌های گزارش را بررسی کنید:\n  گزارش برنامه: %{app_log_file}\n  گزارش Clash: %{clash_log_file}"
 
 error:
   tun:

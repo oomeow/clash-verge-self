@@ -111,10 +111,10 @@ pub fn backup_archive_file() -> Result<PathBuf> {
     Ok(app_home_dir()?.join("archive.zip"))
 }
 
-pub fn generate_log_file() -> String {
+pub fn generate_log_filename() -> String {
     let local_time = chrono::Local::now().format("%Y-%m-%d-%H%M").to_string();
-    let log_file = format!("{local_time}.log");
-    log_file
+    let log_filename = format!("{local_time}.log");
+    log_filename
 }
 
 pub fn path_to_str(path: &PathBuf) -> Result<&str> {

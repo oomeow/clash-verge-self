@@ -463,7 +463,7 @@ pub async fn patch_verge(patch: IVerge) -> Result<()> {
 
         if log_level.is_some() {
             let log_level = Config::verge().latest().get_log_level();
-            VergeLog::update_log_level(log_level)?;
+            VergeLog::update_app_log_level(log_level)?;
         }
 
         if let Some(service_mode) = service_mode {

@@ -56,7 +56,7 @@ dialog:
     title: Сбой Clash Verge Self
     backtrace: "Трассировка стека:\n%{backtrace}"
     displayBacktraceNote: "Примечание: запустите с переменной окружения `RUST_BACKTRACE=1`, чтобы показать трассировку"
-    content: "Место: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nДля дополнительной информации о panic проверьте файл журнала:\n  %{log_file}"
+    content: "Место: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nДля дополнительной информации о panic проверьте файлы журнала:\n  Журнал приложения: %{app_log_file}\n  Журнал Clash: %{clash_log_file}"
 
 error:
   tun:

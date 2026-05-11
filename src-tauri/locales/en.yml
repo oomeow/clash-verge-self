@@ -56,7 +56,7 @@ dialog:
     title: Clash Verge Self Crash
     backtrace: "stack backtrace:\n%{backtrace}"
     displayBacktraceNote: "Note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
-    content: "location: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nFor more panic information, check the log file:\n  %{log_file}"
+    content: "location: %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\nFor more panic information, check the log files:\n  App log: %{app_log_file}\n  Clash log: %{clash_log_file}"
 
 error:
   tun:
