@@ -45,7 +45,7 @@ impl VergeLog {
         self.clash_log_file.lock().clone()
     }
 
-    pub fn create_clash_log_file(&self) -> Result<PathBuf> {
+    pub fn generate_clash_log_file(&self) -> Result<PathBuf> {
         let clash_log_file = dirs::clash_logs_dir()?.join(dirs::generate_log_filename());
         *self.clash_log_file.lock() = clash_log_file.clone();
         Ok(clash_log_file)

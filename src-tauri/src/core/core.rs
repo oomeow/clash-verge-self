@@ -105,7 +105,7 @@ impl CoreManager {
         tracing::info!("run core");
         Logger::global().clear_logs();
         tracing::info!("create new clash log file");
-        let clash_log_file = VergeLog::global().create_clash_log_file()?;
+        let clash_log_file = VergeLog::global().generate_clash_log_file()?;
 
         let config_path = Config::generate_file(ConfigType::Run)?;
 
