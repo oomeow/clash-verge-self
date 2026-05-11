@@ -384,7 +384,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
               fontSize: "13px",
               fontWeight: description ? 600 : 400,
               textAlign: "left",
-              color: description ? "text.primary" : "text.disabled",
+              color: "text.primary",
             }}>
             {descriptionText}
           </Typography>
@@ -408,7 +408,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
               fontSize: "13px",
               fontWeight: hasUrl ? 600 : 400,
               textAlign: "left",
-              color: hasUrl ? "text.secondary" : "text.disabled",
+              color: "text.secondary",
             }}>
             {fromText}
           </Typography>
