@@ -5,9 +5,11 @@ import Edit from "@mui/icons-material/Edit";
 import FileOpen from "@mui/icons-material/FileOpen";
 import Terminal from "@mui/icons-material/Terminal";
 import {
+  alpha,
   Badge,
   BadgeProps,
   Box,
+  Chip,
   CircularProgress,
   IconButton,
   ListItemIcon,
@@ -22,8 +24,6 @@ import { useLockFn } from "ahooks";
 import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import JSIcon from "@/assets/image/js.svg?react";
-import YamlIcon from "@/assets/image/yaml.svg?react";
 import { Marquee } from "@/components/base";
 import { LogViewer } from "@/components/profile/log-viewer";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
@@ -34,6 +34,11 @@ import { cn } from "@/utils";
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
+
+const enhanceTypeLabel: Record<"merge" | "script", string> = {
+  merge: "Merge",
+  script: "JS",
+};
 
 export interface LogMessage {
   method: string;
@@ -55,8 +60,8 @@ interface Props {
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   "& .MuiBadge-badge": {
-    right: -2,
-    top: 5,
+    right: 1,
+    top: 3,
     border: `2px solid ${theme.palette.background.paper}`,
     padding: "0 4px",
   },
@@ -77,7 +82,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
   } = props;
 
   const { uid, type } = itemData;
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { notice } = useNotice();
   const themeMode = useThemeModeStore((s) => s.themeMode);
   const [anchorEl, setAnchorEl] = useState<any>(null);
@@ -109,6 +114,15 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
     return fn();
   };
   const hasError = !!logs.find((e) => e.exception);
+  const isScript = type === "script";
+  const typeLabel = enhanceTypeLabel[isScript ? "script" : "merge"];
+  const showConsole = isScript && selected;
+  const profileName = itemData.name || typeLabel;
+  const description =
+    itemData.desc ||
+    (isScript
+      ? t("pages.profiles.runtime.scriptConsole")
+      : t("pages.profiles.actions.enhanceScripts"));
 
   const menus = [
     {
@@ -166,6 +180,10 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         width: "100%",
         bgcolor: themeMode === "light" ? "#FFFFFF" : "#282A36",
         borderRadius: "8px",
+        boxShadow:
+          themeMode === "light"
+            ? "0 1px 4px rgba(15, 23, 42, 0.08)"
+            : "0 1px 4px rgba(0, 0, 0, 0.24)",
         ...sx,
       }}>
       <ProfileDiv
@@ -199,64 +217,97 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
+            gap: 0.75,
+            height: 30,
             mb: 0.5,
           }}>
-          <div className="w-[calc(100%-52px)]">
+          <Chip
+            size="small"
+            label={typeLabel}
+            sx={(theme) => ({
+              height: 20,
+              borderRadius: "5px",
+              fontSize: 11,
+              fontWeight: 700,
+              color: theme.palette.primary.main,
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              "& .MuiChip-label": { px: 0.75 },
+            })}
+          />
+          <Box sx={{ minWidth: 0, flex: 1 }}>
             <Marquee pauseOnHover>
               <Typography
-                title={itemData.name}
+                title={profileName}
                 variant="h6"
                 component="h2"
-                noWrap>
-                {itemData.name}
+                noWrap
+                sx={{
+                  fontSize: "17px",
+                  fontWeight: 650,
+                  lineHeight: "24px",
+                }}>
+                {profileName}
               </Typography>
             </Marquee>
-          </div>
-
-          {type === "script" ? (
-            <JSIcon width={25} height={25} fill="var(--primary-main)" />
-          ) : (
-            <YamlIcon width={25} height={25} fill="var(--primary-main)" />
-          )}
+          </Box>
+          <Box sx={{ flex: "0 0 auto", width: 30, height: 30 }}>
+            {showConsole ? (
+              <IconButton
+                size="small"
+                edge="end"
+                color={hasError ? "error" : "primary"}
+                title={t("pages.profiles.runtime.scriptConsole")}
+                sx={(theme) => ({
+                  width: 30,
+                  height: 30,
+                  mr: -0.25,
+                  borderRadius: "7px",
+                  bgcolor: alpha(
+                    hasError
+                      ? theme.palette.error.main
+                      : theme.palette.primary.main,
+                    theme.palette.mode === "light" ? 0.1 : 0.18,
+                  ),
+                  "&:hover": {
+                    bgcolor: alpha(
+                      hasError
+                        ? theme.palette.error.main
+                        : theme.palette.primary.main,
+                      theme.palette.mode === "light" ? 0.16 : 0.26,
+                    ),
+                  },
+                })}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setLogOpen(true);
+                }}>
+                {hasError ? (
+                  <Badge color="error" variant="dot">
+                    <Terminal fontSize="small" />
+                  </Badge>
+                ) : (
+                  <StyledBadge badgeContent={logs.length} color="primary">
+                    <Terminal fontSize="small" />
+                  </StyledBadge>
+                )}
+              </IconButton>
+            ) : null}
+          </Box>
         </Box>
 
-        <Box sx={boxStyle}>
-          {selected && type === "script" ? (
-            hasError ? (
-              <IconButton
-                size="small"
-                edge="start"
-                color="error"
-                title={t("pages.profiles.runtime.scriptConsole")}
-                onClick={() => setLogOpen(true)}>
-                <Badge color="error" variant="dot">
-                  <Terminal fontSize="medium" />
-                </Badge>
-              </IconButton>
-            ) : (
-              <IconButton
-                size="small"
-                edge="start"
-                color="inherit"
-                title={t("pages.profiles.runtime.scriptConsole")}
-                onClick={() => setLogOpen(true)}>
-                <StyledBadge badgeContent={logs.length} color="primary">
-                  <Terminal fontSize="medium" />
-                </StyledBadge>
-              </IconButton>
-            )
-          ) : (
-            <Typography
-              noWrap
-              title={itemData.desc}
-              sx={{
-                ...(i18n.language === "zh" && { width: "calc(100% - 75px)" }),
-              }}>
-              {itemData.desc}
-            </Typography>
-          )}
+        <Box sx={{ ...boxStyle, gap: 1 }}>
+          <Typography
+            noWrap
+            title={description}
+            sx={{
+              minWidth: 0,
+              flex: 1,
+              fontSize: 13,
+              opacity: itemData.desc ? 1 : 0.72,
+            }}>
+            {description}
+          </Typography>
         </Box>
       </ProfileDiv>
       <Menu

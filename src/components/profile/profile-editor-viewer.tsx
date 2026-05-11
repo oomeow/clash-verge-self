@@ -419,7 +419,7 @@ export const ProfileEditorViewer = (props: Props) => {
                   flexItem>
                   {t("pages.profiles.actions.enhanceScripts")}
                 </Divider>
-                <div className="px-2">
+                <div className="px-1">
                   <Button
                     size="small"
                     variant="contained"
@@ -434,7 +434,7 @@ export const ProfileEditorViewer = (props: Props) => {
                     onChange={async () => await fetchProfileChains(profileUid)}
                   />
 
-                  <div className="overflow-auto pl-1">
+                  <div className="overflow-auto px-1">
                     <DragDropProvider
                       onDragOver={(e) => {
                         if (reactivating) e.preventDefault();
