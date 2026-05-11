@@ -360,7 +360,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
             sx={{
               minWidth: 0,
               flex: 1,
-              fontSize: "13px",
+              fontSize: 11,
               fontWeight: description ? 600 : 400,
               textAlign: "left",
               color: "text.primary",
@@ -384,7 +384,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
             sx={{
               minWidth: 0,
               flex: 1,
-              fontSize: "13px",
+              fontSize: 11,
               fontWeight: hasUrl ? 600 : 400,
               textAlign: "left",
               color: "text.secondary",
