@@ -1,11 +1,16 @@
 fail_fast: true
+exclude:
+  glob:
+    - ".agents/*"
+    - ".claude/*"
 
 repos:
   - repo: builtin
     hooks:
       - id: trailing-whitespace
         exclude:
-          glob: CHANGELOG.md
+          glob:
+            - CHANGELOG.md
       - id: mixed-line-ending
       - id: check-yaml
       - id: check-toml
