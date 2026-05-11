@@ -18,6 +18,7 @@ import { useRef, useState } from "react";
 
 import { LogViewer } from "@/components/profile/log-viewer";
 import { LogMessage } from "@/components/profile/profile-more";
+import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { useProfilesStore } from "@/stores";
 import { cn } from "@/utils";
 
@@ -60,6 +61,7 @@ export default function ProfileMoreMini(props: Props) {
 
   const isScriptMerge = item.type === "script";
   const hasError = isScriptMerge && !!logs?.find((item) => item.exception);
+  const showConsole = isScriptMerge && item.enable;
   const unselectedbackgroundColor =
     theme.palette.mode === "light" ? "#ffffff" : "#282A36";
   const selectedBackgroundColor =
@@ -73,7 +75,7 @@ export default function ProfileMoreMini(props: Props) {
 
   return (
     <>
-      <div className="bg-comment my-2 flex h-14 w-full cursor-pointer items-center justify-between rounded-md">
+      <div className="bg-comment my-2 h-14 w-full rounded-md">
         <div
           style={{
             backgroundColor: item.enable
@@ -85,7 +87,7 @@ export default function ProfileMoreMini(props: Props) {
                 : unselectedbackgroundColor,
           }}
           className={cn(
-            "relative flex h-full w-full items-center justify-between overflow-hidden rounded-md p-1 shadow-xs",
+            "relative flex h-full w-full cursor-pointer items-center gap-1 overflow-hidden rounded-md px-2 py-1 shadow-xs",
             {
               "border-primary-main border-0 border-l-2! border-solid":
                 item.enable && !hasError,
@@ -94,14 +96,16 @@ export default function ProfileMoreMini(props: Props) {
               "border-primary-main animate-highlight border border-solid shadow-md":
                 selected,
             },
-          )}>
-          <div className="flex h-full w-8 flex-col items-center justify-center">
+          )}
+          onClick={onClick}>
+          <div className="flex h-full w-8 shrink-0 items-center justify-center">
             <IconButton
               loading={toggleEnabling}
               aria-label="toggle-enable"
-              className="mr-1"
               size="small"
-              onClick={async () => {
+              sx={{ width: 30, height: 30 }}
+              onClick={async (event) => {
+                event.stopPropagation();
                 try {
                   setToggleEnabling(true);
                   const nextEnable = !item.enable;
@@ -111,61 +115,126 @@ export default function ProfileMoreMini(props: Props) {
                   setToggleEnabling(false);
                 }
               }}>
-              <>
-                {!toggleEnabling && item.enable ? (
-                  <CheckCircle fontSize="inherit" color="primary" />
-                ) : (
-                  <CircleOutlined fontSize="inherit" />
-                )}
-              </>
+              {!toggleEnabling && item.enable ? (
+                <CheckCircle fontSize="small" color="primary" />
+              ) : (
+                <CircleOutlined fontSize="small" />
+              )}
             </IconButton>
-            <div className="bg-primary-alpha text-primary-main dark:text-primary-main w-full cursor-pointer rounded-xs px-1 text-center text-xs">
-              {item.type === "merge" ? "YML" : "JS"}
-            </div>
           </div>
 
-          <div
-            className="ml-2 box-border flex h-full w-full flex-col items-center justify-around overflow-hidden text-sm"
-            onClick={onClick}>
-            <Marquee pauseOnHover className="text-primary-main">
-              <span>{item.name}</span>
-            </Marquee>
+          <div className="box-border flex h-full min-w-0 flex-1 flex-col justify-center gap-1 overflow-hidden text-sm">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <ProfileTypeChip
+                type={item.type}
+                variant="enhance"
+                density="compact"
+              />
+              <Marquee pauseOnHover className="text-primary-main min-w-0">
+                <span className="font-medium">{item.name}</span>
+              </Marquee>
+            </div>
             <Marquee
               pauseOnHover
-              className="text-secondary-text text-xs italic">
-              <span>{item.desc}</span>
+              className="text-secondary-text min-w-0 text-xs">
+              <span>{item.desc || "-"}</span>
             </Marquee>
           </div>
 
-          {isScriptMerge && (
-            <Tooltip
-              title={t("pages.profiles.runtime.console")}
-              placement="top">
+          <div className="flex h-full shrink-0 items-center gap-0.5">
+            <div className="flex h-6.5 w-6.5 items-center justify-center">
+              {showConsole ? (
+                <Tooltip
+                  title={t("pages.profiles.runtime.console")}
+                  placement="top">
+                  <IconButton
+                    aria-label="terminal"
+                    size="small"
+                    color={hasError ? "error" : "primary"}
+                    sx={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "6px",
+                      bgcolor: alpha(
+                        hasError
+                          ? theme.palette.error.main
+                          : theme.palette.primary.main,
+                        theme.palette.mode === "light" ? 0.1 : 0.18,
+                      ),
+                      "&:hover": {
+                        bgcolor: alpha(
+                          hasError
+                            ? theme.palette.error.main
+                            : theme.palette.primary.main,
+                          theme.palette.mode === "light" ? 0.16 : 0.26,
+                        ),
+                      },
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setLogOpen(true);
+                    }}>
+                    {hasError ? (
+                      <Badge color="error" variant="dot">
+                        <Terminal fontSize="small" />
+                      </Badge>
+                    ) : (
+                      <StyledBadge badgeContent={logs?.length} color="primary">
+                        <Terminal fontSize="small" />
+                      </StyledBadge>
+                    )}
+                  </IconButton>
+                </Tooltip>
+              ) : null}
+            </div>
+
+            <Tooltip title={t("common.actions.edit")} placement="top">
               <IconButton
-                aria-label="terminal"
                 size="small"
                 color="primary"
-                className="mr-1"
-                onClick={() => setLogOpen(true)}>
-                {hasError ? (
-                  <Badge color="error" variant="dot">
-                    <Terminal color="error" fontSize="inherit" />
-                  </Badge>
-                ) : (
-                  <StyledBadge badgeContent={logs?.length} color="primary">
-                    <Terminal color="primary" fontSize="inherit" />
-                  </StyledBadge>
-                )}
+                sx={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: "6px",
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  viewerRef.current?.edit(item);
+                }}>
+                <Edit fontSize="small" />
               </IconButton>
             </Tooltip>
-          )}
 
-          <IconButton
-            size="small"
-            color="primary"
-            onClick={() => viewerRef.current?.edit(item)}>
-            <Edit fontSize="inherit" />
-          </IconButton>
+            <Tooltip title={t("common.actions.delete")} placement="top">
+              <IconButton
+                aria-label="delete"
+                size="small"
+                color="error"
+                sx={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: "6px",
+                  "&:hover": {
+                    bgcolor: alpha(
+                      theme.palette.error.main,
+                      theme.palette.mode === "light" ? 0.1 : 0.18,
+                    ),
+                  },
+                }}
+                onClick={async (event) => {
+                  event.stopPropagation();
+                  try {
+                    setDeleting(true);
+                    await deleteProfile(item.uid);
+                    await onDeleteCallback?.();
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}>
+                <Delete fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </div>
 
           {(deleting || reactivating) && (
             <Box
@@ -185,23 +254,6 @@ export default function ProfileMoreMini(props: Props) {
               <CircularProgress size={20} />
             </Box>
           )}
-        </div>
-
-        <div className="ml-1 flex h-full w-fit items-center rounded-md">
-          <IconButton
-            aria-label="delete"
-            size="small"
-            onClick={async () => {
-              try {
-                setDeleting(true);
-                await deleteProfile(item.uid);
-                await onDeleteCallback?.();
-              } finally {
-                setDeleting(false);
-              }
-            }}>
-            <Delete fontSize="inherit" color="error" />
-          </IconButton>
         </div>
       </div>
 
@@ -223,9 +275,13 @@ export default function ProfileMoreMini(props: Props) {
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   "& .MuiBadge-badge": {
-    right: 0,
-    top: 3,
-    border: `2px solid ${theme.palette.background.paper}`,
-    padding: "0 4px",
+    right: 2,
+    top: 4,
+    height: 14,
+    minWidth: 14,
+    border: `1px solid ${theme.palette.background.paper}`,
+    padding: "0 3px",
+    fontSize: 9,
+    lineHeight: "14px",
   },
 }));

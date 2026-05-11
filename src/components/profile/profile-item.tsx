@@ -25,6 +25,7 @@ import { useTranslation } from "react-i18next";
 
 import { Marquee } from "@/components/base";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
+import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { openWebUrl, viewProfile } from "@/services/cmds";
 import {
   useLoadingCacheStore,
@@ -37,6 +38,8 @@ import parseTraffic from "@/utils/parse-traffic";
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
 import { ProfileDiv } from "./profile-box";
+
+const formatTraffic = (value: number) => parseTraffic(value).join(" ");
 
 interface Props {
   sx?: SxProps;
@@ -86,6 +89,15 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
     Math.round(((download + upload) * 100) / (total + 0.1)),
     100,
   );
+  const hasUsage = hasExtra && total > 0;
+  const descriptionText = description || "-";
+  const fromText = hasUrl ? from : "-";
+  const updatedText =
+    hasUrl && updated > 0 ? dayjs(updated * 1000).fromNow() : "-";
+  const totalText = hasUsage
+    ? `${formatTraffic(upload + download)} / ${formatTraffic(total)}`
+    : "-";
+  const expireText = hasExtra ? expire : parseExpire(updated);
 
   const loading = loadingCache[uid] || false;
 
@@ -229,12 +241,28 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
     justifyContent: "space-between",
   };
 
+  const infoLabelStyle = {
+    flex: "0 0 auto",
+    maxWidth: 54,
+    fontSize: 11,
+    fontWeight: 700,
+    lineHeight: "18px",
+    textAlign: "left",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  } as const;
+
   return (
     <Box
       sx={{
         width: "100%",
         bgcolor: themeMode === "light" ? "#FFFFFF" : "#282A36",
         borderRadius: "8px",
+        boxShadow:
+          themeMode === "light"
+            ? "0 1px 4px rgba(15, 23, 42, 0.08)"
+            : "0 1px 4px rgba(0, 0, 0, 0.24)",
         ...sx,
       }}>
       <ProfileDiv
@@ -265,11 +293,22 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
             <CircularProgress size={20} />
           </Box>
         )}
-        <Box sx={{ position: "relative" }}>
-          <div className="w-[calc(100%-36px)]">
+        <Box sx={{ position: "relative", mb: 0.75 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.75,
+              pr: hasUrl ? 4 : 0,
+            }}>
+            <ProfileTypeChip type={itemData.type} />
             <Marquee pauseOnHover>
               <Typography
-                sx={{ fontSize: "18px", fontWeight: "600", lineHeight: "26px" }}
+                sx={{
+                  fontSize: "17px",
+                  fontWeight: 650,
+                  lineHeight: "24px",
+                }}
                 variant="h6"
                 component="h2"
                 noWrap
@@ -277,7 +316,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
                 {name}
               </Typography>
             </Marquee>
-          </div>
+          </Box>
 
           {/* only if has url can it be updated */}
           {hasUrl && (
@@ -305,57 +344,98 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
             </IconButton>
           )}
         </Box>
-        {/* the second line show url's info or description */}
-        <Box sx={boxStyle}>
-          {
-            <>
-              {description ? (
-                <Typography
-                  noWrap
-                  title={description}
-                  sx={{ fontSize: "14px" }}>
-                  {description}
-                </Typography>
-              ) : (
-                hasUrl && (
-                  <Typography
-                    noWrap
-                    title={`${t("common.fields.from")} ${from}`}>
-                    {from}
-                  </Typography>
-                )
-              )}
-              {hasUrl && (
-                <Typography
-                  title={`${t("common.fields.updatedTime")}: ${parseExpire(updated)}`}
-                  sx={{
-                    flex: "1 0 auto",
-                    fontSize: 14,
-                    textAlign: "right",
-                  }}
-                  noWrap>
-                  {updated > 0 ? dayjs(updated * 1000).fromNow() : ""}
-                </Typography>
-              )}
-            </>
-          }
+        {/* the second line shows description */}
+        <Box sx={{ ...boxStyle, gap: 0.5 }}>
+          <Typography
+            component="span"
+            sx={(theme) => ({
+              ...infoLabelStyle,
+              color: theme.palette.primary.main,
+            })}>
+            {t("common.fields.description")}:
+          </Typography>
+          <Typography
+            noWrap
+            title={descriptionText}
+            sx={{
+              minWidth: 0,
+              flex: 1,
+              fontSize: "13px",
+              fontWeight: description ? 600 : 400,
+              textAlign: "left",
+              color: "text.primary",
+            }}>
+            {descriptionText}
+          </Typography>
         </Box>
-        {/* the third line show extra info or last updated time */}
-        {hasExtra ? (
-          <Box sx={{ ...boxStyle, fontSize: 14 }}>
-            <span title={t("common.fields.usedTotal")}>
-              {parseTraffic(upload + download)} / {parseTraffic(total)}
-            </span>
-            <span title={t("common.fields.expireTime")}>{expire}</span>
-          </Box>
-        ) : (
-          <Box sx={{ ...boxStyle, fontSize: 12, justifyContent: "flex-end" }}>
-            <span title={t("common.fields.updatedTime")}>
-              {parseExpire(updated)}
-            </span>
-          </Box>
-        )}
-        {hasExtra && <LinearProgress variant="determinate" value={progress} />}
+        {/* the third line shows source and update time */}
+        <Box sx={{ ...boxStyle, gap: 0.5 }}>
+          <Typography
+            component="span"
+            sx={(theme) => ({
+              ...infoLabelStyle,
+              color: theme.palette.text.secondary,
+            })}>
+            {t("common.fields.from")}:
+          </Typography>
+          <Typography
+            noWrap
+            title={fromText}
+            sx={{
+              minWidth: 0,
+              flex: 1,
+              fontSize: "13px",
+              fontWeight: hasUrl ? 600 : 400,
+              textAlign: "left",
+              color: "text.secondary",
+            }}>
+            {fromText}
+          </Typography>
+          <Typography
+            title={`${t("common.fields.updatedTime")}: ${parseExpire(updated)}`}
+            sx={{
+              flex: "0 0 auto",
+              maxWidth: "45%",
+              fontSize: 12,
+              textAlign: "right",
+            }}
+            noWrap>
+            {updatedText}
+          </Typography>
+        </Box>
+        {/* the fourth line shows extra info or last updated time */}
+        <Box sx={{ ...boxStyle, gap: 1, fontSize: 13 }}>
+          <Typography
+            component="span"
+            noWrap
+            title={t("common.fields.usedTotal")}
+            sx={{ minWidth: 0, fontSize: "inherit", fontWeight: 600 }}>
+            {totalText}
+          </Typography>
+          <Typography
+            component="span"
+            noWrap
+            title={
+              hasExtra
+                ? t("common.fields.expireTime")
+                : t("common.fields.updatedTime")
+            }
+            sx={{ flex: "0 0 auto", fontSize: "inherit" }}>
+            {expireText}
+          </Typography>
+        </Box>
+        <LinearProgress
+          variant="determinate"
+          value={hasExtra ? progress : 0}
+          sx={{
+            height: 5,
+            mt: 0.25,
+            borderRadius: 999,
+            bgcolor: "action.hover",
+            opacity: hasExtra ? 1 : 0,
+            "& .MuiLinearProgress-bar": { borderRadius: 999 },
+          }}
+        />
       </ProfileDiv>
       <Menu
         open={!!anchorEl}
