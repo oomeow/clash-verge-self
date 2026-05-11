@@ -59,7 +59,7 @@ impl VergeLog {
         let log_filename = dirs::generate_log_filename();
         let app_log_file = dirs::app_logs_dir()?.join(&log_filename);
         *self.app_log_file.lock() = app_log_file.clone();
-        let clash_log_file = dirs::clash_logs_dir()?.join(log_filename);
+        let clash_log_file = dirs::clash_logs_dir()?.join(&log_filename);
         *self.clash_log_file.lock() = clash_log_file.clone();
 
         let log_level = Config::verge().latest().get_log_level();
@@ -82,7 +82,7 @@ impl VergeLog {
 
         // 输出到日志文件
         let log_dir = dirs::app_logs_dir()?;
-        let file_appender = rolling::never(log_dir, app_log_file);
+        let file_appender = rolling::never(log_dir, log_filename);
         let (non_blocking_appender, guard) = non_blocking(file_appender);
         let file_layer = tracing_subscriber::fmt::layer()
             .compact()

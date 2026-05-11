@@ -105,7 +105,7 @@ impl CoreManager {
         tracing::info!("run core");
         Logger::global().clear_logs();
         tracing::info!("create new clash log file");
-        VergeLog::global().create_clash_log_file()?;
+        let clash_log_file = VergeLog::global().create_clash_log_file()?;
 
         let config_path = Config::generate_file(ConfigType::Run)?;
 
@@ -124,9 +124,11 @@ impl CoreManager {
         let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or_default();
         self.use_service_mode.store(enable_service_mode, Ordering::SeqCst);
 
-        if !self.try_run_core_by_service(&config_path).await? {
+        if !self.try_run_core_by_service(&config_path, &clash_log_file).await? {
             self.prepare_sidecar_mode()?;
-            self.sidecar.start(self.build_sidecar_spec(&config_path)?).await?;
+            self.sidecar
+                .start(self.build_sidecar_spec(&config_path, clash_log_file)?)
+                .await?;
         }
 
         Ok(())
@@ -197,14 +199,13 @@ impl CoreManager {
         self.run_core().await
     }
 
-    fn build_sidecar_spec(&self, config_path: &PathBuf) -> Result<ProcessSpec> {
+    fn build_sidecar_spec(&self, config_path: &PathBuf, clash_log_file: PathBuf) -> Result<ProcessSpec> {
         let app_dir = dirs::app_home_dir()?;
         let clash_core = Self::clash_core_name();
         let exe_name = format!("{clash_core}{}", std::env::consts::EXE_SUFFIX);
         let program = current_exe()?.with_file_name(exe_name);
         let config_path = dirs::path_to_str(config_path)?;
         let app_dir = dirs::path_to_str(&app_dir)?;
-        let log_file = VergeLog::global().create_clash_log_file()?;
 
         let mut spec = ProcessSpec::new("mihomo", program);
         spec.args = vec![
@@ -220,7 +221,7 @@ impl CoreManager {
             restart_delay: CORE_RESTART_INTERVAL,
         };
         spec.log_config = ProcessLogConfig {
-            log_file: Some(log_file),
+            log_file: Some(clash_log_file),
             truncate_on_start: false,
             line_formatter: Some(Arc::new(format_raw_mihomo_log_line)),
         };
@@ -262,16 +263,14 @@ impl CoreManager {
         let _ = handle::Handle::mihomo().await.patch_base_config(&disable_tun).await;
     }
 
-    async fn try_run_core_by_service(&self, config_path: &PathBuf) -> Result<bool> {
+    async fn try_run_core_by_service(&self, config_path: &PathBuf, clash_log_file: &PathBuf) -> Result<bool> {
         if !self.use_service_mode.load(Ordering::SeqCst) {
             return Ok(false);
         }
 
         tracing::debug!("try to run core in service mode");
-        let clash_log_file = VergeLog::global().get_clash_log_file();
-        tracing::info!("clash log file: {}", clash_log_file.display());
 
-        match service::run_core_by_service(config_path, &clash_log_file).await {
+        match service::run_core_by_service(config_path, clash_log_file).await {
             Ok(_) => {
                 tracing::info!("run core by service successfully");
                 Ok(true)

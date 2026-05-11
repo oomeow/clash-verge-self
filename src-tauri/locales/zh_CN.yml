@@ -56,7 +56,7 @@ dialog:
     title: Clash Verge Self 崩溃
     backtrace: "堆栈回溯:\n%{backtrace}"
     displayBacktraceNote: "注：使用 `RUST_BACKTRACE=1` 环境变量运行以显示回溯"
-    content: "位置： %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\n有关更多恐慌信息，请检查日志文件:\n  %{log_file}"
+    content: "位置： %{location}:\n\n%{payload}\n\n%{limit_backtrace}...\n\n有关更多恐慌信息，请检查日志文件:\n  应用日志：%{app_log_file}\n  Clash 日志：%{clash_log_file}"
 
 error:
   tun:

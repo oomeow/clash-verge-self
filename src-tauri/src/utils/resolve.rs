@@ -90,19 +90,28 @@ pub fn setup_panic_hook() {
 
         tracing::error!("panicked at {}:\n{}\n{}", location, payload, backtrace);
         let limit_backtrace = backtrace.lines().take(10).collect::<Vec<_>>().join("\n");
-        let log_file = VergeLog::global().get_app_log_file();
-        let log_file = log_file
+        let app_log_file = VergeLog::global().get_app_log_file();
+        let app_log_file = app_log_file
             .to_str()
             .unwrap_or_default()
             .split(APP_ID)
             .last()
             .unwrap_or_default();
+        let clash_log_file = VergeLog::global().get_clash_log_file();
+        let clash_log_file = clash_log_file
+            .to_str()
+            .unwrap_or_default()
+            .split(APP_ID)
+            .last()
+            .unwrap_or_default();
+
         let content = t!(
             "dialog.panic.content",
             location = location,
             payload = payload,
             limit_backtrace = limit_backtrace,
-            log_file = log_file,
+            app_log_file = app_log_file,
+            clash_log_file = clash_log_file,
         );
         rfd::MessageDialog::new()
             .set_title(t!("dialog.panic.title"))
