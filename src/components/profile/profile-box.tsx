@@ -25,9 +25,9 @@ export const ProfileDiv = styled("div")(({
   }[key];
 
   const h2color = {
-    "light-true": primary.main,
+    "light-true": text.primary,
     "light-false": text.primary,
-    "dark-true": primary.main,
+    "dark-true": text.primary,
     "dark-false": text.primary,
   }[key];
 

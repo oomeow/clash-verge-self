@@ -130,7 +130,7 @@ export default function ProfileMoreMini(props: Props) {
                 variant="enhance"
                 density="compact"
               />
-              <Marquee pauseOnHover className="text-primary-main min-w-0">
+              <Marquee pauseOnHover className="text-primary-text min-w-0">
                 <span className="font-medium">{item.name}</span>
               </Marquee>
             </div>
