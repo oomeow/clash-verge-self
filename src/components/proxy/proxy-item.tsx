@@ -82,8 +82,9 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
   });
 
   return (
-    <ListItem id={proxyId(group.name, proxy.name)} sx={sx}>
+    <ListItem sx={sx}>
       <ListItemButton
+        id={proxyId(group.name, proxy.name)}
         dense
         data-delay-version={delayVersion}
         selected={selected}
