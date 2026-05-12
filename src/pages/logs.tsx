@@ -68,6 +68,7 @@ const LogPage = () => {
           mb: "10px",
           pt: "10px",
           mx: "10px",
+          gap: 0.6,
           height: "36px",
           display: "flex",
           alignItems: "center",
