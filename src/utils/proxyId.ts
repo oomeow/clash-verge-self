@@ -1,5 +1,5 @@
 export function groupId(groupName: string) {
-  return `${groupName.replaceAll(" ", "::")}`;
+  return `group-${groupName.replaceAll(" ", "::")}`;
 }
 
 export function proxyId(groupName: string, proxyName: string) {
