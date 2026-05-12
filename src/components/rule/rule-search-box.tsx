@@ -42,9 +42,7 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
       variant="outlined"
       spellCheck="false"
       value={text}
-      placeholder={
-        t(`common.search.${mode}Placeholder`)
-      }
+      placeholder={t(`common.search.${mode}Placeholder`)}
       sx={[
         {
           "& .MuiInputBase-root": {
@@ -69,6 +67,7 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
             <InputAdornment position="start" sx={{ mr: 0.5 }}>
               <ToggleButtonGroup
                 exclusive
+                color="primary"
                 size="small"
                 value={mode}
                 onChange={(_, value: RuleSearchMode | null) => {
