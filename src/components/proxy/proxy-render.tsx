@@ -23,6 +23,7 @@ import {
   DEFAULT_STATE,
 } from "@/stores/proxyHeadStateStore";
 import { cn } from "@/utils";
+import { groupId } from "@/utils/proxyId";
 
 import { ProxyGroupTools } from "./proxy-group-tools";
 import { ProxyHead } from "./proxy-head";
@@ -278,7 +279,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           "py-0": stickyed && headState.open,
         })}>
         <ListItemButton
-          id={`group-${group.name}`}
+          id={groupId(group.name)}
           dense
           sx={(theme) => ({
             background: "#ffffff",
