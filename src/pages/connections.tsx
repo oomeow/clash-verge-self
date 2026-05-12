@@ -261,7 +261,7 @@ const ConnectionsPage = () => {
             userSelect: "text",
             boxSizing: "border-box",
           }}>
-          <ButtonGroup size="small" className="flex w-50">
+          <ButtonGroup size="small" className="flex w-40 text-nowrap">
             <Button
               sx={{ flex: 1 }}
               variant={isActiveTab ? "contained" : "outlined"}
