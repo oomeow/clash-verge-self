@@ -8,7 +8,6 @@ export const BaseStyledSelect = styled((props: SelectProps<string>) => {
       sx={{
         width: 120,
         height: 33.375,
-        mr: 1,
         '[role="button"]': { py: 0.65 },
       }}
       {...props}

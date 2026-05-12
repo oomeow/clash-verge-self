@@ -242,7 +242,9 @@ const ConnectionsPage = () => {
           <Button size="small" variant="contained" onClick={onCloseAll}>
             <span className="whitespace-nowrap">
               {t("pages.connections.actions.closeAll")}{" "}
-              {isActiveTab ? filteredConnections.length : activeConns.length}
+              {isActiveTab
+                ? filteredConnections.length > 0 && filteredConnections.length
+                : activeConns.length > 0 && activeConns.length}
             </span>
           </Button>
         </div>
@@ -254,21 +256,25 @@ const ConnectionsPage = () => {
             py: "10px",
             display: "flex",
             alignItems: "center",
-            gap: 1,
+            gap: 0.6,
             flexShrink: 0,
             userSelect: "text",
             boxSizing: "border-box",
           }}>
-          <ButtonGroup size="small" className="w-fit shrink-0 grow-0">
+          <ButtonGroup size="small" className="flex w-50">
             <Button
+              sx={{ flex: 1 }}
               variant={isActiveTab ? "contained" : "outlined"}
               onClick={() => handleTabChange("active")}>
-              {t("common.status.active")} {activeConns.length}
+              {t("common.status.active")}{" "}
+              {activeConns.length > 0 && activeConns.length}
             </Button>
             <Button
+              sx={{ flex: 1 }}
               variant={!isActiveTab ? "contained" : "outlined"}
               onClick={() => handleTabChange("closed")}>
-              {t("common.status.closed")} {closedConns.length}
+              {t("common.status.closed")}{" "}
+              {closedConns.length > 0 && closedConns.length}
             </Button>
           </ButtonGroup>
           {!isTableLayout && isActiveTab && (
