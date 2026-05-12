@@ -15,7 +15,7 @@ export function findAndHighlightElement(elementId: string, retry = 10) {
   if (!ele) {
     if (retry > 0) {
       requestAnimationFrame(() =>
-        setTimeout(() => findAndHighlightElement(elementId, retry - 1), 100),
+        findAndHighlightElement(elementId, retry - 1),
       );
     }
   } else {

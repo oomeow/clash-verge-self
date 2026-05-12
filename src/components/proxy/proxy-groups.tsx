@@ -169,7 +169,9 @@ export const ProxyGroups = (props: Props) => {
           align: "start",
           behavior: "auto",
         });
-
+        console.log("scrolling...");
+        await stickyListRef.current?.waitForScrollEnd();
+        console.log("scrollend");
         findAndHighlightElement(groupId(groupName));
       }
     },
@@ -178,7 +180,7 @@ export const ProxyGroups = (props: Props) => {
 
   // 滚到对应的节点
   const handleLocation = useCallback(
-    (group: IProxyGroupItem) => {
+    async (group: IProxyGroupItem) => {
       if (!group) return;
       const { name, now } = group;
 
@@ -194,6 +196,9 @@ export const ProxyGroups = (props: Props) => {
           align: "center",
           behavior: "smooth",
         });
+        console.log("scrolling...");
+        await stickyListRef.current?.waitForScrollEnd();
+        console.log("scrollend");
         findAndHighlightElement(proxyId(name, now!));
       }
     },
