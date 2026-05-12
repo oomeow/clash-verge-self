@@ -5,7 +5,6 @@ import {
   subscribeManagedMihomoWebSocketText,
 } from "@/services/managedMihomoWs";
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
-import { useRefreshConnectionDateStore } from "@/stores";
 
 export type IConnectionsItem = Connection & {
   curUpload?: number; // upload speed, calculate at runtime
@@ -46,7 +45,12 @@ const updateConnections = (
     const prev = oldActiveConnMap.get(c.id);
     const curUpload = prev ? c.upload - prev.upload : 0;
     const curDownload = prev ? c.download - prev.download : 0;
-    return { ...c, curUpload, curDownload, closedTime: 0 } as IClosedConnectionItem;
+    return {
+      ...c,
+      curUpload,
+      curDownload,
+      closedTime: 0,
+    } as IClosedConnectionItem;
   });
 
   const activeIds = new Set(activeConnections.map((item) => item.id));
@@ -66,9 +70,7 @@ const updateConnections = (
 };
 
 export const useConnectionData = () => {
-  const date = useRefreshConnectionDateStore((s) => s.date);
-  const refresh = useRefreshConnectionDateStore((s) => s.refresh);
-  const subscriptKey = `getClashConnection-${date}`;
+  const subscriptKey = `getClashConnection`;
 
   const response = useSWRSubscription<
     ConnectionMonitorData,
@@ -101,7 +103,6 @@ export const useConnectionData = () => {
 
   return {
     response,
-    refreshGetClashConnection: refresh,
     clearClosedConnections,
   };
 };

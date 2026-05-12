@@ -6,7 +6,7 @@ import {
   subscribeManagedMihomoWebSocketText,
 } from "@/services/managedMihomoWs";
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
-import { useClashLogStore, useRefreshLogsDateStore } from "@/stores";
+import { useClashLogStore } from "@/stores";
 
 export type ILogItem = Log & {
   time?: string;
@@ -52,9 +52,7 @@ export const useLogData = () => {
   // const enableLog = useClashLogStore((s) => s.enable);
   const logLevel = useClashLogStore((s) => s.logLevel);
 
-  const date = useRefreshLogsDateStore((s) => s.date);
-  const refresh = useRefreshLogsDateStore((s) => s.refresh);
-  const subscriptKey = `getClashLog-${logLevel}-${date}`;
+  const subscriptKey = `getClashLog-${logLevel}`;
 
   const response = useSWRSubscription<ILogItem[], any, string>(
     subscriptKey,
@@ -115,13 +113,9 @@ export const useLogData = () => {
     },
   );
 
-  const refreshOrClearClashLog = (option: "refresh" | "clear") => {
-    if (option === "clear") {
-      mutate(swrSubscriptionKey(subscriptKey), []);
-    } else {
-      refresh();
-    }
+  const clearClashLog = () => {
+    mutate(swrSubscriptionKey(subscriptKey), []);
   };
 
-  return { response, refreshOrClearClashLog };
+  return { response, clearClashLog };
 };

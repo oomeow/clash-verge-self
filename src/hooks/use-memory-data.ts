@@ -5,12 +5,9 @@ import {
   subscribeManagedMihomoWebSocketText,
 } from "@/services/managedMihomoWs";
 import { useSWRSubscription } from "@/services/swr";
-import { useRefreshMemoryDateStore } from "@/stores";
 
 export const useMemoryData = () => {
-  const date = useRefreshMemoryDateStore((s) => s.date);
-  const refresh = useRefreshMemoryDateStore((s) => s.refresh);
-  const subscriptKey = `getClashMemory-${date}`;
+  const subscriptKey = `getClashMemory`;
 
   const response = useSWRSubscription<Memory, any, string | null>(
     subscriptKey,
@@ -32,5 +29,5 @@ export const useMemoryData = () => {
     },
   );
 
-  return { response, refreshGetClashMemory: refresh };
+  return { response };
 };

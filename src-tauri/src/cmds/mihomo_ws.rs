@@ -228,7 +228,9 @@ async fn send_log_snapshot(on_message: &Channel<Value>) -> bool {
         }
     };
     let message = serde_json::to_value(WebSocketMessage::Text(text)).unwrap_or(Value::Null);
-    on_message.send(message).is_ok()
+    let result = on_message.send(message).is_ok();
+    println!("sent log snapshot: {result}");
+    result
 }
 
 async fn open_mihomo_ws_connection(

@@ -5,12 +5,9 @@ import {
   subscribeManagedMihomoWebSocketText,
 } from "@/services/managedMihomoWs";
 import { useSWRSubscription } from "@/services/swr";
-import { useRefreshTrafficDateStore } from "@/stores";
 
 export const useTrafficData = () => {
-  const date = useRefreshTrafficDateStore((s) => s.date);
-  const refresh = useRefreshTrafficDateStore((s) => s.refresh);
-  const subscriptKey = `getClashTraffic-${date}`;
+  const subscriptKey = `getClashTraffic`;
 
   const response = useSWRSubscription<Traffic, any, string | null>(
     subscriptKey,
@@ -26,5 +23,5 @@ export const useTrafficData = () => {
     },
   );
 
-  return { response, refreshGetClashTraffic: refresh };
+  return { response };
 };
