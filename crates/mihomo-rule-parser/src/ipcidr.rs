@@ -59,6 +59,30 @@ impl Display for Prefix {
     }
 }
 
+fn range_prefix_len_v4(start: u32, end: u32) -> u8 {
+    let aligned_prefix = 32 - start.trailing_zeros() as u8;
+    let remaining = end - start;
+    let bounded_prefix = if remaining == u32::MAX {
+        0
+    } else {
+        32 - (remaining + 1).ilog2() as u8
+    };
+
+    aligned_prefix.max(bounded_prefix)
+}
+
+fn range_prefix_len_v6(start: u128, end: u128) -> u8 {
+    let aligned_prefix = 128 - start.trailing_zeros() as u8;
+    let remaining = end - start;
+    let bounded_prefix = if remaining == u128::MAX {
+        0
+    } else {
+        128 - (remaining + 1).ilog2() as u8
+    };
+
+    aligned_prefix.max(bounded_prefix)
+}
+
 /// 将 IPv4 地址转换为 32 位无符号整数
 fn ip_to_u32(ip: Ipv4Addr) -> u32 {
     u32::from_be_bytes(ip.octets())
@@ -81,89 +105,53 @@ fn u128_to_ip(num: u128) -> IpAddr {
 
 /// IPv4 处理
 fn ipv4_prefixes(from: Ipv4Addr, to: Ipv4Addr) -> Vec<Prefix> {
-    // IPV4 字段由 4 个数组成, 例如 192.168.3.0, 每个数由 8 位二进制组成: 11000000.10101000.00000011.00000000
-    let mut from = ip_to_u32(from);
-    let mut to = ip_to_u32(to);
+    let (mut start, end) = {
+        let from = ip_to_u32(from);
+        let to = ip_to_u32(to);
+        if from <= to { (from, to) } else { (to, from) }
+    };
 
-    if from > to {
-        std::mem::swap(&mut from, &mut to);
-    }
-    // 存储结果的 CIDR 前缀列表
-    let mut cidrs = Vec::new();
+    let mut prefixes = Vec::new();
 
-    while from <= to {
-        // from 地址中尾随 0 的个数, 例如 192.168.3.0 -> 3232236288 -> 11000000101010000000001100000000 尾随的 0 有 8 个
-        // 计算当前起始地址的尾部零位数（最多 31 位）
-        let trailing_zeros = from.trailing_zeros().min(31) as u8;
-        // 初始前缀长度 = 32 - 尾部零位数
-        let mut prefix = 32 - trailing_zeros;
-        let (block_start, block_size) = loop {
-            // 当前前缀对应的掩码
-            // let mask = u32::MAX << (32 - prefix);
-            // 计算 CIDR 块的网络地址（起始地址）
-            let block_start = from;
-            // 计算 CIDR 块的大小（包含的地址数量）：2^(32-prefix)
-            let block_size = 1u32 << (32 - prefix);
-            // 计算 CIDR 块的结束地址
-            let block_end = block_start.saturating_add(block_size - 1);
+    while start <= end {
+        let prefix_len = range_prefix_len_v4(start, end);
+        prefixes.push(Prefix::new(u32_to_ip(start), prefix_len));
 
-            // 检查当前 CIDR 块是否完全包含在目标范围内
-            if block_start >= from && block_end <= to {
-                break (block_start, block_size);
-            }
+        if prefix_len == 0 {
+            break;
+        }
 
-            prefix += 1;
-            if prefix > 32 {
-                prefix = 32;
-                break (from, 1);
-            }
-        };
-        // 将找到的 CIDR 前缀加入结果列表
-        cidrs.push(Prefix::new(u32_to_ip(block_start), prefix));
-        // 移动到下一个CIDR块的起始位置
-        from = match block_start.checked_add(block_size) {
-            Some(s) => s,
+        let block_size = 1u32 << (32 - prefix_len);
+        start = match start.checked_add(block_size) {
+            Some(next) => next,
             None => break,
         };
     }
 
-    cidrs
+    prefixes
 }
 
 /// IPv6 处理（128位实现）
 fn ipv6_prefixes(from: Ipv6Addr, to: Ipv6Addr) -> Vec<Prefix> {
-    let mut from = ip_to_u128(from);
-    let mut to = ip_to_u128(to);
-
-    if from > to {
-        std::mem::swap(&mut from, &mut to);
-    }
+    let (mut start, end) = {
+        let from = ip_to_u128(from);
+        let to = ip_to_u128(to);
+        if from <= to { (from, to) } else { (to, from) }
+    };
 
     let mut prefixes = Vec::new();
 
-    while from <= to {
-        let trailing_zeros = from.trailing_zeros().min(127) as u8;
-        let mut prefix = 128 - trailing_zeros;
-        let (block_start, block_size) = loop {
-            // let mask = u128::MAX << (128 - prefix);
-            let block_start = from;
-            let block_size = 1u128 << (128 - prefix);
-            let block_end = block_start.saturating_add(block_size.saturating_sub(1));
-            if block_start >= from && block_end <= to {
-                break (block_start, block_size);
-            }
+    while start <= end {
+        let prefix_len = range_prefix_len_v6(start, end);
+        prefixes.push(Prefix::new(u128_to_ip(start), prefix_len));
 
-            prefix += 1;
-            if prefix > 128 {
-                prefix = 128;
-                break (from, 1);
-            }
-        };
+        if prefix_len == 0 {
+            break;
+        }
 
-        prefixes.push(Prefix::new(u128_to_ip(block_start), prefix));
-
-        from = match block_start.checked_add(block_size) {
-            Some(s) => s,
+        let block_size = 1u128 << (128 - prefix_len);
+        start = match start.checked_add(block_size) {
+            Some(next) => next,
             None => break,
         };
     }
@@ -186,15 +174,7 @@ impl IpCidrTransform for IpAddr {
     /// 解映射 IPv4 映射的 IPv6 地址
     fn unmap(&self) -> IpAddr {
         if let IpAddr::V6(v6) = self {
-            let octets = v6.octets();
-
-            // 检查是否是 IPv4 映射地址 (::ffff:0:0/96)
-            if octets[0..10].iter().all(|&b| b == 0) && octets[10] == 0xff && octets[11] == 0xff {
-                // 提取最后 4 个字节作为 IPv4 地址
-                let v4_bytes = [octets[12], octets[13], octets[14], octets[15]];
-                return IpAddr::V4(Ipv4Addr::from(v4_bytes));
-            }
-            IpAddr::V6(*v6)
+            v6.to_ipv4_mapped().map(IpAddr::V4).unwrap_or(IpAddr::V6(*v6))
         } else {
             *self
         }
@@ -226,7 +206,6 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
         return Err(RuleParseError::InvalidLength(length));
     }
 
-    // let mut rr: Vec<IpRange> = Vec::with_capacity(length as usize);
     let mut rules: Vec<String> = Vec::new();
     for _ in 0..length {
         let mut from = [0u8; 16];
@@ -239,12 +218,7 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
 
         // generate Ip range
         let range = IpAddr::ip_range(from_addr, to_addr);
-        // rr.push(range.clone());
-        let prefixes = range.prefixes();
-        for prefix in prefixes {
-            // println!("prefix: {:?}", prefix);
-            rules.push(prefix.to_string());
-        }
+        rules.extend(range.prefixes().into_iter().map(|prefix| prefix.to_string()));
     }
     drop(reader);
 
