@@ -380,7 +380,7 @@ const ProfilePage = () => {
               setSortableProfileItems(newProfileList);
             }
           }}>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-2 px-2">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2 px-2">
             {sortableProfileItems.map((item, index) => (
               <SortableItem key={item.uid} id={item.uid} index={index}>
                 <ProfileItem
@@ -476,7 +476,7 @@ const ProfilePage = () => {
                   }
                 }
               }}>
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-2 px-2">
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2 px-2">
                 {sortableGlobalChainItems.map((item, index) => (
                   <SortableItem key={item.id} id={item.uid} index={index}>
                     <ProfileMore
