@@ -1,7 +1,10 @@
+const encodeIdPart = (value: string) =>
+  encodeURIComponent(value).replaceAll("%", "_");
+
 export function groupId(groupName: string) {
-  return `group-${groupName.replaceAll(" ", "::")}`;
+  return `group-${encodeIdPart(groupName)}`;
 }
 
 export function proxyId(groupName: string, proxyName: string) {
-  return `${groupName.replaceAll(" ", "::")}-proxy-${proxyName.replaceAll(" ", "::")}`;
+  return `group-${encodeIdPart(groupName)}-proxy-${encodeIdPart(proxyName)}`;
 }
