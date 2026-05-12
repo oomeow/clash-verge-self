@@ -59,28 +59,94 @@ impl Display for Prefix {
     }
 }
 
-fn range_prefix_len_v4(start: u32, end: u32) -> u8 {
-    let aligned_prefix = 32 - start.trailing_zeros() as u8;
-    let remaining = end - start;
-    let bounded_prefix = if remaining == u32::MAX {
-        0
-    } else {
-        32 - (remaining + 1).ilog2() as u8
-    };
+/// 抽象 IPv4/IPv6 数值类型之间的共同 CIDR 拆分能力。
+trait IpNumber: Copy + Ord {
+    /// 当前地址类型的总位数：IPv4 为 32，IPv6 为 128。
+    const ADDRESS_BITS: u32;
 
-    aligned_prefix.max(bounded_prefix)
+    /// 返回从 `start` 开始、且不超过 `end` 的最大 CIDR 前缀长度。
+    fn prefix_len(start: Self, end: Self) -> u8;
+    /// 计算指定前缀长度对应的 CIDR 块大小，即该网段覆盖多少个地址。
+    fn cidr_block_size(prefix_len: u8) -> Self;
+    fn checked_add(self, rhs: Self) -> Option<Self>;
 }
 
-fn range_prefix_len_v6(start: u128, end: u128) -> u8 {
-    let aligned_prefix = 128 - start.trailing_zeros() as u8;
-    let remaining = end - start;
-    let bounded_prefix = if remaining == u128::MAX {
-        0
-    } else {
-        128 - (remaining + 1).ilog2() as u8
-    };
+impl IpNumber for u32 {
+    const ADDRESS_BITS: u32 = 32;
 
-    aligned_prefix.max(bounded_prefix)
+    fn prefix_len(start: Self, end: Self) -> u8 {
+        // 对齐约束：当前块必须从 CIDR 边界开始。
+        let aligned_prefix = (Self::ADDRESS_BITS - start.trailing_zeros()) as u8;
+        let remaining = end - start;
+        // 范围约束：当前块不能覆盖到 end 之后。
+        let bounded_prefix = if remaining == u32::MAX {
+            0
+        } else {
+            (Self::ADDRESS_BITS - (remaining + 1).ilog2()) as u8
+        };
+
+        aligned_prefix.max(bounded_prefix)
+    }
+
+    fn cidr_block_size(prefix_len: u8) -> Self {
+        1u32 << (Self::ADDRESS_BITS - u32::from(prefix_len))
+    }
+
+    fn checked_add(self, rhs: Self) -> Option<Self> {
+        self.checked_add(rhs)
+    }
+}
+
+impl IpNumber for u128 {
+    const ADDRESS_BITS: u32 = 128;
+
+    fn prefix_len(start: Self, end: Self) -> u8 {
+        // 对齐约束：当前块必须从 CIDR 边界开始。
+        let aligned_prefix = (Self::ADDRESS_BITS - start.trailing_zeros()) as u8;
+        let remaining = end - start;
+        // 范围约束：当前块不能覆盖到 end 之后。
+        let bounded_prefix = if remaining == u128::MAX {
+            0
+        } else {
+            (Self::ADDRESS_BITS - (remaining + 1).ilog2()) as u8
+        };
+
+        aligned_prefix.max(bounded_prefix)
+    }
+
+    fn cidr_block_size(prefix_len: u8) -> Self {
+        1u128 << (Self::ADDRESS_BITS - u32::from(prefix_len))
+    }
+
+    fn checked_add(self, rhs: Self) -> Option<Self> {
+        self.checked_add(rhs)
+    }
+}
+
+fn range_prefixes<T>(from: T, to: T, to_ip: fn(T) -> IpAddr) -> Vec<Prefix>
+where
+    T: IpNumber,
+{
+    let (mut start, end) = if from <= to { (from, to) } else { (to, from) };
+    let mut prefixes = Vec::new();
+
+    while start <= end {
+        // 每轮取“当前起点能容纳的最大 CIDR 块”，然后跳到下一个未覆盖地址。
+        let prefix_len = T::prefix_len(start, end);
+        prefixes.push(Prefix::new(to_ip(start), prefix_len));
+
+        // "/0" 表示已经覆盖了整个地址空间，不需要再继续前进。
+        if prefix_len == 0 {
+            break;
+        }
+
+        start = match start.checked_add(T::cidr_block_size(prefix_len)) {
+            Some(next) => next,
+            None => break,
+        };
+    }
+
+    prefixes
 }
 
 /// 将 IPv4 地址转换为 32 位无符号整数
@@ -105,58 +171,12 @@ fn u128_to_ip(num: u128) -> IpAddr {
 
 /// IPv4 处理
 fn ipv4_prefixes(from: Ipv4Addr, to: Ipv4Addr) -> Vec<Prefix> {
-    let (mut start, end) = {
-        let from = ip_to_u32(from);
-        let to = ip_to_u32(to);
-        if from <= to { (from, to) } else { (to, from) }
-    };
-
-    let mut prefixes = Vec::new();
-
-    while start <= end {
-        let prefix_len = range_prefix_len_v4(start, end);
-        prefixes.push(Prefix::new(u32_to_ip(start), prefix_len));
-
-        if prefix_len == 0 {
-            break;
-        }
-
-        let block_size = 1u32 << (32 - prefix_len);
-        start = match start.checked_add(block_size) {
-            Some(next) => next,
-            None => break,
-        };
-    }
-
-    prefixes
+    range_prefixes(ip_to_u32(from), ip_to_u32(to), u32_to_ip)
 }
 
-/// IPv6 处理（128位实现）
+/// IPv6 处理
 fn ipv6_prefixes(from: Ipv6Addr, to: Ipv6Addr) -> Vec<Prefix> {
-    let (mut start, end) = {
-        let from = ip_to_u128(from);
-        let to = ip_to_u128(to);
-        if from <= to { (from, to) } else { (to, from) }
-    };
-
-    let mut prefixes = Vec::new();
-
-    while start <= end {
-        let prefix_len = range_prefix_len_v6(start, end);
-        prefixes.push(Prefix::new(u128_to_ip(start), prefix_len));
-
-        if prefix_len == 0 {
-            break;
-        }
-
-        let block_size = 1u128 << (128 - prefix_len);
-        start = match start.checked_add(block_size) {
-            Some(next) => next,
-            None => break,
-        };
-    }
-
-    prefixes
+    range_prefixes(ip_to_u128(from), ip_to_u128(to), u128_to_ip)
 }
 
 trait IpCidrTransform {
