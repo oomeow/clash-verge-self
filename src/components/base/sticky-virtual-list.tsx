@@ -177,13 +177,17 @@ function StickyVirtualListInner<TItem>(
       isScrolling: () => rowVirtualizer.isScrolling,
       waitForScrollEnd: () => {
         return new Promise((resolve) => {
-          let checkScrollEndCount = 3;
+          let maxCheckCount = 5;
           const interval = setInterval(() => {
-            if (!rowVirtualizer.isScrolling && checkScrollEndCount === 0) {
+            if (!rowVirtualizer.isScrolling) {
               clearInterval(interval);
               resolve();
             }
-            checkScrollEndCount -= 1;
+            maxCheckCount -= 1;
+            if (maxCheckCount < 0) {
+              clearInterval(interval);
+              resolve();
+            }
           }, 100);
         });
       },
