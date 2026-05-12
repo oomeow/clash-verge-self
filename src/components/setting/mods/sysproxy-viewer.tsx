@@ -68,7 +68,12 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
   const enableProxyGuard = useVergeStore(
     (s) => s.verge.enable_proxy_guard ?? false,
   );
-  const bypassVerge = useVergeStore((s) => s.verge.bypass ?? "");
+  const bypassVerge = useVergeStore((s) => {
+    if (OS === "linux") return s.verge.linux_bypass ?? "";
+    if (OS === "macos") return s.verge.macos_bypass ?? "";
+    if (OS === "windows") return s.verge.windows_bypass ?? "";
+    return s.verge.bypass ?? "";
+  });
   const proxyGuardDuration = useVergeStore(
     (s) => s.verge.proxy_guard_duration ?? 10,
   );
@@ -161,11 +166,13 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
       cancelBtn={t("common.actions.cancel")}
       onClose={() => {
         setOpen(false);
-        setBypass(sysproxy?.bypass.split(separator) ?? []);
+        const bypass = sysproxy?.bypass.split(separator) ?? [];
+        setBypass(bypass);
       }}
       onCancel={() => {
         setOpen(false);
-        setBypass(sysproxy?.bypass.split(separator) ?? []);
+        const bypass = sysproxy?.bypass.split(separator) ?? [];
+        setBypass(bypass);
       }}
       onOk={onSave}>
       <List>
