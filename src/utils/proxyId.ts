@@ -1,5 +1,4 @@
-const encodeIdPart = (value: string) =>
-  encodeURIComponent(value).replaceAll("%", "_");
+const encodeIdPart = (value: string) => encodeURIComponent(value);
 
 export function groupId(groupName: string) {
   return `group-${encodeIdPart(groupName)}`;
