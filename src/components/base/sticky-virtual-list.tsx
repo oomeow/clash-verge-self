@@ -182,11 +182,13 @@ function StickyVirtualListInner<TItem>(
             if (!rowVirtualizer.isScrolling) {
               clearInterval(interval);
               resolve();
+              return;
             }
             maxCheckCount -= 1;
             if (maxCheckCount < 0) {
               clearInterval(interval);
               resolve();
+              return;
             }
           }, 100);
         });
