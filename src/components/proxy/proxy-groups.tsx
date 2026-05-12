@@ -15,7 +15,8 @@ import { ProxyRender } from "@/components/proxy/proxy-render";
 import LoadingPage from "@/pages/loading";
 import delayManager from "@/services/delay";
 import { useProfilesStore, useVergeStore } from "@/stores";
-import { cn } from "@/utils";
+import { cn, findAndHighlightElement } from "@/utils";
+import { groupId, proxyId } from "@/utils/proxyId";
 
 import {
   BaseEmpty,
@@ -168,24 +169,8 @@ export const ProxyGroups = (props: Props) => {
           align: "start",
           behavior: "auto",
         });
-
-        // highlight group
-        const highlightGroup = () => {
-          let ele = document.getElementById(`group-${groupName}`);
-          if (!ele) {
-            requestAnimationFrame(() => highlightGroup());
-          } else {
-            ele = document.getElementById(`group-${groupName}`);
-            if (ele) {
-              ele.classList.add("animate-highlight");
-              setTimeout(() => {
-                ele?.classList.remove("animate-highlight");
-              }, 1000);
-            }
-          }
-        };
-
-        highlightGroup();
+        await stickyListRef.current?.waitForScrollEnd();
+        findAndHighlightElement(groupId(groupName));
       }
     },
     [renderList],
@@ -193,7 +178,7 @@ export const ProxyGroups = (props: Props) => {
 
   // 滚到对应的节点
   const handleLocation = useCallback(
-    (group: IProxyGroupItem) => {
+    async (group: IProxyGroupItem) => {
       if (!group) return;
       const { name, now } = group;
 
@@ -209,6 +194,8 @@ export const ProxyGroups = (props: Props) => {
           align: "center",
           behavior: "smooth",
         });
+        await stickyListRef.current?.waitForScrollEnd();
+        findAndHighlightElement(proxyId(name, now!));
       }
     },
     [renderList],

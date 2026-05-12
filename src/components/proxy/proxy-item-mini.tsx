@@ -6,6 +6,7 @@ import { Proxy } from "tauri-plugin-mihomo-api";
 import { BaseLoading } from "@/components/base";
 import delayManager, { DEFAULT_LATENCY_TIMEOUT } from "@/services/delay";
 import { useVergeStore } from "@/stores";
+import { proxyId } from "@/utils/proxyId";
 
 import { IProxyGroupItem } from "./use-render-list";
 
@@ -72,6 +73,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
 
   return (
     <ListItemButton
+      id={proxyId(group.name, proxy.name)}
       dense
       data-delay-version={delayVersion}
       selected={selected}

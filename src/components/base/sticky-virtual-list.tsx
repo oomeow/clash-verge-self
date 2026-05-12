@@ -36,6 +36,8 @@ export interface StickyVirtualListHandle {
   getScrollElement: () => HTMLDivElement | null;
   isItemScrolledPastStart: (index: number, tolerance?: number) => boolean;
   scrollToIndex: (index: number, options?: ScrollToIndexOptions) => void;
+  isScrolling: () => boolean;
+  waitForScrollEnd: () => Promise<void>;
 }
 
 export interface StickyVirtualListProps<TItem> {
@@ -171,6 +173,23 @@ function StickyVirtualListInner<TItem>(
       },
       scrollToIndex: (index, options) => {
         rowVirtualizer.scrollToIndex(index, options);
+      },
+      isScrolling: () => rowVirtualizer.isScrolling,
+      waitForScrollEnd: () => {
+        return new Promise((resolve) => {
+          let maxCheckCount = 5;
+          const interval = setInterval(() => {
+            if (!rowVirtualizer.isScrolling) {
+              clearInterval(interval);
+              resolve();
+            }
+            maxCheckCount -= 1;
+            if (maxCheckCount < 0) {
+              clearInterval(interval);
+              resolve();
+            }
+          }, 100);
+        });
       },
     }),
     [getVirtualOffset, rowVirtualizer],
