@@ -169,9 +169,7 @@ export const ProxyGroups = (props: Props) => {
           align: "start",
           behavior: "auto",
         });
-        console.log("scrolling...");
         await stickyListRef.current?.waitForScrollEnd();
-        console.log("scrollend");
         findAndHighlightElement(groupId(groupName));
       }
     },
@@ -196,9 +194,7 @@ export const ProxyGroups = (props: Props) => {
           align: "center",
           behavior: "smooth",
         });
-        console.log("scrolling...");
         await stickyListRef.current?.waitForScrollEnd();
-        console.log("scrollend");
         findAndHighlightElement(proxyId(name, now!));
       }
     },
