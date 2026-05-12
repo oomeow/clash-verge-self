@@ -105,9 +105,8 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
             filterChange(text);
           }}
           sx={{
+            width: 180,
             ml: 0.5,
-            flex: "1 1 auto",
-            minWidth: 150,
             input: { py: 0.4, px: 1 },
           }}
         />
@@ -131,9 +130,8 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
             headStateActions.setTestUrl(e.target.value);
           }}
           sx={{
+            width: 180,
             ml: 0.5,
-            flex: "1 1 auto",
-            minWidth: 150,
             input: { py: 0.4, px: 1 },
           }}
         />
