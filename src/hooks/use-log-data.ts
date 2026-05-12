@@ -76,7 +76,8 @@ export const useLogData = () => {
       };
 
       const unsubscribe = subscribeManagedMihomoWebSocketText({
-        connect: () => ManagedMihomoWebSocket.connectLogs(logLevel),
+        connect: (listener) =>
+          ManagedMihomoWebSocket.connectLogs(logLevel, listener),
         onText: (text) => {
           if (!useClashLogStore.getState().enable) return;
           const { logs, snapshot } = parseLogMessage(text);

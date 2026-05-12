@@ -21,7 +21,7 @@ export type ManagedMihomoWebSocketMessage =
 type Listener = (message: ManagedMihomoWebSocketMessage) => void;
 
 type TextSubscriptionOptions = {
-  connect: () => Promise<ManagedMihomoWebSocket>;
+  connect: (listener: Listener) => Promise<ManagedMihomoWebSocket>;
   onText: (text: string) => void;
   onError?: (error: unknown) => void;
 };
@@ -34,7 +34,23 @@ export const subscribeManagedMihomoWebSocketText = ({
   let disposed = false;
   let socket: ManagedMihomoWebSocket | null = null;
 
-  connect()
+  const listener: Listener = (message) => {
+    if (
+      disposed ||
+      message.type !== "Text" ||
+      /^(?:[Ww]ebsocket error)/.test(message.data)
+    ) {
+      return;
+    }
+
+    try {
+      onText(message.data);
+    } catch (error) {
+      onError?.(error);
+    }
+  };
+
+  connect(listener)
     .then((instance) => {
       if (disposed) {
         void instance.close();
@@ -42,21 +58,6 @@ export const subscribeManagedMihomoWebSocketText = ({
       }
 
       socket = instance;
-      instance.addListener((message) => {
-        if (
-          disposed ||
-          message.type !== "Text" ||
-          /^(?:[Ww]ebsocket error)/.test(message.data)
-        ) {
-          return;
-        }
-
-        try {
-          onText(message.data);
-        } catch (error) {
-          onError?.(error);
-        }
-      });
     })
     .catch((error) => {
       if (!disposed) onError?.(error);
@@ -82,8 +83,13 @@ export class ManagedMihomoWebSocket {
   private static async connect(
     command: "ws_traffic" | "ws_memory" | "ws_connections" | "ws_logs",
     args: Record<string, unknown> = {},
+    initialListener?: Listener,
   ): Promise<ManagedMihomoWebSocket> {
     const listeners: Set<Listener> = new Set();
+    if (initialListener) {
+      listeners.add(initialListener);
+    }
+
     const onMessage = new Channel<ManagedMihomoWebSocketMessage>();
     onMessage.onmessage = (message) => {
       listeners.forEach((listener) => listener(message));
@@ -95,22 +101,40 @@ export class ManagedMihomoWebSocket {
     return instance;
   }
 
-  static async connectTraffic(): Promise<ManagedMihomoWebSocket> {
-    return ManagedMihomoWebSocket.connect("ws_traffic");
+  static async connectTraffic(
+    initialListener?: Listener,
+  ): Promise<ManagedMihomoWebSocket> {
+    return ManagedMihomoWebSocket.connect("ws_traffic", {}, initialListener);
   }
 
-  static async connectMemory(): Promise<ManagedMihomoWebSocket> {
-    return ManagedMihomoWebSocket.connect("ws_memory");
+  static async connectMemory(
+    initialListener?: Listener,
+  ): Promise<ManagedMihomoWebSocket> {
+    return ManagedMihomoWebSocket.connect("ws_memory", {}, initialListener);
   }
 
-  static async connectConnections(): Promise<ManagedMihomoWebSocket> {
-    return ManagedMihomoWebSocket.connect("ws_connections");
+  static async connectConnections(
+    initialListener?: Listener,
+  ): Promise<ManagedMihomoWebSocket> {
+    return ManagedMihomoWebSocket.connect(
+      "ws_connections",
+      {},
+      initialListener,
+    );
   }
 
-  static async connectLogs(level: LogLevel): Promise<ManagedMihomoWebSocket> {
-    return ManagedMihomoWebSocket.connect("ws_logs", { level });
+  static async connectLogs(
+    level: LogLevel,
+    initialListener?: Listener,
+  ): Promise<ManagedMihomoWebSocket> {
+    return ManagedMihomoWebSocket.connect(
+      "ws_logs",
+      { level },
+      initialListener,
+    );
   }
 
+  // deprecated, use `ManagedMihomoWebSocket(id, listeners)` to pre-inject listeners
   addListener(listener: Listener): () => void {
     this.listeners.add(listener);
     return () => {
