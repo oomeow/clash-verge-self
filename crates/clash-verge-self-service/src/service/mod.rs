@@ -342,7 +342,7 @@ async fn handle_socket_command(secured: &mut SecureChannel, cmd: SocketCommand) 
                     log::info!("delete socket path");
                     let path = std::path::Path::new(&socket_path);
                     if path.exists() {
-                        std::fs::remove_file(path)?;
+                        tokio::fs::remove_file(path).await?;
                     }
                 }
             }

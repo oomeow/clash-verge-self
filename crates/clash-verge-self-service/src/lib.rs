@@ -53,7 +53,6 @@ impl Client {
         self.0.send(cmd_json.as_bytes()).await?;
         let res = self.0.recv().await?;
         let msg = String::from_utf8(res)?;
-        log::info!("connect to service success");
         let res = model::JsonResponse::from_str(&msg)?;
         Ok(res)
     }

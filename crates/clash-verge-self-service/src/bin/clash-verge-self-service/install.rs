@@ -20,9 +20,7 @@ pub fn process(server_id: Option<String>) -> Result<()> {
     // uninstall old service
     crate::uninstall::process()?;
 
-    let service_binary_path = std::env::current_exe()
-        .unwrap()
-        .with_file_name("clash-verge-self-service");
+    let service_binary_path = std::env::current_exe()?.with_file_name("clash-verge-self-service");
     let target_binary_path = "/Library/PrivilegedHelperTools/io.github.clashvergeself.helper";
     log::debug!("Generate service file at {}", target_binary_path);
     let target_binary_dir = Path::new("/Library/PrivilegedHelperTools");
