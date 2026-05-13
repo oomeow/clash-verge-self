@@ -10,8 +10,9 @@ export async function buildService(logger?: (message: string) => void) {
 
   const buildTask = new Promise((resolve, reject) => {
     const child = spawn(
-      `cargo build --release --package ${packageName} --target ${target}`,
-      { cwd: process.cwd(), shell: true },
+      "cargo",
+      ["build", "--release", "--package", packageName, "--target", target],
+      { cwd: process.cwd(), shell: false },
     );
     child.stdout.on("data", (data: Buffer) => {
       if (logger) {
