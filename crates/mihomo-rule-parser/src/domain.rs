@@ -127,11 +127,11 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     let mut reader = zstd::Decoder::new(Cursor::new(buf))?;
 
     // validate mrs file
-    let (actual_behavior, count) = utils::read_mrs_header(&mut reader)?;
-    if actual_behavior != RuleBehavior::Domain {
+    let (behavior, count) = utils::read_mrs_header(&mut reader)?;
+    if behavior != RuleBehavior::Domain {
         return Err(RuleParseError::BehaviorMismatch {
             expected: RuleBehavior::Domain,
-            actual: actual_behavior,
+            actual: behavior,
         });
     }
 
