@@ -85,6 +85,10 @@ pub fn clash_logs_dir() -> Result<PathBuf> {
     Ok(app_logs_dir()?.join("clash"))
 }
 
+pub fn mihomo_pid_file() -> Result<PathBuf> {
+    Ok(app_home_dir()?.join("self-mihomo.pid"))
+}
+
 pub fn clash_path() -> Result<PathBuf> {
     Ok(app_home_dir()?.join(CLASH_CONFIG))
 }

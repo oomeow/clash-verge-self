@@ -93,6 +93,8 @@ pub struct ProcessSpec {
     pub args: Vec<OsString>,
     /// Optional working directory.
     pub current_dir: Option<PathBuf>,
+    /// Optional PID file path.
+    pub pid_file: Option<PathBuf>,
     /// Additional environment variables.
     pub envs: Vec<(OsString, OsString)>,
     /// Restart policy for unexpected exits.
@@ -109,10 +111,16 @@ impl ProcessSpec {
             program: program.into(),
             args: Vec::new(),
             current_dir: None,
+            pid_file: None,
             envs: Vec::new(),
             restart_policy: RestartPolicy::default(),
             log_config: ProcessLogConfig::default(),
         }
+    }
+
+    pub fn with_pid_file(mut self, pid_file: impl Into<PathBuf>) -> Self {
+        self.pid_file = Some(pid_file.into());
+        self
     }
 }
 
@@ -230,9 +238,21 @@ impl ProcessSupervisor {
         self.inner.restart_count.store(0, Ordering::SeqCst);
     }
 
+    pub fn kill_old_process(&self, pid_file: Option<&PathBuf>) {
+        if self.pid().is_none()
+            && let Some(pid_file) = pid_file
+            && let Ok(old_pid) = std::fs::read_to_string(pid_file)
+        {
+            let pid = old_pid.trim().parse::<u32>().unwrap_or(0);
+            tracing::info!("killing old process with pid {}", pid);
+            kill_pid(pid);
+        }
+    }
+
     /// Stops the current child if needed and starts supervising a new one.
     pub async fn start(&self, spec: ProcessSpec) -> Result<u32> {
         tracing::info!("start requested for process `{}`", spec.label);
+        self.kill_old_process(spec.pid_file.as_ref());
         self.stop().await?;
 
         let generation = self.inner.generation.fetch_add(1, Ordering::SeqCst) + 1;
@@ -243,6 +263,9 @@ impl ProcessSupervisor {
         let pid = child.id().ok_or_else(|| Error::MissingPid {
             label: spec.label.clone(),
         })?;
+        if let Some(pid_file) = &spec.pid_file {
+            std::fs::write(pid_file, pid.to_string()).ok();
+        }
 
         self.inner.pid.store(pid, Ordering::SeqCst);
         self.inner.running.store(true, Ordering::SeqCst);
@@ -310,6 +333,7 @@ impl ProcessSupervisor {
 
         loop {
             let pid = child.id();
+
             let mut log_sink = LogSink::new(
                 &spec.label,
                 spec.log_config.log_file.as_ref(),
@@ -343,6 +367,9 @@ impl ProcessSupervisor {
             first_spawn = false;
 
             if self.finish_child_exit(generation, &spec.label, pid, status) {
+                if let Some(pid_file) = &spec.pid_file {
+                    std::fs::write(pid_file, "").ok();
+                }
                 break;
             }
 
@@ -351,9 +378,17 @@ impl ProcessSupervisor {
                     let Some(new_child) = new_child else {
                         break;
                     };
+                    if let Some(pid) = new_child.id()
+                        && let Some(pid_file) = &spec.pid_file
+                    {
+                        std::fs::write(pid_file, pid.to_string()).ok();
+                    }
                     child = new_child;
                 }
                 Err(err) => {
+                    if let Some(pid_file) = &spec.pid_file {
+                        std::fs::write(pid_file, "").ok();
+                    }
                     self.emit(ProcessEvent::Error {
                         label: spec.label.clone(),
                         message: err.to_string(),
@@ -661,6 +696,9 @@ impl LogSink {
     }
 }
 
+/// Kills the process with the given PID by sending a terminate signal.
+///
+/// If sending the signal fails, the process is forcefully killed.
 fn kill_pid(pid: u32) {
     tracing::debug!("send terminate signal to pid {pid}");
     let mut system = System::new();

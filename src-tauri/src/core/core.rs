@@ -207,7 +207,7 @@ impl CoreManager {
         let config_path = dirs::path_to_str(config_path)?;
         let app_dir = dirs::path_to_str(&app_dir)?;
 
-        let mut spec = ProcessSpec::new("mihomo", program);
+        let mut spec = ProcessSpec::new("mihomo", program).with_pid_file(dirs::mihomo_pid_file()?);
         spec.args = vec![
             OsString::from("-d"),
             OsString::from(app_dir),

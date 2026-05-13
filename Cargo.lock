@@ -1042,7 +1042,7 @@ dependencies = [
  "boa_engine",
  "chrono",
  "clash-verge-self-service",
- "clash-verge-self-utils 0.1.0",
+ "clash-verge-self-utils",
  "deelevate",
  "delay_timer",
  "dirs 6.0.0",
@@ -1054,7 +1054,7 @@ dependencies = [
  "openssl",
  "parking_lot",
  "percent-encoding",
- "process_supervisor 0.1.0",
+ "process_supervisor",
  "reqwest",
  "reqwest_dav",
  "rfd 0.17.2",
@@ -1064,7 +1064,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "signal-hook 0.4.4",
- "sysinfo 0.39.1",
+ "sysinfo",
  "sysproxy",
  "tauri",
  "tauri-build",
@@ -1094,14 +1094,13 @@ dependencies = [
 [[package]]
 name = "clash-verge-self-service"
 version = "2.1.0"
-source = "git+https://github.com/oomeow/clash-verge-self-service#bf2a3d876127b2b832535904b3f46eebb3c5e298"
 dependencies = [
  "anyhow",
  "bytes",
  "chacha20poly1305",
  "chrono",
  "clap",
- "clash-verge-self-utils 0.1.0 (git+https://github.com/oomeow/clash-verge-self)",
+ "clash-verge-self-utils",
  "futures",
  "hkdf",
  "log",
@@ -1109,7 +1108,7 @@ dependencies = [
  "once_cell",
  "openssl",
  "parking_lot",
- "process_supervisor 0.1.0 (git+https://github.com/oomeow/clash-verge-self)",
+ "process_supervisor",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1122,15 +1121,6 @@ dependencies = [
 [[package]]
 name = "clash-verge-self-utils"
 version = "0.1.0"
-dependencies = [
- "anyhow",
- "logfmt",
-]
-
-[[package]]
-name = "clash-verge-self-utils"
-version = "0.1.0"
-source = "git+https://github.com/oomeow/clash-verge-self#3e622435acb3e8a36676958edd0f2ba3070e4213"
 dependencies = [
  "anyhow",
  "logfmt",
@@ -5016,19 +5006,7 @@ name = "process_supervisor"
 version = "0.1.0"
 dependencies = [
  "parking_lot",
- "sysinfo 0.39.1",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "process_supervisor"
-version = "0.1.0"
-source = "git+https://github.com/oomeow/clash-verge-self#3e622435acb3e8a36676958edd0f2ba3070e4213"
-dependencies = [
- "parking_lot",
- "sysinfo 0.38.4",
+ "sysinfo",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
@@ -6441,20 +6419,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.117",
-]
-
-[[package]]
-name = "sysinfo"
-version = "0.38.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92ab6a2f8bfe508deb3c6406578252e491d299cbbf3bc0529ecc3313aee4a52f"
-dependencies = [
- "libc",
- "memchr",
- "ntapi",
- "objc2-core-foundation",
- "objc2-io-kit",
- "windows 0.62.2",
 ]
 
 [[package]]

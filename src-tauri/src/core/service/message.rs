@@ -53,12 +53,15 @@ pub(in crate::core) async fn run_core_by_service(config_file: &PathBuf, log_path
     let config_dir = dirs::path_to_str(&config_dir)?;
     let config_file = dirs::path_to_str(config_file)?;
     let log_path = dirs::path_to_str(log_path)?;
+    let mihomo_pid_file = dirs::mihomo_pid_file()?;
+    let pid_file = dirs::path_to_str(&mihomo_pid_file)?;
 
     let body = StartBody {
         core_type: Some(clash_core),
         socket_path: Some(MIHOMO_SOCKET_PATH.to_string()),
         bin_path: bin_path.to_string(),
         config_dir: config_dir.to_string(),
+        pid_file: pid_file.to_string(),
         config_file: config_file.to_string(),
         log_file: log_path.to_string(),
     };
