@@ -75,7 +75,7 @@ jobs:
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
           name: Clash Verge Service ${{ github.ref_name }}
-          tag_name: ${{ github.ref_name }}
+          tag_name: service-${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             ./clash-verge-self-service-${{ matrix.target }}
