@@ -24,8 +24,8 @@ pub const SERVICE_NAME: &str = "clash_verge_self_service";
 pub const DEFAULT_SERVER_ID: &str = "verge-self-service-server";
 
 // encode relate
-const KEY_INFO: &[u8] = b"rust-secure-ipc-demo";
-pub const PSK: &[u8] = b"verge-self-service-psk";
+const KEY_INFO: &[u8] = b"7f3b9d2c8a1e4f6b9d0a5c2e1f8b3d7a";
+pub const DEFAULT_PSK: &[u8] = b"G7x#T2p!Lq9VzR4m$Yw8Kb@Qe6HsF1d";
 
 pub struct Client(SecureChannel);
 

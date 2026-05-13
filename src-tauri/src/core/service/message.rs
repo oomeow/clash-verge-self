@@ -8,7 +8,8 @@ use super::SERVER_ID;
 use crate::{MIHOMO_SOCKET_PATH, config::Config, utils::dirs};
 
 async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> Result<JsonResponse<T>> {
-    let psk = option_env!("CLASH_VERGE_SELF_SERVICE_PSK").map_or(clash_verge_self_service::PSK, |v| v.as_bytes());
+    let psk =
+        option_env!("CLASH_VERGE_SELF_SERVICE_PSK").map_or(clash_verge_self_service::DEFAULT_PSK, |v| v.as_bytes());
     let mut client = clash_verge_self_service::Client::connect(SERVER_ID, Some(psk))
         .await
         .context("failed to connect to service server")?;

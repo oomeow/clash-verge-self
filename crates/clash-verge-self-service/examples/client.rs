@@ -10,7 +10,8 @@ use clash_verge_self_service::model::{ClashRunInfo, ServiceVersionInfo, SocketCo
 #[tokio::main]
 async fn main() -> Result<()> {
     let server_id = "hello-secured-ipc-dev";
-    let mut client = clash_verge_self_service::Client::connect(server_id, Some(clash_verge_self_service::PSK)).await?;
+    let mut client =
+        clash_verge_self_service::Client::connect(server_id, Some(clash_verge_self_service::DEFAULT_PSK)).await?;
     // check version
     let now = Instant::now();
     for _ in 0..=2000 {
