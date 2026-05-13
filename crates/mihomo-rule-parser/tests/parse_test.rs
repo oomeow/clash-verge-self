@@ -109,7 +109,11 @@ fn test_public_parse_method() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_public_export_yaml_method() -> Result<(), Box<dyn Error>> {
     let path = common::test_export_path("rules-yaml", "yaml")?;
-    let rules = vec!["example.com".to_string(), "sub.example.com".to_string()];
+    let rules = vec![
+        "example.com".to_string(),
+        "sub.example.com".to_string(),
+        "+.example.com".to_string(),
+    ];
 
     export(&rules, &path, RuleBehavior::Domain, RuleFormat::Yaml)?;
 
@@ -121,7 +125,11 @@ fn test_public_export_yaml_method() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_public_export_text_method() -> Result<(), Box<dyn Error>> {
     let path = common::test_export_path("rules-text", "list")?;
-    let rules = vec!["192.168.0.0/16".to_string(), "10.0.0.0/8".to_string()];
+    let rules = vec![
+        "192.168.0.0/16".to_string(),
+        "10.0.0.0/8".to_string(),
+        "2a03:5640:f572::/47".to_string(),
+    ];
 
     export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Text)?;
 
@@ -133,7 +141,12 @@ fn test_public_export_text_method() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_public_export_mrs_method() -> Result<(), Box<dyn Error>> {
     let path = common::test_export_path("rules-mrs", "mrs")?;
-    let rules = vec!["+.example.com".to_string(), "www.example.com".to_string()];
+    let mut rules = vec![
+        "+.example.com".to_string(),
+        "www.example.com".to_string(),
+        "+.gh.io".to_string(),
+    ];
+    rules.sort();
 
     export(&rules, &path, RuleBehavior::Domain, RuleFormat::Mrs)?;
 
@@ -145,7 +158,11 @@ fn test_public_export_mrs_method() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_public_export_ipcidr_mrs_method() -> Result<(), Box<dyn Error>> {
     let path = common::test_export_path("ipcidr-rules-mrs", "mrs")?;
-    let rules = vec!["192.168.0.0/16".to_string(), "10.0.0.0/8".to_string()];
+    let rules = vec![
+        "192.168.0.0/16".to_string(),
+        "2a03:5640:f572::/47".to_string(),
+        "10.0.0.0/8".to_string(),
+    ];
 
     export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
 
@@ -157,7 +174,11 @@ fn test_public_export_ipcidr_mrs_method() -> Result<(), Box<dyn Error>> {
 #[test]
 fn test_public_export_classical_mrs_method() -> Result<(), Box<dyn Error>> {
     let path = common::test_export_path("classical-rules-mrs", "mrs")?;
-    let rules = vec!["DOMAIN,example.com".to_string()];
+    let rules = vec![
+        "DOMAIN-KEYWORD,example".to_string(),
+        "DOMAIN-SUFFIX,example.com".to_string(),
+        "IP-CIDR,203.18.105.0/24".to_string(),
+    ];
 
     let result = export(&rules, &path, RuleBehavior::Classical, RuleFormat::Mrs);
     assert!(matches!(
@@ -186,7 +207,11 @@ fn test_public_export_invalid_domain_mrs_method() -> Result<(), Box<dyn Error>> 
 #[test]
 fn test_public_export_ipv6_mrs_method() -> Result<(), Box<dyn Error>> {
     let path = common::test_export_path("ipv6-rules-mrs", "mrs")?;
-    let rules = vec!["2001:db8::/126".to_string(), "2001:db8:1::/48".to_string()];
+    let rules = vec![
+        "2001:db8::/126".to_string(),
+        "2001:db8:1::/48".to_string(),
+        "2001:67c:4e8::/48".to_string(),
+    ];
 
     export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
 

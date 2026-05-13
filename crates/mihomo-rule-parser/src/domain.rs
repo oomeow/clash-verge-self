@@ -224,12 +224,10 @@ fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
 }
 
 fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Result<i64> {
-    // let mut count = 0i64;
     let mut keys = Vec::new();
 
     for rule in rules {
         let expanded = expand_rule(rule)?;
-        // count += 1;
         keys.extend(expanded.into_iter().map(|domain| reverse_string(&domain)));
     }
 

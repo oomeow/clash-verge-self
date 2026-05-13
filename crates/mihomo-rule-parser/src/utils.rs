@@ -89,19 +89,27 @@ pub(crate) fn parse_from_text(buf: &[u8]) -> Result<RulePayload> {
 }
 
 pub(crate) fn export_as_yaml<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
+    let file = std::fs::File::create(file_path)?;
+    let writer = std::io::BufWriter::new(file);
     let payload = YamlPayload {
         payload: rules.to_vec(),
     };
-    let data = serde_yaml::to_string(&payload)?.into_bytes();
-    std::fs::write(file_path, data)?;
+    serde_yaml::to_writer(writer, &payload)?;
     Ok(())
 }
 
 pub(crate) fn export_as_text<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
-    let mut data = rules.join("\n").into_bytes();
-    if !data.is_empty() {
-        data.push(b'\n');
+    let file = std::fs::File::create(file_path)?;
+    let mut writer = std::io::BufWriter::new(file);
+    for (i, rule) in rules.iter().enumerate() {
+        if i > 0 {
+            writer.write_all(b"\n")?;
+        }
+        writer.write_all(rule.as_bytes())?;
     }
-    std::fs::write(file_path, data)?;
+    if !rules.is_empty() {
+        writer.write_all(b"\n")?;
+    }
+    writer.flush()?;
     Ok(())
 }

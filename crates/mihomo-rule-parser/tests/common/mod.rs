@@ -6,6 +6,7 @@ use std::{
 
 pub fn test_export_path(name: &str, ext: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let dir = std::env::temp_dir().join("mihomo-rule-parser-export-tests");
+    println!("test export dir: {}", dir.display());
     std::fs::create_dir_all(&dir)?;
     Ok(dir.join(format!("{name}.{ext}")))
 }
