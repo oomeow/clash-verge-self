@@ -10,15 +10,6 @@ use crate::{
     error::{Result, RuleParseError},
 };
 
-/// Get the rule behavior based on the given behavior byte.
-fn get_rule_behavior(behavior: u8) -> Result<RuleBehavior> {
-    match behavior {
-        0 => Ok(RuleBehavior::Domain),
-        1 => Ok(RuleBehavior::IpCidr),
-        _ => Err(RuleParseError::InvalidBehavior("unknown behavior".to_string())),
-    }
-}
-
 /// Validate MRS format and return the count of rules.
 pub(crate) fn read_mrs_header<R: Read>(reader: &mut R) -> Result<(RuleBehavior, i64)> {
     // 读取并校验 Magic Number
@@ -31,7 +22,13 @@ pub(crate) fn read_mrs_header<R: Read>(reader: &mut R) -> Result<(RuleBehavior, 
     // 读取 Behavior
     let mut behavior = [0u8; 1];
     reader.read_exact(&mut behavior)?;
-    let behavior = get_rule_behavior(behavior[0])?;
+    let behavior = match behavior[0] {
+        0 => RuleBehavior::Domain,
+        1 => RuleBehavior::IpCidr,
+        b => {
+            return Err(RuleParseError::InvalidBehavior(format!("unknown behavior: [{b}]")));
+        }
+    };
 
     // 读取 Count
     let count = reader.read_i64::<BigEndian>()?;
