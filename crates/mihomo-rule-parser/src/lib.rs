@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 use std::{fmt::Display, path::Path};
 
-use classical::ClassicalParseStrategy;
-use domain::DomainParseStrategy;
+use classical::ClassicalCodecStrategy;
+use domain::DomainCodecStrategy;
 pub use error::RuleParseError;
-use ipcidr::IpCidrParseStrategy;
+use ipcidr::IpCidrCodecStrategy;
 use serde::{Deserialize, Serialize};
 
 use crate::error::Result;
@@ -16,7 +16,12 @@ mod error;
 mod ipcidr;
 mod utils;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+/// MRSv1
+pub(crate) const MRS_MAGIC: [u8; 4] = [b'M', b'R', b'S', 1];
+/// MRS version
+pub(crate) const MRS_VERSION: u8 = 1;
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 pub enum RuleBehavior {
     Domain,
     #[serde(rename = "IPCIDR")]
@@ -100,17 +105,34 @@ impl From<YamlPayload> for RulePayload {
     }
 }
 
-trait Parser {
+/// A trait for encoding and decoding rule payloads.
+trait Codec {
     fn parse(buf: &[u8], format: RuleFormat) -> Result<RulePayload>;
+
+    fn export<P: AsRef<Path>>(rules: &[String], file_path: P, format: RuleFormat) -> Result<()>;
 }
 
 pub fn parse<P: AsRef<Path>>(file_path: P, behavior: RuleBehavior, format: RuleFormat) -> Result<RulePayload> {
     let buf = std::fs::read(file_path)?;
-    let rule = match behavior {
-        RuleBehavior::Domain => DomainParseStrategy::parse(&buf, format)?,
-        RuleBehavior::IpCidr => IpCidrParseStrategy::parse(&buf, format)?,
-        RuleBehavior::Classical => ClassicalParseStrategy::parse(&buf, format)?,
-    };
-    drop(buf);
-    Ok(rule)
+    match behavior {
+        RuleBehavior::Domain => DomainCodecStrategy::parse(&buf, format),
+        RuleBehavior::IpCidr => IpCidrCodecStrategy::parse(&buf, format),
+        RuleBehavior::Classical => ClassicalCodecStrategy::parse(&buf, format),
+    }
+}
+
+pub fn export<P: AsRef<Path>>(
+    rules: &[String],
+    file_path: P,
+    behavior: RuleBehavior,
+    format: RuleFormat,
+) -> Result<()> {
+    if rules.is_empty() {
+        return Err(RuleParseError::EmptyRule);
+    }
+    match behavior {
+        RuleBehavior::Domain => DomainCodecStrategy::export(rules, file_path, format),
+        RuleBehavior::IpCidr => IpCidrCodecStrategy::export(rules, file_path, format),
+        RuleBehavior::Classical => ClassicalCodecStrategy::export(rules, file_path, format),
+    }
 }

@@ -5,7 +5,7 @@ use std::{
     time::Instant,
 };
 
-use mihomo_rule_parser::{RuleBehavior, RuleFormat, RuleParseError, parse};
+use mihomo_rule_parser::{RuleBehavior, RuleFormat, RuleParseError, export, parse};
 
 mod common;
 
@@ -107,6 +107,123 @@ fn test_public_parse_method() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+fn test_public_export_yaml_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("rules-yaml", "yaml")?;
+    let rules = vec![
+        "example.com".to_string(),
+        "sub.example.com".to_string(),
+        "+.example.com".to_string(),
+    ];
+
+    export(&rules, &path, RuleBehavior::Domain, RuleFormat::Yaml)?;
+
+    let payload = parse(&path, RuleBehavior::Domain, RuleFormat::Yaml)?;
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
+fn test_public_export_text_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("rules-text", "list")?;
+    let rules = vec![
+        "192.168.0.0/16".to_string(),
+        "10.0.0.0/8".to_string(),
+        "2a03:5640:f572::/47".to_string(),
+    ];
+
+    export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Text)?;
+
+    let payload = parse(&path, RuleBehavior::IpCidr, RuleFormat::Text)?;
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
+fn test_public_export_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("rules-mrs", "mrs")?;
+    let mut rules = vec![
+        "+.example.com".to_string(),
+        "+.example.com".to_string(),
+        "www.example.com".to_string(),
+        "+.gh.io".to_string(),
+    ];
+    rules.sort();
+    rules.dedup();
+
+    export(&rules, &path, RuleBehavior::Domain, RuleFormat::Mrs)?;
+
+    let payload = parse(&path, RuleBehavior::Domain, RuleFormat::Mrs)?;
+    assert_eq!(payload.count, 3);
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
+fn test_public_export_ipcidr_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("ipcidr-rules-mrs", "mrs")?;
+    let rules = vec![
+        "192.168.0.0/16".to_string(),
+        "2a03:5640:f572::/47".to_string(),
+        "10.0.0.0/8".to_string(),
+    ];
+
+    export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
+
+    let payload = parse(&path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
+fn test_public_export_classical_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("classical-rules-mrs", "mrs")?;
+    let rules = vec![
+        "DOMAIN-KEYWORD,example".to_string(),
+        "DOMAIN-SUFFIX,example.com".to_string(),
+        "IP-CIDR,203.18.105.0/24".to_string(),
+    ];
+
+    let result = export(&rules, &path, RuleBehavior::Classical, RuleFormat::Mrs);
+    assert!(matches!(
+        result,
+        Err(RuleParseError::UnsupportedExportFormat(
+            RuleBehavior::Classical,
+            RuleFormat::Mrs
+        ))
+    ));
+    Ok(())
+}
+
+#[test]
+fn test_public_export_invalid_domain_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("invalid-domain-rules-mrs", "mrs")?;
+    let rules = vec!["example.com/24".to_string()];
+
+    let result = export(&rules, &path, RuleBehavior::Domain, RuleFormat::Mrs);
+    assert!(matches!(
+        result,
+        Err(RuleParseError::InvalidRule(rule)) if rule == "example.com/24"
+    ));
+    Ok(())
+}
+
+#[test]
+fn test_public_export_ipv6_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("ipv6-rules-mrs", "mrs")?;
+    let rules = vec![
+        "2001:db8::/126".to_string(),
+        "2001:db8:1::/48".to_string(),
+        "2001:67c:4e8::/48".to_string(),
+    ];
+
+    export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
+
+    let payload = parse(&path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
 fn check_all_mihomo_mrs() -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
     let rules_dir = common::init_meta_rules()?;
@@ -133,94 +250,118 @@ fn check_all_mihomo_mrs() -> Result<(), Box<dyn Error>> {
     }
 
     // domain
-    let check_behavior = "domain";
-    let mrs_dir_path = rules_dir.join("geo/geosite");
-    // ipcidr
-    // let check_behavior = "ipcidr";
-    // let mrs_dir_path = rules_dir.join("geo/geoip");
+    let check_behaviors = ["domain", "ipcidr"];
+    let mrs_dir_paths = [rules_dir.join("geo/geosite"), rules_dir.join("geo/geoip")];
 
-    let mrs_dir = std::fs::read_dir(&mrs_dir_path)?;
-    let mut mrs_files = Vec::new();
-    mrs_dir
-        .into_iter()
-        .filter(|entry| {
-            let entry = entry.as_ref().expect("failed to read entry");
-            entry.path().extension().is_some_and(|ext| ext == "mrs")
-        })
-        .for_each(|entry| {
-            let entry = entry.expect("failed to read entry");
-            let path = entry.path();
-            let file_name = path.file_name().expect("failed to get file name");
-            let file_name = file_name.to_str().expect("failed to convert file name to string");
-            mrs_files.push(file_name.to_string());
-        });
-
-    let mihomo_convert_error_file = Arc::new(Mutex::new(Vec::new()));
-    let check_diff_error_file = Arc::new(Mutex::new(Vec::new()));
-    // starting check diff
-    std::thread::scope(|s| {
-        for file_name in &mrs_files {
-            // use mihomo command to convert mrs files to txt files
-            let mrs_file_path = mrs_dir_path.join(file_name);
-            let mihomo_file_path = mihomo_out_dir.join(file_name).with_extension("txt");
-
-            let rust_out_dir_ = rust_out_dir.clone();
-            let mihomo_convert_error_file_ = mihomo_convert_error_file.clone();
-            let check_diff_error_file_ = check_diff_error_file.clone();
-            s.spawn(move || {
-                #[cfg(windows)]
-                let verge_mihomo_path = r"D:\Clash Verge\self-mihomo.exe";
-                #[cfg(unix)]
-                let verge_mihomo_path = "self-mihomo";
-                let output = std::process::Command::new(verge_mihomo_path)
-                    .args([
-                        "convert-ruleset",
-                        check_behavior,
-                        "mrs",
-                        &mrs_file_path.display().to_string(),
-                        &mihomo_file_path.display().to_string(),
-                    ])
-                    .output()?;
-
-                // use rust to convert mrs files to txt files
-                if output.status.success() {
-                    let behavior = match check_behavior {
-                        "domain" => RuleBehavior::Domain,
-                        "ipcidr" => RuleBehavior::IpCidr,
-                        _ => return Err(RuleParseError::InvalidBehavior(check_behavior.to_string())),
-                    };
-                    let rule_payload = parse(&mrs_file_path, behavior, RuleFormat::Mrs)?;
-                    let rust_file_path = rust_out_dir_.join(file_name).with_extension("txt");
-                    let mut file = std::fs::File::create(&rust_file_path)?;
-                    file.write_all(rule_payload.rules.join("\n").as_bytes())?;
-                    file.sync_all()?;
-
-                    // check diff file
-                    if let Err(err) = common::check_diff(rust_file_path, mihomo_file_path) {
-                        println!("check diff [{}] error: {}", file_name, err);
-                        check_diff_error_file_.lock().unwrap().push(file_name.clone());
-                    } else {
-                        println!("convert [{}] success", file_name);
-                    }
-                } else {
-                    println!("mihomo convert [{}] error, output: {:?}", file_name, output);
-                    mihomo_convert_error_file_.lock().unwrap().push(file_name.clone());
-                }
-                Result::Ok(())
+    for (check_behavior, mrs_dir_path) in check_behaviors.into_iter().zip(mrs_dir_paths.into_iter()) {
+        let mrs_dir = std::fs::read_dir(&mrs_dir_path)?;
+        let mut mrs_files = Vec::new();
+        mrs_dir
+            .into_iter()
+            .filter(|entry| {
+                let entry = entry.as_ref().expect("failed to read entry");
+                entry.path().extension().is_some_and(|ext| ext == "mrs")
+            })
+            .for_each(|entry| {
+                let entry = entry.expect("failed to read entry");
+                let path = entry.path();
+                let file_name = path.file_name().expect("failed to get file name");
+                let file_name = file_name.to_str().expect("failed to convert file name to string");
+                mrs_files.push(file_name.to_string());
             });
+
+        let mihomo_convert_error_file = Arc::new(Mutex::new(Vec::new()));
+        let check_diff_error_file = Arc::new(Mutex::new(Vec::new()));
+        // starting check diff
+        std::thread::scope(|s| {
+            for file_name in &mrs_files {
+                // use mihomo command to convert mrs files to txt files
+                let mrs_file_path = mrs_dir_path.join(file_name);
+                let mihomo_file_path = mihomo_out_dir.join(file_name).with_extension("txt");
+
+                let rust_out_dir_ = rust_out_dir.clone();
+                let mihomo_convert_error_file_ = mihomo_convert_error_file.clone();
+                let check_diff_error_file_ = check_diff_error_file.clone();
+                s.spawn(move || {
+                    #[cfg(windows)]
+                    let verge_mihomo_path = r"D:\Clash Verge\self-mihomo.exe";
+                    #[cfg(unix)]
+                    let verge_mihomo_path = "self-mihomo";
+                    let output = std::process::Command::new(verge_mihomo_path)
+                        .args([
+                            "convert-ruleset",
+                            check_behavior,
+                            "mrs",
+                            &mrs_file_path.display().to_string(),
+                            &mihomo_file_path.display().to_string(),
+                        ])
+                        .output()?;
+
+                    // use rust to convert mrs files to txt files
+                    if output.status.success() {
+                        let behavior = match check_behavior {
+                            "domain" => RuleBehavior::Domain,
+                            "ipcidr" => RuleBehavior::IpCidr,
+                            _ => return Err(RuleParseError::InvalidBehavior(check_behavior.to_string())),
+                        };
+                        let rule_payload = parse(&mrs_file_path, behavior, RuleFormat::Mrs)?;
+                        let rust_file_path = rust_out_dir_.join(file_name).with_extension("txt");
+                        let mut file = std::fs::File::create(&rust_file_path)?;
+                        file.write_all(rule_payload.rules.join("\n").as_bytes())?;
+                        file.sync_all()?;
+
+                        // check diff file
+                        if let Err(err) = common::check_diff(rust_file_path, mihomo_file_path) {
+                            println!("check diff [{}] error: {}", file_name, err);
+                            check_diff_error_file_.lock().unwrap().push(file_name.clone());
+                        } else {
+                            println!("convert [{}] success", file_name);
+                        }
+
+                        // check export mrs is same as mihomo
+                        let output_file_path = common::test_export_path(&format!("export-{file_name}"), "mrs").unwrap();
+                        export(&rule_payload.rules, &output_file_path, behavior, RuleFormat::Mrs)?;
+                        let e_rule_payload = parse(&output_file_path, behavior, RuleFormat::Mrs)?;
+                        if rule_payload.count != e_rule_payload.count {
+                            println!(
+                                "export mrs count not match, expected: {}, actual: {}",
+                                rule_payload.count, e_rule_payload.count
+                            );
+                        }
+                        for (i, rule) in rule_payload.rules.iter().enumerate() {
+                            if rule != &e_rule_payload.rules[i] {
+                                println!(
+                                    "export mrs rule not match, expected: {}, actual: {}",
+                                    rule, e_rule_payload.rules[i]
+                                );
+                            }
+                        }
+                    } else {
+                        println!("mihomo convert [{}] error, output: {:?}", file_name, output);
+                        mihomo_convert_error_file_.lock().unwrap().push(file_name.clone());
+                    }
+                    Result::Ok(())
+                });
+            }
+        });
+        if !mihomo_convert_error_file.lock().unwrap().is_empty() {
+            println!(
+                "\n--------------- [{check_behavior}] mihomo convert error files (skip use rust to convert) -------------------"
+            );
+            println!("{:?}", mihomo_convert_error_file.lock().unwrap());
+            println!("-----------------------------------------------------------------------------------------\n");
         }
-    });
-    if !mihomo_convert_error_file.lock().unwrap().is_empty() {
-        println!("\n--------------- mihomo convert error files (skip use rust to convert) -------------------");
-        println!("{:?}", mihomo_convert_error_file.lock().unwrap());
-        println!("-----------------------------------------------------------------------------------------\n");
-    }
-    if check_diff_error_file.lock().unwrap().is_empty() {
-        println!("\n✅ all convert success!!!");
-    } else {
-        println!("\n------------------- ❌ check diff error files -----------------------");
-        println!("{:?}", check_diff_error_file.lock().unwrap());
-        println!("----------------------------------------------------------------------");
+        if check_diff_error_file.lock().unwrap().is_empty() {
+            println!("\n✅ [{check_behavior}] all convert success!!!");
+        } else {
+            println!("\n------------------- ❌ [{check_behavior}] check diff error files -----------------------");
+            println!("{:?}", check_diff_error_file.lock().unwrap());
+            println!("----------------------------------------------------------------------");
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "check diff error",
+            )));
+        }
     }
 
     println!("cost time: {}ms", start.elapsed().as_millis());
