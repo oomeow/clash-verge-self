@@ -1,0 +1,83 @@
+mode: rule
+mixed-port: 7899
+port: 0
+socks-port: 0
+redir-port: 0
+tproxy-port: 0
+allow-lan: false
+ipv6: false
+log-level: debug
+unified-delay: false
+find-process-mode: always
+profile:
+  store-selected: true
+  store-fake-ip: true
+tun:
+  enable: true
+  stack: mixed
+  device: utun4
+  auto-route: true
+  strict-route: false
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+  mtu: 9000
+dns:
+  enable: true
+  ipv6: true
+  respect-rules: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - "*"
+    - +.lan
+    - +.local
+    - time.*.com
+    - ntp.*.com
+    - +.market.xiaomi.com
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  proxy-server-nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  nameserver-policy:
+    geosite:cn,private:
+      - https://doh.pub/dns-query
+      - https://dns.alidns.com/dns-query
+    geosite:geolocation-!cn:
+      - https://dns.cloudflare.com/dns-query
+      - https://dns.google/dns-query
+  fallback: []
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports:
+        - 80
+        - 8080-8880
+      override-destination: true
+    TLS:
+      ports:
+        - 443
+        - 8443
+    QUIC:
+      ports:
+        - 443
+        - 8443
+  skip-domain:
+    - Mijia Cloud
+  skip-src-address:
+    - 192.168.0.3/32
+  skip-dst-address:
+    - 192.168.0.3/32
+proxies: null
+proxy-groups: null
+rules:
+  - DOMAIN-SUFFIX,maj-soul.com,DIRECT
+  - DOMAIN-SUFFIX,bing.com,DIRECT
+  - DOMAIN-SUFFIX,dm539.com,DIRECT
+  - DOMAIN-SUFFIX,danmu.yhdmjx.com,DIRECT
+  - DOMAIN-SUFFIX,cdn.yinghuazy.xyz,DIRECT
+  - DOMAIN-SUFFIX,epicgames.com,DIRECT
+  - DOMAIN-KEYWORD,fsdm,DIRECT

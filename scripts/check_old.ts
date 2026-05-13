@@ -6,6 +6,7 @@ import {
   log,
   outro,
   progress,
+  select,
   spinner,
   taskLog,
 } from "@clack/prompts";
@@ -19,7 +20,6 @@ import pc from "picocolors";
 import * as tar from "tar";
 import zlib from "zlib";
 
-import { buildService } from "./build-service";
 import {
   getExeSuffix,
   getPlatform,
@@ -74,8 +74,10 @@ type ResourceTaskConfig = ResourceInfo & {
   macOnly?: boolean;
 };
 
+const VERGE_SERVICE_VERSION = "v2.0.0";
 const cwd = process.cwd();
 const rawArgvs = process.argv;
+const useAlphaService = rawArgvs.includes("--alpha");
 const NO_CONFIRM = rawArgvs.includes("--no-confirm");
 let FORCE = rawArgvs.includes("--force");
 
@@ -479,18 +481,32 @@ async function resolveServicePermission(_logger: TaskLogger) {
   }
 }
 
-async function resolveClashVergeSelfService(logger: TaskLogger) {
-  const spin = spinner();
-  spin.start("Starting service build...");
-  const result = await buildService((message) => logger.message(message));
-  if (result) {
-    spin.stop("Service build completed.");
-    logger.success("Service build completed.");
-  } else {
-    spin.error("Service build failed.");
-    logger.error("Service build failed.");
-    throw new Error("Service build failed.");
-  }
+function getClashVergeSelfService(version: Version): ResourceInfo {
+  const fileName = `clash-verge-self-service-${sidecarHost}${exeSuffix}`;
+  const releaseTag = version === "alpha" ? "alpha" : VERGE_SERVICE_VERSION;
+  const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/${releaseTag}/${fileName}`;
+
+  return {
+    file: fileName,
+    downloadURL,
+  };
+}
+
+async function resolveClashVergeSelfService(
+  version: Version,
+  logger: TaskLogger,
+) {
+  const label = version === "alpha" ? "Alpha" : "Stable";
+  const downloadItem = getClashVergeSelfService(version);
+
+  logger.message(`Download Clash Verge Self Service (${label})`);
+  await resolveResource(
+    {
+      file: `clash-verge-self-service${exeSuffix}`,
+      downloadURL: downloadItem.downloadURL,
+    },
+    logger,
+  );
 }
 
 const RESOURCE_TASKS: ResourceTaskConfig[] = [
@@ -588,12 +604,13 @@ function createMihomoTask(): Task[] {
   });
 }
 
-function createTasks(): Task[] {
+function createTasks(version: Version): Task[] {
   return [
     ...createMihomoTask(),
     {
-      name: "Build and copy clash-verge-self-service",
-      func: (logger: TaskLogger) => resolveClashVergeSelfService(logger),
+      name: "Download clash-verge-self-service",
+      func: (logger: TaskLogger) =>
+        resolveClashVergeSelfService(version, logger),
       retry: 5,
       targetPath: resourcePath(`clash-verge-self-service${exeSuffix}`),
     },
@@ -623,6 +640,29 @@ function shouldRunTask(task: Task) {
   if (task.unixOnly && platform === "win32") return false;
   if (task.macOnly && platform !== "darwin") return false;
   return true;
+}
+
+async function chooseVersion(): Promise<Version> {
+  if (useAlphaService) {
+    log.info("Use alpha resource version from --alpha");
+    return "alpha";
+  }
+
+  if (NO_CONFIRM) {
+    log.info("Use default stable resource version from --no-confirm");
+    return "stable";
+  }
+
+  const version = await select({
+    message: "Select resource version",
+    options: [
+      { value: "stable", label: "Stable" },
+      { value: "alpha", label: "Alpha" },
+    ],
+    initialValue: "stable",
+  });
+
+  return handleCancel(version) as Version;
 }
 
 async function confirmOverwriteIfNeeded(tasks: Task[]) {
@@ -663,14 +703,13 @@ async function runTaskWithRetry(task: Task) {
   const taskName = pc.bgBlue(pc.white(` ${task.name} `));
   const logger = taskLog({
     title: taskName,
-    limit: 15,
     retainLog: true,
   });
 
   for (let i = 0; i < task.retry; i++) {
     try {
       await task.func(logger);
-      logger.success(`task::${task.name} Done!`, { showLog: true });
+      logger.success(`task::${task.name} Done!`, { showLog: false });
       return;
     } catch (err) {
       const attempt = i + 1;
@@ -691,7 +730,8 @@ async function runTaskWithRetry(task: Task) {
  */
 async function runTask() {
   intro(pc.bgCyan(pc.white(" Check and download files ")));
-  const tasks = createTasks().filter(shouldRunTask);
+  const version = await chooseVersion();
+  const tasks = createTasks(version).filter(shouldRunTask);
   await confirmOverwriteIfNeeded(tasks);
 
   for (const task of tasks) {

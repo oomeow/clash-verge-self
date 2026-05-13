@@ -21,6 +21,7 @@ tauri-plugin-mihomo.workspace = true
 mihomo-rule-parser.workspace = true
 process_supervisor.workspace = true
 clash-verge-self-utils.workspace = true
+clash-verge-self-service.workspace = true
 
 tokio = { workspace = true, features = ["net", "sync", "macros"] }
 reqwest.workspace = true
@@ -76,9 +77,6 @@ rfd = { version = "0.17", default-features = false, features = [
   "gtk3",
   "common-controls-v6",
 ] }
-# connect clash verge service by ipc
-clash-verge-self-service = { git = "https://github.com/oomeow/clash-verge-self-service" }
-# clash-verge-self-service = { path = "../../clash-verge-self-service" }
 network-interface = "2.0.1"
 
 [target.'cfg(windows)'.dependencies]

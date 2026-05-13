@@ -5,7 +5,8 @@ members = [
   "crates/mihomo-config",
   "crates/tauri-plugin-mihomo",
   "crates/process_supervisor",
-  "crates/clash-verge-self-utils"
+  "crates/clash-verge-self-utils",
+  "crates/clash-verge-self-service"
 ]
 default-members = ["src-tauri"]
 resolver = "2"
@@ -19,6 +20,7 @@ mihomo-rule-parser = { path = "crates/mihomo-rule-parser" }
 tauri-plugin-mihomo = { path = "crates/tauri-plugin-mihomo" }
 process_supervisor = { path = "crates/process_supervisor" }
 clash-verge-self-utils = { path = "crates/clash-verge-self-utils" }
+clash-verge-self-service = { path = "crates/clash-verge-self-service" }
 
 anyhow = "1"
 thiserror = "2"

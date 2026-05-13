@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>io.github.clashvergeself.helper</string>
+        <key>MachServices</key>
+        <dict>
+            <key>io.github.clashvergeself.helper</key>
+            <true />
+        </dict>
+        <key>RunAtLoad</key>
+        <true />
+        <key>KeepAlive</key>
+        <true/>
+        <key>Program</key>
+        <string>/Library/PrivilegedHelperTools/io.github.clashvergeself.helper</string>
+        <key>ProgramArguments</key>
+        <array>
+            <string>/Library/PrivilegedHelperTools/io.github.clashvergeself.helper</string>
+            <string>--server-id</string>
+            <string>{}</string>
+        </array>
+    </dict>
+</plist>
