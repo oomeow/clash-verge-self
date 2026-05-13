@@ -25,7 +25,7 @@ pub(crate) fn read_mrs_header<R: Read>(reader: &mut R) -> Result<(RuleBehavior, 
     let mut magic = [0u8; 4];
     reader.read_exact(&mut magic)?;
     if magic != MRS_MAGIC {
-        return Err(RuleParseError::InvalidMagic);
+        return Err(RuleParseError::InvalidMRSMagic);
     }
 
     // 读取 Behavior
@@ -39,7 +39,7 @@ pub(crate) fn read_mrs_header<R: Read>(reader: &mut R) -> Result<(RuleBehavior, 
     // 读取 Extra 数据
     let extra_length = reader.read_i64::<BigEndian>()?;
     if extra_length < 0 {
-        return Err(RuleParseError::InvalidLength(extra_length));
+        return Err(RuleParseError::InvalidMRSLength(extra_length));
     }
 
     // for future use

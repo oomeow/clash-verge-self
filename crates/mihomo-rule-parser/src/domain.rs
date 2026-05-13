@@ -141,13 +141,13 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     let mut version = [0u8; 1];
     reader.read_exact(&mut version)?;
     if version[0] != MRS_VERSION {
-        return Err(RuleParseError::InvalidVersion);
+        return Err(RuleParseError::InvalidMRSVersion);
     }
 
     // leaves
     let length = reader.read_i64::<BigEndian>()?;
     if length < 0 {
-        return Err(RuleParseError::InvalidLength(length));
+        return Err(RuleParseError::InvalidMRSLength(length));
     }
     let mut leaves = vec![0u64; length as usize];
     for i in 0..length {
@@ -158,7 +158,7 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     // label bitmap
     let length = reader.read_i64::<BigEndian>()?;
     if length < 0 {
-        return Err(RuleParseError::InvalidLength(length));
+        return Err(RuleParseError::InvalidMRSLength(length));
     }
     let mut label_bit_map = vec![0u64; length as usize];
     for i in 0..length {
@@ -169,7 +169,7 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     // labels
     let length = reader.read_i64::<BigEndian>()?;
     if length < 0 {
-        return Err(RuleParseError::InvalidLength(length));
+        return Err(RuleParseError::InvalidMRSLength(length));
     }
     let mut labels = vec![0u8; length as usize];
     reader.read_exact(&mut labels)?;

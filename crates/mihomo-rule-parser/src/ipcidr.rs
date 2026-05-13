@@ -234,13 +234,13 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     let mut version = [0u8; 1];
     reader.read_exact(&mut version)?;
     if version[0] != MRS_VERSION {
-        return Err(RuleParseError::InvalidVersion);
+        return Err(RuleParseError::InvalidMRSVersion);
     }
 
     // length
     let length = reader.read_i64::<BigEndian>()?;
     if length < 1 {
-        return Err(RuleParseError::InvalidLength(length));
+        return Err(RuleParseError::InvalidMRSLength(length));
     }
 
     let mut rules: Vec<String> = Vec::new();

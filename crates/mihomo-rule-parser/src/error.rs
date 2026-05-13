@@ -11,12 +11,12 @@ pub type Result<T> = std::result::Result<T, RuleParseError>;
 pub enum RuleParseError {
     #[error("I/O error: {0}")]
     Io(#[from] io::Error),
-    #[error("invalid magic number")]
-    InvalidMagic,
-    #[error("invalid version")]
-    InvalidVersion,
-    #[error("invalid length: {0}")]
-    InvalidLength(i64),
+    #[error("invalid mrs magic number")]
+    InvalidMRSMagic,
+    #[error("invalid mrs version")]
+    InvalidMRSVersion,
+    #[error("invalid mrs length: {0}")]
+    InvalidMRSLength(i64),
     #[error("invalid rule behavior: {0}")]
     InvalidBehavior(String),
     #[error("invalid rule format: {0}")]
