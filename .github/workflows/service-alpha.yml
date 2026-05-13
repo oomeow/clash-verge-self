@@ -1,10 +1,11 @@
-name: Service Pre-Release CI
+name: Pre-Release Service CI
 
 on:
   push:
     branches: [feat/service]
     paths:
       - crates/clash-verge-self-service/**
+      - .github/workflows/service-alpha.yml
   workflow_dispatch:
 
 concurrency:
