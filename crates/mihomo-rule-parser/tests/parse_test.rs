@@ -5,7 +5,7 @@ use std::{
     time::Instant,
 };
 
-use mihomo_rule_parser::{RuleBehavior, RuleFormat, RuleParseError, parse};
+use mihomo_rule_parser::{RuleBehavior, RuleFormat, RuleParseError, export, parse};
 
 mod common;
 
@@ -103,6 +103,95 @@ fn test_public_parse_method() -> Result<(), Box<dyn Error>> {
     file.sync_all()?;
     println!("check file: {}", text_file_path.display());
 
+    Ok(())
+}
+
+#[test]
+fn test_public_export_yaml_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("rules-yaml", "yaml")?;
+    let rules = vec!["example.com".to_string(), "sub.example.com".to_string()];
+
+    export(&rules, &path, RuleBehavior::Domain, RuleFormat::Yaml)?;
+
+    let payload = parse(&path, RuleBehavior::Domain, RuleFormat::Yaml)?;
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
+fn test_public_export_text_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("rules-text", "list")?;
+    let rules = vec!["192.168.0.0/16".to_string(), "10.0.0.0/8".to_string()];
+
+    export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Text)?;
+
+    let payload = parse(&path, RuleBehavior::IpCidr, RuleFormat::Text)?;
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
+fn test_public_export_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("rules-mrs", "mrs")?;
+    let rules = vec!["+.example.com".to_string(), "www.example.com".to_string()];
+
+    export(&rules, &path, RuleBehavior::Domain, RuleFormat::Mrs)?;
+
+    let payload = parse(&path, RuleBehavior::Domain, RuleFormat::Mrs)?;
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
+fn test_public_export_ipcidr_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("ipcidr-rules-mrs", "mrs")?;
+    let rules = vec!["192.168.0.0/16".to_string(), "10.0.0.0/8".to_string()];
+
+    export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
+
+    let payload = parse(&path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
+    assert_eq!(payload.rules, rules);
+    Ok(())
+}
+
+#[test]
+fn test_public_export_classical_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("classical-rules-mrs", "mrs")?;
+    let rules = vec!["DOMAIN,example.com".to_string()];
+
+    let result = export(&rules, &path, RuleBehavior::Classical, RuleFormat::Mrs);
+    assert!(matches!(
+        result,
+        Err(RuleParseError::UnsupportedExportFormat(
+            RuleBehavior::Classical,
+            RuleFormat::Mrs
+        ))
+    ));
+    Ok(())
+}
+
+#[test]
+fn test_public_export_invalid_domain_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("invalid-domain-rules-mrs", "mrs")?;
+    let rules = vec!["example.com/24".to_string()];
+
+    let result = export(&rules, &path, RuleBehavior::Domain, RuleFormat::Mrs);
+    assert!(matches!(
+        result,
+        Err(RuleParseError::InvalidRule(rule)) if rule == "example.com/24"
+    ));
+    Ok(())
+}
+
+#[test]
+fn test_public_export_ipv6_mrs_method() -> Result<(), Box<dyn Error>> {
+    let path = common::test_export_path("ipv6-rules-mrs", "mrs")?;
+    let rules = vec!["2001:db8::/126".to_string(), "2001:db8:1::/48".to_string()];
+
+    export(&rules, &path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
+
+    let payload = parse(&path, RuleBehavior::IpCidr, RuleFormat::Mrs)?;
+    assert_eq!(payload.rules, rules);
     Ok(())
 }
 
@@ -221,6 +310,10 @@ fn check_all_mihomo_mrs() -> Result<(), Box<dyn Error>> {
         println!("\n------------------- ❌ check diff error files -----------------------");
         println!("{:?}", check_diff_error_file.lock().unwrap());
         println!("----------------------------------------------------------------------");
+        return Err(Box::new(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "check diff error",
+        )));
     }
 
     println!("cost time: {}ms", start.elapsed().as_millis());

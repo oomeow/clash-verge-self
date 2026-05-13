@@ -1,26 +1,35 @@
 use std::{
     fmt::{Debug, Display},
-    io::{Cursor, Read},
+    io::{Cursor, Read, Write},
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    path::Path,
 };
 
-use byteorder::{BigEndian, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 use crate::{
-    Parser, RuleBehavior, RuleFormat, RulePayload,
+    Codec, RuleBehavior, RuleFormat, RulePayload,
     error::{Result, RuleParseError},
     utils,
 };
 
 /// ipcidr parse strategy
-pub(crate) struct IpCidrParseStrategy;
+pub(crate) struct IpCidrCodecStrategy;
 
-impl Parser for IpCidrParseStrategy {
+impl Codec for IpCidrCodecStrategy {
     fn parse(buf: &[u8], format: RuleFormat) -> Result<RulePayload> {
         match format {
             RuleFormat::Mrs => parse_from_mrs(buf),
             RuleFormat::Yaml => utils::parse_from_yaml(buf),
             RuleFormat::Text => utils::parse_from_text(buf),
+        }
+    }
+
+    fn export<P: AsRef<std::path::Path>>(rules: &[String], file_path: P, format: RuleFormat) -> Result<()> {
+        match format {
+            RuleFormat::Mrs => export_as_mrs(rules, file_path),
+            RuleFormat::Yaml => utils::export_as_yaml(rules, file_path),
+            RuleFormat::Text => utils::export_as_text(rules, file_path),
         }
     }
 }
@@ -206,6 +215,112 @@ impl IpCidrTransform for IpAddr {
     }
 }
 
+fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
+    let mut body = Vec::new();
+    let count = export_mrs_body(rules, &mut body)?;
+
+    let mut encoded = Vec::new();
+    {
+        let mut writer = zstd::Encoder::new(&mut encoded, 0)?;
+        utils::write_mrs_header(&mut writer, RuleBehavior::IpCidr, count)?;
+        writer.write_all(&body)?;
+        writer.finish()?;
+    }
+
+    std::fs::write(file_path, encoded)?;
+    Ok(())
+}
+
+pub(crate) fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Result<i64> {
+    let mut count = 0i64;
+    let mut ranges = Vec::new();
+
+    for rule in rules {
+        ranges.push(parse_cidr_rule(rule)?);
+        count += 1;
+    }
+
+    if ranges.is_empty() {
+        return Err(RuleParseError::EmptyRule);
+    }
+
+    writer.write_all(&[1])?;
+    writer.write_i64::<BigEndian>(ranges.len() as i64)?;
+    for range in ranges {
+        writer.write_all(&ip_addr_to_mrs_bytes(range.from))?;
+        writer.write_all(&ip_addr_to_mrs_bytes(range.to))?;
+    }
+
+    Ok(count)
+}
+
+fn parse_cidr_rule(rule: &str) -> Result<IpRange> {
+    let (addr, prefix_len) = rule
+        .trim()
+        .split_once('/')
+        .ok_or_else(|| RuleParseError::InvalidRule(rule.to_string()))?;
+    let prefix_len = prefix_len
+        .parse::<u8>()
+        .map_err(|_| RuleParseError::InvalidRule(rule.to_string()))?;
+    let addr = addr
+        .parse::<IpAddr>()
+        .map_err(|_| RuleParseError::InvalidRule(rule.to_string()))?;
+
+    match addr {
+        IpAddr::V4(ip) => {
+            if prefix_len > 32 {
+                return Err(RuleParseError::InvalidRule(rule.to_string()));
+            }
+            let value = u32::from_be_bytes(ip.octets());
+            let mask = if prefix_len == 0 {
+                0
+            } else {
+                u32::MAX << (32 - u32::from(prefix_len))
+            };
+            let from = value & mask;
+            let size = if prefix_len == 32 {
+                1
+            } else {
+                1u64 << (32 - u32::from(prefix_len))
+            };
+            let to = from as u64 + size - 1;
+            Ok(IpRange {
+                from: IpAddr::V4(Ipv4Addr::from(from)),
+                to: IpAddr::V4(Ipv4Addr::from(to as u32)),
+            })
+        }
+        IpAddr::V6(ip) => {
+            if prefix_len > 128 {
+                return Err(RuleParseError::InvalidRule(rule.to_string()));
+            }
+            let value = u128::from_be_bytes(ip.octets());
+            let mask = if prefix_len == 0 {
+                0
+            } else {
+                u128::MAX << (128 - u32::from(prefix_len))
+            };
+            let from = value & mask;
+            let size = if prefix_len == 128 {
+                1
+            } else {
+                1u128 << (128 - u32::from(prefix_len))
+            };
+            let to = from + size - 1;
+            Ok(IpRange {
+                from: IpAddr::V6(Ipv6Addr::from(from.to_be_bytes())),
+                to: IpAddr::V6(Ipv6Addr::from(to.to_be_bytes())),
+            })
+        }
+    }
+}
+
+fn ip_addr_to_mrs_bytes(addr: IpAddr) -> [u8; 16] {
+    match addr {
+        IpAddr::V4(ip) => ip.to_ipv6_mapped().octets(),
+        IpAddr::V6(ip) => ip.octets(),
+    }
+}
+
 fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     // create ZSTD decoder
     let mut reader = zstd::Decoder::new(Cursor::new(buf))?;
@@ -299,7 +414,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.mrs"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = IpCidrParseStrategy::parse(&buf, RuleFormat::Mrs)?;
+        let payload = IpCidrCodecStrategy::parse(&buf, RuleFormat::Mrs)?;
         println!("payload: {:?}", payload);
         Ok(())
     }
@@ -310,7 +425,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.yaml"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = IpCidrParseStrategy::parse(&buf, RuleFormat::Yaml)?;
+        let payload = IpCidrCodecStrategy::parse(&buf, RuleFormat::Yaml)?;
         println!("payload: {:?}", payload);
         Ok(())
     }
@@ -321,7 +436,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.list"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = IpCidrParseStrategy::parse(&buf, RuleFormat::Text)?;
+        let payload = IpCidrCodecStrategy::parse(&buf, RuleFormat::Text)?;
         println!("payload: {:?}", payload);
         Ok(())
     }

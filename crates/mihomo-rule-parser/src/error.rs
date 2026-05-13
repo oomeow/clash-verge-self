@@ -21,6 +21,8 @@ pub enum RuleParseError {
     InvalidBehavior(String),
     #[error("invalid rule format: {0}")]
     InvalidFormat(String),
+    #[error("invalid rule: {0}")]
+    InvalidRule(String),
     #[error("behavior mismatch (expected {expected}, got {actual})")]
     BehaviorMismatch {
         expected: RuleBehavior,
@@ -30,4 +32,8 @@ pub enum RuleParseError {
     YamlParseError(#[from] serde_yaml::Error),
     #[error("current {0} unsupported format: {1}")]
     UnsupportedFormat(RuleBehavior, RuleFormat),
+    #[error("empty rule")]
+    EmptyRule,
+    #[error("current {0} unsupported export format: {1}")]
+    UnsupportedExportFormat(RuleBehavior, RuleFormat),
 }

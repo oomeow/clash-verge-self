@@ -1,13 +1,13 @@
 use crate::{
-    Parser, RuleBehavior, RuleFormat,
+    Codec, RuleBehavior, RuleFormat,
     error::{Result, RuleParseError},
     utils,
 };
 
 /// classical parse strategy
-pub(crate) struct ClassicalParseStrategy;
+pub(crate) struct ClassicalCodecStrategy;
 
-impl Parser for ClassicalParseStrategy {
+impl Codec for ClassicalCodecStrategy {
     fn parse(buf: &[u8], format: crate::RuleFormat) -> Result<crate::RulePayload> {
         match format {
             RuleFormat::Mrs => Err(RuleParseError::UnsupportedFormat(
@@ -17,6 +17,10 @@ impl Parser for ClassicalParseStrategy {
             RuleFormat::Yaml => utils::parse_from_yaml(buf),
             RuleFormat::Text => utils::parse_from_text(buf),
         }
+    }
+
+    fn export<P: AsRef<std::path::Path>>(_rules: &[String], _file_path: P, format: RuleFormat) -> Result<()> {
+        Err(RuleParseError::UnsupportedExportFormat(RuleBehavior::Classical, format))
     }
 }
 
@@ -61,7 +65,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.mrs"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = ClassicalParseStrategy::parse(&buf, RuleFormat::Mrs);
+        let payload = ClassicalCodecStrategy::parse(&buf, RuleFormat::Mrs);
         assert!(matches!(
             payload,
             Err(RuleParseError::UnsupportedFormat(
@@ -78,7 +82,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/classical/ad.yaml"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = ClassicalParseStrategy::parse(&buf, RuleFormat::Yaml)?;
+        let payload = ClassicalCodecStrategy::parse(&buf, RuleFormat::Yaml)?;
         println!("payload: {:?}", payload);
         Ok(())
     }
@@ -89,7 +93,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/classical/ad.list"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = ClassicalParseStrategy::parse(&buf, RuleFormat::Text)?;
+        let payload = ClassicalCodecStrategy::parse(&buf, RuleFormat::Text)?;
         println!("payload: {:?}", payload);
         Ok(())
     }

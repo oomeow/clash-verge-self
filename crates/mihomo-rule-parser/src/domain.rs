@@ -1,22 +1,34 @@
-use std::io::{Cursor, Read};
+use std::{
+    collections::VecDeque,
+    io::{Cursor, Read, Write},
+    path::Path,
+};
 
-use byteorder::{BigEndian, ReadBytesExt};
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 use crate::{
-    Parser, RuleBehavior, RuleFormat, RulePayload, bitmap,
+    Codec, RuleBehavior, RuleFormat, RulePayload, bitmap,
     error::{Result, RuleParseError},
     utils,
 };
 
 /// domain parse strategy
-pub(crate) struct DomainParseStrategy;
+pub(crate) struct DomainCodecStrategy;
 
-impl Parser for DomainParseStrategy {
+impl Codec for DomainCodecStrategy {
     fn parse(buf: &[u8], format: RuleFormat) -> Result<RulePayload> {
         match format {
             RuleFormat::Mrs => parse_from_mrs(buf),
             RuleFormat::Yaml => utils::parse_from_yaml(buf),
             RuleFormat::Text => utils::parse_from_text(buf),
+        }
+    }
+
+    fn export<P: AsRef<std::path::Path>>(rules: &[String], file_path: P, format: RuleFormat) -> Result<()> {
+        match format {
+            RuleFormat::Mrs => export_as_mrs(rules, file_path),
+            RuleFormat::Yaml => utils::export_as_yaml(rules, file_path),
+            RuleFormat::Text => utils::export_as_text(rules, file_path),
         }
     }
 }
@@ -98,6 +110,152 @@ fn count_zeros(bm: &[u64], ranks: &[i32], i: isize) -> isize {
 fn select_ith_one(bm: &[u64], ranks: &[i32], selects: &[i32], i: isize) -> isize {
     let (a, _) = bitmap::Bitmap::select_32_r64(bm, selects, ranks, i as i32);
     a as isize
+}
+
+#[derive(Clone, Copy)]
+struct QueueItem {
+    start: usize,
+    end: usize,
+    col: usize,
+}
+
+fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
+    let mut body = Vec::new();
+    let count = export_mrs_body(rules, &mut body)?;
+
+    let mut encoded = Vec::new();
+    {
+        let mut writer = zstd::Encoder::new(&mut encoded, 0)?;
+        utils::write_mrs_header(&mut writer, RuleBehavior::Domain, count)?;
+        writer.write_all(&body)?;
+        writer.finish()?;
+    }
+
+    std::fs::write(file_path, encoded)?;
+    Ok(())
+}
+
+pub(crate) fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Result<i64> {
+    let mut count = 0i64;
+    let mut keys = Vec::new();
+
+    for rule in rules {
+        let expanded = expand_rule(rule)?;
+        count += 1;
+        keys.extend(expanded.into_iter().map(|domain| reverse_string(&domain)));
+    }
+
+    keys.sort();
+    keys.dedup();
+
+    if keys.is_empty() {
+        return Err(RuleParseError::EmptyRule);
+    }
+
+    let domain_set = build_domain_set(&keys);
+    write_domain_set(writer, &domain_set)?;
+    Ok(count)
+}
+
+fn expand_rule(rule: &str) -> Result<Vec<String>> {
+    if rule.ends_with('.') || rule.trim() != rule || rule.is_empty() || rule.contains('/') {
+        return Err(RuleParseError::InvalidRule(rule.to_string()));
+    }
+
+    let normalized = rule.to_lowercase();
+    let parts: Vec<&str> = normalized.split('.').collect();
+
+    if parts.len() == 1 {
+        if parts[0].is_empty() {
+            return Err(RuleParseError::InvalidRule(rule.to_string()));
+        }
+    } else if parts.iter().skip(1).any(|part| part.is_empty()) {
+        return Err(RuleParseError::InvalidRule(rule.to_string()));
+    }
+
+    if parts[0] == "+" {
+        if parts.len() < 2 {
+            return Err(RuleParseError::InvalidRule(rule.to_string()));
+        }
+
+        let plain = parts[1..].join(".");
+        let wildcard = format!("+.{}", plain);
+        return Ok(vec![plain, wildcard]);
+    }
+
+    Ok(vec![normalized])
+}
+
+fn reverse_string(value: &str) -> String {
+    value.chars().rev().collect()
+}
+
+fn build_domain_set(keys: &[String]) -> DomainSet {
+    let mut domain_set = DomainSet::new();
+    let mut label_index = 0usize;
+    let mut queue = VecDeque::from([QueueItem {
+        start: 0,
+        end: keys.len(),
+        col: 0,
+    }]);
+    let mut node_index = 0usize;
+
+    while let Some(mut item) = queue.pop_front() {
+        if item.col == keys[item.start].len() {
+            item.start += 1;
+            set_bit_u(&mut domain_set.leaves, node_index, 1);
+        }
+
+        let mut cursor = item.start;
+        while cursor < item.end {
+            let from = cursor;
+            let label = keys[from].as_bytes()[item.col];
+            while cursor < item.end && keys[cursor].as_bytes()[item.col] == label {
+                cursor += 1;
+            }
+
+            queue.push_back(QueueItem {
+                start: from,
+                end: cursor,
+                col: item.col + 1,
+            });
+            domain_set.labels.push(label);
+            set_bit_u(&mut domain_set.label_bit_map, label_index, 0);
+            label_index += 1;
+        }
+
+        set_bit_u(&mut domain_set.label_bit_map, label_index, 1);
+        label_index += 1;
+        node_index += 1;
+    }
+
+    domain_set.init();
+    domain_set
+}
+
+fn set_bit_u(bitmap: &mut Vec<u64>, index: usize, value: u64) {
+    while (index >> 6) >= bitmap.len() {
+        bitmap.push(0);
+    }
+
+    bitmap[index >> 6] |= value << (index & 63);
+}
+
+fn write_domain_set<W: Write>(writer: &mut W, domain_set: &DomainSet) -> Result<()> {
+    writer.write_all(&[1])?;
+    writer.write_i64::<BigEndian>(domain_set.leaves.len() as i64)?;
+    for value in &domain_set.leaves {
+        writer.write_u64::<BigEndian>(*value)?;
+    }
+
+    writer.write_i64::<BigEndian>(domain_set.label_bit_map.len() as i64)?;
+    for value in &domain_set.label_bit_map {
+        writer.write_u64::<BigEndian>(*value)?;
+    }
+
+    writer.write_i64::<BigEndian>(domain_set.labels.len() as i64)?;
+    writer.write_all(&domain_set.labels)?;
+    Ok(())
 }
 
 fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
@@ -212,7 +370,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geosite/aliyun.mrs"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = DomainParseStrategy::parse(&buf, RuleFormat::Mrs)?;
+        let payload = DomainCodecStrategy::parse(&buf, RuleFormat::Mrs)?;
         println!("payload: {:?}", payload);
         Ok(())
     }
@@ -223,7 +381,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geosite/aliyun.yaml"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = DomainParseStrategy::parse(&buf, RuleFormat::Yaml)?;
+        let payload = DomainCodecStrategy::parse(&buf, RuleFormat::Yaml)?;
         println!("payload: {:?}", payload);
         Ok(())
     }
@@ -234,7 +392,7 @@ mod tests {
         let mut file = std::fs::File::open(rules_dir.join("geo/geosite/aliyun.list"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
-        let payload = DomainParseStrategy::parse(&buf, RuleFormat::Text)?;
+        let payload = DomainCodecStrategy::parse(&buf, RuleFormat::Text)?;
         println!("payload: {:?}", payload);
         Ok(())
     }
