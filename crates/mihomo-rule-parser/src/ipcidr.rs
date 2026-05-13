@@ -278,15 +278,10 @@ fn parse_cidr_rule(rule: &str) -> Result<IpRange> {
                 u32::MAX << (32 - u32::from(prefix_len))
             };
             let from = value & mask;
-            let size = if prefix_len == 32 {
-                1
-            } else {
-                1u64 << (32 - u32::from(prefix_len))
-            };
-            let to = from as u64 + size - 1;
+            let to = from | !mask;
             Ok(IpRange {
                 from: IpAddr::V4(Ipv4Addr::from(from)),
-                to: IpAddr::V4(Ipv4Addr::from(to as u32)),
+                to: IpAddr::V4(Ipv4Addr::from(to)),
             })
         }
         IpAddr::V6(ip) => {
@@ -300,12 +295,7 @@ fn parse_cidr_rule(rule: &str) -> Result<IpRange> {
                 u128::MAX << (128 - u32::from(prefix_len))
             };
             let from = value & mask;
-            let size = if prefix_len == 128 {
-                1
-            } else {
-                1u128 << (128 - u32::from(prefix_len))
-            };
-            let to = from + size - 1;
+            let to = from | !mask;
             Ok(IpRange {
                 from: IpAddr::V6(Ipv6Addr::from(from.to_be_bytes())),
                 to: IpAddr::V6(Ipv6Addr::from(to.to_be_bytes())),

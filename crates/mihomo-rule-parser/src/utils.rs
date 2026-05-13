@@ -6,9 +6,8 @@ use std::{
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 use crate::{
-    RuleBehavior, RuleFormat, RulePayload, YamlPayload, domain,
+    RuleBehavior, RulePayload, YamlPayload,
     error::{Result, RuleParseError},
-    ipcidr,
 };
 
 /// MRSv1
@@ -97,46 +96,15 @@ pub(crate) fn export_as_text<P: AsRef<Path>>(rules: &[String], file_path: P) -> 
     Ok(())
 }
 
-pub(crate) fn export_as_mrs(rules: &[String], behavior: RuleBehavior) -> Result<Vec<u8>> {
-    if rules.is_empty() {
-        return Err(RuleParseError::EmptyRule);
-    }
-
-    let mut body = Vec::new();
-    let count = match behavior {
-        RuleBehavior::Domain => domain::export_mrs_body(rules, &mut body)?,
-        RuleBehavior::IpCidr => ipcidr::export_mrs_body(rules, &mut body)?,
-        RuleBehavior::Classical => {
-            return Err(RuleParseError::UnsupportedExportFormat(
-                RuleBehavior::Classical,
-                RuleFormat::Mrs,
-            ));
-        }
-    };
-
-    let mut encoded = Vec::new();
-    {
-        let mut writer = zstd::Encoder::new(&mut encoded, 0)?;
-        write_mrs_header(&mut writer, behavior, count)?;
-        writer.write_all(&body)?;
-        writer.finish()?;
-    }
-
-    Ok(encoded)
-}
-
 pub(crate) fn write_mrs_header<W: Write>(writer: &mut W, behavior: RuleBehavior, count: i64) -> Result<()> {
     writer.write_all(&MRS_MAGIC)?;
-    writer.write_all(&[behavior_to_byte(behavior)])?;
+    let behavior_byte = match behavior {
+        RuleBehavior::Domain => 0,
+        RuleBehavior::IpCidr => 1,
+        RuleBehavior::Classical => return Err(RuleParseError::InvalidBehavior("classical".to_string())),
+    };
+    writer.write_all(&[behavior_byte])?;
     writer.write_i64::<BigEndian>(count)?;
     writer.write_i64::<BigEndian>(0)?;
     Ok(())
-}
-
-fn behavior_to_byte(behavior: RuleBehavior) -> u8 {
-    match behavior {
-        RuleBehavior::Domain => 0,
-        RuleBehavior::IpCidr => 1,
-        RuleBehavior::Classical => 2,
-    }
 }
