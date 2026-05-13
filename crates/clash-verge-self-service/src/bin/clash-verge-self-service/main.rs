@@ -1,10 +1,11 @@
 mod install;
+mod log_config;
 mod uninstall;
 
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
-use clash_verge_self_service::log_config::LogConfig;
+use log_config::LogConfig;
 #[cfg(windows)]
 use once_cell::sync::OnceCell;
 #[cfg(windows)]

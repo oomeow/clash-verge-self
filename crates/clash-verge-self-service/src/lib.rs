@@ -1,4 +1,3 @@
-pub mod log_config;
 mod service;
 
 use std::{path::PathBuf, str::FromStr};
