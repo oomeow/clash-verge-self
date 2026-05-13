@@ -1,2 +1,2 @@
 #!/bin/bash
-cargo build --package clash-verge-self-service --release --target $INPUT_TARGET
+cargo build --package clash-verge-self-service --release --target "$INPUT_TARGET"
