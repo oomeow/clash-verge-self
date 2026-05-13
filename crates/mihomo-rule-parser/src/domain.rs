@@ -112,6 +112,94 @@ fn select_ith_one(bm: &[u64], ranks: &[i32], selects: &[i32], i: isize) -> isize
     a as isize
 }
 
+fn set_bit_u(bitmap: &mut Vec<u64>, index: usize, value: u64) {
+    while (index >> 6) >= bitmap.len() {
+        bitmap.push(0);
+    }
+
+    bitmap[index >> 6] |= value << (index & 63);
+}
+
+// ------------------------------ Parse ------------------------------------
+
+fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
+    // create ZSTD decoder
+    let mut reader = zstd::Decoder::new(Cursor::new(buf))?;
+
+    // validate mrs file
+    let (actual_behavior, count) = utils::read_mrs_header(&mut reader)?;
+    if actual_behavior != RuleBehavior::Domain {
+        return Err(RuleParseError::BehaviorMismatch {
+            expected: RuleBehavior::Domain,
+            actual: actual_behavior,
+        });
+    }
+
+    let mut domain_set = DomainSet::new();
+
+    // version
+    let mut version = [0u8; 1];
+    reader.read_exact(&mut version)?;
+    if version[0] != 1 {
+        return Err(RuleParseError::InvalidVersion);
+    }
+
+    // leaves
+    let length = reader.read_i64::<BigEndian>()?;
+    if length < 0 {
+        return Err(RuleParseError::InvalidLength(length));
+    }
+    let mut leaves = vec![0u64; length as usize];
+    for i in 0..length {
+        leaves[i as usize] = reader.read_u64::<BigEndian>()?;
+    }
+    domain_set.leaves = leaves;
+
+    // label bitmap
+    let length = reader.read_i64::<BigEndian>()?;
+    if length < 0 {
+        return Err(RuleParseError::InvalidLength(length));
+    }
+    let mut label_bit_map = vec![0u64; length as usize];
+    for i in 0..length {
+        label_bit_map[i as usize] = reader.read_u64::<BigEndian>()?;
+    }
+    domain_set.label_bit_map = label_bit_map;
+
+    // labels
+    let length = reader.read_i64::<BigEndian>()?;
+    if length < 0 {
+        return Err(RuleParseError::InvalidLength(length));
+    }
+    let mut labels = vec![0u8; length as usize];
+    reader.read_exact(&mut labels)?;
+    drop(reader);
+
+    domain_set.labels = labels;
+    domain_set.init();
+
+    // get rules
+    let mut rules: Vec<String> = vec![];
+    let mut keys = Vec::new();
+    domain_set.foreach(|key| {
+        keys.push(key);
+        true
+    });
+    keys.sort();
+
+    for key in &keys {
+        let search_str = format!("+.{key}");
+        if keys.binary_search(&search_str).is_ok() {
+            continue;
+        }
+        rules.push(key.clone());
+    }
+
+    Ok(RulePayload { count, rules })
+}
+
+// ------------------------------ Export ------------------------------------
+
 #[derive(Clone, Copy)]
 struct QueueItem {
     start: usize,
@@ -135,7 +223,7 @@ fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Result<i64> {
+fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Result<i64> {
     let mut count = 0i64;
     let mut keys = Vec::new();
 
@@ -229,14 +317,6 @@ fn build_domain_set(keys: &[String]) -> DomainSet {
     domain_set
 }
 
-fn set_bit_u(bitmap: &mut Vec<u64>, index: usize, value: u64) {
-    while (index >> 6) >= bitmap.len() {
-        bitmap.push(0);
-    }
-
-    bitmap[index >> 6] |= value << (index & 63);
-}
-
 fn write_domain_set<W: Write>(writer: &mut W, domain_set: &DomainSet) -> Result<()> {
     writer.write_all(&[1])?;
     writer.write_i64::<BigEndian>(domain_set.leaves.len() as i64)?;
@@ -254,75 +334,7 @@ fn write_domain_set<W: Write>(writer: &mut W, domain_set: &DomainSet) -> Result<
     Ok(())
 }
 
-fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
-    // create ZSTD decoder
-    let mut reader = zstd::Decoder::new(Cursor::new(buf))?;
-
-    // validate mrs file
-    let count = utils::validate_mrs(&mut reader, RuleBehavior::Domain)?;
-
-    let mut domain_set = DomainSet::new();
-
-    // version
-    let mut version = [0u8; 1];
-    reader.read_exact(&mut version)?;
-    if version[0] != 1 {
-        return Err(RuleParseError::InvalidVersion);
-    }
-
-    // leaves
-    let length = reader.read_i64::<BigEndian>()?;
-    if length < 0 {
-        return Err(RuleParseError::InvalidLength(length));
-    }
-    let mut leaves = vec![0u64; length as usize];
-    for i in 0..length {
-        leaves[i as usize] = reader.read_u64::<BigEndian>()?;
-    }
-    domain_set.leaves = leaves;
-
-    // label bitmap
-    let length = reader.read_i64::<BigEndian>()?;
-    if length < 0 {
-        return Err(RuleParseError::InvalidLength(length));
-    }
-    let mut label_bit_map = vec![0u64; length as usize];
-    for i in 0..length {
-        label_bit_map[i as usize] = reader.read_u64::<BigEndian>()?;
-    }
-    domain_set.label_bit_map = label_bit_map;
-
-    // labels
-    let length = reader.read_i64::<BigEndian>()?;
-    if length < 0 {
-        return Err(RuleParseError::InvalidLength(length));
-    }
-    let mut labels = vec![0u8; length as usize];
-    reader.read_exact(&mut labels)?;
-    drop(reader);
-
-    domain_set.labels = labels;
-    domain_set.init();
-
-    // get rules
-    let mut rules: Vec<String> = vec![];
-    let mut keys = Vec::new();
-    domain_set.foreach(|key| {
-        keys.push(key);
-        true
-    });
-    keys.sort();
-
-    for key in &keys {
-        let search_str = format!("+.{key}");
-        if keys.binary_search(&search_str).is_ok() {
-            continue;
-        }
-        rules.push(key.clone());
-    }
-
-    Ok(RulePayload { count, rules })
-}
+// ------------------------------ Test ------------------------------------
 
 #[cfg(test)]
 #[allow(deprecated)]

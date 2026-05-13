@@ -215,6 +215,55 @@ impl IpCidrTransform for IpAddr {
     }
 }
 
+// ------------------------------ Parse ------------------------------------
+
+fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
+    // create ZSTD decoder
+    let mut reader = zstd::Decoder::new(Cursor::new(buf))?;
+
+    // validate mrs file
+    let (behavior, count) = utils::read_mrs_header(&mut reader)?;
+    if behavior != RuleBehavior::IpCidr {
+        return Err(RuleParseError::BehaviorMismatch {
+            expected: RuleBehavior::IpCidr,
+            actual: behavior,
+        });
+    }
+
+    // version
+    let mut version = [0u8; 1];
+    reader.read_exact(&mut version)?;
+    if version[0] != 1 {
+        return Err(RuleParseError::InvalidVersion);
+    }
+
+    // length
+    let length = reader.read_i64::<BigEndian>()?;
+    if length < 1 {
+        return Err(RuleParseError::InvalidLength(length));
+    }
+
+    let mut rules: Vec<String> = Vec::new();
+    for _ in 0..length {
+        let mut from = [0u8; 16];
+        reader.read_exact(&mut from)?;
+        let from_addr = IpAddr::addr_from_16(from).unmap();
+
+        let mut to = [0u8; 16];
+        reader.read_exact(&mut to)?;
+        let to_addr = IpAddr::addr_from_16(to).unmap();
+
+        // generate Ip range
+        let range = IpAddr::ip_range(from_addr, to_addr);
+        rules.extend(range.prefixes().into_iter().map(|prefix| prefix.to_string()));
+    }
+    drop(reader);
+
+    Ok(RulePayload { count, rules })
+}
+
+// ------------------------------ Export ------------------------------------
+
 fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
     let mut body = Vec::new();
     let count = export_mrs_body(rules, &mut body)?;
@@ -311,44 +360,7 @@ fn ip_addr_to_mrs_bytes(addr: IpAddr) -> [u8; 16] {
     }
 }
 
-fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
-    // create ZSTD decoder
-    let mut reader = zstd::Decoder::new(Cursor::new(buf))?;
-
-    // validate mrs file
-    let count = utils::validate_mrs(&mut reader, RuleBehavior::IpCidr)?;
-
-    // version
-    let mut version = [0u8; 1];
-    reader.read_exact(&mut version)?;
-    if version[0] != 1 {
-        return Err(RuleParseError::InvalidVersion);
-    }
-
-    // length
-    let length = reader.read_i64::<BigEndian>()?;
-    if length < 1 {
-        return Err(RuleParseError::InvalidLength(length));
-    }
-
-    let mut rules: Vec<String> = Vec::new();
-    for _ in 0..length {
-        let mut from = [0u8; 16];
-        reader.read_exact(&mut from)?;
-        let from_addr = IpAddr::addr_from_16(from).unmap();
-
-        let mut to = [0u8; 16];
-        reader.read_exact(&mut to)?;
-        let to_addr = IpAddr::addr_from_16(to).unmap();
-
-        // generate Ip range
-        let range = IpAddr::ip_range(from_addr, to_addr);
-        rules.extend(range.prefixes().into_iter().map(|prefix| prefix.to_string()));
-    }
-    drop(reader);
-
-    Ok(RulePayload { count, rules })
-}
+// ------------------------------ Test ------------------------------------
 
 #[cfg(test)]
 #[allow(deprecated)]

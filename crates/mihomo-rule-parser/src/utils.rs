@@ -23,7 +23,7 @@ fn get_rule_behavior(behavior: u8) -> Result<RuleBehavior> {
 }
 
 /// Validate MRS format and return the count of rules.
-pub(crate) fn validate_mrs<R: Read>(reader: &mut R, expected_behavior: RuleBehavior) -> Result<i64> {
+pub(crate) fn read_mrs_header<R: Read>(reader: &mut R) -> Result<(RuleBehavior, i64)> {
     // 读取并校验 Magic Number
     let mut magic = [0u8; 4];
     reader.read_exact(&mut magic)?;
@@ -31,16 +31,10 @@ pub(crate) fn validate_mrs<R: Read>(reader: &mut R, expected_behavior: RuleBehav
         return Err(RuleParseError::InvalidMagic);
     }
 
-    // 读取并校验 Behavior
+    // 读取 Behavior
     let mut behavior = [0u8; 1];
     reader.read_exact(&mut behavior)?;
-    let actual_behavior = get_rule_behavior(behavior[0])?;
-    if actual_behavior != expected_behavior {
-        return Err(RuleParseError::BehaviorMismatch {
-            expected: expected_behavior,
-            actual: actual_behavior,
-        });
-    }
+    let behavior = get_rule_behavior(behavior[0])?;
 
     // 读取 Count
     let count = reader.read_i64::<BigEndian>()?;
@@ -60,7 +54,20 @@ pub(crate) fn validate_mrs<R: Read>(reader: &mut R, expected_behavior: RuleBehav
         None
     };
 
-    Ok(count)
+    Ok((behavior, count))
+}
+
+pub(crate) fn write_mrs_header<W: Write>(writer: &mut W, behavior: RuleBehavior, count: i64) -> Result<()> {
+    writer.write_all(&MRS_MAGIC)?;
+    let behavior_byte = match behavior {
+        RuleBehavior::Domain => 0,
+        RuleBehavior::IpCidr => 1,
+        RuleBehavior::Classical => return Err(RuleParseError::InvalidBehavior("classical".to_string())),
+    };
+    writer.write_all(&[behavior_byte])?;
+    writer.write_i64::<BigEndian>(count)?;
+    writer.write_i64::<BigEndian>(0)?;
+    Ok(())
 }
 
 /// Parse YAML format
@@ -91,20 +98,10 @@ pub(crate) fn export_as_yaml<P: AsRef<Path>>(rules: &[String], file_path: P) -> 
 }
 
 pub(crate) fn export_as_text<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
-    let data = rules.join("\n").into_bytes();
+    let mut data = rules.join("\n").into_bytes();
+    if !data.is_empty() {
+        data.push(b'\n');
+    }
     std::fs::write(file_path, data)?;
-    Ok(())
-}
-
-pub(crate) fn write_mrs_header<W: Write>(writer: &mut W, behavior: RuleBehavior, count: i64) -> Result<()> {
-    writer.write_all(&MRS_MAGIC)?;
-    let behavior_byte = match behavior {
-        RuleBehavior::Domain => 0,
-        RuleBehavior::IpCidr => 1,
-        RuleBehavior::Classical => return Err(RuleParseError::InvalidBehavior("classical".to_string())),
-    };
-    writer.write_all(&[behavior_byte])?;
-    writer.write_i64::<BigEndian>(count)?;
-    writer.write_i64::<BigEndian>(0)?;
     Ok(())
 }

@@ -24,6 +24,8 @@ impl Codec for ClassicalCodecStrategy {
     }
 }
 
+// ------------------------------ Test ------------------------------------
+
 #[cfg(test)]
 #[allow(deprecated)]
 mod tests {
