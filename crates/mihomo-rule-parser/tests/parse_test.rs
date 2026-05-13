@@ -143,14 +143,17 @@ fn test_public_export_mrs_method() -> Result<(), Box<dyn Error>> {
     let path = common::test_export_path("rules-mrs", "mrs")?;
     let mut rules = vec![
         "+.example.com".to_string(),
+        "+.example.com".to_string(),
         "www.example.com".to_string(),
         "+.gh.io".to_string(),
     ];
     rules.sort();
+    rules.dedup();
 
     export(&rules, &path, RuleBehavior::Domain, RuleFormat::Mrs)?;
 
     let payload = parse(&path, RuleBehavior::Domain, RuleFormat::Mrs)?;
+    assert_eq!(payload.count, 3);
     assert_eq!(payload.rules, rules);
     Ok(())
 }

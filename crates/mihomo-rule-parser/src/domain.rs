@@ -233,9 +233,20 @@ fn prepare_domain_set(rules: &[String]) -> Result<(i64, DomainSet)> {
         return Err(RuleParseError::EmptyRule);
     }
 
+    let mut search_key = String::new();
     let count = keys
         .iter()
-        .filter(|key| key.ends_with(".+") || keys.binary_search(&format!("{key}.+")).is_err())
+        .filter(|key| {
+            if key.ends_with(".+") {
+                return true;
+            }
+
+            search_key.clear();
+            search_key.push_str(key);
+            search_key.push_str(".+");
+
+            keys.binary_search(&search_key).is_err()
+        })
         .count() as i64;
 
     let domain_set = build_domain_set(&keys);
