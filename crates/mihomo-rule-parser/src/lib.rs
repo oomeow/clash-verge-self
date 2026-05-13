@@ -21,7 +21,7 @@ pub(crate) const MRS_MAGIC: [u8; 4] = [b'M', b'R', b'S', 1];
 /// MRS version
 pub(crate) const MRS_VERSION: u8 = 1;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 pub enum RuleBehavior {
     Domain,
     #[serde(rename = "IPCIDR")]

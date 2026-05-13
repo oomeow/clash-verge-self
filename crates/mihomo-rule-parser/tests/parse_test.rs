@@ -319,6 +319,25 @@ fn check_all_mihomo_mrs() -> Result<(), Box<dyn Error>> {
                     } else {
                         println!("convert [{}] success", file_name);
                     }
+
+                    // check export mrs is same as mihomo
+                    let output_file_path = common::test_export_path(&format!("export-{file_name}"), "mrs").unwrap();
+                    export(&rule_payload.rules, &output_file_path, behavior, RuleFormat::Mrs)?;
+                    let e_rule_payload = parse(&output_file_path, behavior, RuleFormat::Mrs)?;
+                    if rule_payload.count != e_rule_payload.count {
+                        println!(
+                            "export mrs count not match, expected: {}, actual: {}",
+                            rule_payload.count, e_rule_payload.count
+                        );
+                    }
+                    for (i, rule) in rule_payload.rules.iter().enumerate() {
+                        if rule != &e_rule_payload.rules[i] {
+                            println!(
+                                "export mrs rule not match, expected: {}, actual: {}",
+                                rule, e_rule_payload.rules[i]
+                            );
+                        }
+                    }
                 } else {
                     println!("mihomo convert [{}] error, output: {:?}", file_name, output);
                     mihomo_convert_error_file_.lock().unwrap().push(file_name.clone());
