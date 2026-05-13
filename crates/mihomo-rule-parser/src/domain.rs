@@ -165,11 +165,7 @@ fn expand_rule(rule: &str) -> Result<Vec<String>> {
     let normalized = rule.to_lowercase();
     let parts: Vec<&str> = normalized.split('.').collect();
 
-    if parts.len() == 1 {
-        if parts[0].is_empty() {
-            return Err(RuleParseError::InvalidRule(rule.to_string()));
-        }
-    } else if parts.iter().skip(1).any(|part| part.is_empty()) {
+    if parts.iter().any(|part| part.is_empty()) {
         return Err(RuleParseError::InvalidRule(rule.to_string()));
     }
 
