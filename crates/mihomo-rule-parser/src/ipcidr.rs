@@ -8,7 +8,7 @@ use std::{
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 use crate::{
-    Codec, RuleBehavior, RuleFormat, RulePayload,
+    Codec, MRS_VERSION, RuleBehavior, RuleFormat, RulePayload,
     error::{Result, RuleParseError},
     utils,
 };
@@ -233,7 +233,7 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     // version
     let mut version = [0u8; 1];
     reader.read_exact(&mut version)?;
-    if version[0] != 1 {
+    if version[0] != MRS_VERSION {
         return Err(RuleParseError::InvalidVersion);
     }
 
@@ -265,22 +265,17 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
 // ------------------------------ Export ------------------------------------
 
 fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
-    let mut body = Vec::new();
-    let count = export_mrs_body(rules, &mut body)?;
-
-    let mut encoded = Vec::new();
-    {
-        let mut writer = zstd::Encoder::new(&mut encoded, 0)?;
-        utils::write_mrs_header(&mut writer, RuleBehavior::IpCidr, count)?;
-        writer.write_all(&body)?;
-        writer.finish()?;
-    }
-
-    std::fs::write(file_path, encoded)?;
+    let (count, ranges) = prepare_ranges(rules)?;
+    let file = std::fs::File::create(file_path)?;
+    let buffered = std::io::BufWriter::new(file);
+    let mut writer = zstd::Encoder::new(buffered, 0)?;
+    utils::write_mrs_header(&mut writer, RuleBehavior::IpCidr, count)?;
+    write_ranges(&mut writer, &ranges)?;
+    writer.finish()?;
     Ok(())
 }
 
-pub(crate) fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Result<i64> {
+fn prepare_ranges(rules: &[String]) -> Result<(i64, Vec<IpRange>)> {
     let mut count = 0i64;
     let mut ranges = Vec::new();
 
@@ -293,14 +288,17 @@ pub(crate) fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Res
         return Err(RuleParseError::EmptyRule);
     }
 
-    writer.write_all(&[1])?;
+    Ok((count, ranges))
+}
+
+fn write_ranges<W: Write>(writer: &mut W, ranges: &[IpRange]) -> Result<()> {
+    writer.write_all(&[MRS_VERSION])?;
     writer.write_i64::<BigEndian>(ranges.len() as i64)?;
     for range in ranges {
         writer.write_all(&ip_addr_to_mrs_bytes(range.from))?;
         writer.write_all(&ip_addr_to_mrs_bytes(range.to))?;
     }
-
-    Ok(count)
+    Ok(())
 }
 
 fn parse_cidr_rule(rule: &str) -> Result<IpRange> {

@@ -6,12 +6,9 @@ use std::{
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 use crate::{
-    RuleBehavior, RulePayload, YamlPayload,
+    MRS_MAGIC, RuleBehavior, RulePayload, YamlPayload,
     error::{Result, RuleParseError},
 };
-
-/// MRSv1
-const MRS_MAGIC: [u8; 4] = [b'M', b'R', b'S', 1];
 
 /// Get the rule behavior based on the given behavior byte.
 fn get_rule_behavior(behavior: u8) -> Result<RuleBehavior> {

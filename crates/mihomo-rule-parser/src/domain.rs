@@ -7,7 +7,7 @@ use std::{
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 
 use crate::{
-    Codec, RuleBehavior, RuleFormat, RulePayload, bitmap,
+    Codec, MRS_VERSION, RuleBehavior, RuleFormat, RulePayload, bitmap,
     error::{Result, RuleParseError},
     utils,
 };
@@ -140,7 +140,7 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     // version
     let mut version = [0u8; 1];
     reader.read_exact(&mut version)?;
-    if version[0] != 1 {
+    if version[0] != MRS_VERSION {
         return Err(RuleParseError::InvalidVersion);
     }
 
@@ -208,22 +208,17 @@ struct QueueItem {
 }
 
 fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
-    let mut body = Vec::new();
-    let count = export_mrs_body(rules, &mut body)?;
-
-    let mut encoded = Vec::new();
-    {
-        let mut writer = zstd::Encoder::new(&mut encoded, 0)?;
-        utils::write_mrs_header(&mut writer, RuleBehavior::Domain, count)?;
-        writer.write_all(&body)?;
-        writer.finish()?;
-    }
-
-    std::fs::write(file_path, encoded)?;
+    let (count, domain_set) = prepare_domain_set(rules)?;
+    let file = std::fs::File::create(file_path)?;
+    let buffered = std::io::BufWriter::new(file);
+    let mut writer = zstd::Encoder::new(buffered, 0)?;
+    utils::write_mrs_header(&mut writer, RuleBehavior::Domain, count)?;
+    write_domain_set(&mut writer, &domain_set)?;
+    writer.finish()?;
     Ok(())
 }
 
-fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Result<i64> {
+fn prepare_domain_set(rules: &[String]) -> Result<(i64, DomainSet)> {
     let mut keys = Vec::new();
 
     for rule in rules {
@@ -244,8 +239,7 @@ fn export_mrs_body<W: Write>(rules: &[String], writer: &mut W) -> Result<i64> {
         .count() as i64;
 
     let domain_set = build_domain_set(&keys);
-    write_domain_set(writer, &domain_set)?;
-    Ok(count)
+    Ok((count, domain_set))
 }
 
 fn expand_rule(rule: &str) -> Result<Vec<String>> {
@@ -321,7 +315,7 @@ fn build_domain_set(keys: &[String]) -> DomainSet {
 }
 
 fn write_domain_set<W: Write>(writer: &mut W, domain_set: &DomainSet) -> Result<()> {
-    writer.write_all(&[1])?;
+    writer.write_all(&[MRS_VERSION])?;
     writer.write_i64::<BigEndian>(domain_set.leaves.len() as i64)?;
     for value in &domain_set.leaves {
         writer.write_u64::<BigEndian>(*value)?;

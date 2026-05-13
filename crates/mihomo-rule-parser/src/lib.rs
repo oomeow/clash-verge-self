@@ -16,6 +16,11 @@ mod error;
 mod ipcidr;
 mod utils;
 
+/// MRSv1
+pub(crate) const MRS_MAGIC: [u8; 4] = [b'M', b'R', b'S', 1];
+/// MRS version
+pub(crate) const MRS_VERSION: u8 = 1;
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RuleBehavior {
     Domain,
