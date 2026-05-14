@@ -705,4 +705,7 @@ async function runTask() {
 }
 
 // run
-runTask();
+runTask().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
