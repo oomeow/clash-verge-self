@@ -43,8 +43,10 @@ async function cargoInstall(
 
 const isGithubAction = process.env.GITHUB_TOKEN !== undefined;
 if (!isGithubAction) {
-  const installedBins = execSync(`cargo install --list`).toString();
+  const installedBins = execSync("cargo install --list").toString();
   await cargoInstall("prek", ["--locked", "prek"], installedBins);
   await cargoInstall("just", ["just"], installedBins);
+  // install prek hook
+  execSync("prek install");
   console.log("`prek` and `just` have been installed");
 }
