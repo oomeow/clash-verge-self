@@ -6,6 +6,7 @@ import {
   log,
   outro,
   progress,
+  select,
   spinner,
   taskLog,
 } from "@clack/prompts";
@@ -40,7 +41,7 @@ import {
   TEMP_DIR,
 } from "./utils";
 
-type Version = "stable" | "alpha";
+type Channel = "stable" | "alpha";
 type TaskLogger = {
   message: (message: string, options?: any) => void;
   success: (message: string, options?: { showLog?: boolean }) => void;
@@ -80,6 +81,7 @@ const cwd = process.cwd();
 const rawArgvs = process.argv;
 const NO_CONFIRM = rawArgvs.includes("--no-confirm");
 let force = rawArgvs.includes("--force");
+const IS_ALPHA_VERSION = process.argv.includes("--alpha");
 
 const platform = getPlatform(rawArgvs);
 const sidecarHost = getTarget(rawArgvs) ?? getRustHost();
@@ -155,7 +157,7 @@ async function fetchWithTimeout(resource: string, options: FetchOptions = {}) {
 }
 
 async function getLatestMihomoVersion(
-  version: Version,
+  version: Channel,
   _logger: TaskLogger,
 ): Promise<string> {
   const isAlpha = version === "alpha";
@@ -183,7 +185,7 @@ async function getLatestMihomoVersion(
 /**
  * mihomo version info
  */
-function mihomo(version: Version, mihomoVersion: string): BinInfo {
+function mihomo(version: Channel, mihomoVersion: string): BinInfo {
   const isAlpha = version === "alpha";
   const name = (isAlpha ? MIHOMO_ALPHA_MAP : MIHOMO_MAP)[platformArch];
   const isWin = platform === "win32";
@@ -497,7 +499,7 @@ async function resolveServicePermission(_logger: TaskLogger) {
 // }
 
 async function downloadClashVergeSelfService(
-  channel: "alpha" | "stable",
+  channel: Channel,
   logger: TaskLogger,
 ) {
   const serviceVersion = getClashVergeSelfServiceVersion();
@@ -523,13 +525,14 @@ async function downloadClashVergeSelfService(
   );
 }
 
-async function resolveClashVergeSelfService(logger: TaskLogger) {
+async function resolveClashVergeSelfService(
+  channel: Channel,
+  logger: TaskLogger,
+) {
   // if (!runOnGithubActions) {
   //   note("Build Service Locally", "Service");
   //   await localBuildService(logger);
   // } else {
-  const isAlphaVersion = process.argv.includes("--alpha");
-  const channel = isAlphaVersion ? "alpha" : "stable";
   note(`Channel: ${channel}`, "Service");
   await downloadClashVergeSelfService(channel, logger);
   // }
@@ -631,12 +634,13 @@ function createMihomoTask(): Task[] {
   });
 }
 
-function createTasks(): Task[] {
+function createTasks(channel: Channel): Task[] {
   return [
     ...createMihomoTask(),
     {
       name: "Resolve Clash Verge Self Service",
-      func: (logger: TaskLogger) => resolveClashVergeSelfService(logger),
+      func: (logger: TaskLogger) =>
+        resolveClashVergeSelfService(channel, logger),
       retry: 5,
       targetPath: resourcePath(`clash-verge-self-service${exeSuffix}`),
     },
@@ -666,6 +670,29 @@ function shouldRunTask(task: Task) {
   if (task.unixOnly && platform === "win32") return false;
   if (task.macOnly && platform !== "darwin") return false;
   return true;
+}
+
+async function chooseServiceChannel(): Promise<Channel> {
+  if (IS_ALPHA_VERSION) {
+    log.info("Use alpha resource version from --alpha");
+    return "alpha";
+  }
+
+  if (NO_CONFIRM) {
+    log.info("Use default stable resource version from --no-confirm");
+    return "stable";
+  }
+
+  const channel = await select({
+    message: "Select Clash Verge Self Service Download Channel",
+    options: [
+      { value: "stable", label: "Stable" },
+      { value: "alpha", label: "Alpha" },
+    ],
+    initialValue: "stable",
+  });
+
+  return handleCancel(channel) as Channel;
 }
 
 async function confirmOverwriteIfNeeded(tasks: Task[]) {
@@ -734,7 +761,8 @@ async function runTaskWithRetry(task: Task) {
  */
 async function runTask() {
   intro(pc.bgCyan(pc.white(" Check and download files ")));
-  const tasks = createTasks().filter(shouldRunTask);
+  const channel = await chooseServiceChannel();
+  const tasks = createTasks(channel).filter(shouldRunTask);
   await confirmOverwriteIfNeeded(tasks);
 
   for (const task of tasks) {
