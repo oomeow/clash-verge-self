@@ -179,7 +179,8 @@ jobs:
           git push origin dev
 
   delete-release-assets:
-    needs: [check-build, build-service, build-dist-js]
+    if: always()
+    needs: [build-service, build-dist-js]
     runs-on: ubuntu-latest
     steps:
       - name: Delete old release assets
@@ -201,6 +202,7 @@ jobs:
             *.json
 
   alpha:
+    if: always()
     needs: [delete-release-assets]
     strategy:
       fail-fast: false
@@ -274,6 +276,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   alpha-for-linux:
+    if: always()
     needs: [delete-release-assets]
     strategy:
       fail-fast: false
@@ -397,6 +400,7 @@ jobs:
             target/${{ matrix.target }}/release/bundle/rpm/*.rpm
 
   pkgbuild:
+    if: always()
     name: PKGBUILD for ArchLinux
     needs: [alpha-for-linux]
     runs-on: ubuntu-22.04
@@ -433,6 +437,7 @@ jobs:
           files: ${{ steps.makepkg.outputs.pkgfile0 }}
 
   update_tag:
+    if: always()
     name: Update tag
     runs-on: ubuntu-22.04
     needs: [alpha, pkgbuild]
