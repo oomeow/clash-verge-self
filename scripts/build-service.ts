@@ -2,13 +2,7 @@ import { note } from "@clack/prompts";
 import { spawn } from "child_process";
 import fs from "fs-extra";
 
-import {
-  getExeSuffix,
-  getRustHost,
-  getTarget,
-  RESOURCE_DIR,
-  resourcePath,
-} from "./utils";
+import { getExeSuffix, getTarget, RESOURCE_DIR, resourcePath } from "./utils";
 
 export async function buildService(logger?: (message: string) => void) {
   const argv = process.argv;
