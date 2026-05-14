@@ -1,4 +1,4 @@
-# Clash Verge Service
+# Clash Verge Self Service
 
 Supports multiple platforms Service.
 
