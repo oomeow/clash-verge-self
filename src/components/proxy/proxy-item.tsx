@@ -82,7 +82,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
   });
 
   return (
-    <Box sx={[{ pr: 2 }, sx]}>
+    <Box sx={[{ pr: 2, ...{ sx } }]}>
       <ListItemButton
         id={proxyId(group.name, proxy.name)}
         dense
