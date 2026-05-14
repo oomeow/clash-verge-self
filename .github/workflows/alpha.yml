@@ -181,7 +181,7 @@ jobs:
 
       - name: Portable Bundle
         if: matrix.os == 'windows-latest'
-        run: pnpm portable ${{ matrix.target }} --alpha
+        run: pnpm portable --target ${{ matrix.target }} --alpha
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -243,7 +243,7 @@ jobs:
       - name: Pnpm install and check
         run: |
           pnpm i
-          pnpm check ${{ matrix.target }} --alpha --no-confirm
+          pnpm check --target ${{ matrix.target }} --alpha --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -266,7 +266,7 @@ jobs:
           pnpm build -r cross --target ${{ matrix.target }} -b deb,rpm
 
       - name: Portable Bundle (Linux)
-        run: pnpm portable ${{ matrix.target }} --alpha
+        run: pnpm portable --target ${{ matrix.target }} --alpha
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

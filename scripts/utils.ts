@@ -91,12 +91,16 @@ export function getRustHost() {
   return host;
 }
 
-export function getTarget(argv: string[]) {
-  const targetIndex = argv.findIndex((item) => item === "--target");
-  if (targetIndex === -1) {
-    return getRustHost();
+export function getArgValue(argv: string[], arg: string) {
+  const index = argv.findIndex((item) => item === arg);
+  if (index === -1) {
+    return undefined;
   }
-  const target = argv[targetIndex + 1];
+  return argv[index + 1];
+}
+
+export function getTarget(argv: string[]) {
+  const target = getArgValue(argv, "--target");
   if (!target) {
     return getRustHost();
   }

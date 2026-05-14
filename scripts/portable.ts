@@ -5,8 +5,11 @@ import { createRequire } from "module";
 import path from "path";
 import * as tar from "tar";
 
-const target = process.argv.slice(2)[0];
-const alpha = process.argv.slice(2)[1];
+import { getTarget } from "./utils";
+
+const argv = process.argv;
+const target = getTarget(argv);
+const alpha = process.argv.includes("--alpha");
 
 const ARCH_MAP: Record<string, string> = {
   // Windows
