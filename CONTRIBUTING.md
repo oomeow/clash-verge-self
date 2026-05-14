@@ -1,79 +1,68 @@
-# CONTRIBUTING
+# Contributing to Clash Verge Self
 
-Thank you for your interest in contributing to Clash Verge Self! This document provides guidelines and instructions to help you set up your development environment and start contributing.
+Thank you for your interest in contributing!
 
-## Development Setup
+## Prerequisites
 
-Before you start contributing to the project, you need to set up your development environment. Here are the steps you need to follow:
+- [Rust](https://rustup.rs/) (latest)
+- [Node.js](https://nodejs.org/) >= 20
+- [pnpm](https://pnpm.io/installation) >= 9
+- [Tauri system dependencies](https://v2.tauri.app/start/prerequisites/)
 
-### Prerequisites
-
-1. **Install Rust and Node.js**: Our project requires both Rust and Node.js. Please follow the instructions provided [here](https://tauri.app/v1/guides/getting-started/prerequisites) to install them on your system.
-
-2. **Install prek**: Prek is automatically installed when project dependencies are installed via `pnpm i`.
-   - `prek`: Git pre-commit hooks.
-
-### Setup for Windows Users
-
-If you're a Windows user, you may need to perform some additional steps:
-
-- Make sure to add Rust and Node.js to your system's PATH. This is usually done during the installation process, but you can verify and manually add them if necessary.
-- The gnu `patch` tool should be installed
-
-### Install Node.js Packages
-
-After installing Rust and Node.js, install the necessary Node.js packages:
+## Setup
 
 ```shell
-pnpm i
+git clone https://github.com/oomeow/clash-verge-self.git
+cd clash-verge-self
+
+pnpm i                          # Install dependencies (also installs prek git hooks)
+pnpm check                      # Download Mihomo core, service binary, geo files
+                                #   --force      Force re-download
+                                #   --alpha      Download alpha channel service
+                                #   --target     Specify target triple (e.g. x86_64-unknown-linux-gnu)
+                                #   --no-confirm Skip confirmation prompt
+pnpm build:service              # Build service binary locally and copy to resources
+pnpm dev                        # Start development server
 ```
 
-### Download the Clash Binary
+If an app instance is already running, use `pnpm dev:diff` to run alongside it.
 
-You have two options for downloading the clash binary:
-
-- Automatically download it via the provided script:
-
-  ```shell
-  pnpm check
-
-  # Use '--force' to force update to the latest version
-  pnpm check --force
-
-  # Use '--alpha' to download alpha version of Clash Verge Service
-  pnpm check --alpha
-
-  # Also, you can use '--alpha' and '--force' together
-  pnpm check --alpha --force
-  ```
-
-- Manually download it from the [Mihomo release](https://github.com/MetaCubeX/mihomo/releases). After downloading, rename the binary according to the [Tauri configuration](https://tauri.app/v1/api/config#bundleconfig.externalbin).
-
-### Run the Development Server
-
-To run the development server, use the following command:
+### Lint & Format
 
 ```shell
-pnpm dev
-# If an app instance already exists, use a different command
-pnpm dev:diff
+pnpm lint                       # ESLint
+cargo clippy --all-targets --all-features --tests --benches -- -D warnings
+cargo +nightly fmt              # Rust formatting (nightly required)
 ```
 
-### Build the Project
-
-If you want to build the project, use:
+### Build
 
 ```shell
-pnpm build
+pnpm build                      # Production build
+pnpm portable                   # Portable package
 ```
 
-## Contributing Your Changes
+## Project Architecture
 
-Once you have made your changes:
+The project is a Cargo workspace with these crates:
 
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Commit your changes with clear and concise commit messages.
-4. Push your branch to your fork and submit a pull request to our repository.
+| Crate                             | Description                                                 |
+| --------------------------------- | ----------------------------------------------------------- |
+| `src-tauri`                       | Main Tauri application (binary + library)                   |
+| `crates/clash-verge-self-service` | Standalone sidecar service managing the Mihomo core process |
+| `crates/clash-verge-self-utils`   | Shared utility functions                                    |
+| `crates/mihomo-config`            | Mihomo configuration management                             |
+| `crates/mihomo-rule-parser`       | Rule parsing (domain, IP CIDR, bitmap)                      |
+| `crates/process_supervisor`       | Mihomo core process lifecycle management                    |
+| `crates/tauri-plugin-mihomo`      | Tauri plugin for Mihomo API integration                     |
 
-We appreciate your contributions and look forward to your active participation in our project!
+Frontend: React 19 + TypeScript + Vite + MUI 9 + TailwindCSS 4 + Zustand + SWR + TanStack Router.
+
+## Contributing
+
+1. Fork the repo and create a feature branch from `dev`.
+2. Make your changes, following existing code style.
+3. Run lint checks (`pnpm lint`, `cargo clippy`).
+4. Open a pull request against the `dev` branch with a clear description of changes.
+
+For UI changes, include screenshots in the PR description.

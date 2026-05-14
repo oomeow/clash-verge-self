@@ -1,32 +1,35 @@
 <h1 align="center">
   <img src="./src/assets/image/logo.png" alt="Clash" width="128" />
   <br>
-  Continuation of <a href="https://github.com/zzzgydi/clash-verge">Clash Verge</a>
+  Clash Verge Self
   <br>
 </h1>
 
-> [!NOTE]
->
-> 此仓库 Fork 自 1.6.0 版本的 **_Clash Verge Rev_**，仅为了实现一些自己想要的功能，由于我基本上都在使用 Linux，所以不能保证在其他系统使用中出现的问题。
->
-> 其他 Clash 系列桌面端软件
->
-> - [Sparkle](https://github.com/xishang0128/sparkle)
-> - [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)
-> - [Clash Nyanpasu](https://github.com/libnyanpasu/clash-nyanpasu)
-> - [FlClash](https://github.com/chen08209/FlClash)
-
 <h3 align="center">
-A Mihomo GUI based on <a href="https://github.com/tauri-apps/tauri">Tauri</a>.
+A <a href="https://github.com/MetaCubeX/mihomo">Mihomo</a> GUI based on <a href="https://github.com/tauri-apps/tauri">Tauri</a>.
 </h3>
 
 <div align="center">
   <img style="max-height: 500" src="./docs/verge.gif" />
 </div>
 
-## Preview
+<p align="center">
+  <a href="https://github.com/oomeow/clash-verge-self/releases"><img src="https://img.shields.io/github/release/oomeow/clash-verge-self.svg" alt="Release" /></a>
+  <a href="https://github.com/oomeow/clash-verge-self/blob/main/LICENSE"><img src="https://img.shields.io/github/license/oomeow/clash-verge-self" alt="License" /></a>
+</p>
 
-<!-- ![preview](./docs/preview.png) -->
+> **Note**
+>
+> 此仓库 Fork 自 1.6.0 版本的 **_Clash Verge Rev_**，基于个人需求进行功能定制和优化。由于主要在 Linux 下开发和使用，不保证在其他系统上运行完美。
+>
+> 其他 Clash 系列桌面端软件：
+>
+> - [Sparkle](https://github.com/xishang0128/sparkle)
+> - [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)
+> - [Clash Nyanpasu](https://github.com/libnyanpasu/clash-nyanpasu)
+> - [FlClash](https://github.com/chen08209/FlClash)
+
+## Preview
 
 | Light                      | Dark                     |
 | -------------------------- | ------------------------ |
@@ -38,35 +41,37 @@ A Mihomo GUI based on <a href="https://github.com/tauri-apps/tauri">Tauri</a>.
 
 ## Features
 
-- Since the clash core has been removed. The project no longer maintains the clash core, but only the mihomo core.
-- Profiles management and enhancement (by yaml and Javascript). [Doc](https://clash-verge-rev.github.io)
-- Improved UI and supports custom theme color.
-- Built-in support [Clash.Meta(mihomo)](https://github.com/MetaCubeX/mihomo) core.
-- System proxy setting and guard.
+- **Mihomo Core Only** — Exclusive support for the [Mihomo](https://github.com/MetaCubeX/mihomo) (Clash Meta) core.
+- **Profile Management** — Advanced profile management via YAML and JavaScript enhancement.
+- **Customizable UI** — Custom theme colors and improved interface.
+- **System Proxy** — System proxy setting and guard.
 
 ### FAQ
 
-Refer to [Doc FAQ Page](https://clash-verge-rev.github.io/faq/windows.html)
+Refer to the [FAQ Page](https://clash-verge-rev.github.io/faq/windows.html).
 
 ## Development
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for more details.
-
-To run the development server, execute the following commands after all prerequisites for **Tauri** are installed:
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup and contribution guidelines.
 
 ```shell
-pnpm i
-pnpm check
+pnpm i                  # Install dependencies (also installs prek git hooks)
+pnpm check              # Download Mihomo core, service binary, and resources
+                        #   --force      Force re-download
+                        #   --alpha      Download alpha channel service
+                        #   --target     Specify target triple (e.g. x86_64-unknown-linux-gnu)
+                        #   --no-confirm Skip confirmation prompt
+pnpm build:service      # Build service binary locally and copy to resources
 pnpm dev
 ```
 
-## Contributions
+## Changelog
 
-Issue and PR welcome!
+See [CHANGELOG.md](./CHANGELOG.md) and [UPDATELOG.md](./UPDATELOG.md).
 
 ## Acknowledgement
 
-Clash Verge Self was based on or inspired by these projects and so on:
+Clash Verge Self was based on or inspired by these projects:
 
 - [clash-verge-rev/clash-verge-rev](https://github.com/clash-verge-rev/clash-verge-rev): Continuation of Clash Verge - A Clash Meta GUI based on Tauri (Windows, MacOS, Linux).
 - [zzzgydi/clash-verge](https://github.com/zzzgydi/clash-verge): A Clash GUI based on tauri. Supports Windows, macOS and Linux.
@@ -82,4 +87,4 @@ Clash Verge Self was based on or inspired by these projects and so on:
 
 ## License
 
-GPL-3.0 License. See [License here](./LICENSE) for details.
+[GPL-3.0 License](./LICENSE)
