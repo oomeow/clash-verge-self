@@ -179,8 +179,7 @@ jobs:
           git push origin dev
 
   delete-release-assets:
-    if: always()
-    needs: [build-service, build-dist-js]
+    needs: [check-build, build-service, build-dist-js]
     runs-on: ubuntu-latest
     steps:
       - name: Delete old release assets
