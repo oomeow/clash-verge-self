@@ -526,12 +526,12 @@ async function downloadClashVergeSelfService(
 
 async function resolveClashVergeSelfService(logger: TaskLogger) {
   if (!runOnGithubActions) {
-    logger.message("local build service");
+    note("Build Service Locally", "Service");
     await localBuildService(logger);
   } else {
     const isAlphaVersion = process.argv.includes("--alpha");
     const channel = isAlphaVersion ? "alpha" : "stable";
-    logger.message(`download Clash Verge Self Service (${channel})`);
+    note(`Channel: ${channel}`, "Service");
     await downloadClashVergeSelfService(channel, logger);
   }
 }
