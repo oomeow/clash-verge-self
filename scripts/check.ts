@@ -523,6 +523,7 @@ async function downloadClashVergeSelfService(
     { file: `clash-verge-self-service${exeSuffix}`, downloadURL },
     logger,
   );
+  await resolveServicePermission(logger);
 }
 
 async function resolveClashVergeSelfService(
@@ -654,13 +655,13 @@ function createTasks(channel: Channel): Task[] {
         ? path.join(process.env.APPDATA, "Local/NSIS", "SimpleSC.dll")
         : undefined,
     },
-    {
-      name: "Chmod clash-verge-self-service",
-      func: resolveServicePermission,
-      retry: 1,
-      unixOnly: true,
-      targetPath: resourcePath(`clash-verge-self-service${exeSuffix}`),
-    },
+    // {
+    //   name: "Chmod clash-verge-self-service",
+    //   func: resolveServicePermission,
+    //   retry: 1,
+    //   unixOnly: true,
+    //   targetPath: resourcePath(`clash-verge-self-service${exeSuffix}`),
+    // },
   ];
 }
 
