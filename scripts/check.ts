@@ -22,6 +22,7 @@ import zlib from "zlib";
 
 import { buildService } from "./build-service";
 import {
+  getClashVergeSelfServiceVersion,
   getExeSuffix,
   getPlatform,
   getPlatformArch,
@@ -78,7 +79,8 @@ type ResourceTaskConfig = ResourceInfo & {
 const cwd = process.cwd();
 const rawArgvs = process.argv;
 const NO_CONFIRM = rawArgvs.includes("--no-confirm");
-let FORCE = rawArgvs.includes("--force");
+let force = rawArgvs.includes("--force");
+const runOnGithubActions = !!process.env.GITHUB_TOKEN;
 
 const platform = getPlatform(rawArgvs);
 const sidecarHost = getTarget(rawArgvs);
@@ -216,7 +218,7 @@ async function resolveSidecar(binInfo: BinInfo, logger: TaskLogger) {
   logger.message(`target path: ${targetPath}`);
 
   await fs.mkdirp(SIDECAR_DIR);
-  if (!FORCE && (await fs.pathExists(targetPath))) {
+  if (!force && (await fs.pathExists(targetPath))) {
     logger.message(`result: skipped existing sidecar ${targetFile}`);
     return;
   }
@@ -313,7 +315,7 @@ async function resolveResource(binInfo: ResourceInfo, logger: TaskLogger) {
     const targetPath = resourcePath(file);
     logger.message(`target path: ${formatResourcePath(targetPath)}`);
 
-    if (!FORCE && (await fs.pathExists(targetPath))) {
+    if (!force && (await fs.pathExists(targetPath))) {
       logger.message(`result: skipped existing resource ${file}`);
       return;
     }
@@ -441,7 +443,7 @@ async function resolvePlugin(logger: TaskLogger) {
   await fs.mkdirp(tempDir);
   logger.message(`download url: ${url}`);
   logger.message(`target path: ${pluginPath}`);
-  if (!FORCE && (await fs.pathExists(pluginPath))) {
+  if (!force && (await fs.pathExists(pluginPath))) {
     logger.message("result: skipped existing NSIS plugin (SimpleSC)");
     return;
   }
@@ -481,7 +483,7 @@ async function resolveServicePermission(_logger: TaskLogger) {
   }
 }
 
-async function resolveClashVergeSelfService(logger: TaskLogger) {
+async function localBuildService(logger: TaskLogger) {
   const spin = spinner();
   spin.start("Starting service build...");
   const result = await buildService((message) => logger.message(message));
@@ -492,6 +494,44 @@ async function resolveClashVergeSelfService(logger: TaskLogger) {
     spin.error("Service build failed.");
     logger.error("Service build failed.");
     throw new Error("Service build failed.");
+  }
+}
+
+async function downloadClashVergeSelfService(
+  channel: "alpha" | "stable",
+  logger: TaskLogger,
+) {
+  const serviceVersion = getClashVergeSelfServiceVersion();
+  const label = channel === "alpha" ? "Alpha" : `v${serviceVersion}`;
+  if (!serviceVersion) {
+    logger.error(
+      `Failed to get Clash Verge Self Service version for ${label}.`,
+    );
+    throw new Error(
+      `Failed to get Clash Verge Self Service version for ${label}.`,
+    );
+  }
+
+  const fileName = `clash-verge-self-service-${sidecarHost}${exeSuffix}`;
+  const releaseTag = channel === "alpha" ? "alpha" : serviceVersion;
+  const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/${releaseTag}/${fileName}`;
+
+  logger.message(`Download Clash Verge Self Service (${label})`);
+  await resolveResource(
+    { file: `clash-verge-self-service${exeSuffix}`, downloadURL },
+    logger,
+  );
+}
+
+async function resolveClashVergeSelfService(logger: TaskLogger) {
+  if (!runOnGithubActions) {
+    logger.message("local build service");
+    await localBuildService(logger);
+  } else {
+    const isAlphaVersion = process.argv.includes("--alpha");
+    const channel = isAlphaVersion ? "alpha" : "stable";
+    logger.message(`download Clash Verge Self Service (${channel})`);
+    await downloadClashVergeSelfService(channel, logger);
   }
 }
 
@@ -595,7 +635,7 @@ function createTasks(): Task[] {
   return [
     ...createMihomoTask(),
     {
-      name: "Build and copy clash-verge-self-service",
+      name: "Resolve Clash Verge Self Service",
       func: (logger: TaskLogger) => resolveClashVergeSelfService(logger),
       retry: 5,
       targetPath: resourcePath(`clash-verge-self-service${exeSuffix}`),
@@ -629,7 +669,7 @@ function shouldRunTask(task: Task) {
 }
 
 async function confirmOverwriteIfNeeded(tasks: Task[]) {
-  if (FORCE) return;
+  if (force) return;
 
   const existingResources = new Set<string>();
   for (const task of tasks) {
@@ -649,7 +689,7 @@ async function confirmOverwriteIfNeeded(tasks: Task[]) {
   );
 
   if (NO_CONFIRM) {
-    FORCE = true;
+    force = true;
     log.info("Use default overwrite confirmation from --no-confirm");
     return;
   }
@@ -659,7 +699,7 @@ async function confirmOverwriteIfNeeded(tasks: Task[]) {
     initialValue: true,
   });
 
-  FORCE = handleCancel(overwrite) as boolean;
+  force = handleCancel(overwrite) as boolean;
 }
 
 async function runTaskWithRetry(task: Task) {
