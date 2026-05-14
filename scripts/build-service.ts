@@ -1,16 +1,34 @@
+import { note } from "@clack/prompts";
 import { spawn } from "child_process";
 import fs from "fs-extra";
 
-import { getExeSuffix, getTarget, RESOURCE_DIR, resourcePath } from "./utils";
+import {
+  getExeSuffix,
+  getRustHost,
+  getTarget,
+  RESOURCE_DIR,
+  resourcePath,
+} from "./utils";
 
 export async function buildService(logger?: (message: string) => void) {
   const argv = process.argv;
   const packageName = "clash-verge-self-service";
+
+  const currentTarget = getRustHost();
   const target = getTarget(argv);
+  const useCrossBuild =
+    [
+      "i686-unknown-linux-gnu",
+      "aarch64-unknown-linux-gnu",
+      "armv7-unknown-linux-gnueabihf",
+    ].includes(target) && currentTarget !== target;
+
+  const command = useCrossBuild ? "cross" : "cargo";
+  note(`use [${command}] to build service`);
 
   const buildTask = new Promise((resolve, reject) => {
     const child = spawn(
-      "cargo",
+      command,
       ["build", "--release", "--package", packageName, "--target", target],
       { cwd: process.cwd(), shell: false },
     );

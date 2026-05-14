@@ -9,6 +9,7 @@ import {
   spinner,
   taskLog,
 } from "@clack/prompts";
+import { note } from "@clack/prompts";
 import AdmZip from "adm-zip";
 import { execSync } from "child_process";
 import fs from "fs-extra";
@@ -154,13 +155,14 @@ async function fetchWithTimeout(resource: string, options: FetchOptions = {}) {
 
 async function getLatestMihomoVersion(
   version: Version,
-  logger: TaskLogger,
+  _logger: TaskLogger,
 ): Promise<string> {
   const isAlpha = version === "alpha";
   const label = isAlpha ? "alpha" : "stable";
   const versionUrl = isAlpha ? MIHOMO_ALPHA_VERSION_URL : MIHOMO_VERSION_URL;
 
-  logger.message(`get latest mihomo ${label} version`);
+  const spin = spinner();
+  spin.start(`get latest mihomo ${label} version`);
   try {
     const response = await fetchWithTimeout(versionUrl, {
       ...getFetchOptions(),
@@ -168,11 +170,11 @@ async function getLatestMihomoVersion(
     });
     const v = await response.text();
     const latestVersion = v.trim();
-    logger.message(`Latest ${label} version: ${latestVersion}`);
+    spin.stop(`Latest ${label} version: ${latestVersion}`);
     return latestVersion;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    logger.error(`Error fetching latest ${label} version: ${message}`);
+    spin.error(`Error fetching latest ${label} version: ${message}`);
     throw error;
   }
 }
@@ -578,8 +580,9 @@ function createMihomoTask(): Task[] {
     return {
       name: taskName,
       func: async (logger: TaskLogger) => {
-        logger.message(`Download and unzip Latest Mihomo ${label} Version`);
+        // logger.message(`Download and unzip Latest Mihomo ${label} Version`);
         const latestVersion = await getLatestMihomoVersion(version, logger);
+        note(`channel: ${label} \nversion: ${latestVersion}`, `Mihomo`);
         await resolveSidecar(mihomo(version, latestVersion), logger);
       },
       retry: 5,
@@ -660,7 +663,7 @@ async function confirmOverwriteIfNeeded(tasks: Task[]) {
 }
 
 async function runTaskWithRetry(task: Task) {
-  const taskName = pc.bgBlue(pc.white(` ${task.name} `));
+  const taskName = pc.bgBlueBright(pc.white(` ${task.name} `));
   const logger = taskLog({
     title: taskName,
     limit: 15,

@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import fs from "fs-extra";
 import path from "path";
 
 const cwd = process.cwd();
@@ -120,4 +121,15 @@ export function getPlatformArch(argv: string[]) {
 
 export function getExeSuffix(argv: string[]) {
   return getPlatform(argv) === "win32" ? ".exe" : "";
+}
+
+export function getClashVergeSelfServiceVersion() {
+  const cargoFilePath = path.join(
+    process.cwd(),
+    "crates/clash-verge-self-service/Cargo.toml",
+  );
+
+  return fs
+    .readFileSync(cargoFilePath, "utf-8")
+    .match(/(?<=version\s*=\s*")[^"]+/)?.[0];
 }
