@@ -71,4 +71,7 @@ export async function buildService(logger?: (message: string) => void) {
   }
 }
 
-buildService();
+if (import.meta.main) {
+  console.log("run...");
+  buildService();
+}

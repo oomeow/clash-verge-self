@@ -21,6 +21,7 @@ import pc from "picocolors";
 import * as tar from "tar";
 import zlib from "zlib";
 
+import { buildService } from "./build-service";
 import {
   getClashVergeSelfServiceVersion,
   getExeSuffix,
@@ -82,6 +83,7 @@ const rawArgvs = process.argv;
 const NO_CONFIRM = rawArgvs.includes("--no-confirm");
 let force = rawArgvs.includes("--force");
 const IS_ALPHA_VERSION = process.argv.includes("--alpha");
+const RUN_ON_GITHUB_ACTIONS = !!process.env.GITHUB_TOKEN;
 
 const platform = getPlatform(rawArgvs);
 const sidecarHost = getTarget(rawArgvs) ?? getRustHost();
@@ -527,16 +529,16 @@ async function downloadClashVergeSelfService(
 }
 
 async function resolveClashVergeSelfService(
-  channel: Channel,
+  channel: Channel | undefined,
   logger: TaskLogger,
 ) {
-  // if (!runOnGithubActions) {
-  //   note("Build Service Locally", "Service");
-  //   await localBuildService(logger);
-  // } else {
-  note(`Channel: ${channel}`, "Service");
-  await downloadClashVergeSelfService(channel, logger);
-  // }
+  if (!RUN_ON_GITHUB_ACTIONS) {
+    note("Build Service Locally", "Build Service");
+    await buildService((message) => logger.message(message));
+  } else {
+    note(`Channel: ${channel}`, "Download Service");
+    await downloadClashVergeSelfService(channel!, logger);
+  }
 }
 
 const RESOURCE_TASKS: ResourceTaskConfig[] = [
@@ -635,7 +637,7 @@ function createMihomoTask(): Task[] {
   });
 }
 
-function createTasks(channel: Channel): Task[] {
+function createTasks(channel: Channel | undefined): Task[] {
   return [
     ...createMihomoTask(),
     {
@@ -762,7 +764,10 @@ async function runTaskWithRetry(task: Task) {
  */
 async function runTask() {
   intro(pc.bgCyan(pc.white(" Check and download files ")));
-  const channel = await chooseServiceChannel();
+  let channel: Channel | undefined = undefined;
+  if (RUN_ON_GITHUB_ACTIONS) {
+    channel = await chooseServiceChannel();
+  }
   const tasks = createTasks(channel).filter(shouldRunTask);
   await confirmOverwriteIfNeeded(tasks);
 
