@@ -20,7 +20,7 @@ A <a href="https://github.com/MetaCubeX/mihomo">Mihomo</a> GUI based on <a href=
 
 > [!Note]
 >
-> 此仓库 Fork 自 1.6.0 版本的 **_Clash Verge Rev_**，基于个人需求进行功能定制和优化。由于主要在 Linux 下开发和使用，不保证在其他系统上运行完美。
+> 此仓库 Fork 自 1.6.0 版本的 **_Clash Verge Rev_**，基于个人需求进行功能定制和优化。
 >
 > 其他 Clash 系列桌面端软件：
 >
