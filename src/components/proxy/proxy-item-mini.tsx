@@ -76,6 +76,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
       id={proxyId(group.name, proxy.name)}
       dense
       data-delay-version={delayVersion}
+      data-fixed={fixed}
       selected={selected}
       onClick={() => onClick?.(proxy.name)}
       sx={[
@@ -87,10 +88,11 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
           justifyContent: "space-between",
           alignItems: "center",
         },
-        ({ palette: { mode, primary } }) => {
+        ({ palette: { mode, primary, warning } }) => {
           const bgcolor = mode === "light" ? "#ffffff" : "#24252f";
           const showDelay = delay > 0;
           const selectColor = mode === "light" ? primary.main : primary.light;
+          const fixedColor = mode === "light" ? warning.main : warning.light;
 
           return {
             "&:hover": {
@@ -117,6 +119,16 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
                 mode === "light"
                   ? alpha(primary.main, 0.15)
                   : alpha(primary.main, 0.35),
+            },
+            '&[data-fixed="true"]:not(.Mui-selected)': {
+              borderLeft: `2px solid ${alpha(fixedColor, 0.25)}`,
+            },
+            '&[data-fixed="true"].Mui-selected': {
+              borderLeft: `3px solid ${fixedColor}`,
+              bgcolor:
+                mode === "light"
+                  ? alpha(warning.main, 0.08)
+                  : alpha(warning.main, 0.18),
             },
             backgroundColor: bgcolor,
             transition: "background-color 0s",

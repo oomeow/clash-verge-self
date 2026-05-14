@@ -1,7 +1,7 @@
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import {
   alpha,
-  ListItem,
+  Box,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -82,36 +82,71 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
   });
 
   return (
-    <ListItem sx={sx}>
+    <Box sx={[{ pr: 2 }, sx]}>
       <ListItemButton
         id={proxyId(group.name, proxy.name)}
         dense
         data-delay-version={delayVersion}
+        data-fixed={fixed}
         selected={selected}
         onClick={() => onClick?.(proxy.name)}
         sx={(theme) => {
           const showDelay = delay > 0;
+          const { mode, primary, warning } = theme.palette;
+          const selectColor = mode === "light" ? primary.main : primary.light;
+          const fixedColor = mode === "light" ? warning.main : warning.light;
           return {
             borderRadius: 1,
             "&:hover .the-check": { display: !showDelay ? "block" : "none" },
             "&:hover .the-delay": { display: showDelay ? "block" : "none" },
             "&:hover .the-icon": { display: "none" },
-            "& .the-pin, & .the-unpin": {
+            position: "relative",
+            "& [data-pin]": {
               position: "absolute",
               fontSize: "12px",
               top: "-5px",
               right: "-5px",
+              opacity: 0,
+              transition: "opacity 0s",
             },
-            "& .the-unpin": { filter: "grayscale(1)" },
+            "& [data-pin][data-fixed='true']": { opacity: 1 },
+            "& [data-pin][data-fixed='true'][data-selected='false']": {
+              filter: "grayscale(1)",
+              opacity: 0.6,
+            },
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: 0,
+              borderRadius: "3px 0 0 3px",
+              transition: "width 0s",
+            },
+            "&.Mui-selected::before": {
+              width: "3px",
+              backgroundColor: selectColor,
+            },
             "&.Mui-selected": {
-              width: `calc(100% + 3px)`,
-              marginLeft: `-3px`,
-              bgcolor: alpha(theme.palette.primary.main, 0.15),
-              borderLeft: `3px solid ${theme.palette.primary.main}`,
-              ...theme.applyStyles("dark", {
-                bgcolor: alpha(theme.palette.primary.main, 0.35),
-                borderLeft: `3px solid ${theme.palette.primary.light}`,
-              }),
+              bgcolor:
+                mode === "light"
+                  ? alpha(primary.main, 0.15)
+                  : alpha(primary.main, 0.35),
+            },
+            '&[data-fixed="true"]:not(.Mui-selected)::before': {
+              width: "2px",
+              backgroundColor: alpha(fixedColor, 0.25),
+            },
+            '&[data-fixed="true"].Mui-selected::before': {
+              width: "3px",
+              backgroundColor: fixedColor,
+            },
+            '&[data-fixed="true"].Mui-selected': {
+              bgcolor:
+                mode === "light"
+                  ? alpha(warning.main, 0.08)
+                  : alpha(warning.main, 0.18),
             },
             backgroundColor: "#ffffff",
             ...theme.applyStyles("dark", {
@@ -124,14 +159,16 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
         <ListItemText
           title={proxy.name}
           secondary={
-            <span className="flex items-center">
-              <span className="mr-1 line-clamp-2">
-                <span className="text-primary-text text-sm">
-                  {proxy.name}
-                  {showType && proxy.now && ` - ${proxy.now}`}
-                </span>
+            <span className="flex flex-col">
+              <span className="text-primary-text line-clamp-2 text-sm">
+                {proxy.name}
+                {showType && proxy.now && (
+                  <span className="text-secondary-text ml-1">
+                    - {proxy.now}
+                  </span>
+                )}
               </span>
-              <span className="flex flex-nowrap">
+              <span className="mt-0.5 flex flex-nowrap">
                 {showType && !!proxy.providerName && (
                   <TypeSpan data-proxy-provider>{proxy.providerName}</TypeSpan>
                 )}
@@ -194,11 +231,13 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
           )}
         </ListItemIcon>
 
-        {fixed && (
+        {fixed !== undefined && (
           // 展示fixed状态
-          <span className={selected ? "the-pin" : "the-unpin"}>📌</span>
+          <span data-pin data-fixed={fixed} data-selected={selected}>
+            📌
+          </span>
         )}
       </ListItemButton>
-    </ListItem>
+    </Box>
   );
 });
