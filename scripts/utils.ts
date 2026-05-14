@@ -100,20 +100,16 @@ export function getArgValue(argv: string[], arg: string) {
 }
 
 export function getTarget(argv: string[]) {
-  const target = getArgValue(argv, "--target");
-  if (!target) {
-    return getRustHost();
-  }
-  return target;
+  return getArgValue(argv, "--target");
 }
 
 export function getPlatform(argv: string[]) {
-  const target = getTarget(argv);
+  const target = getTarget(argv) ?? getRustHost();
   return target ? PLATFORM_MAP[target] : process.platform;
 }
 
 export function getArch(argv: string[]) {
-  const target = getTarget(argv);
+  const target = getTarget(argv) ?? getRustHost();
   return target ? ARCH_MAP[target] : process.arch;
 }
 

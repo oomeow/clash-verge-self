@@ -1,12 +1,13 @@
+#!/bin/bash
 nic=$(route -n get default | grep "interface" | awk '{print $2}')
 
 hardware_port=$(networksetup -listallhardwareports | awk -v dev="$nic" '
     /Hardware Port:/{
         port=$0; gsub("Hardware Port: ", "", port)
-    } 
+    }
     /Device: /{
         if ($2 == dev) {
-            print port; 
+            print port;
             exit
         }
     }

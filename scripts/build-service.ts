@@ -1,5 +1,4 @@
-import { note } from "@clack/prompts";
-import { spawn } from "child_process";
+import { execSync, spawn } from "child_process";
 import fs from "fs-extra";
 
 import { getExeSuffix, getTarget, RESOURCE_DIR, resourcePath } from "./utils";
@@ -8,23 +7,28 @@ export async function buildService(logger?: (message: string) => void) {
   const argv = process.argv;
   const packageName = "clash-verge-self-service";
 
-  // const currentTarget = getRustHost();
   const target = getTarget(argv);
-  const useCrossBuild = [
-    "i686-unknown-linux-gnu",
-    "aarch64-unknown-linux-gnu",
-    "armv7-unknown-linux-gnueabihf",
-  ].includes(target);
+  // const useCrossBuild = [
+  //   "i686-unknown-linux-gnu",
+  //   "aarch64-unknown-linux-gnu",
+  //   "armv7-unknown-linux-gnueabihf",
+  // ].includes(target);
+  // const command = useCrossBuild ? "cross" : "cargo";
 
-  const command = useCrossBuild ? "cross" : "cargo";
-  note(`use [${command}] to build service`);
+  const command = "cargo";
+  const args = ["build", "--release", "--package", packageName];
+  if (target) {
+    args.push("--target", target);
+  }
+  if (logger) {
+    logger(`command: ${command} ${args}`);
+  } else {
+    console.log(`command:`, command, args);
+  }
+  // note(`use [${command}] to build service`);
 
   const buildTask = new Promise((resolve, reject) => {
-    const child = spawn(
-      command,
-      ["build", "--release", "--package", packageName, "--target", target],
-      { cwd: process.cwd(), shell: false },
-    );
+    const child = spawn(command, args, { cwd: process.cwd(), shell: false });
     child.stdout.on("data", (data: Buffer) => {
       if (logger) {
         logger(data.toString().trimEnd());
@@ -52,29 +56,19 @@ export async function buildService(logger?: (message: string) => void) {
 
   await buildTask;
 
-  const exeSuffix = getExeSuffix(argv);
   if (!fs.pathExistsSync(RESOURCE_DIR)) {
     await fs.mkdirp(RESOURCE_DIR);
   }
-  const bundleFilePath = `target/${target}/release/${packageName}${exeSuffix}`;
+  const exeSuffix = getExeSuffix(argv);
+  let bundleFilePath = `target/release/${packageName}${exeSuffix}`;
+  if (target) {
+    bundleFilePath = `target/${target}/release/${packageName}${exeSuffix}`;
+  }
   const serviceResPath = resourcePath(`${packageName}${exeSuffix}`);
-  let buildResult: boolean = false;
-  await new Promise((resolve, reject) => {
-    fs.copyFile(bundleFilePath, serviceResPath, (err) => {
-      if (err) {
-        console.error(`Failed to copy ${packageName} to ${serviceResPath}`);
-        reject(err);
-      } else {
-        console.log(`${packageName} was copied Done!`);
-        buildResult = true;
-        resolve(null);
-      }
-    });
-  });
-
-  return buildResult;
+  await fs.copyFile(bundleFilePath, serviceResPath);
+  if (exeSuffix !== ".exe") {
+    execSync(`chmod 755 ${serviceResPath}`);
+  }
 }
 
-// buildService().then((result) => {
-//   console.log(`Build Clash Verge Service Result: ${result}`);
-// });
+buildService();

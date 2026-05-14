@@ -20,12 +20,12 @@ import pc from "picocolors";
 import * as tar from "tar";
 import zlib from "zlib";
 
-import { buildService } from "./build-service";
 import {
   getClashVergeSelfServiceVersion,
   getExeSuffix,
   getPlatform,
   getPlatformArch,
+  getRustHost,
   getTarget,
   MIHOMO_ALPHA_MAP,
   MIHOMO_ALPHA_URL_PREFIX,
@@ -80,10 +80,9 @@ const cwd = process.cwd();
 const rawArgvs = process.argv;
 const NO_CONFIRM = rawArgvs.includes("--no-confirm");
 let force = rawArgvs.includes("--force");
-const runOnGithubActions = !!process.env.GITHUB_TOKEN;
 
 const platform = getPlatform(rawArgvs);
-const sidecarHost = getTarget(rawArgvs);
+const sidecarHost = getTarget(rawArgvs) ?? getRustHost();
 const exeSuffix = getExeSuffix(rawArgvs);
 const platformArch = getPlatformArch(rawArgvs);
 
@@ -483,19 +482,19 @@ async function resolveServicePermission(_logger: TaskLogger) {
   }
 }
 
-async function localBuildService(logger: TaskLogger) {
-  const spin = spinner();
-  spin.start("Starting service build...");
-  const result = await buildService((message) => logger.message(message));
-  if (result) {
-    spin.stop("Service build completed.");
-    logger.success("Service build completed.");
-  } else {
-    spin.error("Service build failed.");
-    logger.error("Service build failed.");
-    throw new Error("Service build failed.");
-  }
-}
+// async function localBuildService(logger: TaskLogger) {
+//   const spin = spinner();
+//   spin.start("Starting service build...");
+//   const result = await buildService((message) => logger.message(message));
+//   if (result) {
+//     spin.stop("Service build completed.");
+//     logger.success("Service build completed.");
+//   } else {
+//     spin.error("Service build failed.");
+//     logger.error("Service build failed.");
+//     throw new Error("Service build failed.");
+//   }
+// }
 
 async function downloadClashVergeSelfService(
   channel: "alpha" | "stable",
@@ -525,15 +524,15 @@ async function downloadClashVergeSelfService(
 }
 
 async function resolveClashVergeSelfService(logger: TaskLogger) {
-  if (!runOnGithubActions) {
-    note("Build Service Locally", "Service");
-    await localBuildService(logger);
-  } else {
-    const isAlphaVersion = process.argv.includes("--alpha");
-    const channel = isAlphaVersion ? "alpha" : "stable";
-    note(`Channel: ${channel}`, "Service");
-    await downloadClashVergeSelfService(channel, logger);
-  }
+  // if (!runOnGithubActions) {
+  //   note("Build Service Locally", "Service");
+  //   await localBuildService(logger);
+  // } else {
+  const isAlphaVersion = process.argv.includes("--alpha");
+  const channel = isAlphaVersion ? "alpha" : "stable";
+  note(`Channel: ${channel}`, "Service");
+  await downloadClashVergeSelfService(channel, logger);
+  // }
 }
 
 const RESOURCE_TASKS: ResourceTaskConfig[] = [
