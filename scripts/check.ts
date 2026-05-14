@@ -513,8 +513,9 @@ async function downloadClashVergeSelfService(
   }
 
   const fileName = `clash-verge-self-service-${sidecarHost}${exeSuffix}`;
-  const releaseTag = channel === "alpha" ? "alpha" : serviceVersion;
-  const downloadURL = `https://github.com/oomeow/clash-verge-self-service/releases/download/${releaseTag}/${fileName}`;
+  const releaseTag =
+    channel === "alpha" ? "service-alpha" : `service-v${serviceVersion}`;
+  const downloadURL = `https://github.com/oomeow/clash-verge-self/releases/download/${releaseTag}/${fileName}`;
 
   logger.message(`Download Clash Verge Self Service (${label})`);
   await resolveResource(
