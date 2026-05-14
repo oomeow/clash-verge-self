@@ -56,13 +56,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup and contribution guidelines.
 
 ```shell
 pnpm i                  # Install dependencies (also installs prek git hooks)
-pnpm check              # Download Mihomo core, service binary, and resources
+pnpm check              # Download resources; locally also builds the service binary
                         #   --force      Force re-download
                         #   --alpha      Download alpha channel service
                         #   --target     Specify target triple (e.g. x86_64-unknown-linux-gnu)
                         #   --no-confirm Skip confirmation prompt
-pnpm build:service      # Build service binary locally and copy to resources
-pnpm dev
+pnpm build:service      # Rebuild service binary after modifying service code
+pnpm dev                # Start development server
 ```
 
 ## Changelog
