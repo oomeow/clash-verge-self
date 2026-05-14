@@ -11,7 +11,8 @@ import WifiTetheringOffRounded from "@mui/icons-material/WifiTetheringOffRounded
 import WifiTetheringRounded from "@mui/icons-material/WifiTetheringRounded";
 import { Box, IconButton, SxProps, TextField } from "@mui/material";
 import debounce from "lodash-es/debounce";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import delayManager from "@/services/delay";
@@ -49,6 +50,12 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
 
   const { showType, sortType, filterText, textState, testUrl } = headState;
   const [filterTextInp, setFilterTextInp] = useState(filterText);
+
+  // Keep refs to callbacks so onClick can call the latest version after flushSync re-render
+  const onLocationRef = useRef(props.onLocation);
+  const onCheckDelayRef = useRef(props.onCheckDelay);
+  onLocationRef.current = props.onLocation;
+  onCheckDelayRef.current = props.onCheckDelay;
 
   const { t } = useTranslation();
   const [autoFocus, setAutoFocus] = useState(false);
@@ -143,7 +150,8 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          props.onLocation();
+          if (!headState.open) flushSync(() => headStateActions.setOpen(true));
+          onLocationRef.current();
         }}>
         <MyLocationRounded fontSize="inherit" />
       </IconButton>
@@ -155,11 +163,12 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (!headState.open) flushSync(() => headStateActions.setOpen(true));
           // Remind the user that it is custom test url
           if (testUrl?.trim() && textState !== "filter") {
             headStateActions.setTextState("url");
           }
-          props.onCheckDelay();
+          onCheckDelayRef.current();
         }}>
         <NetworkCheckRounded fontSize="inherit" />
       </IconButton>
@@ -177,6 +186,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (!headState.open) flushSync(() => headStateActions.setOpen(true));
           headStateActions.setSortType(((sortType + 1) % 3) as ProxySortType);
         }}>
         {sortType !== 1 && sortType !== 2 && <SortRounded fontSize="inherit" />}
@@ -191,6 +201,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (!headState.open) flushSync(() => headStateActions.setOpen(true));
           headStateActions.setTextState(textState === "url" ? null : "url");
         }}>
         {textState === "url" ? (
@@ -211,6 +222,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (!headState.open) flushSync(() => headStateActions.setOpen(true));
           headStateActions.setShowType(!showType);
         }}>
         {showType ? (
@@ -227,6 +239,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (!headState.open) flushSync(() => headStateActions.setOpen(true));
           setFilterTextInp("");
           headStateActions.setTextState(
             textState === "filter" ? null : "filter",
