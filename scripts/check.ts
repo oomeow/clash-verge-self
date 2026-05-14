@@ -673,7 +673,7 @@ async function runTaskWithRetry(task: Task) {
   for (let i = 0; i < task.retry; i++) {
     try {
       await task.func(logger);
-      logger.success(`task::${task.name} Done!`, { showLog: true });
+      logger.success(`task::${task.name} Done!`, { showLog: false });
       return;
     } catch (err) {
       const attempt = i + 1;
