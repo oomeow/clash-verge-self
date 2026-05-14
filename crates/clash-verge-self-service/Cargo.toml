@@ -35,8 +35,8 @@ hkdf = "0.13"
 x25519-dalek = { version = "2.0", features = ["static_secrets"] }
 sha2 = "0.11"
 
-[target.'cfg(target_os = "linux")'.dependencies]
-openssl = { version = "0.10", features = ["vendored"] }
+# [target.'cfg(target_os = "linux")'.dependencies]
+# openssl = { version = "0.10", features = ["vendored"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-service = "0.8"

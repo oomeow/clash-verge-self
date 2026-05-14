@@ -89,7 +89,7 @@ windows-sys = { version = "0.61", features = [
 
 [target.'cfg(target_os = "linux")'.dependencies]
 users = "0.11"
-openssl = { version = "0.10", features = ["vendored"] }
+# openssl = { version = "0.10", features = ["vendored"] }
 
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 signal-hook = "0.4"
