@@ -162,6 +162,7 @@ jobs:
           pnpm check --target ${{ matrix.target }} --alpha --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
 
       - name: Tauri build
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
@@ -246,6 +247,7 @@ jobs:
           pnpm check --target ${{ matrix.target }} --alpha --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
 
       - name: Tauri build (x86_64)
         if: startsWith(matrix.target, 'x86_64')
