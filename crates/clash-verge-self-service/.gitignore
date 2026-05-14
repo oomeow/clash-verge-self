@@ -1,0 +1,5 @@
+/target
+.DS_Store
+
+examples/mihomo/**
+!examples/mihomo/test.yaml
