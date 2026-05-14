@@ -3,7 +3,7 @@ mod handle;
 mod logger;
 
 use std::{
-    collections::HashSet,
+    collections::VecDeque,
     path::PathBuf,
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
@@ -58,8 +58,7 @@ macro_rules! wrap_response {
 pub struct SecureChannel {
     stream: Connection,
     aead: Arc<XChaCha20Poly1305>,
-    // 该 IPC 服务不存在大量并发，所以使用 Arc<Mutex<HashSet<u64>>> 已经够用了
-    seen_ids: Arc<Mutex<HashSet<u64>>>,
+    seen_ids: Arc<Mutex<VecDeque<u64>>>,
     /// each request timestamp (millions)
     timestamp_window: u128,
 }
@@ -147,8 +146,13 @@ impl SecureChannel {
         }
 
         let mut ids = self.seen_ids.lock();
-        if !ids.insert(msg_id) {
+        if ids.contains(&msg_id) {
             return Err(anyhow!("replay attack: duplicate message ID"));
+        } else {
+            if ids.len() >= 100 {
+                ids.pop_front();
+            }
+            ids.push_back(msg_id);
         }
 
         Ok(plaintext[24..].to_vec())
@@ -249,7 +253,7 @@ impl SecureChannel {
         Ok(SecureChannel {
             stream,
             aead: Arc::new(aead),
-            seen_ids: Arc::new(Mutex::new(HashSet::new())),
+            seen_ids: Arc::new(Mutex::new(VecDeque::with_capacity(100))),
             timestamp_window: 500,
         })
     }
@@ -278,7 +282,7 @@ impl SecureChannel {
         Ok(SecureChannel {
             stream,
             aead: Arc::new(aead),
-            seen_ids: Arc::new(Mutex::new(HashSet::new())),
+            seen_ids: Arc::new(Mutex::new(VecDeque::with_capacity(100))),
             timestamp_window: 500,
         })
     }
