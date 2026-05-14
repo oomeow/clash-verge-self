@@ -18,7 +18,7 @@ A <a href="https://github.com/MetaCubeX/mihomo">Mihomo</a> GUI based on <a href=
   <a href="https://github.com/oomeow/clash-verge-self/blob/main/LICENSE"><img src="https://img.shields.io/github/license/oomeow/clash-verge-self" alt="License" /></a>
 </p>
 
-> **Note**
+> [!Note]
 >
 > 此仓库 Fork 自 1.6.0 版本的 **_Clash Verge Rev_**，基于个人需求进行功能定制和优化。由于主要在 Linux 下开发和使用，不保证在其他系统上运行完美。
 >
