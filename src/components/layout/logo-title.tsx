@@ -84,10 +84,11 @@ export const LogoTitle = ({
           exit={{ x: 20, opacity: 0 }}
           transition={{ duration: 0.5 }}
           className={cn(
-            "absolute top-2 right-4 z-10 h-4 w-4 cursor-pointer border-none bg-transparent",
+            "absolute top-0 right-4 z-10 h-4 w-4 cursor-pointer border-none bg-transparent",
             {
-              "top-4 right-5.5": sidebarCollapsed,
-              "-top-4": sidebarCollapsed && enableSystemTitleBar,
+              "top-2": isMacOS,
+              "top-2 right-5.5": sidebarCollapsed,
+              "-top-1": sidebarCollapsed && enableSystemTitleBar,
               "top-5": sidebarCollapsed && isMacOS,
             },
           )}

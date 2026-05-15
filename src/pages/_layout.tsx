@@ -195,7 +195,7 @@ const Layout = () => {
           }}
         />
 
-        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="bg-background-default flex h-full min-w-0 flex-1 flex-col overflow-hidden">
           {!enableSystemTitleBar && (
             <div className="z-10 box-border flex shrink-0 grow-0 basis-8 justify-end">
               <div className="mt-1 w-full" data-tauri-drag-region="true" />
