@@ -6,7 +6,7 @@ import PushPinOutlined from "@mui/icons-material/PushPinOutlined";
 import PushPinRounded from "@mui/icons-material/PushPinRounded";
 import { Button, ButtonGroup } from "@mui/material";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useState } from "react";
+import { memo, useState } from "react";
 
 const appWindow = getCurrentWebviewWindow();
 
@@ -15,13 +15,23 @@ interface Props {
   onClose: () => void;
 }
 
-export const LayoutControl = ({ maximized, onClose }: Props) => {
-  const minWidth = 40;
+const BTN_SX = {
+  minWidth: 40,
+  svg: { transform: "scale(0.9)" },
+  transition: "background-color 0.15s",
+};
+
+export const LayoutControl = memo(function LayoutControl({
+  maximized,
+  onClose,
+}: Props) {
   const [isPined, setIsPined] = useState(false);
+  const [isHoverLocked, setIsHoverLocked] = useState(false);
 
   return (
     <ButtonGroup
       variant="text"
+      onMouseEnter={() => setIsHoverLocked(false)}
       sx={{
         zIndex: 1000,
         height: "100%",
@@ -32,8 +42,15 @@ export const LayoutControl = ({ maximized, onClose }: Props) => {
       }}>
       <Button
         size="small"
-        sx={{ minWidth, svg: { transform: "scale(0.9)" } }}
+        sx={{
+          ...BTN_SX,
+          color: isPined ? "primary.main" : undefined,
+          "&:hover:not(:active)": {
+            bgcolor: isHoverLocked ? undefined : "action.selected",
+          },
+        }}
         onClick={() => {
+          setIsHoverLocked(true);
           appWindow.setAlwaysOnTop(!isPined);
           setIsPined((isPined) => !isPined);
         }}>
@@ -46,15 +63,29 @@ export const LayoutControl = ({ maximized, onClose }: Props) => {
 
       <Button
         size="small"
-        sx={{ minWidth, svg: { transform: "scale(0.9)" } }}
-        onClick={() => appWindow.minimize()}>
+        sx={{
+          ...BTN_SX,
+          "&:hover:not(:active)": {
+            bgcolor: isHoverLocked ? undefined : "action.selected",
+          },
+        }}
+        onClick={() => {
+          setIsHoverLocked(true);
+          appWindow.minimize();
+        }}>
         <HorizontalRuleRounded fontSize="small" />
       </Button>
 
       <Button
         size="small"
-        sx={{ minWidth, svg: { transform: "scale(0.9)" } }}
+        sx={{
+          ...BTN_SX,
+          "&:hover:not(:active)": {
+            bgcolor: isHoverLocked ? undefined : "action.selected",
+          },
+        }}
         onClick={() => {
+          setIsHoverLocked(true);
           appWindow.toggleMaximize();
         }}>
         {maximized ? (
@@ -71,14 +102,22 @@ export const LayoutControl = ({ maximized, onClose }: Props) => {
 
       <Button
         size="small"
+        aria-label="关闭"
         sx={{
-          minWidth,
+          minWidth: 40,
           svg: { transform: "scale(1.05)" },
-          ":hover": { bgcolor: "#ff000090", color: "#fff" },
+          transition: "background-color 0.15s",
+          "&:hover:not(:active)": {
+            bgcolor: isHoverLocked ? undefined : "#ff000090",
+            color: isHoverLocked ? undefined : "#fff",
+          },
         }}
-        onClick={onClose}>
+        onClick={() => {
+          setIsHoverLocked(true);
+          onClose();
+        }}>
         <CloseRounded fontSize="small" />
       </Button>
     </ButtonGroup>
   );
-};
+});
