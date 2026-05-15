@@ -385,7 +385,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         fixed={group.fixed === proxy?.name}
         showType={headState?.showType}
         delayVersion={delayVersion}
-        sx={{ py: "4px", pl: 2 }}
+        sx={{ py: "4px", px: 2 }}
         onClick={() => onChangeProxy(group, proxy!)}
       />
     );

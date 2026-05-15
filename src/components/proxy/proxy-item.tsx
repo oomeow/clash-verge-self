@@ -82,7 +82,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
   });
 
   return (
-    <Box sx={[{ pr: 2, ...{ sx } }]}>
+    <Box sx={sx}>
       <ListItemButton
         id={proxyId(group.name, proxy.name)}
         dense
@@ -157,26 +157,30 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
           };
         }}>
         <ListItemText
-          title={proxy.name}
+          title={`${proxy.name}${proxy.now ? `\n(${proxy.now})` : ""}`}
           secondary={
             <span className="flex flex-col">
               <span className="text-primary-text line-clamp-2 text-sm">
                 {proxy.name}
-                {showType && proxy.now && (
-                  <span className="text-secondary-text ml-1">
-                    - {proxy.now}
-                  </span>
-                )}
               </span>
-              <span className="mt-0.5 flex flex-nowrap">
-                {showType && !!proxy.providerName && (
-                  <TypeSpan data-proxy-provider>{proxy.providerName}</TypeSpan>
-                )}
-                {showType && <TypeSpan>{proxy.type}</TypeSpan>}
-                {showType && proxy.udp && <TypeSpan>UDP</TypeSpan>}
-                {showType && proxy.xudp && <TypeSpan>XUDP</TypeSpan>}
-                {showType && proxy.tfo && <TypeSpan>TFO</TypeSpan>}
-              </span>
+              {showType && (
+                <span className="mt-0.5 flex flex-nowrap">
+                  {proxy.now && (
+                    <span className="text-secondary-text mr-1">
+                      {proxy.now}
+                    </span>
+                  )}
+                  {!!proxy.providerName && (
+                    <TypeSpan data-proxy-provider>
+                      {proxy.providerName}
+                    </TypeSpan>
+                  )}
+                  <TypeSpan>{proxy.type}</TypeSpan>
+                  {proxy.udp && <TypeSpan>UDP</TypeSpan>}
+                  {proxy.xudp && <TypeSpan>XUDP</TypeSpan>}
+                  {proxy.tfo && <TypeSpan>TFO</TypeSpan>}
+                </span>
+              )}
             </span>
           }
         />
