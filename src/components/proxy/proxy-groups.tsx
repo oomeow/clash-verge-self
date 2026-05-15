@@ -57,16 +57,10 @@ export const ProxyGroups = (props: Props) => {
     () => renderList.filter((item) => item.type === 0).map((item) => item.key),
     [renderList],
   );
-  const groupNamesForDelayCheck = useMemo(() => {
-    return Array.from(
-      new Set(
-        renderList
-          .filter((item) => item.type === 0)
-          .map((item) => item.group.name)
-          .concat(["GLOBAL"]),
-      ),
-    );
-  }, [renderList]);
+  const groupNamesForDelayCheck = useMemo(
+    () => Array.from(new Set([...groupNameList, "GLOBAL"])),
+    [groupNameList],
+  );
 
   useEffect(() => {
     if (!groupNamesForDelayCheck.length) return;
@@ -122,17 +116,17 @@ export const ProxyGroups = (props: Props) => {
       // 保存到 selected 中
       if (!currentProfile) return;
       const selected = [...(currentProfile.selected ?? [])];
+      const nextProxyName = unfixing ? undefined : proxy.name;
+      const selectedIndex = selected.findIndex(
+        (item) => item.name === group.name,
+      );
 
-      const index = selected.findIndex((item) => item.name === group.name);
-
-      if (index < 0) {
-        selected.push({ name, now: unfixing ? undefined : proxy.name });
+      if (selectedIndex < 0) {
+        selected.push({ name, now: nextProxyName });
       } else {
-        selected[index] = {
-          name,
-          now: unfixing ? undefined : proxy.name,
-        };
+        selected[selectedIndex] = { name, now: nextProxyName };
       }
+
       await patchCurrentProfile({ selected });
     }),
   );
@@ -283,7 +277,7 @@ export const ProxyGroups = (props: Props) => {
           items={renderList}
           isGroupItem={(item) => item.type === 0}
           getItemKey={(item) => item.key}
-          estimateGroupItemHeight={70}
+          estimateGroupItemHeight={78}
           estimateItemHeight={64}
           renderGroupItem={renderGroupItem}
           renderItem={renderProxyItem}

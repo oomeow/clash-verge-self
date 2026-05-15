@@ -70,6 +70,13 @@ function StickyVirtualListInner<TItem>(
     overscan = 8,
   } = props;
   const scrollParentRef = useRef<HTMLDivElement>(null);
+  const getEstimatedItemHeight = useCallback(
+    (index: number) =>
+      isGroupItem(items[index], index)
+        ? estimateGroupItemHeight
+        : estimateItemHeight,
+    [estimateGroupItemHeight, estimateItemHeight, isGroupItem, items],
+  );
 
   const groupIndexes = useMemo(
     () =>
@@ -94,22 +101,15 @@ function StickyVirtualListInner<TItem>(
     offsets[0] = 0;
 
     for (let i = 0; i < items.length; i++) {
-      if (isGroupItem(items[i], i)) {
-        offsets[i + 1] = offsets[i] + estimateGroupItemHeight;
-      } else {
-        offsets[i + 1] = offsets[i] + estimateItemHeight;
-      }
+      offsets[i + 1] = offsets[i] + getEstimatedItemHeight(i);
     }
 
     return offsets;
-  }, [estimateGroupItemHeight, estimateItemHeight, items]);
+  }, [getEstimatedItemHeight, items.length]);
 
   const rowVirtualizer = useVirtualizer({
     count: items.length,
-    estimateSize: (index) =>
-      isGroupItem(items[index], index)
-        ? estimateGroupItemHeight
-        : estimateItemHeight,
+    estimateSize: getEstimatedItemHeight,
     getItemKey: (index) => getItemKey(items[index], index),
     getScrollElement: () => scrollParentRef.current,
     overscan,
@@ -119,8 +119,6 @@ function StickyVirtualListInner<TItem>(
 
   const getVirtualOffset = useCallback(
     (index: number) => {
-      // 动态计算后的缓存列表，包含所有索引/高度数据等等
-      // console.log(rowVirtualizer.measurementsCache);
       return (
         rowVirtualizer.measurementsCache[index]?.start ??
         estimatedOffsets[index]
@@ -161,7 +159,7 @@ function StickyVirtualListInner<TItem>(
 
       return scroller.scrollTop > getVirtualOffset(groupIndex) + tolerance;
     },
-    [scrollParentRef, getVirtualOffset],
+    [getVirtualOffset],
   );
 
   useImperativeHandle(
@@ -179,17 +177,13 @@ function StickyVirtualListInner<TItem>(
         return new Promise((resolve) => {
           let maxCheckCount = 5;
           const interval = setInterval(() => {
-            if (!rowVirtualizer.isScrolling) {
+            if (!rowVirtualizer.isScrolling || maxCheckCount < 0) {
               clearInterval(interval);
               resolve();
               return;
             }
+
             maxCheckCount -= 1;
-            if (maxCheckCount < 0) {
-              clearInterval(interval);
-              resolve();
-              return;
-            }
           }, 100);
         });
       },
