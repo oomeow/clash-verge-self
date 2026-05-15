@@ -160,7 +160,6 @@ export const useCustomTheme = () => {
     );
     rootEle.style.setProperty("--selection-color", selectColor);
     rootEle.style.setProperty("--scroller-color", scrollColor);
-    // rootEle.style.setProperty("--primary-main", theme.palette.primary.main);
     rootEle.style.setProperty(
       "--background-color-alpha",
       alpha(theme.palette.primary.main, 0.1),

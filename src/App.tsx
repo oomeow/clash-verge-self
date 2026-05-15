@@ -1,4 +1,8 @@
-import { StyledEngineProvider, ThemeProvider } from "@mui/material";
+import {
+  GlobalStyles,
+  StyledEngineProvider,
+  ThemeProvider,
+} from "@mui/material";
 import { RouterProvider } from "@tanstack/react-router";
 import { useAsyncEffect, useMount } from "ahooks";
 import { SnackbarProvider } from "notistack";
@@ -41,7 +45,8 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <StyledEngineProvider injectFirst>
+      <StyledEngineProvider enableCssLayer>
+        <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
         <BaseErrorBoundary>
           <SnackbarProvider
             maxSnack={3}
