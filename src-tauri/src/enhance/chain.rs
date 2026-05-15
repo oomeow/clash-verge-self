@@ -39,12 +39,6 @@ pub enum ScopeType {
     Specific,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ChainExcResult {
-    pub config: Mapping,
-    pub logs: Option<HashMap<String, Vec<LogMessage>>>,
-}
-
 impl From<PrfItem> for Option<ChainItem> {
     fn from(item: PrfItem) -> Self {
         let name = item.name.clone()?;
@@ -88,33 +82,39 @@ impl From<PrfItem> for Option<ChainItem> {
 }
 
 impl ChainItem {
-    pub fn execute(&self, config: Mapping) -> Result<ChainExcResult> {
+    pub fn execute(&self, config: &mut Mapping) -> Result<Option<HashMap<String, Vec<LogMessage>>>> {
         let path = dirs::app_profiles_dir()?.join(&self.file);
         if !path.exists() {
             anyhow::bail!("couldn't find enhance file, {}", self.name);
         }
-        let res = match self.itype {
+
+        let logs = match self.itype {
             ChainType::Merge => {
                 let content = help::read_merge_mapping(&path)?;
-                let res_config = use_merge(content, config);
-                ChainExcResult {
-                    config: res_config,
-                    logs: None,
-                }
+                let current_config = std::mem::take(config);
+                *config = use_merge(content, current_config);
+                None
             }
             ChainType::Script => {
                 let content = fs::read_to_string(&path)?;
-                let (res_config, script_logs) = use_script(content, config)?;
+                let current_config = std::mem::take(config);
+                let fallback_config = current_config.clone();
+                let (res_config, script_logs) = match use_script(content, current_config) {
+                    Ok(result) => result,
+                    Err(err) => {
+                        *config = fallback_config;
+                        return Err(err);
+                    }
+                };
+                *config = res_config;
+
                 let mut res_logs = HashMap::new();
                 res_logs.insert(self.uid.clone(), script_logs);
-                ChainExcResult {
-                    config: res_config,
-                    logs: Some(res_logs),
-                }
+                Some(res_logs)
             }
         };
         tracing::info!("chain [{}] execute finished", self.name);
-        Ok(res)
+        Ok(logs)
     }
 }
 

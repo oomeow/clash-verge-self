@@ -270,10 +270,9 @@ pub async fn test_merge_chain(
 
 fn execute_chains(config: &mut Mapping, chains: &Vec<ChainItem>, script_logs: &mut HashMap<String, Vec<LogMessage>>) {
     for chain in chains {
-        match chain.execute(config.clone()) {
-            Ok(res) => {
-                *config = res.config;
-                if let Some(logs) = res.logs {
+        match chain.execute(config) {
+            Ok(logs) => {
+                if let Some(logs) = logs {
                     script_logs.extend(logs);
                 }
             }
