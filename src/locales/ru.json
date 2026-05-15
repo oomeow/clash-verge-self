@@ -166,6 +166,7 @@
       "dialog": {
         "createTitle": "Создать профиль",
         "editTitle": "Изменить профиль",
+        "scriptConsole": "Консоль скрипта",
         "confirmDeletion": "Подтвердите удаление",
         "confirmDeletionMessage": "Эта операция необратима"
       },

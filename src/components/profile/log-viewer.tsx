@@ -1,5 +1,6 @@
 import Close from "@mui/icons-material/Close";
 import { IconButton } from "@mui/material";
+import { t } from "i18next";
 import { Fragment, useMemo, useState } from "react";
 
 import { BaseDialog, BaseEmpty } from "@/components/base";
@@ -384,7 +385,9 @@ export const LogViewer = (props: Props) => {
 
   const title = (
     <div className="flex items-center justify-between">
-      <span>Logs</span>
+      <span className="text-xl font-bold">
+        {t("pages.profiles.dialog.scriptConsole")}
+      </span>
       <IconButton
         aria-label="close"
         size="small"

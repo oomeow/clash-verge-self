@@ -166,6 +166,7 @@
       "dialog": {
         "createTitle": "新建配置",
         "editTitle": "编辑配置",
+        "scriptConsole": "脚本控制台输出",
         "confirmDeletion": "确认删除",
         "confirmDeletionMessage": "此操作不可逆"
       },

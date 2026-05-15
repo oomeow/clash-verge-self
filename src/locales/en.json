@@ -166,6 +166,7 @@
       "dialog": {
         "createTitle": "Create Profile",
         "editTitle": "Edit Profile",
+        "scriptConsole": "Script Console",
         "confirmDeletion": "Confirm deletion",
         "confirmDeletionMessage": "This operation is not reversible"
       },

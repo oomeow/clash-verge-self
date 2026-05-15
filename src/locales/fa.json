@@ -166,6 +166,7 @@
       "dialog": {
         "createTitle": "ایجاد پروفایل",
         "editTitle": "ویرایش پروفایل",
+        "scriptConsole": "کنسول اسکریپت",
         "confirmDeletion": "تأیید حذف",
         "confirmDeletionMessage": "این عملیات قابل برگشت نیست"
       },
