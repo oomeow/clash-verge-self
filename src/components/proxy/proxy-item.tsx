@@ -160,13 +160,13 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
           title={`${proxy.name}${proxy.now ? `\n(${proxy.now})` : ""}`}
           secondary={
             <span className="flex flex-col">
-              <span className="text-primary-text line-clamp-2 text-sm">
+              <span className="text-text-primary line-clamp-2 text-sm">
                 {proxy.name}
               </span>
               {showType && (
                 <span className="mt-0.5 flex flex-nowrap">
                   {proxy.now && (
-                    <span className="text-secondary-text mr-1">
+                    <span className="text-text-secondary mr-1">
                       {proxy.now}
                     </span>
                   )}

@@ -455,7 +455,7 @@ const SettingVerge = ({ onError }: Props) => {
       />
 
       <Collapse in={expand} timeout={"auto"} unmountOnExit>
-        <div className="bg-primary-alpha w-full">
+        <div className="bg-primary/10 w-full">
           <TabContext value={backupMode}>
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
               <Tabs
@@ -574,7 +574,7 @@ const SettingVerge = ({ onError }: Props) => {
                         <InputAdornment position="end">
                           <IconButton
                             size="small"
-                            className="text-primary-main"
+                            className="text-primary"
                             aria-label="toggle password visibility"
                             onClick={() => {
                               setShowPassword(!showPassword);

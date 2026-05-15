@@ -87,7 +87,7 @@ const ThemeColorSelect = (props: Props) => {
   };
 
   return (
-    <div className="text-primary-text my-1 flex h-12 items-center justify-between px-1">
+    <div className="text-text-primary my-1 flex h-12 items-center justify-between px-1">
       <p className="text-lg">{label}</p>
       <div className="flex w-37.5 items-center justify-between gap-2">
         <div className="relative">

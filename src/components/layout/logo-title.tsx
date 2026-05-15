@@ -54,7 +54,7 @@ export const LogoTitle = ({
               toggleTheme(isDark ? "light" : "dark");
             }}
             className={cn(
-              "fill-primary-main! z-10 mr-1 h-full w-12 cursor-pointer transition-all duration-200",
+              "fill-primary! z-10 mr-1 h-full w-12 cursor-pointer transition-all duration-200",
               {
                 "mt-6 mr-0": sidebarCollapsed,
                 "mt-2": !isMacOS && enableSystemTitleBar,
@@ -64,7 +64,7 @@ export const LogoTitle = ({
         </div>
         <div>
           <AppNameSvg
-            className={cn("fill-primary-main! h-full w-full", {
+            className={cn("fill-primary! h-full w-full", {
               hidden: sidebarCollapsed,
             })}
           />
@@ -95,12 +95,12 @@ export const LogoTitle = ({
           {isDark ? (
             <DarkMode
               fontSize="inherit"
-              className="fill-primary-main! h-full w-full"
+              className="fill-primary! h-full w-full"
             />
           ) : (
             <LightMode
               fontSize="inherit"
-              className="fill-primary-main! h-full w-full"
+              className="fill-primary! h-full w-full"
             />
           )}
         </motion.button>

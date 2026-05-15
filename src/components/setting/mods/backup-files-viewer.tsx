@@ -139,7 +139,7 @@ export const BackupFilesViewer = forwardRef<BackupFilesViewerRef>(
             <div>
               {filterBackupFiles.map((file) => (
                 <div
-                  className="bg-primary-alpha my-2 flex items-center justify-between rounded-md px-2 py-1"
+                  className="bg-primary/10 my-2 flex items-center justify-between rounded-md px-2 py-1"
                   key={file.href}>
                   <div className="mr-2 shrink-0 grow-0 basis-10 p-1">
                     {file.platform === "windows" ? (

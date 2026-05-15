@@ -180,7 +180,7 @@ export const RuleItem = (props: Props) => {
                   }}>
                   {currentValue.type}
                   {isRuleSet && (
-                    <span className="text-primary-main bg-primary-alpha-20 ml-2 inline-block rounded-full px-2 text-xs">
+                    <span className="text-primary bg-primary/20 ml-2 inline-block rounded-full px-2 text-xs">
                       {currentValue.behavior}
                     </span>
                   )}
@@ -203,10 +203,10 @@ export const RuleItem = (props: Props) => {
             <div className="h-full w-full items-center justify-end space-y-2">
               {isRuleSet && (
                 <div className="flex items-center justify-end">
-                  <div className="bg-primary-alpha-20 text-primary-main rounded-full px-2 text-sm">
+                  <div className="bg-primary/20 text-primary rounded-full px-2 text-sm">
                     {currentValue.ruleCount}
                   </div>
-                  <div className="text-primary-main bg-primary-alpha-20 ml-2 flex items-center rounded-full px-2 py-0.5 text-xs">
+                  <div className="text-primary bg-primary/20 ml-2 flex items-center rounded-full px-2 py-0.5 text-xs">
                     <Update className="mr-1" fontSize="small" />
                     <span>{dayjs(currentValue.updatedAt).fromNow()}</span>
                   </div>
@@ -218,13 +218,13 @@ export const RuleItem = (props: Props) => {
                     <div className="md:flex">
                       <div>
                         Hit:
-                        <span className="text-primary-main inline-block h-fit w-fit px-1">
+                        <span className="text-primary inline-block h-fit w-fit px-1">
                           {currentValue.extra?.hitCount}
                         </span>
                       </div>
                       <div>
                         At:
-                        <span className="text-primary-main inline-block h-fit w-fit px-1">
+                        <span className="text-primary inline-block h-fit w-fit px-1">
                           {dayjs(currentValue.extra?.hitAt).format(
                             "YYYY-MM-DD HH:mm:ss",
                           )}
@@ -236,11 +236,11 @@ export const RuleItem = (props: Props) => {
                   {/*{showMiss && (
                     <div>
                       Miss:
-                      <span className="text-primary-main inline-block h-fit w-fit rounded-full px-1">
+                      <span className="text-primary inline-block h-fit w-fit rounded-full px-1">
                         {value.extra?.missCount}
                       </span>
                       At:
-                      <span className="text-primary-main inline-block h-fit w-fit rounded-full px-1">
+                      <span className="text-primary inline-block h-fit w-fit rounded-full px-1">
                         {dayjs(value.extra?.missAt).format(
                           "YYYY-MM-DD HH:mm:ss",
                         )}

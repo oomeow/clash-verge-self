@@ -48,7 +48,7 @@ export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
             followCursor>
             <Link
               underline="hover"
-              className="text-primary-text hover:text-secondary-text line-clamp-1 cursor-pointer"
+              className="text-text-primary hover:text-text-secondary line-clamp-1 cursor-pointer"
               onClick={() => onGroupNameClick && onGroupNameClick(item.name)}>
               <Typography variant="body2">
                 {open ? item.name : item.shortName}

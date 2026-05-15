@@ -184,8 +184,8 @@ const RulesPage = () => {
               justifyContent: "center",
               gap: 2,
             }}>
-            <BeatLoader color="var(--primary-main)" />
-            <Typography className="text-primary-main" variant="body1">
+            <BeatLoader color="var(--mui-palette-primary-main)" />
+            <Typography className="text-primary" variant="body1">
               {t("common.search.searching")}
             </Typography>
           </Box>

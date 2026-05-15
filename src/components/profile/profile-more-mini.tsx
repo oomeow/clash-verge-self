@@ -89,11 +89,11 @@ export default function ProfileMoreMini(props: Props) {
           className={cn(
             "relative flex h-full w-full cursor-pointer items-center gap-1 overflow-hidden rounded-md px-2 py-1 shadow-xs",
             {
-              "border-primary-main border-0 border-l-2! border-solid":
+              "border-primary border-0 border-l-2! border-solid":
                 item.enable && !hasError,
               "animate-pulse border border-red-500":
                 item.enable && hasError && !selected,
-              "border-primary-main animate-highlight border border-solid shadow-md":
+              "border-primary animate-highlight border border-solid shadow-md":
                 selected,
             },
           )}
@@ -130,13 +130,13 @@ export default function ProfileMoreMini(props: Props) {
                 variant="enhance"
                 density="compact"
               />
-              <Marquee pauseOnHover className="text-primary-text min-w-0">
+              <Marquee pauseOnHover className="text-text-primary min-w-0">
                 <span className="font-medium">{item.name}</span>
               </Marquee>
             </div>
             <Marquee
               pauseOnHover
-              className="text-secondary-text min-w-0 text-xs">
+              className="text-text-secondary min-w-0 text-xs">
               <span>{item.desc || "-"}</span>
             </Marquee>
           </div>

@@ -136,7 +136,7 @@ export const ProviderButton = () => {
                         sx={{ marginRight: "8px" }}
                       />
                     )}
-                    <p className="text-primary-text text-xl">{name}</p>
+                    <p className="text-text-primary text-xl">{name}</p>
                     <TypeSpan sx={{ marginLeft: "8px" }}>
                       {item?.ruleCount}
                     </TypeSpan>

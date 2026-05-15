@@ -116,7 +116,7 @@ export const ProviderButton = () => {
                 className="mb-2 flex items-center rounded-sm bg-white p-2 shadow-sm dark:bg-[#282A36]">
                 <div className="w-full overflow-hidden pr-4">
                   <div className="flex items-center">
-                    <p className="text-primary-text text-xl">{key}</p>
+                    <p className="text-text-primary text-xl">{key}</p>
                     <TypeSpan>{item?.proxies.length}</TypeSpan>
                   </div>
                   <StyledTypeSpan>{item?.vehicleType}</StyledTypeSpan>

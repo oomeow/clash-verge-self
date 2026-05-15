@@ -256,7 +256,7 @@ export const ProfileEditorViewer = (props: Props) => {
           <div className="no-scrollbar w-1/4 min-w-65 overflow-auto">
             <div className="bg-background-default sticky top-0 z-10">
               <div
-                className="bg-primary-alpha flex cursor-pointer items-center justify-between p-2"
+                className="bg-primary/10 flex cursor-pointer items-center justify-between p-2"
                 onClick={() => setExpand(!expand)}>
                 <Marquee pauseOnHover>
                   <span className="text-md font-bold">{profileName}</span>

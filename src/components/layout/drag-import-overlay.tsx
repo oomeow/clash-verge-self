@@ -195,22 +195,22 @@ export function DragImportOverlay() {
           </div>
         </div>
 
-        <div className="text-primary-text text-[30px] leading-tight font-semibold">
+        <div className="text-text-primary text-[30px] leading-tight font-semibold">
           {t("pages.profiles.dragImport.title")}
         </div>
-        <div className="text-secondary-text mt-3 max-w-140 text-[16px] leading-7">
+        <div className="text-text-secondary mt-3 max-w-140 text-[16px] leading-7">
           {t("pages.profiles.dragImport.description")}
         </div>
 
         <div className="border-primary/18 bg-background-default/76 mt-8 w-full max-w-155 rounded-[20px] border px-6 py-5 shadow-[0_12px_36px_rgba(15,23,42,0.12)]">
-          <div className="text-primary-text text-[18px] leading-7 font-medium">
+          <div className="text-text-primary text-[18px] leading-7 font-medium">
             {validDragImportCount > 0
               ? t("pages.profiles.dragImport.ready", {
                   count: validDragImportCount,
                 })
               : t("pages.profiles.dragImport.waiting")}
           </div>
-          <div className="text-secondary-text mt-1 text-sm leading-6">
+          <div className="text-text-secondary mt-1 text-sm leading-6">
             {hasInvalidDragImport
               ? t("pages.profiles.dragImport.hintWithInvalid")
               : t("pages.profiles.dragImport.hint")}
@@ -223,10 +223,10 @@ export function DragImportOverlay() {
                   key={file.path}
                   className="border-primary/10 bg-background-default/70 flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
                   <div className="min-w-0 flex-1">
-                    <div className="text-primary-text truncate text-sm font-medium">
+                    <div className="text-text-primary truncate text-sm font-medium">
                       {file.name}
                     </div>
-                    <div className="text-secondary-text truncate text-xs">
+                    <div className="text-text-secondary truncate text-xs">
                       {file.path}
                     </div>
                   </div>
@@ -235,7 +235,7 @@ export function DragImportOverlay() {
                     className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
                       file.importable
                         ? "bg-primary/12 text-primary"
-                        : "bg-(--mui-palette-error-main)/10 text-(--mui-palette-error-main)"
+                        : "bg-error/10 text-error"
                     }`}>
                     {file.importable
                       ? t("pages.profiles.dragImport.importable")

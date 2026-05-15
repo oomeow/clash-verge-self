@@ -197,7 +197,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
             <ListItemIcon>
               <div className="mx-1 flex w-24 flex-col items-center">
                 <MetaIcon className="h-8 w-8" />
-                <span className="text-primary-text text-xs">
+                <span className="text-text-primary text-xs">
                   {each.version}
                 </span>
               </div>
@@ -227,7 +227,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
               <PulseLoader
                 className="mr-4"
                 size={6}
-                color="var(--primary-main)"
+                color="var(--mui-palette-primary-main)"
               />
             )}
 

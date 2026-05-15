@@ -308,12 +308,10 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
               onClick={() => item.handler()}
               sx={{ minWidth: 120 }}
               dense>
-              <ListItemIcon className="text-primary-main!">
-                {item.icon}
-              </ListItemIcon>
+              <ListItemIcon className="text-primary!">{item.icon}</ListItemIcon>
               <ListItemText
-                className={cn("text-primary-main", {
-                  "text-error-main": item.label === "common.actions.delete",
+                className={cn("text-primary", {
+                  "text-error": item.label === "common.actions.delete",
                 })}>
                 {t(item.label)}
               </ListItemText>
