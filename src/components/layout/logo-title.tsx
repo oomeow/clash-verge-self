@@ -84,11 +84,11 @@ export const LogoTitle = ({
           exit={{ x: 20, opacity: 0 }}
           transition={{ duration: 0.5 }}
           className={cn(
-            "absolute top-0 right-2 z-10 h-7.5 w-7.5 cursor-pointer border-none bg-transparent",
+            "absolute top-2 right-4 z-10 h-4 w-4 cursor-pointer border-none bg-transparent",
             {
-              "top-2 right-4": sidebarCollapsed,
-              "-top-2": sidebarCollapsed && enableSystemTitleBar,
-              "top-4": sidebarCollapsed && isMacOS,
+              "top-4 right-5.5": sidebarCollapsed,
+              "-top-4": sidebarCollapsed && enableSystemTitleBar,
+              "top-5": sidebarCollapsed && isMacOS,
             },
           )}
           onClick={() => toggleTheme(isDark ? "light" : "dark")}>
