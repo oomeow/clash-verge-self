@@ -56,7 +56,7 @@ export const normalizeThemeSetting = (
     ...Object.fromEntries(
       Object.entries(setting ?? {}).filter(([, value]) => value != null),
     ),
-  };
+  } as ThemeSetting;
 };
 
 type ThemeModeState = {

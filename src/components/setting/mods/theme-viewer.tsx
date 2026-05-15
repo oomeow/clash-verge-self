@@ -23,6 +23,7 @@ import {
   useThemeModeStore,
   useThemeSettingsStore,
 } from "@/stores";
+import { normalizeThemeSetting } from "@/stores/themeStore";
 
 import ThemeColorSelect from "./theme-color-select";
 
@@ -53,12 +54,7 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
 
   const currentThemeSetting =
     themeMode === "light" ? themeSettings.light : themeSettings.dark;
-  const theme = (currentThemeSetting ??
-    (themeMode === "light"
-      ? defaultThemeSettings.light
-      : defaultThemeSettings.dark)) as NonNullable<
-    IVergeConfig["light_theme_setting"]
-  >;
+  const theme = normalizeThemeSetting(themeMode, currentThemeSetting);
   const [editorOpen, setEditorOpen] = useState(false);
 
   useImperativeHandle(ref, () => ({
