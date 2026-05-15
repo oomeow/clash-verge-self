@@ -45,7 +45,7 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <StyledEngineProvider enableCssLayer>
+      <StyledEngineProvider injectFirst enableCssLayer>
         <GlobalStyles styles="@layer theme, base, mui, components, utilities;" />
         <BaseErrorBoundary>
           <SnackbarProvider

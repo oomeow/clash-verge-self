@@ -431,3 +431,37 @@
   background-image: --value(--overlay-*);
   box-shadow: --value(--shadow-*);
 }
+
+/* 修复：恢复被 Tailwind 的 preflight 重置的 MUI OutlinedInput 中 legend/span 行为
+   Tailwind 的 preflight 可能会改变表单元素（例如 legend）的默认 display、padding、line-height，
+   这会破坏 MUI 在运行时测量 notched outline（凹槽）所依赖的行为。
+   这些规则是最小化的，仅针对 MUI 的 outlined input，并放在 Tailwind 导入之后以覆盖 preflight。
+*/
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline legend,
+.MuiOutlinedInput-notchedOutline legend {
+  padding: 0;
+  height: 11px; /* match MUI's expected legend height for correct notch rendering */
+  display: block; /* MUI expects legend to be block for measurement and overflow handling */
+  overflow: hidden; /* clip excess so only the intended notch is visible */
+  line-height: normal;
+  white-space: nowrap; /* ensure measured width equals label width */
+}
+
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline legend span,
+.MuiOutlinedInput-notchedOutline legend span {
+  display: inline-block;
+  /* 移除水平内边距以避免在没有 label 时出现可见的凹槽 */
+  padding: 0;
+}
+
+/* 仅在同一 FormControl 中存在 label 时为 legend span 重新应用水平内边距
+   （匹配 MUI 的 DOM：label + .MuiOutlinedInput-root）。这样可以防止当 TextField 使用 `hiddenLabel`
+   或没有 label 时出现不需要的凹槽间隙。 */
+.MuiFormControl-root
+  .MuiInputLabel-root
+  + .MuiOutlinedInput-root
+  .MuiOutlinedInput-notchedOutline
+  legend
+  span {
+  padding: 0 8px;
+}
