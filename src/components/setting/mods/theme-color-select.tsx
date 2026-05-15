@@ -6,12 +6,14 @@ import {
   useThemeModeStore,
   useThemeSettingsStore,
 } from "@/stores";
-import { ThemeSetting } from "@/stores/themeStore";
+import { isSameThemeSetting, ThemeSetting } from "@/stores/themeStore";
 
 interface Props {
   label: string;
   themeKey: keyof IVergeThemeSettings;
 }
+
+const hexRegex = /^#[0-9a-fA-F]{6}$/;
 
 const ThemeColorSelect = (props: Props) => {
   const { label, themeKey } = props;
@@ -24,18 +26,33 @@ const ThemeColorSelect = (props: Props) => {
     (themeMode === "light"
       ? defaultThemeSettings.light
       : defaultThemeSettings.dark)) as ThemeSetting;
+  const themeKeyDefaultColor =
+    defaultThemeSettings[themeMode]?.[themeKey] ?? "";
   const [color, setColor] = useState<string>(theme[themeKey] ?? "");
+  const [inputValue, setInputValue] = useState<string>(theme[themeKey] ?? "");
   const debounceValue = useDebounce(color, { wait: 300 });
   const skipNextCommitRef = useRef(false);
-  const lastThemeColorRef = useRef(theme[themeKey] ?? "");
+  const userClearedRef = useRef(false);
+  const lastThemeRef = useRef(theme);
+  const colorInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const nextColor = theme[themeKey] ?? "";
-    if (lastThemeColorRef.current === nextColor) return;
+    if (isSameThemeSetting(lastThemeRef.current, theme)) {
+      if (userClearedRef.current) {
+        setInputValue(theme[themeKey] ?? "");
+        userClearedRef.current = false;
+      }
+      return;
+    }
+    lastThemeRef.current = theme;
 
-    lastThemeColorRef.current = nextColor;
+    const nextColor = theme[themeKey] ?? "";
     skipNextCommitRef.current = true;
     setColor(nextColor);
+    if (!userClearedRef.current) {
+      setInputValue(nextColor);
+    }
+    userClearedRef.current = false;
   }, [theme, themeKey]);
 
   useEffect(() => {
@@ -48,17 +65,53 @@ const ThemeColorSelect = (props: Props) => {
     setThemeColor(themeMode, themeKey, debounceValue);
   }, [color, debounceValue, setThemeColor, themeKey, themeMode, theme]);
 
+  const handleColorPickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    userClearedRef.current = false;
+    setColor(val);
+    setInputValue(val);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    if (val === "") {
+      userClearedRef.current = true;
+      setColor(themeKeyDefaultColor);
+      setThemeColor(themeMode, themeKey, themeKeyDefaultColor);
+    } else if (hexRegex.test(val)) {
+      userClearedRef.current = false;
+      setColor(val);
+      setThemeColor(themeMode, themeKey, val);
+    }
+  };
+
   return (
     <div className="text-primary-text my-1 flex h-12 items-center justify-between px-1">
       <p className="text-lg">{label}</p>
-      <div className="flex w-37.5 items-center justify-between">
+      <div className="flex w-37.5 items-center justify-between gap-2">
+        <div className="relative">
+          <div
+            className="h-8 w-8 cursor-pointer rounded-md border-2 border-gray-300 dark:border-gray-500"
+            style={{ backgroundColor: color || "#000000" }}
+            onClick={() => colorInputRef.current?.click()}
+          />
+          <input
+            ref={colorInputRef}
+            className="absolute inset-0 cursor-pointer opacity-0"
+            type="color"
+            value={color}
+            onChange={handleColorPickerChange}
+          />
+        </div>
         <input
-          className="cursor-pointer border-2 border-gray-300 bg-white dark:border-gray-500 dark:bg-gray-300"
-          type="color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
+          className="w-22 rounded border border-gray-300 bg-transparent px-2 py-1 text-xs outline-none focus:border-gray-400 dark:border-gray-500 dark:text-gray-300"
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder={themeKeyDefaultColor || "#000000"}
+          maxLength={7}
         />
-        <p className="text-gray-400">{color}</p>
       </div>
     </div>
   );

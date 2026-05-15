@@ -28,7 +28,7 @@ interface ThemeSettings {
   dark: IVergeThemeSettings;
 }
 
-const isSameThemeSetting = (
+export const isSameThemeSetting = (
   left: IVergeThemeSettings,
   right: IVergeThemeSettings,
 ) =>
