@@ -20,29 +20,7 @@ env:
   RUST_BACKTRACE: short
 
 jobs:
-  check-build:
-    runs-on: ubuntu-latest
-    outputs:
-      service-build: ${{ steps.filter.outputs.service }}
-      mihomo-build: ${{ steps.filter.outputs.mihomo }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Check Service changed
-        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
-        id: filter
-        with:
-          filters: |
-            service:
-              - 'crates/clash-verge-self-service/**'
-            mihomo:
-              - 'crates/tauri-plugin-mihomo/guest-js/**'
-              - 'crates/tauri-plugin-mihomo/src/models.rs'
-
   build-service:
-    needs: check-build
-    if: needs.check-build.outputs.service-build == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -71,22 +49,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - name: Check Service changed
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
+        id: filter
+        with:
+          filters: |
+            service:
+              - 'crates/clash-verge-self-service/**'
+
       - name: Install Rust
-        if: matrix.os != 'ubuntu-latest'
+        if: steps.filter.outputs.service == 'true' && matrix.os != 'ubuntu-latest'
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
 
       - name: Add Rust Target
-        if: matrix.os != 'ubuntu-latest'
+        if: steps.filter.outputs.service == 'true' && matrix.os != 'ubuntu-latest'
         run: rustup target add ${{ matrix.target }}
 
       - name: Build (Windows / MacOS)
-        if: matrix.os != 'ubuntu-latest'
+        if: steps.filter.outputs.service == 'true' && matrix.os != 'ubuntu-latest'
         env:
           CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
         run: cargo build --package clash-verge-self-service --release --target ${{ matrix.target }}
 
       - name: Build (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: steps.filter.outputs.service == 'true' && matrix.os == 'ubuntu-latest'
         uses: ./.github/build-service-for-linux
         env:
           CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
@@ -94,16 +80,17 @@ jobs:
           target: ${{ matrix.target }}
 
       - name: Rename Clash Verge Service (Linux / MacOS)
-        if: matrix.os != 'windows-latest'
+        if: steps.filter.outputs.service == 'true' && matrix.os != 'windows-latest'
         run: |
           cp target/${{ matrix.target }}/release/clash-verge-self-service ./clash-verge-self-service-${{ matrix.target }}
 
       - name: Rename Clash Verge Service (Windows)
-        if: matrix.os == 'windows-latest'
+        if: steps.filter.outputs.service == 'true' && matrix.os == 'windows-latest'
         run: |
           cp target/${{ matrix.target }}/release/clash-verge-self-service.exe ./clash-verge-self-service-${{ matrix.target }}.exe
 
       - name: Create Pre-Release
+        if: steps.filter.outputs.service == 'true'
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
           name: Clash Verge Self Service Alpha
@@ -115,12 +102,19 @@ jobs:
             ./clash-verge-self-service-${{ matrix.target }}.exe
 
   build-dist-js:
-    needs: check-build
-    if: needs.check-build.outputs.mihomo-build == 'true'
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout Repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Check Mihomo changed
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4
+        id: filter
+        with:
+          filters: |
+            mihomo:
+              - 'crates/tauri-plugin-mihomo/guest-js/**'
+              - 'crates/tauri-plugin-mihomo/src/models.rs'
 
       - name: install webkit2gtk
         if: steps.filter.outputs.mihomo == 'true'
@@ -179,7 +173,6 @@ jobs:
           git push origin dev
 
   delete-release-assets:
-    if: always()
     needs: [build-service, build-dist-js]
     runs-on: ubuntu-latest
     steps:
@@ -202,7 +195,6 @@ jobs:
             *.json
 
   alpha:
-    if: always()
     needs: [delete-release-assets]
     strategy:
       fail-fast: false
@@ -276,7 +268,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   alpha-for-linux:
-    if: always()
     needs: [delete-release-assets]
     strategy:
       fail-fast: false
@@ -378,16 +369,6 @@ jobs:
           sudo apt-get install jq
           echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> "$GITHUB_OUTPUT"
 
-      # - name: Upload Release
-      #   if: startsWith(matrix.target, 'x86_64')
-      #   uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2
-      #   with:
-      #     tag_name: alpha
-      #     name: "Clash Verge Self Alpha"
-      #     prerelease: true
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     files: target/${{ matrix.target }}/release/bundle/appimage/*.AppImage*
-
       - name: Upload Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
@@ -400,7 +381,6 @@ jobs:
             target/${{ matrix.target }}/release/bundle/rpm/*.rpm
 
   pkgbuild:
-    if: always()
     name: PKGBUILD for ArchLinux
     needs: [alpha-for-linux]
     runs-on: ubuntu-22.04
@@ -437,7 +417,6 @@ jobs:
           files: ${{ steps.makepkg.outputs.pkgfile0 }}
 
   update_tag:
-    if: always()
     name: Update tag
     runs-on: ubuntu-22.04
     needs: [alpha, pkgbuild]
