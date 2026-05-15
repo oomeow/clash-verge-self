@@ -390,7 +390,8 @@
             "info": "信息颜色",
             "warning": "警告颜色",
             "error": "错误颜色",
-            "success": "成功颜色"
+            "success": "成功颜色",
+            "background": "背景颜色"
           },
           "fontFamily": "字体系列",
           "cssInjection": "CSS 注入"

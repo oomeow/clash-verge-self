@@ -75,7 +75,7 @@ export default function ProfileMoreMini(props: Props) {
 
   return (
     <>
-      <div className="bg-comment my-2 h-14 w-full rounded-md">
+      <div className="bg-background-default my-2 h-14 w-full rounded-md">
         <div
           style={{
             backgroundColor: item.enable

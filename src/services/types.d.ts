@@ -133,8 +133,10 @@ interface IVergeThemeSettings {
   error_color?: string;
   warning_color?: string;
   success_color?: string;
-  font_family?: string;
+  background_color?: string;
+  // paper_background_color?: string;
   css_injection?: string;
+  font_family?: string;
 }
 
 interface IVergeConfig {

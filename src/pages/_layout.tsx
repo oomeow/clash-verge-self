@@ -205,7 +205,7 @@ const Layout = () => {
             </div>
           )}
 
-          <div className="bg-comment relative min-h-0 flex-1 overflow-hidden py-1 pr-1 dark:bg-[#1e1f27]">
+          <div className="bg-background-default relative min-h-0 flex-1 overflow-hidden py-1 pr-1">
             <Suspense fallback={<LoadingPage />}>
               <Outlet />
             </Suspense>

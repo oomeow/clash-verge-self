@@ -37,6 +37,8 @@
   --color-secondary-main: var(--mui-palette-secondary-main);
   --color-error-main: var(--mui-palette-error-main);
   --color-comment: var(--background-color);
+  --color-background-default: var(--mui-palette-background-default);
+  --color-background-paper: var(--mui-palette-background-paper);
 
   /* text color */
   --color-primary-text: var(--mui-palette-text-primary);

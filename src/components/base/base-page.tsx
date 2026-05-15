@@ -35,7 +35,7 @@ export const BasePage: React.FC<Props> = (props) => {
         <div className={"min-h-0 flex-1 bg-white dark:bg-[#1e1f27]"}>
           <div
             className={cn(
-              "bg-comment h-full min-h-0 w-full overflow-auto px-2 dark:bg-[#1e1f27]",
+              "bg-background-default h-full min-h-0 w-full overflow-auto px-2",
               { "p-0": full },
             )}
             style={contentStyle}>

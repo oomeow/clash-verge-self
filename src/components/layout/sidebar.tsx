@@ -56,7 +56,7 @@ export const Sidebar = (props: Props) => {
   return (
     <div
       className={cn(
-        "relative flex shrink-0 grow-0 basis-50 flex-col border-t-0 border-r border-b-0 border-l-0 border-solid border-(--divider-color) pt-2 transition-all duration-300",
+        "bg-background-default relative flex shrink-0 grow-0 basis-50 flex-col border-t-0 border-r border-b-0 border-l-0 border-solid border-(--divider-color) pt-2 transition-all transition-none duration-300",
         {
           "basis-14": sidebarCollapsed,
           "pt-4": !enableSystemTitleBar,

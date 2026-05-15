@@ -189,7 +189,7 @@ export function DragImportOverlay() {
       <div className="bg-primary/12 absolute right-[10%] bottom-[-12%] h-80 w-80 rounded-full blur-3xl" />
 
       <div className="relative flex h-full w-full flex-col items-center justify-center px-8 text-center">
-        <div className="border-primary/24 bg-comment/78 mb-6 flex h-20 w-20 items-center justify-center rounded-full border shadow-[0_10px_30px_rgba(15,23,42,0.14)]">
+        <div className="border-primary/24 bg-background-default/78 mb-6 flex h-20 w-20 items-center justify-center rounded-full border shadow-[0_10px_30px_rgba(15,23,42,0.14)]">
           <div className="border-primary/35 text-primary flex h-13 w-13 items-center justify-center rounded-full border text-[28px] leading-none">
             +
           </div>
@@ -202,7 +202,7 @@ export function DragImportOverlay() {
           {t("pages.profiles.dragImport.description")}
         </div>
 
-        <div className="border-primary/18 bg-comment/76 mt-8 w-full max-w-155 rounded-[20px] border px-6 py-5 shadow-[0_12px_36px_rgba(15,23,42,0.12)]">
+        <div className="border-primary/18 bg-background-default/76 mt-8 w-full max-w-155 rounded-[20px] border px-6 py-5 shadow-[0_12px_36px_rgba(15,23,42,0.12)]">
           <div className="text-primary-text text-[18px] leading-7 font-medium">
             {validDragImportCount > 0
               ? t("pages.profiles.dragImport.ready", {
@@ -221,7 +221,7 @@ export function DragImportOverlay() {
               {draggedFiles.map((file) => (
                 <div
                   key={file.path}
-                  className="border-primary/10 bg-comment/70 flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
+                  className="border-primary/10 bg-background-default/70 flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
                   <div className="min-w-0 flex-1">
                     <div className="text-primary-text truncate text-sm font-medium">
                       {file.name}

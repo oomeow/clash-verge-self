@@ -390,7 +390,8 @@
             "info": "رنگ اطلاعات",
             "warning": "رنگ هشدار",
             "error": "رنگ خطا",
-            "success": "رنگ موفقیت"
+            "success": "رنگ موفقیت",
+            "background": "رنگ پس‌زمینه"
           },
           "fontFamily": "خانواده فونت",
           "cssInjection": "تزریق CSS"

@@ -390,7 +390,8 @@
             "info": "Info Color",
             "warning": "Warning Color",
             "error": "Error Color",
-            "success": "Success Color"
+            "success": "Success Color",
+            "background": "Background Color"
           },
           "fontFamily": "Font Family",
           "cssInjection": "CSS Injection"

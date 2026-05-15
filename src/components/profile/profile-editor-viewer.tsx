@@ -252,9 +252,9 @@ export const ProfileEditorViewer = (props: Props) => {
         loading={saving}
         onOk={onSave}
         contentStyle={{ userSelect: "text" }}>
-        <div className="bg-comment flex h-full overflow-hidden dark:bg-[#1e1f27]">
+        <div className="bg-background-default flex h-full overflow-hidden">
           <div className="no-scrollbar w-1/4 min-w-65 overflow-auto">
-            <div className="bg-comment sticky top-0 z-10">
+            <div className="bg-background-default sticky top-0 z-10">
               <div
                 className="bg-primary-alpha flex cursor-pointer items-center justify-between p-2"
                 onClick={() => setExpand(!expand)}>

@@ -6,20 +6,11 @@ import {
   useThemeModeStore,
   useThemeSettingsStore,
 } from "@/stores";
-
-type ThemeKey =
-  | "primary_color"
-  | "secondary_color"
-  | "primary_text"
-  | "secondary_text"
-  | "info_color"
-  | "error_color"
-  | "warning_color"
-  | "success_color";
+import { ThemeSetting } from "@/stores/themeStore";
 
 interface Props {
   label: string;
-  themeKey: ThemeKey;
+  themeKey: keyof IVergeThemeSettings;
 }
 
 const ThemeColorSelect = (props: Props) => {
@@ -32,9 +23,7 @@ const ThemeColorSelect = (props: Props) => {
   const theme = (currentThemeSetting ??
     (themeMode === "light"
       ? defaultThemeSettings.light
-      : defaultThemeSettings.dark)) as NonNullable<
-    IVergeConfig["light_theme_setting"]
-  >;
+      : defaultThemeSettings.dark)) as ThemeSetting;
   const [color, setColor] = useState<string>(theme[themeKey] ?? "");
   const debounceValue = useDebounce(color, { wait: 300 });
   const skipNextCommitRef = useRef(false);
@@ -64,7 +53,7 @@ const ThemeColorSelect = (props: Props) => {
       <p className="text-lg">{label}</p>
       <div className="flex w-37.5 items-center justify-between">
         <input
-          className="cursor-pointer border-none bg-transparent outline-hidden"
+          className="cursor-pointer border-2 border-gray-300 bg-white dark:border-gray-500 dark:bg-gray-300"
           type="color"
           value={color}
           onChange={(e) => setColor(e.target.value)}

@@ -105,7 +105,7 @@ export const BaseDialog = (props: AnimatedDialogProps) => {
               ...contentStyle,
             }}
             className={cn(
-              "bg-comment text-primary-text inline-flex max-h-[calc(100%-100px)] w-full max-w-md flex-col rounded-sm shadow-xl",
+              "bg-background-default text-primary-text inline-flex max-h-[calc(100%-100px)] w-full max-w-md flex-col rounded-sm shadow-xl",
               {
                 "h-full max-w-[calc(100%-100px)]": fullWidth,
                 "h-full max-h-full w-full max-w-full": full,

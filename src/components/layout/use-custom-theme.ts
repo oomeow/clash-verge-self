@@ -9,12 +9,14 @@ import {
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useMemo } from "react";
 
+import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
 import { useVergeStore } from "@/stores";
 import {
   normalizeThemeSetting,
   useThemeModeStore,
   useThemeSettingsStore,
 } from "@/stores";
+import { ThemeMode } from "@/stores/themeStore";
 
 const appWindow = getCurrentWebviewWindow();
 
@@ -37,6 +39,65 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
           | "shouldSkipGeneratingVar"
         >;
   };
+
+function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
+  const rootElement = document.getElementById("root");
+  return {
+    cssVariables: true,
+    breakpoints: {
+      values: { xs: 0, sm: 650, md: 900, lg: 1200, xl: 1536 },
+    },
+    palette: {
+      mode: themeMode,
+      primary: { main: setting.primary_color! },
+      secondary: { main: setting.secondary_color! },
+      info: { main: setting.info_color! },
+      error: { main: setting.error_color! },
+      warning: { main: setting.warning_color! },
+      success: { main: setting.success_color! },
+      text: {
+        primary: setting.primary_text!,
+        secondary: setting.secondary_text!,
+      },
+      background: {
+        default: setting.background_color!,
+        // paper: setting.paper_background_color!,
+      },
+    },
+    shadows: Array(25).fill("none") as Shadows,
+    typography: { fontFamily: setting.font_family! },
+    // All `Portal`-related components need to have the the main app wrapper element as a container
+    // so that the are in the subtree under the element used in the `important` option of the Tailwind's config.
+    components: {
+      MuiPopover: {
+        defaultProps: {
+          container: rootElement,
+        },
+        styleOverrides: {
+          paper: {
+            boxShadow:
+              "0px 5px 5px -3px rgba(0,0,0,0.2),0px 8px 10px 1px rgba(0,0,0,0.14),0px 3px 14px 2px rgba(0,0,0,0.12)",
+          },
+        },
+      },
+      MuiPopper: {
+        defaultProps: {
+          container: rootElement,
+        },
+      },
+      MuiDialog: {
+        defaultProps: {
+          container: rootElement,
+        },
+      },
+      MuiModal: {
+        defaultProps: {
+          container: rootElement,
+        },
+      },
+    },
+  } as CustomThemeOptions;
+}
 
 export const useCustomTheme = () => {
   const vergeThemeMode = useVergeStore((s) => s.verge.theme_mode);
@@ -70,70 +131,11 @@ export const useCustomTheme = () => {
     );
     const isDark = currentThemeMode === "dark";
 
-    const rootElement = document.getElementById("root");
-
-    const defaultThemeObj: CustomThemeOptions = {
-      cssVariables: true,
-      breakpoints: {
-        values: { xs: 0, sm: 650, md: 900, lg: 1200, xl: 1536 },
-      },
-      palette: {
-        mode: currentThemeMode,
-        primary: { main: setting.primary_color! },
-        secondary: { main: setting.secondary_color! },
-        info: { main: setting.info_color! },
-        error: { main: setting.error_color! },
-        warning: { main: setting.warning_color! },
-        success: { main: setting.success_color! },
-        text: {
-          primary: setting.primary_text!,
-          secondary: setting.secondary_text!,
-        },
-      },
-      typography: { fontFamily: setting.font_family! },
-      // All `Portal`-related components need to have the the main app wrapper element as a container
-      // so that the are in the subtree under the element used in the `important` option of the Tailwind's config.
-      components: {
-        MuiPopover: {
-          defaultProps: {
-            container: rootElement,
-          },
-          styleOverrides: {
-            paper: {
-              boxShadow:
-                "0px 5px 5px -3px rgba(0,0,0,0.2),0px 8px 10px 1px rgba(0,0,0,0.14),0px 3px 14px 2px rgba(0,0,0,0.12)",
-            },
-          },
-        },
-        MuiPopper: {
-          defaultProps: {
-            container: rootElement,
-          },
-        },
-        MuiDialog: {
-          defaultProps: {
-            container: rootElement,
-          },
-        },
-        MuiModal: {
-          defaultProps: {
-            container: rootElement,
-          },
-        },
-      },
-    };
-
-    const customThemeObj: CustomThemeOptions = {
-      ...defaultThemeObj,
-      palette: {
-        ...defaultThemeObj.palette,
-        background: {
-          paper: isDark ? "#2E303D" : "#F5F5F5",
-        },
-      },
-      shadows: Array(25).fill("none") as Shadows,
-      typography: { fontFamily: setting.font_family! },
-    };
+    const defaultThemeObj = createCustomTheme(
+      currentThemeMode,
+      isDark ? defaultDarkTheme : defaultTheme,
+    );
+    const customThemeObj = createCustomTheme(currentThemeMode, setting);
 
     let theme: Theme;
     try {
@@ -144,7 +146,6 @@ export const useCustomTheme = () => {
     }
 
     // css
-    const backgroundColor = isDark ? "#2e303d" : "#f0f0f0";
     const selectColor = isDark ? "#d5d5d5" : "#f5f5f5";
     const scrollColor = isDark ? "#54545480" : "#90939980";
     const dividerColor = isDark
@@ -153,7 +154,10 @@ export const useCustomTheme = () => {
 
     const rootEle = document.documentElement;
     rootEle.style.setProperty("--divider-color", dividerColor);
-    rootEle.style.setProperty("--background-color", backgroundColor);
+    rootEle.style.setProperty(
+      "--background-color",
+      theme.palette.background.default,
+    );
     rootEle.style.setProperty("--selection-color", selectColor);
     rootEle.style.setProperty("--scroller-color", scrollColor);
     rootEle.style.setProperty("--primary-main", theme.palette.primary.main);

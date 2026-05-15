@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
 
 export type ThemeMode = "light" | "dark";
-type ThemeSetting = NonNullable<IVergeConfig["theme_setting"]>;
+export type ThemeSetting = NonNullable<IVergeThemeSettings>;
 
 const THEME_KEYS = [
   "primary_color",
@@ -15,6 +15,8 @@ const THEME_KEYS = [
   "error_color",
   "warning_color",
   "success_color",
+  "background_color",
+  // "paper_background_color",
   "font_family",
   "css_injection",
 ] as const satisfies readonly (keyof ThemeSetting)[];
@@ -22,27 +24,13 @@ const THEME_KEYS = [
 type ThemeKey = keyof ThemeSetting;
 
 interface ThemeSettings {
-  light: IVergeConfig["theme_setting"];
-  dark: IVergeConfig["theme_setting"];
+  light: IVergeThemeSettings;
+  dark: IVergeThemeSettings;
 }
 
-const toThemeSetting = (
-  theme: typeof defaultTheme,
-): IVergeConfig["theme_setting"] => ({
-  primary_color: theme.primary_color,
-  secondary_color: theme.secondary_color,
-  primary_text: theme.primary_text,
-  secondary_text: theme.secondary_text,
-  info_color: theme.info_color,
-  error_color: theme.error_color,
-  warning_color: theme.warning_color,
-  success_color: theme.success_color,
-  font_family: theme.font_family,
-});
-
 const isSameThemeSetting = (
-  left: IVergeConfig["theme_setting"],
-  right: IVergeConfig["theme_setting"],
+  left: IVergeThemeSettings,
+  right: IVergeThemeSettings,
 ) =>
   THEME_KEYS.every((key) => {
     const leftValue = left?.[key] ?? null;
@@ -51,13 +39,14 @@ const isSameThemeSetting = (
   });
 
 export const defaultThemeSettings: ThemeSettings = {
-  light: toThemeSetting(defaultTheme),
-  dark: toThemeSetting(defaultDarkTheme),
+  light: defaultTheme,
+  dark: defaultDarkTheme,
 };
 
+/// normalize theme setting with fallback default theme
 export const normalizeThemeSetting = (
   mode: ThemeMode,
-  setting: IVergeConfig["theme_setting"],
+  setting: IVergeThemeSettings | undefined,
 ) => {
   const fallback =
     mode === "light" ? defaultThemeSettings.light : defaultThemeSettings.dark;

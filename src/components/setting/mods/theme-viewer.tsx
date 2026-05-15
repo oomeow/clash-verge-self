@@ -185,6 +185,10 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
           label={t("pages.settings.verge.theme.colors.success")}
           themeKey="success_color"
         />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.background")}
+          themeKey="background_color"
+        />
 
         <Item>
           <ListItemText primary={t("pages.settings.verge.theme.fontFamily")} />
