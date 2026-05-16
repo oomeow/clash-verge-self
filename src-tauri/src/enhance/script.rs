@@ -82,8 +82,7 @@ fn parse_script_logs(context: &mut boa_engine::Context, outputs: &mut Vec<LogMes
     let logs_str: JsValue = eval_script(
         context,
         "typeof __verge_log_messages !== 'undefined' ? JSON.stringify(__verge_log_messages) : JSON.stringify([])",
-    )
-    .map_err(|e| anyhow::anyhow!(e.to_string()))?;
+    )?;
 
     let logs_json = logs_str
         .to_string(context)
