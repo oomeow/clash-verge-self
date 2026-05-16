@@ -4,15 +4,35 @@ use serde_yaml::Mapping;
 use super::use_lowercase;
 use crate::enhance::LogMessage;
 
+const CONSOLE_SCRIPT: &str = r#"var console = Object.freeze({
+  log(data){__verge_log__("log",JSON.stringify(data))},
+  info(data){__verge_log__("info",JSON.stringify(data))},
+  error(data){__verge_log__("error",JSON.stringify(data))},
+  debug(data){__verge_log__("debug",JSON.stringify(data))},
+});"#;
+
+const MAIN_RETURN_ERROR: &str = "main function should return object";
+
 pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMessage>)> {
     use std::sync::{Arc, Mutex};
 
-    use boa_engine::{Context, JsValue, Source, native_function::NativeFunction};
-    let mut context = Context::default();
-
+    let config = use_lowercase(config);
     let outputs = Arc::new(Mutex::new(vec![]));
+    let mut context = create_context(outputs.clone())?;
 
+    eval_script(&mut context, &script)?;
+
+    let config_str = serde_json::to_string(&config)?;
+    let result = eval_script(&mut context, &format!("main({config_str})"))?;
+    parse_script_result(result, &mut context, config, outputs)
+}
+
+fn create_context(outputs: std::sync::Arc<std::sync::Mutex<Vec<LogMessage>>>) -> Result<boa_engine::Context> {
+    use boa_engine::{Context, JsValue, native_function::NativeFunction};
+
+    let mut context = Context::default();
     let copy_outputs = outputs.clone();
+
     unsafe {
         let _ = context.register_global_builtin_callable(
             "__verge_log__".into(),
@@ -32,53 +52,53 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
             }),
         );
     }
-    let _ = context.eval(Source::from_bytes(
-        r#"var console = Object.freeze({
-        log(data){__verge_log__("log",JSON.stringify(data))},
-        info(data){__verge_log__("info",JSON.stringify(data))},
-        error(data){__verge_log__("error",JSON.stringify(data))},
-        debug(data){__verge_log__("debug",JSON.stringify(data))},
-      });"#,
-    ));
 
-    let config = use_lowercase(config.clone());
-    let config_str = serde_json::to_string(&config)?;
+    eval_script(&mut context, CONSOLE_SCRIPT)?;
+    Ok(context)
+}
 
-    let code = format!(
-        r#"try{{
-        {script};
-        JSON.stringify(main({config_str})||'')
-      }} catch(err) {{
-        `__error_flag__ ${{err.toString()}}`
-      }}"#
-    );
-    if let Ok(result) = context.eval(Source::from_bytes(code.as_str())) {
-        if !result.is_string() {
-            anyhow::bail!("main function should return object");
+fn eval_script(context: &mut boa_engine::Context, source: &str) -> Result<boa_engine::JsValue> {
+    use boa_engine::Source;
+
+    context
+        .eval(Source::from_bytes(source))
+        .map_err(|err| anyhow::anyhow!(js_error_message(err, context)))
+}
+
+fn js_error_message(err: boa_engine::JsError, context: &mut boa_engine::Context) -> String {
+    err.to_opaque(context)
+        .to_string(context)
+        .ok()
+        .and_then(|message| message.to_std_string().ok())
+        .unwrap_or_else(|| err.to_string())
+}
+
+fn parse_script_result(
+    result: boa_engine::JsValue,
+    context: &mut boa_engine::Context,
+    fallback_config: Mapping,
+    outputs: std::sync::Arc<std::sync::Mutex<Vec<LogMessage>>>,
+) -> Result<(Mapping, Vec<LogMessage>)> {
+    if result.is_null() || result.is_undefined() {
+        anyhow::bail!(MAIN_RETURN_ERROR);
+    }
+
+    let json = result
+        .to_json(context)
+        .map_err(|err| anyhow::anyhow!(js_error_message(err, context)))?
+        .ok_or_else(|| anyhow::anyhow!(MAIN_RETURN_ERROR))?;
+
+    let mut out = outputs.lock().unwrap();
+    match serde_json::from_value::<Mapping>(json) {
+        Ok(config) => Ok((use_lowercase(config), out.to_vec())),
+        Err(err) => {
+            out.push(LogMessage {
+                method: "error".into(),
+                data: vec![],
+                exception: Some(err.to_string()),
+            });
+            Ok((fallback_config, out.to_vec()))
         }
-        let result = result.to_string(&mut context).unwrap();
-        let result = result.to_std_string().unwrap();
-        if result.starts_with("__error_flag__") {
-            anyhow::bail!("{}", result[15..].to_owned());
-        }
-        if result == "\"\"" {
-            anyhow::bail!("main function should return object");
-        }
-        let res: Result<Mapping> = Ok(serde_json::from_str::<Mapping>(result.as_str())?);
-        let mut out = outputs.lock().unwrap();
-        match res {
-            Ok(config) => Ok((use_lowercase(config), out.to_vec())),
-            Err(err) => {
-                out.push(LogMessage {
-                    method: "error".into(),
-                    data: vec![],
-                    exception: Some(err.to_string()),
-                });
-                Ok((config, out.to_vec()))
-            }
-        }
-    } else {
-        Err(anyhow::anyhow!("main function should return object"))
     }
 }
 
@@ -113,4 +133,31 @@ fn test_script() {
     println!("{config_str}");
 
     dbg!(results);
+}
+
+#[test]
+fn test_script_runtime_error() {
+    let script = r#"
+    function main() {
+      throw new Error("boom");
+    }
+  "#;
+
+    let config = serde_yaml::from_str("proxies: []").unwrap();
+    let err = use_script(script.into(), config).unwrap_err();
+
+    assert_eq!(err.to_string(), "Error: boom");
+}
+
+#[test]
+fn test_script_syntax_error() {
+    let script = r#"
+    function main(config) {
+      return config;
+  "#;
+
+    let config = serde_yaml::from_str("proxies: []").unwrap();
+    let err = use_script(script.into(), config).unwrap_err();
+
+    assert!(err.to_string().contains("SyntaxError"));
 }
