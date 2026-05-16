@@ -1,6 +1,7 @@
-use std::{collections::HashMap, fs, io::Write, path::PathBuf, time::Duration};
+use std::{collections::HashMap, fs, io::Write, path::PathBuf, sync::LazyLock, time::Duration};
 
 use anyhow::{Context, Result, bail};
+use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use serde_yaml::Mapping;
 use tokio::task::JoinHandle;
@@ -14,7 +15,7 @@ use crate::{
     utils::{dirs, help},
 };
 
-static WORKER_HANDLE: std::sync::Mutex<Option<JoinHandle<()>>> = std::sync::Mutex::new(None);
+static WORKER_HANDLE: LazyLock<Mutex<Option<JoinHandle<()>>>> = LazyLock::new(|| Mutex::new(None));
 
 /// Define the `profiles.yaml` schema
 #[derive(Default, Debug, Clone, Deserialize, Serialize)]
@@ -514,7 +515,7 @@ impl IProfiles {
 
 pub async fn activate_selected_nodes() -> Result<()> {
     tracing::info!("starting activating selected nodes");
-    if let Some(handle) = WORKER_HANDLE.lock().unwrap().as_ref() {
+    if let Some(handle) = WORKER_HANDLE.lock().take() {
         tracing::info!("aborting previous worker");
         handle.abort();
     }
@@ -531,9 +532,8 @@ pub async fn activate_selected_nodes() -> Result<()> {
     let handle = tokio::spawn(async move {
         let mihomo = handle::Handle::mihomo().await;
         // check mihomo is running
-        let mut max_check_retry = 10;
-        loop {
-            if max_check_retry < 0 {
+        for i in 0..10 {
+            if i < 0 {
                 tracing::error!(
                     "check that the mihomo api reaches the maximum number of retries, maybe mihomo core is not running"
                 );
@@ -543,7 +543,6 @@ pub async fn activate_selected_nodes() -> Result<()> {
                 tracing::debug!("check mihomo api success");
                 break;
             }
-            max_check_retry -= 1;
             tokio::time::sleep(Duration::from_secs(1)).await;
         }
 
@@ -580,7 +579,8 @@ pub async fn activate_selected_nodes() -> Result<()> {
             handle::Handle::refresh_clash();
         }
         tracing::info!("activating selected nodes done!");
+        *WORKER_HANDLE.lock() = None;
     });
-    *WORKER_HANDLE.lock().unwrap() = Some(handle);
+    *WORKER_HANDLE.lock() = Some(handle);
     Ok(())
 }
