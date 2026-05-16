@@ -130,16 +130,16 @@ pub async fn delete_profile(uid: String) -> CommandResult<()> {
 pub async fn patch_profiles_config(profiles: IProfiles) -> CommandResult<()> {
     into_command_result(
         async {
-            let current_changed = profiles.current.is_some();
+            let switch_current = profiles.current.is_some();
             Config::profiles().draft().patch_config(profiles)?;
 
             match CoreManager::global().update_config().await {
                 Ok(_) => {
                     Config::profiles().apply();
                     Config::profiles().data().save_file()?;
-                    if current_changed {
+                    if switch_current {
                         tauri::async_runtime::spawn(async {
-                            tracing::debug!("current profile changed, run activate selected nodes work");
+                            tracing::debug!("change current profile, run activate selected node");
                             log_err!(crate::config::activate_selected_nodes().await);
                         });
                     }
