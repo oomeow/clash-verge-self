@@ -15,6 +15,7 @@ use crate::{
     utils::{dirs, help},
 };
 
+// Current working thread task handle, used to activate the node selected in the current profile.
 static WORKER_HANDLE: LazyLock<Mutex<Option<JoinHandle<()>>>> = LazyLock::new(|| Mutex::new(None));
 
 /// Define the `profiles.yaml` schema
