@@ -49,6 +49,7 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
 
         let result = eval_script(&mut context, &call)?;
 
+        // 解析日志内容
         parse_script_logs(&mut context, &mut outputs)?;
 
         // 解析脚本结果
@@ -78,7 +79,6 @@ fn js_error_message(err: boa_engine::JsError, context: &mut boa_engine::Context)
 }
 
 fn parse_script_logs(context: &mut boa_engine::Context, outputs: &mut Vec<LogMessage>) -> Result<()> {
-    // Collect console logs from JS global array into outputs
     let logs_str: JsValue = eval_script(
         context,
         "typeof __verge_log_messages !== 'undefined' ? JSON.stringify(__verge_log_messages) : JSON.stringify([])",
@@ -130,7 +130,6 @@ fn parse_script_result(
 
     let value = call_result.get("value").cloned().unwrap_or(serde_json::Value::Null);
 
-    // let mut out = outputs.lock();
     match serde_json::from_value::<Mapping>(value) {
         Ok(config) => Ok((use_lowercase(config), outputs)),
         Err(err) => {
