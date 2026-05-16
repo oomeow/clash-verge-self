@@ -1,19 +1,26 @@
-use anyhow::Result;
+use anyhow::{Result, bail};
 use serde_yaml::Mapping;
 
 use super::use_lowercase;
 use crate::enhance::LogMessage;
 
 const CONSOLE_SCRIPT: &str = r#"var __verge_log_messages = [];
+function __verge_serialize_log_args(args) {
+  return args.map((item) => JSON.stringify(item));
+}
 var console = Object.freeze({
-  log(data){ __verge_log_messages.push({ method: "log", data: [JSON.stringify(data)], exception: null }); },
-  info(data){ __verge_log_messages.push({ method: "info", data: [JSON.stringify(data)], exception: null }); },
-  error(data){ __verge_log_messages.push({ method: "error", data: [JSON.stringify(data)], exception: null }); },
-  debug(data){ __verge_log_messages.push({ method: "debug", data: [JSON.stringify(data)], exception: null }); },
+  log(...data){ __verge_log_messages.push({ method: "log", data: __verge_serialize_log_args(data), exception: null }); },
+  info(...data){ __verge_log_messages.push({ method: "info", data: __verge_serialize_log_args(data), exception: null }); },
+  error(...data){ __verge_log_messages.push({ method: "error", data: __verge_serialize_log_args(data), exception: null }); },
+  debug(...data){ __verge_log_messages.push({ method: "debug", data: __verge_serialize_log_args(data), exception: null }); },
 });"#;
 
 pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMessage>)> {
     use rquickjs::{Context, Runtime};
+
+    if !script.contains("function main(") {
+        bail!("Script does not contain main function");
+    }
 
     let config = use_lowercase(config);
     let mut outputs = Vec::new();
@@ -30,13 +37,11 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
             // Provide a simple console implementation that stores logs in a JS array
             ctx.eval::<(), _>(CONSOLE_SCRIPT)?;
 
-            // Evaluate the user script (syntax/runtime errors here will surface)
-            ctx.eval::<(), _>(script.as_str())?;
-
-            // Call main(...) wrapped in try/catch to normalize runtime exceptions into a JSON result
+            // Evaluate the user script, then call main(...) wrapped in try/catch to normalize runtime exceptions into a JSON result
             let call = format!(
                 r#"(function() {{
                     try {{
+                        {}
                         return JSON.stringify({{ ok: true, value: main({}) }});
                     }} catch (e) {{
                         let name = e && e.name ? e.name : null;
@@ -45,6 +50,7 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
                         return JSON.stringify({{ ok: false, error: errstr }});
                     }}
                 }})()"#,
+                script.as_str(),
                 config_str
             );
 
