@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use anyhow::Result;
 use serde_yaml::Mapping;
 
@@ -18,7 +16,7 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
     use rquickjs::{Context, Runtime};
 
     let config = use_lowercase(config);
-    let outputs = Arc::new(Mutex::new(vec![]));
+    let mut outputs = Vec::new();
 
     // Pre-serialize config so it can be injected into JS as a literal
     let config_str = serde_json::to_string(&config)?;
@@ -64,12 +62,10 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
 
     match serde_json::from_str::<Vec<LogMessage>>(&logs_str) {
         Ok(mut msgs) => {
-            let mut out = outputs.lock().unwrap();
-            out.append(&mut msgs);
+            outputs.append(&mut msgs);
         }
         Err(err) => {
-            let mut out = outputs.lock().unwrap();
-            out.push(LogMessage {
+            outputs.push(LogMessage {
                 method: "error".into(),
                 data: vec![],
                 exception: Some(err.to_string()),
@@ -96,22 +92,21 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
 fn parse_script_result(
     result: serde_json::Value,
     fallback_config: Mapping,
-    outputs: std::sync::Arc<std::sync::Mutex<Vec<LogMessage>>>,
+    mut outputs: Vec<LogMessage>,
 ) -> Result<(Mapping, Vec<LogMessage>)> {
     if result.is_null() {
         anyhow::bail!("main function should return object");
     }
 
-    let mut out = outputs.lock().unwrap();
     match serde_json::from_value::<Mapping>(result) {
-        Ok(config) => Ok((use_lowercase(config), out.to_vec())),
+        Ok(config) => Ok((use_lowercase(config), outputs)),
         Err(err) => {
-            out.push(LogMessage {
+            outputs.push(LogMessage {
                 method: "error".into(),
                 data: vec![],
                 exception: Some(err.to_string()),
             });
-            Ok((fallback_config, out.to_vec()))
+            Ok((fallback_config, outputs))
         }
     }
 }
