@@ -1,5 +1,6 @@
 mod install;
 mod log_config;
+mod rpc;
 mod uninstall;
 
 use std::path::PathBuf;
@@ -36,6 +37,11 @@ enum Commands {
         #[arg(short, long, help = "Log directory")]
         log_dir: Option<PathBuf>,
     },
+    #[command(about = "Forward an RPC command to the running service and print JSON to stdout")]
+    Rpc {
+        #[command(subcommand)]
+        command: rpc::RpcCommand,
+    },
 }
 
 /// used to store the server_id resolved by the clap
@@ -51,10 +57,8 @@ pub fn my_service_main(_arguments: Vec<std::ffi::OsString>) {
     if let Ok(rt) = tokio::runtime::Runtime::new() {
         let server_id = SERVER_ID.get().expect("failed to get server id").clone();
         let server_id = server_id.unwrap_or(clash_verge_self_service::DEFAULT_SERVER_ID.to_string());
-        let psk =
-            option_env!("CLASH_VERGE_SELF_SERVICE_PSK").map_or(clash_verge_self_service::DEFAULT_PSK, |v| v.as_bytes());
         rt.block_on(async move {
-            let _ = clash_verge_self_service::Server::run(server_id, Some(psk)).await;
+            let _ = clash_verge_self_service::Server::run(server_id).await;
         });
     }
 }
@@ -70,6 +74,11 @@ fn main() -> anyhow::Result<()> {
             LogConfig::global().lock().init(log_dir)?;
             uninstall::process()?;
         }
+        Some(Commands::Rpc { command }) => {
+            LogConfig::global().lock().init(None)?;
+            let rt = tokio::runtime::Runtime::new()?;
+            rt.block_on(async move { rpc::process(cli.server_id, command).await })?;
+        }
         None => {
             LogConfig::global().lock().init(None)?;
             let server_id = cli.server_id;
@@ -78,10 +87,8 @@ fn main() -> anyhow::Result<()> {
             {
                 let rt = tokio::runtime::Runtime::new()?;
                 let server_id = server_id.unwrap_or(clash_verge_self_service::DEFAULT_SERVER_ID.to_string());
-                let psk = option_env!("CLASH_VERGE_SELF_SERVICE_PSK")
-                    .map_or(clash_verge_self_service::DEFAULT_PSK, |v| v.as_bytes());
                 rt.block_on(async move {
-                    let _ = clash_verge_self_service::Server::run(server_id, Some(psk)).await;
+                    let _ = clash_verge_self_service::Server::run(server_id).await;
                 });
             }
             #[cfg(windows)]

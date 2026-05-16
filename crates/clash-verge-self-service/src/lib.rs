@@ -24,7 +24,6 @@ pub const DEFAULT_SERVER_ID: &str = "verge-self-service-server";
 
 // encode relate
 const KEY_INFO: &[u8] = b"7f3b9d2c8a1e4f6b9d0a5c2e1f8b3d7a";
-pub const DEFAULT_PSK: &[u8] = b"G7x#T2p!Lq9VzR4m$Yw8Kb@Qe6HsF1d";
 
 pub struct Client(SecureChannel);
 
@@ -34,7 +33,7 @@ impl Client {
     /// unix system: `/tmp/{server_id}.sock`
     ///
     /// Windows system: `\\.\pipe\{server_id}`
-    pub async fn connect<S: Into<String>>(server_id: S, psk: Option<&[u8]>) -> Result<Self> {
+    pub async fn connect<S: Into<String>>(server_id: S) -> Result<Self> {
         let temp_dir = if cfg!(windows) {
             std::env::temp_dir()
         } else {
@@ -42,7 +41,7 @@ impl Client {
         };
         let path = ServerId::new(server_id.into()).parent_folder(temp_dir);
         let client = tipsy::Endpoint::connect(path).await?;
-        let secured = SecureChannel::handshake_client(client, psk).await?;
+        let secured = SecureChannel::handshake_client(client).await?;
         Ok(Self(secured))
     }
 
@@ -61,8 +60,8 @@ pub struct Server;
 
 impl Server {
     /// run server
-    pub async fn run<S: Into<String>>(server_id: S, psk: Option<&[u8]>) -> Result<()> {
-        service::run_service(Some(server_id.into()), psk).await?;
+    pub async fn run<S: Into<String>>(server_id: S) -> Result<()> {
+        service::run_service(Some(server_id.into())).await?;
         Ok(())
     }
 }

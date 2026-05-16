@@ -159,8 +159,31 @@ impl SecureChannel {
     }
 }
 
+fn derive_shared_key(shared: &[u8]) -> Result<[u8; 32]> {
+    let hk = Hkdf::<sha2::Sha256>::new(None, shared);
+    let mut key = [0u8; 32];
+    hk.expand(KEY_INFO, &mut key)
+        .map_err(|_| anyhow!("hkdf expand failed"))?;
+    Ok(key)
+}
+
+fn service_security_attributes() -> Result<SecurityAttributes> {
+    #[cfg(unix)]
+    {
+        return SecurityAttributes::empty().mode(0o660).map_err(anyhow::Error::from);
+    }
+
+    #[cfg(windows)]
+    {
+        return SecurityAttributes::allow_everyone_connect().map_err(anyhow::Error::from);
+    }
+
+    #[allow(unreachable_code)]
+    Ok(SecurityAttributes::empty())
+}
+
 /// The Service
-pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Result<()> {
+pub async fn run_service(server_id: Option<String>) -> Result<()> {
     // NOTE: comment follow windows code for debug
     // 开启服务 设置服务状态
     #[cfg(windows)]
@@ -192,7 +215,7 @@ pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Resul
     log::info!("temp_dir: {}", temp_dir.display());
     let path = ServerId::new(server_id).parent_folder(temp_dir);
     log::info!("socket path: {}", path.clone().into_ipc_path()?.display());
-    let security_attributes = SecurityAttributes::allow_everyone_connect()?;
+    let security_attributes = service_security_attributes()?;
     let incoming = Endpoint::new(path, OnConflict::Overwrite)?
         .security_attributes(security_attributes)
         .incoming()?;
@@ -206,7 +229,7 @@ pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Resul
                 match result {
                     Ok(stream) => {
                         log::info!("handshake server");
-                        let secured = SecureChannel::handshake_server(stream, psk).await?;
+                        let secured = SecureChannel::handshake_server(stream).await?;
                         log::info!("receive client request");
                         spawn_read_task(secured, shutdown_tx.clone()).await;
                     }
@@ -229,7 +252,7 @@ pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Resul
 }
 
 impl SecureChannel {
-    pub async fn handshake_server(mut stream: Connection, psk: Option<&[u8]>) -> Result<SecureChannel> {
+    pub async fn handshake_server(mut stream: Connection) -> Result<SecureChannel> {
         let server_secret = StaticSecret::random_from_rng(rand_core::OsRng);
         let server_pub = PublicKey::from(&server_secret);
 
@@ -240,14 +263,7 @@ impl SecureChannel {
         stream.write_all(server_pub.as_bytes()).await?;
 
         let shared = server_secret.diffie_hellman(&client_pub);
-        // derive symmetric key via HKDF-SHA256, mix in PSK as salt if provided
-        let hk = match psk {
-            Some(salt) => Hkdf::<sha2::Sha256>::new(Some(salt), shared.as_bytes()),
-            None => Hkdf::<sha2::Sha256>::new(None, shared.as_bytes()),
-        };
-        let mut key = [0u8; 32];
-        hk.expand(KEY_INFO, &mut key)
-            .map_err(|_| anyhow!("hkdf expand failed"))?;
+        let key = derive_shared_key(shared.as_bytes())?;
 
         let aead = XChaCha20Poly1305::new(&key.into());
         Ok(SecureChannel {
@@ -258,7 +274,7 @@ impl SecureChannel {
         })
     }
 
-    pub async fn handshake_client(mut stream: Connection, psk: Option<&[u8]>) -> Result<SecureChannel> {
+    pub async fn handshake_client(mut stream: Connection) -> Result<SecureChannel> {
         let client_secret = StaticSecret::random_from_rng(rand_core::OsRng);
         let client_pub = PublicKey::from(&client_secret);
 
@@ -269,14 +285,7 @@ impl SecureChannel {
         let server_pub = PublicKey::from(server_pub_bytes);
 
         let shared = client_secret.diffie_hellman(&server_pub);
-        // derive symmetric key via HKDF-SHA256, mix in PSK as salt if provided
-        let hk = match psk {
-            Some(salt) => Hkdf::<sha2::Sha256>::new(Some(salt), shared.as_bytes()),
-            None => Hkdf::<sha2::Sha256>::new(None, shared.as_bytes()),
-        };
-        let mut key = [0u8; 32];
-        hk.expand(KEY_INFO, &mut key)
-            .map_err(|_| anyhow!("hkdf expand failed"))?;
+        let key = derive_shared_key(shared.as_bytes())?;
 
         let aead = XChaCha20Poly1305::new(&key.into());
         Ok(SecureChannel {
@@ -394,4 +403,29 @@ fn stop_service() -> Result<()> {
         .arg("io.github.clashvergeself.helper")
         .output()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn derive_shared_key_is_deterministic() {
+        let shared = [7u8; 32];
+
+        let key1 = derive_shared_key(&shared).expect("first derivation should succeed");
+        let key2 = derive_shared_key(&shared).expect("second derivation should succeed");
+
+        assert_eq!(key1, key2);
+        assert_ne!(key1, [0u8; 32]);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn service_security_attributes_use_restricted_mode() {
+        let attrs = service_security_attributes().expect("attributes should build");
+
+        let debug = format!("{attrs:?}");
+        assert!(debug.contains("mode: Some(432)"));
+    }
 }
