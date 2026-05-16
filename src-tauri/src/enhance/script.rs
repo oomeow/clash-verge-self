@@ -1,60 +1,65 @@
+use std::thread;
+
 use anyhow::Result;
+use boa_engine::{Context, JsValue};
 use serde_yaml::Mapping;
 
 use super::use_lowercase;
 use crate::enhance::LogMessage;
 
-const CONSOLE_SCRIPT: &str = r#"var console = Object.freeze({
-  log(data){__verge_log__("log",JSON.stringify(data))},
-  info(data){__verge_log__("info",JSON.stringify(data))},
-  error(data){__verge_log__("error",JSON.stringify(data))},
-  debug(data){__verge_log__("debug",JSON.stringify(data))},
+const CONSOLE_SCRIPT: &str = r#"var __verge_log_messages = [];
+function __verge_serialize_log_args(args) {
+  return args.map((item) => JSON.stringify(item));
+}
+var console = Object.freeze({
+  log(...data){ __verge_log_messages.push({ method: "log", data: __verge_serialize_log_args(data), exception: null }); },
+  info(...data){ __verge_log_messages.push({ method: "info", data: __verge_serialize_log_args(data), exception: null }); },
+  error(...data){ __verge_log_messages.push({ method: "error", data: __verge_serialize_log_args(data), exception: null }); },
+  debug(...data){ __verge_log_messages.push({ method: "debug", data: __verge_serialize_log_args(data), exception: null }); },
 });"#;
 
-const MAIN_RETURN_ERROR: &str = "main function should return object";
-
 pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMessage>)> {
-    use std::sync::{Arc, Mutex};
+    // 所有操作都放到子线程中, 线程结束，则销毁 boa 相关的对象，避免内存快速升高且居高不下的问题
+    let handle = thread::spawn(move || -> Result<(Mapping, Vec<LogMessage>)> {
+        let config = use_lowercase(config);
+        let config_str = serde_json::to_string(&config)?;
+        let mut outputs = Vec::new();
 
-    let config = use_lowercase(config);
-    let outputs = Arc::new(Mutex::new(vec![]));
-    let mut context = create_context(outputs.clone())?;
+        // 创建上下文
+        let mut context = Context::default();
 
-    eval_script(&mut context, &script)?;
+        // 注入 console 脚本
+        eval_script(&mut context, CONSOLE_SCRIPT)?;
 
-    let config_str = serde_json::to_string(&config)?;
-    let result = eval_script(&mut context, &format!("main({config_str})"))?;
-    parse_script_result(result, &mut context, config, outputs)
-}
-
-fn create_context(outputs: std::sync::Arc<std::sync::Mutex<Vec<LogMessage>>>) -> Result<boa_engine::Context> {
-    use boa_engine::{Context, JsValue, native_function::NativeFunction};
-
-    let mut context = Context::default();
-    let copy_outputs = outputs.clone();
-
-    unsafe {
-        let _ = context.register_global_builtin_callable(
-            "__verge_log__".into(),
-            2,
-            NativeFunction::from_closure(move |_: &JsValue, args: &[JsValue], context: &mut Context| {
-                let level = args.first().unwrap().to_string(context)?;
-                let level = level.to_std_string().unwrap();
-                let data = args.get(1).unwrap().to_string(context)?;
-                let data = data.to_std_string().unwrap();
-                let mut out = copy_outputs.lock().unwrap();
-                out.push(LogMessage {
-                    method: level,
-                    data: vec![data],
-                    exception: None,
-                });
-                Ok(JsValue::undefined())
-            }),
+        let call = format!(
+            r#"(function() {{
+                try {{
+                    {}
+                    return JSON.stringify({{ ok: true, value: main({}) }});
+                }} catch (e) {{
+                    let name = e && e.name ? e.name : null;
+                    let msg = e && e.message ? e.message : null;
+                    let errstr = name && msg ? (name + ': ' + msg) : (e && e.stack ? e.stack : String(e));
+                    return JSON.stringify({{ ok: false, error: errstr }});
+                }}
+            }})()"#,
+            script.as_str(),
+            config_str
         );
-    }
 
-    eval_script(&mut context, CONSOLE_SCRIPT)?;
-    Ok(context)
+        let result = eval_script(&mut context, &call)?;
+
+        // 解析日志内容
+        parse_script_logs(&mut context, &mut outputs)?;
+
+        // 解析脚本结果
+        parse_script_result(result, &mut context, config, outputs)
+    });
+
+    // join 等待子线程完成，获取结果
+    handle
+        .join()
+        .map_err(|e| anyhow::anyhow!("Script thread panicked: {:?}", e))?
 }
 
 fn eval_script(context: &mut boa_engine::Context, source: &str) -> Result<boa_engine::JsValue> {
@@ -73,31 +78,67 @@ fn js_error_message(err: boa_engine::JsError, context: &mut boa_engine::Context)
         .unwrap_or_else(|| err.to_string())
 }
 
-fn parse_script_result(
-    result: boa_engine::JsValue,
-    context: &mut boa_engine::Context,
-    fallback_config: Mapping,
-    outputs: std::sync::Arc<std::sync::Mutex<Vec<LogMessage>>>,
-) -> Result<(Mapping, Vec<LogMessage>)> {
-    if result.is_null() || result.is_undefined() {
-        anyhow::bail!(MAIN_RETURN_ERROR);
-    }
+fn parse_script_logs(context: &mut boa_engine::Context, outputs: &mut Vec<LogMessage>) -> Result<()> {
+    let logs_str: JsValue = eval_script(
+        context,
+        "typeof __verge_log_messages !== 'undefined' ? JSON.stringify(__verge_log_messages) : JSON.stringify([])",
+    )?;
 
-    let json = result
-        .to_json(context)
+    let logs_json = logs_str
+        .to_string(context)
         .map_err(|err| anyhow::anyhow!(js_error_message(err, context)))?
-        .ok_or_else(|| anyhow::anyhow!(MAIN_RETURN_ERROR))?;
+        .to_std_string_lossy();
 
-    let mut out = outputs.lock().unwrap();
-    match serde_json::from_value::<Mapping>(json) {
-        Ok(config) => Ok((use_lowercase(config), out.to_vec())),
+    match serde_json::from_str::<Vec<LogMessage>>(&logs_json) {
+        Ok(mut msgs) => {
+            outputs.append(&mut msgs);
+        }
         Err(err) => {
-            out.push(LogMessage {
+            outputs.push(LogMessage {
                 method: "error".into(),
                 data: vec![],
                 exception: Some(err.to_string()),
             });
-            Ok((fallback_config, out.to_vec()))
+        }
+    }
+    Ok(())
+}
+
+fn parse_script_result(
+    result: boa_engine::JsValue,
+    context: &mut boa_engine::Context,
+    fallback_config: Mapping,
+    mut outputs: Vec<LogMessage>,
+) -> Result<(Mapping, Vec<LogMessage>)> {
+    let call_result_str = result
+        .to_string(context)
+        .map_err(|err| anyhow::anyhow!(js_error_message(err, context)))?
+        .to_std_string_lossy();
+
+    let call_result: serde_json::Value = serde_json::from_str(&call_result_str)?;
+
+    if let Some(ok) = call_result.get("ok").and_then(|v| v.as_bool())
+        && !ok
+    {
+        let err_str = call_result
+            .get("error")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Unknown error")
+            .to_string();
+        anyhow::bail!(err_str);
+    }
+
+    let value = call_result.get("value").cloned().unwrap_or(serde_json::Value::Null);
+
+    match serde_json::from_value::<Mapping>(value) {
+        Ok(config) => Ok((use_lowercase(config), outputs)),
+        Err(err) => {
+            outputs.push(LogMessage {
+                method: "error".into(),
+                data: vec![],
+                exception: Some(err.to_string()),
+            });
+            Ok((fallback_config, outputs))
         }
     }
 }
