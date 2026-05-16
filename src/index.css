@@ -384,7 +384,7 @@
   }
 
   /* Material UI base styles */
-  h1 {
+  /*h1 {
     font: var(--mui-font-h1);
     letter-spacing: -0.01562em;
   }
@@ -413,7 +413,7 @@
   span {
     font: var(--mui-font-body2);
     letter-spacing: 0.01071em;
-  }
+  }*/
 }
 
 /* Material UI typography utilities */
