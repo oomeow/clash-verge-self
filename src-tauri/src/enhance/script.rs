@@ -14,8 +14,6 @@ var console = Object.freeze({
   debug(data){ __verge_log_messages.push({ method: "debug", data: [JSON.stringify(data)], exception: null }); },
 });"#;
 
-const MAIN_RETURN_ERROR: &str = "main function should return object";
-
 pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMessage>)> {
     use rquickjs::{Context, Runtime};
 
@@ -101,7 +99,7 @@ fn parse_script_result(
     outputs: std::sync::Arc<std::sync::Mutex<Vec<LogMessage>>>,
 ) -> Result<(Mapping, Vec<LogMessage>)> {
     if result.is_null() {
-        anyhow::bail!(MAIN_RETURN_ERROR);
+        anyhow::bail!("main function should return object");
     }
 
     let mut out = outputs.lock().unwrap();
