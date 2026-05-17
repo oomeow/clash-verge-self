@@ -33,6 +33,8 @@ async fn main() -> Result<()> {
     get_clash(&mut client).await?;
     get_logs(&mut client).await?;
 
+    stop_service(&mut client).await?;
+
     Ok(())
 }
 
@@ -77,5 +79,10 @@ async fn get_logs(client: &mut clash_verge_self_service::Client) -> Result<()> {
 async fn get_version(client: &mut clash_verge_self_service::Client) -> Result<()> {
     let msg = client.send::<ServiceVersionInfo>(SocketCommand::GetVersion).await?;
     println!("get version: {:?}", msg);
+    Ok(())
+}
+
+async fn stop_service(client: &mut clash_verge_self_service::Client) -> Result<()> {
+    client.send::<()>(SocketCommand::StopService).await?;
     Ok(())
 }
