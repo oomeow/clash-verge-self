@@ -158,7 +158,11 @@
         "openFile": "Открыть файл",
         "updateProxy": "Обновить (прокси)",
         "toTop": "Переместить вверх",
-        "toEnd": "Переместить вниз"
+        "toEnd": "Переместить вниз",
+        "selectMode": "Выбрать",
+        "deleteSelected": "Удалить выбранные ({{count}})",
+        "enableSelected": "Включить выбранные ({{count}})",
+        "disableSelected": "Отключить выбранные ({{count}})"
       },
       "inputs": {
         "profileUrl": "URL профиля"
@@ -168,7 +172,9 @@
         "editTitle": "Изменить профиль",
         "scriptConsole": "Консоль скрипта",
         "confirmDeletion": "Подтвердите удаление",
-        "confirmDeletionMessage": "Эта операция необратима"
+        "confirmDeletionMessage": "Эта операция необратима",
+        "confirmBatchDeletion": "Удалить {{count}} элемента?",
+        "confirmBatchDeletionMessage": "Эта операция необратима"
       },
       "fields": {
         "subscriptionUrl": "URL подписки",
@@ -516,6 +522,8 @@
       "imported": "Профиль успешно импортирован",
       "switched": "Профиль переключён",
       "reactivated": "Профиль повторно активирован",
+      "batchDeleteSuccess": "Успешно удалено {{count}} элемента",
+      "batchToggleSuccess": "Обновлено {{count}} элемента",
       "onlyYamlSupported": "Поддерживаются только файлы YAML",
       "unsupportedFiles": "Неподдерживаемые файлы: {{files}}",
       "importFileFailed": "Не удалось импортировать файл: {{file}}",

@@ -51,6 +51,9 @@ interface Props {
   onToggleEnable: (uid: string, enable: boolean) => void;
   onDelete?: (item: IProfileItem) => Promise<void>;
   onActivatedSave: () => void;
+  onClick?: (uid: string) => void;
+  selectMode?: boolean;
+  multiSelected?: boolean;
 }
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
@@ -59,6 +62,9 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
     top: 3,
     border: `2px solid ${theme.palette.background.paper}`,
     padding: "0 4px",
+  },
+  "&[aria-disabled=true] .MuiBadge-badge": {
+    opacity: 0.2,
   },
 }));
 
@@ -74,6 +80,9 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
     onToggleEnable,
     onDelete,
     onActivatedSave,
+    onClick,
+    selectMode,
+    multiSelected,
   } = props;
 
   const { uid, type } = itemData;
@@ -166,7 +175,8 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
 
   return (
     <Box
-      sx={{
+      className={selectMode ? "animate-shake" : undefined}
+      sx={(theme) => ({
         width: "100%",
         bgcolor: themeMode === "light" ? "#FFFFFF" : "#282A36",
         borderRadius: "8px",
@@ -174,17 +184,32 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
           themeMode === "light"
             ? "0 1px 4px rgba(15, 23, 42, 0.08)"
             : "0 1px 4px rgba(0, 0, 0, 0.24)",
-        ...sx,
-      }}>
+        transition: "opacity 0.15s, box-shadow 0.15s, filter 0.15s",
+        ...(selectMode && {
+          filter: "saturate(0.75)",
+          opacity: 0.85,
+        }),
+        ...(multiSelected && {
+          filter: "saturate(1)",
+          opacity: 1,
+          boxShadow: `0 0 0 2px ${theme.palette.primary.main}, 0 2px 8px ${theme.palette.primary.main}33`,
+        }),
+        ...{ sx },
+      })}>
       <ProfileDiv
         aria-label={isDragging ? "dragging" : "script"}
         aria-selected={selected || itemData.enable}
-        onDoubleClick={() => onEditFile()}
+        onClick={onClick ? () => onClick(uid) : undefined}
+        onDoubleClick={() => {
+          if (!selectMode) onEditFile();
+        }}
         onContextMenu={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (selectMode) return;
           const { clientX, clientY } = event;
           setPosition({ top: clientY, left: clientX });
           setAnchorEl(event.currentTarget);
-          event.preventDefault();
         }}>
         {(reactivating || toggling) && (
           <Box
@@ -203,6 +228,18 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
             }}>
             <CircularProgress size={20} />
           </Box>
+        )}
+        {multiSelected && (
+          <CheckCircle
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              zIndex: 10,
+              fontSize: 22,
+              color: "primary.main",
+            }}
+          />
         )}
         <Box
           sx={{
@@ -232,6 +269,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
           <Box sx={{ flex: "0 0 auto", width: 30, height: 30 }}>
             {showConsole ? (
               <IconButton
+                disabled={selectMode}
                 size="small"
                 edge="end"
                 color={hasError ? "error" : "primary"}
@@ -265,7 +303,10 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
                     <Terminal fontSize="small" />
                   </Badge>
                 ) : (
-                  <StyledBadge badgeContent={logs.length} color="primary">
+                  <StyledBadge
+                    aria-disabled={selectMode}
+                    badgeContent={logs.length}
+                    color="primary">
                     <Terminal fontSize="small" />
                   </StyledBadge>
                 )}
@@ -297,8 +338,8 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         transitionDuration={225}
         slotProps={{ list: { sx: { py: 0.5 } } }}
         onContextMenu={(e) => {
-          setAnchorEl(null);
           e.preventDefault();
+          setAnchorEl(null);
         }}>
         {menus
           .filter((item: any) => item.show !== false)

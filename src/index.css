@@ -282,6 +282,7 @@
   --animate-marquee: marquee var(--duration) infinite linear;
   --animate-highlight: highlight-pulse 1s ease-in-out infinite;
   --animate-marquee-vertical: marquee-vertical var(--duration) infinite linear;
+  --animate-shake: shake 3s ease-in-out infinite;
 
   @keyframes marquee {
     from {
@@ -314,6 +315,22 @@
     }
     to {
       transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+
+  @keyframes shake {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(0.5deg);
+    }
+    50% {
+      transform: rotate(-0.5deg);
+    }
+    75% {
+      transform: rotate(0.3deg);
     }
   }
 }

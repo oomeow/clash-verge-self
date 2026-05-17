@@ -201,6 +201,8 @@ pub fn run() -> Result<()> {
             cmds::profile::reorder_profile,
             cmds::profile::update_profile,
             cmds::profile::delete_profile,
+            cmds::profile::batch_delete_profiles,
+            cmds::profile::batch_toggle_chains_enable,
             cmds::profile::read_profile_file,
             cmds::profile::save_profile_file,
             // service mode
