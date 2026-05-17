@@ -152,7 +152,7 @@ const ProfilePage = () => {
         return next;
       });
     },
-    [selectionCategory, notice],
+    [],
   );
 
   const onEnhance = useLockFn(async () => {
