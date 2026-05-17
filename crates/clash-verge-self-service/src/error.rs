@@ -20,6 +20,9 @@ pub enum ServiceError {
     #[error("Process supervisor error: {0}")]
     ProcessSupervisor(#[from] process_supervisor::Error),
 
+    #[error("Windows service error: {0}")]
+    WindowsService(#[from] windows_service::Error),
+
     #[error("{0}")]
     General(String),
 }

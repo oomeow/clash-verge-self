@@ -91,8 +91,7 @@ fn main() -> clash_verge_self_service::Result<()> {
                 SERVER_ID
                     .set(server_id)
                     .map_err(|_| clash_verge_self_service::ServiceError::General("failed to set server id".into()))?;
-                service_dispatcher::start(clash_verge_self_service::SERVICE_NAME, ffi_service_main)
-                    .map_err(|e| clash_verge_self_service::ServiceError::General(e.to_string()))?;
+                service_dispatcher::start(clash_verge_self_service::SERVICE_NAME, ffi_service_main)?;
             }
         }
     }
