@@ -20,6 +20,7 @@ pub enum ServiceError {
     #[error("Process supervisor error: {0}")]
     ProcessSupervisor(#[from] process_supervisor::Error),
 
+    #[cfg(windows)]
     #[error("Windows service error: {0}")]
     WindowsService(#[from] windows_service::Error),
 
