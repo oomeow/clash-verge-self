@@ -204,11 +204,12 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
           if (!selectMode) onEditFile();
         }}
         onContextMenu={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           if (selectMode) return;
           const { clientX, clientY } = event;
           setPosition({ top: clientY, left: clientX });
           setAnchorEl(event.currentTarget);
-          event.preventDefault();
         }}>
         {(reactivating || toggling) && (
           <Box
@@ -337,8 +338,8 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         transitionDuration={225}
         slotProps={{ list: { sx: { py: 0.5 } } }}
         onContextMenu={(e) => {
-          setAnchorEl(null);
           e.preventDefault();
+          setAnchorEl(null);
         }}>
         {menus
           .filter((item: any) => item.show !== false)

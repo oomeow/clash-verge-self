@@ -283,11 +283,12 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         aria-selected={selected}
         onClick={() => onSelect(uid)}
         onContextMenu={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           if (selectMode) return;
           const { clientX, clientY } = event;
           setPosition({ top: clientY, left: clientX });
           setAnchorEl(event.currentTarget);
-          event.preventDefault();
         }}>
         {activating && (
           <Box
@@ -472,8 +473,8 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         transitionDuration={225}
         slotProps={{ list: { sx: { py: 0.5 } } }}
         onContextMenu={(e) => {
-          setAnchorEl(null);
           e.preventDefault();
+          setAnchorEl(null);
         }}>
         {menus.map((item) => (
           <MenuItem
