@@ -1,8 +1,9 @@
+mod error;
 mod service;
 
 use std::{path::PathBuf, str::FromStr};
 
-use anyhow::Result;
+pub use error::{Result, ServiceError};
 use serde::de::DeserializeOwned;
 use tipsy::ServerId;
 

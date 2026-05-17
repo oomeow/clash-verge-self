@@ -4,8 +4,10 @@ use std::{
     time::{Duration, Instant},
 };
 
-use anyhow::Result;
-use clash_verge_self_service::model::{ClashRunInfo, ServiceVersionInfo, SocketCommand, StartBody};
+use clash_verge_self_service::{
+    Result,
+    model::{ClashRunInfo, ServiceVersionInfo, SocketCommand, StartBody},
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {

@@ -1,16 +1,16 @@
-use anyhow::Result;
+use clash_verge_self_service::{Result, ServiceError};
 
 #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
 pub fn process() -> Result<()> {
     log::error!("Unsupported platform");
-    anyhow::bail!("This program is not intended to run on this platform.");
+    return Err(ServiceError::General(
+        "This program is not intended to run on this platform.".into(),
+    ));
 }
 
 #[cfg(target_os = "macos")]
 pub fn process() -> Result<()> {
     use std::{fs::remove_file, path::Path};
-
-    use anyhow::Context;
 
     log::debug!("Start uninstall Clash Verge Self Service");
 
@@ -22,7 +22,7 @@ pub fn process() -> Result<()> {
         .arg("unload")
         .arg(plist_file)
         .output()
-        .context("Failed to unload service.")?;
+        .map_err(|e| ServiceError::General(format!("Failed to unload service: {e}")))?;
 
     // Remove the service file.
     log::debug!("Removing service file [/Library/PrivilegedHelperTools/io.github.clashvergeself.helper]");
@@ -46,7 +46,6 @@ pub fn process() -> Result<()> {
 pub fn process() -> Result<()> {
     use std::{fs::remove_file, path::Path};
 
-    use anyhow::Context;
     use clash_verge_self_service::SERVICE_NAME;
 
     log::debug!("Start uninstall Clash Verge Self Service");
@@ -58,7 +57,7 @@ pub fn process() -> Result<()> {
         .arg(SERVICE_NAME)
         .arg("--now")
         .output()
-        .context("Failed to disable service.")?;
+        .map_err(|e| ServiceError::General(format!("Failed to disable service: {e}")))?;
 
     // Remove the unit file.
     let unit_file = format!("/etc/systemd/system/{SERVICE_NAME}.service");
@@ -66,7 +65,7 @@ pub fn process() -> Result<()> {
     let unit_file = Path::new(&unit_file);
     if unit_file.exists() {
         log::debug!("Service file exists, removing it");
-        remove_file(unit_file).context("Failed to remove unit file.")?;
+        remove_file(unit_file).map_err(|e| ServiceError::General(format!("Failed to remove unit file: {e}")))?;
     }
     log::debug!("Service file removed");
 
@@ -74,7 +73,7 @@ pub fn process() -> Result<()> {
     std::process::Command::new("systemctl")
         .arg("daemon-reload")
         .output()
-        .context("Failed to reload systemd daemon.")?;
+        .map_err(|e| ServiceError::General(format!("Failed to reload systemd daemon: {e}")))?;
 
     log::debug!("Service uninstalled successfully.");
     Ok(())
@@ -94,14 +93,19 @@ pub fn process() -> Result<()> {
 
     log::debug!("Connecting to service manager.");
     let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
+    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)
+        .map_err(|e| ServiceError::General(e.to_string()))?;
 
     log::debug!("Opening existing service.");
     let service_access = ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE;
-    let service = service_manager.open_service("clash_verge_self_service", service_access)?;
+    let service = service_manager
+        .open_service("clash_verge_self_service", service_access)
+        .map_err(|e| ServiceError::General(e.to_string()))?;
 
     log::debug!("Checking service status.");
-    let service_status = service.query_status()?;
+    let service_status = service
+        .query_status()
+        .map_err(|e| ServiceError::General(e.to_string()))?;
     if service_status.current_state != ServiceState::Stopped {
         log::debug!("Service status is not stopped, stopping it first.");
         if let Err(err) = service.stop() {
@@ -112,7 +116,7 @@ pub fn process() -> Result<()> {
     }
 
     log::debug!("Deleting service");
-    service.delete()?;
+    service.delete().map_err(|e| ServiceError::General(e.to_string()))?;
 
     log::debug!("Service uninstalled successfully.");
     Ok(())

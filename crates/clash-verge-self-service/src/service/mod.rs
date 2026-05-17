@@ -9,7 +9,6 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-use anyhow::{Result, anyhow};
 use bytes::{BufMut, BytesMut};
 use chacha20poly1305::{
     XChaCha20Poly1305,
@@ -36,7 +35,7 @@ use windows_service::{
 };
 use x25519_dalek::{PublicKey, StaticSecret};
 
-use crate::{DEFAULT_SERVER_ID, KEY_INFO};
+use crate::{DEFAULT_SERVER_ID, KEY_INFO, Result, ServiceError};
 
 macro_rules! wrap_response {
     ($expr: expr) => {
@@ -87,7 +86,7 @@ impl SecureChannel {
         let cipher = self
             .aead
             .encrypt(&nonce.into(), full_plaintext.as_slice())
-            .map_err(|e| anyhow!("encrypt failed: {e}"))?;
+            .map_err(|e| ServiceError::General(format!("encrypt failed: {e}")))?;
 
         // frame = length(4) + nonce(24) + cipher(n)
         let total_len = (24 + cipher.len()) as u32;
@@ -109,7 +108,7 @@ impl SecureChannel {
         self.stream
             .read_exact(&mut len_buf)
             .await
-            .map_err(|_| anyhow!("invalid connection"))?;
+            .map_err(|_| ServiceError::General("invalid connection".into()))?;
         let frame_len = u32::from_be_bytes(len_buf) as usize;
 
         // read whole frame
@@ -117,17 +116,17 @@ impl SecureChannel {
         self.stream
             .read_exact(&mut buf)
             .await
-            .map_err(|_| anyhow!("invalid connection"))?;
+            .map_err(|_| ServiceError::General("invalid connection".into()))?;
 
         let (nonce_bytes, cipher) = buf.split_at(24);
         let plaintext = self
             .aead
             .decrypt(nonce_bytes.into(), cipher)
-            .map_err(|e| anyhow!("decrypt failed: {e}"))?;
+            .map_err(|e| ServiceError::General(format!("decrypt failed: {e}")))?;
 
         // the `ts` and `msg_id` strings together are at least 24 bytes long.
         if plaintext.len() < 24 {
-            return Err(anyhow!("payload too short"));
+            return Err(ServiceError::General("payload too short".into()));
         }
 
         let ts = u128::from_be_bytes(plaintext[0..16].try_into()?);
@@ -137,17 +136,15 @@ impl SecureChannel {
         let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis();
         let request_timestamp = now - ts;
         if request_timestamp > self.timestamp_window {
-            return Err(anyhow!(
-                "replay attack: old timestamp, request: {}, now: {}, timestamp: {}",
-                ts,
-                now,
+            return Err(ServiceError::General(format!(
+                "replay attack: old timestamp, request: {ts}, now: {now}, timestamp: {}",
                 self.timestamp_window
-            ));
+            )));
         }
 
         let mut ids = self.seen_ids.lock();
         if ids.contains(&msg_id) {
-            return Err(anyhow!("replay attack: duplicate message ID"));
+            return Err(ServiceError::General("replay attack: duplicate message ID".into()));
         } else {
             if ids.len() >= 100 {
                 ids.pop_front();
@@ -171,17 +168,20 @@ pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Resul
                 ServiceControl::Stop => std::process::exit(0),
                 _ => ServiceControlHandlerResult::NotImplemented,
             }
-        })?;
+        })
+        .map_err(|e| ServiceError::General(e.to_string()))?;
     #[cfg(windows)]
-    status_handle.set_service_status(ServiceStatus {
-        service_type: crate::SERVICE_TYPE,
-        current_state: ServiceState::Running,
-        controls_accepted: ServiceControlAccept::STOP,
-        exit_code: ServiceExitCode::Win32(0),
-        checkpoint: 0,
-        wait_hint: std::time::Duration::default(),
-        process_id: None,
-    })?;
+    status_handle
+        .set_service_status(ServiceStatus {
+            service_type: crate::SERVICE_TYPE,
+            current_state: ServiceState::Running,
+            controls_accepted: ServiceControlAccept::STOP,
+            exit_code: ServiceExitCode::Win32(0),
+            checkpoint: 0,
+            wait_hint: std::time::Duration::default(),
+            process_id: None,
+        })
+        .map_err(|e| ServiceError::General(e.to_string()))?;
 
     let server_id = server_id.unwrap_or(DEFAULT_SERVER_ID.to_string());
     let temp_dir = if cfg!(windows) {
@@ -247,7 +247,7 @@ impl SecureChannel {
         };
         let mut key = [0u8; 32];
         hk.expand(KEY_INFO, &mut key)
-            .map_err(|_| anyhow!("hkdf expand failed"))?;
+            .map_err(|_| ServiceError::General("hkdf expand failed".into()))?;
 
         let aead = XChaCha20Poly1305::new(&key.into());
         Ok(SecureChannel {
@@ -276,7 +276,7 @@ impl SecureChannel {
         };
         let mut key = [0u8; 32];
         hk.expand(KEY_INFO, &mut key)
-            .map_err(|_| anyhow!("hkdf expand failed"))?;
+            .map_err(|_| ServiceError::General("hkdf expand failed".into()))?;
 
         let aead = XChaCha20Poly1305::new(&key.into());
         Ok(SecureChannel {
@@ -291,7 +291,7 @@ impl SecureChannel {
 async fn spawn_read_task(mut secured: SecureChannel, shutdown_tx: Sender<()>) {
     tokio::spawn(async move {
         while let Ok(msg) = secured.recv().await {
-            let send_error_resp = async |secured: &mut SecureChannel, e: anyhow::Result<()>| {
+            let send_error_resp = async |secured: &mut SecureChannel, e: Result<()>| {
                 log::info!("send error response to back");
                 let response = wrap_response!(e)?;
                 secured.send(response.as_bytes()).await?;
@@ -303,14 +303,22 @@ async fn spawn_read_task(mut secured: SecureChannel, shutdown_tx: Sender<()>) {
                 Ok(cmd) => cmd,
                 Err(err) => {
                     log::error!("Error parsing socket command: {err}");
-                    send_error_resp(&mut secured, Err(anyhow!("Error parsing socket command: {err}"))).await?;
+                    send_error_resp(
+                        &mut secured,
+                        Err(ServiceError::General(format!("Error parsing socket command: {err}"))),
+                    )
+                    .await?;
                     continue;
                 }
             };
 
             if let Err(err) = handle_socket_command(&mut secured, cmd.clone()).await {
                 log::error!("Error handling socket command: {err}");
-                send_error_resp(&mut secured, Err(anyhow!("Error handling socket command: {err}"))).await?;
+                send_error_resp(
+                    &mut secured,
+                    Err(ServiceError::General(format!("Error handling socket command: {err}"))),
+                )
+                .await?;
             };
 
             if let SocketCommand::StopService = cmd {
@@ -362,18 +370,21 @@ async fn handle_socket_command(secured: &mut SecureChannel, cmd: SocketCommand) 
 #[cfg(windows)]
 fn stop_service() -> Result<()> {
     let status_handle =
-        service_control_handler::register(crate::SERVICE_NAME, |_| ServiceControlHandlerResult::NoError)?;
+        service_control_handler::register(crate::SERVICE_NAME, |_| ServiceControlHandlerResult::NoError)
+            .map_err(|e| ServiceError::General(e.to_string()))?;
     use crate::SERVICE_TYPE;
 
-    status_handle.set_service_status(ServiceStatus {
-        service_type: SERVICE_TYPE,
-        current_state: ServiceState::Stopped,
-        controls_accepted: ServiceControlAccept::empty(),
-        exit_code: ServiceExitCode::Win32(0),
-        checkpoint: 0,
-        wait_hint: std::time::Duration::default(),
-        process_id: None,
-    })?;
+    status_handle
+        .set_service_status(ServiceStatus {
+            service_type: SERVICE_TYPE,
+            current_state: ServiceState::Stopped,
+            controls_accepted: ServiceControlAccept::empty(),
+            exit_code: ServiceExitCode::Win32(0),
+            checkpoint: 0,
+            wait_hint: std::time::Duration::default(),
+            process_id: None,
+        })
+        .map_err(|e| ServiceError::General(e.to_string()))?;
     Ok(())
 }
 

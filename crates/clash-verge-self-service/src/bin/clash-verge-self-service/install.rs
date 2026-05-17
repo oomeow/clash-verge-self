@@ -1,17 +1,16 @@
-use anyhow::Result;
-use clash_verge_self_service::DEFAULT_SERVER_ID;
+use clash_verge_self_service::{DEFAULT_SERVER_ID, Result, ServiceError};
 
 #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
 pub fn process(_server_id: Option<String>) -> Result<()> {
     log::error!("Unsupported platform");
-    anyhow::bail!("This program is not intended to run on this platform.");
+    Err(ServiceError::General(
+        "This program is not intended to run on this platform.".into(),
+    ))
 }
 
 #[cfg(target_os = "macos")]
 pub fn process(server_id: Option<String>) -> Result<()> {
     use std::{fs::File, io::Write, path::Path};
-
-    use anyhow::Context;
 
     let server_id = server_id.unwrap_or(DEFAULT_SERVER_ID.to_string());
 
@@ -30,7 +29,8 @@ pub fn process(server_id: Option<String>) -> Result<()> {
     }
     if !target_binary_dir.exists() {
         log::debug!("Create directory for service file [{}].", target_binary_dir.display());
-        std::fs::create_dir(target_binary_dir).context("Unable to create directory for service file")?;
+        std::fs::create_dir(target_binary_dir)
+            .map_err(|e| ServiceError::General(format!("Unable to create directory for service file: {e}")))?;
     }
 
     log::debug!(
@@ -38,7 +38,8 @@ pub fn process(server_id: Option<String>) -> Result<()> {
         service_binary_path.display(),
         target_binary_path
     );
-    std::fs::copy(service_binary_path, target_binary_path).context("Unable to copy service file")?;
+    std::fs::copy(service_binary_path, target_binary_path)
+        .map_err(|e| ServiceError::General(format!("Unable to copy service file: {e}")))?;
 
     let plist_file = "/Library/LaunchDaemons/io.github.clashvergeself.helper.plist";
     log::debug!("Create plist file at {}", plist_file);
@@ -47,12 +48,13 @@ pub fn process(server_id: Option<String>) -> Result<()> {
         include_str!("../../../tmpl/io.github.clashvergeself.helper.plist"),
         server_id
     );
-    let mut file = File::create(plist_file).context("Failed to create file for writing.")?;
+    let mut file = File::create(plist_file)
+        .map_err(|e| ServiceError::General(format!("Failed to create file for writing: {e}")))?;
     log::debug!("Create plist file done.");
 
     log::debug!("Write plist file content.");
     file.write_all(plist_file_content.as_bytes())
-        .context("Unable to write plist file")?;
+        .map_err(|e| ServiceError::General(format!("Unable to write plist file: {e}")))?;
     log::debug!("Write plist file content done.");
 
     log::debug!("Chmod and chown plist file.");
@@ -60,12 +62,12 @@ pub fn process(server_id: Option<String>) -> Result<()> {
         .arg("644")
         .arg(plist_file)
         .output()
-        .context("Failed to chmod")?;
+        .map_err(|e| ServiceError::General(format!("Failed to chmod: {e}")))?;
     std::process::Command::new("chown")
         .arg("root:wheel")
         .arg(plist_file)
         .output()
-        .context("Failed to chown")?;
+        .map_err(|e| ServiceError::General(format!("Failed to chown: {e}")))?;
     log::debug!("Chmod and chown plist file done.");
 
     log::debug!("Chmod and chown service file.");
@@ -73,12 +75,12 @@ pub fn process(server_id: Option<String>) -> Result<()> {
         .arg("544")
         .arg(target_binary_path)
         .output()
-        .context("Failed to chmod")?;
+        .map_err(|e| ServiceError::General(format!("Failed to chmod: {e}")))?;
     std::process::Command::new("chown")
         .arg("root:wheel")
         .arg(target_binary_path)
         .output()
-        .context("Failed to chown")?;
+        .map_err(|e| ServiceError::General(format!("Failed to chown: {e}")))?;
     log::debug!("Chmod and chown service file done.");
 
     // Unload before load the service.
@@ -87,21 +89,21 @@ pub fn process(server_id: Option<String>) -> Result<()> {
         .arg("unload")
         .arg(plist_file)
         .output()
-        .context("Failed to unload service.")?;
+        .map_err(|e| ServiceError::General(format!("Failed to unload service: {e}")))?;
     // Load the service.
     log::debug!("Load service.");
     std::process::Command::new("launchctl")
         .arg("load")
         .arg(plist_file)
         .output()
-        .context("Failed to load service.")?;
+        .map_err(|e| ServiceError::General(format!("Failed to load service: {e}")))?;
     // Start the service.
     log::debug!("Start service.");
     std::process::Command::new("launchctl")
         .arg("start")
         .arg("io.github.clashvergeself.helper")
         .output()
-        .context("Failed to load service.")?;
+        .map_err(|e| ServiceError::General(format!("Failed to start service: {e}")))?;
 
     log::debug!("Service installed successfully.");
     Ok(())
@@ -111,7 +113,6 @@ pub fn process(server_id: Option<String>) -> Result<()> {
 pub fn process(server_id: Option<String>) -> Result<()> {
     use std::{fs::File, io::Write, path::Path};
 
-    use anyhow::Context;
     use clash_verge_self_service::SERVICE_NAME;
 
     let server_id = server_id.unwrap_or(DEFAULT_SERVER_ID.to_string());
@@ -133,7 +134,7 @@ pub fn process(server_id: Option<String>) -> Result<()> {
         .arg(format!("{SERVICE_NAME}.service"))
         .arg("--no-pager")
         .output()
-        .context("Failed to execute 'systemctl status' command")?
+        .map_err(|e| ServiceError::General(format!("Failed to execute 'systemctl status' command: {e}")))?
         .status
         .code();
 
@@ -151,12 +152,14 @@ pub fn process(server_id: Option<String>) -> Result<()> {
             }
             _ => {
                 log::error!("Unexpected status code from systemctl status");
-                anyhow::bail!("Unexpected status code from systemctl status")
+                return Err(ServiceError::General(
+                    "Unexpected status code from systemctl status".into(),
+                ));
             }
         },
         None => {
             log::error!("systemctl was improperly terminated.");
-            anyhow::bail!("systemctl was improperly terminated.");
+            return Err(ServiceError::General("systemctl was improperly terminated.".into()));
         }
     }
 
@@ -169,9 +172,10 @@ pub fn process(server_id: Option<String>) -> Result<()> {
         service_binary_path.to_str().unwrap(),
         server_id
     );
-    let mut file = File::create(unit_file).context("Failed to create file for writing")?;
+    let mut file = File::create(unit_file)
+        .map_err(|e| ServiceError::General(format!("Failed to create file for writing: {e}")))?;
     file.write_all(unit_file_content.as_bytes())
-        .context("Failed to write to file")?;
+        .map_err(|e| ServiceError::General(format!("Failed to write to file: {e}")))?;
     log::debug!("Generated service file done.");
 
     // Reload unit files and start service.
@@ -179,13 +183,13 @@ pub fn process(server_id: Option<String>) -> Result<()> {
     std::process::Command::new("systemctl")
         .arg("daemon-reload")
         .output()
-        .context("Failed to reload unit files")?;
+        .map_err(|e| ServiceError::General(format!("Failed to reload unit files: {e}")))?;
     std::process::Command::new("systemctl")
         .arg("enable")
         .arg(SERVICE_NAME)
         .arg("--now")
         .output()
-        .context("Failed to start service")?;
+        .map_err(|e| ServiceError::General(format!("Failed to start service: {e}")))?;
 
     log::debug!("Service installed successfully.");
     Ok(())
@@ -207,7 +211,8 @@ pub fn process(server_id: Option<String>) -> Result<()> {
 
     log::debug!("Connecting to the service manager.");
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
+    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)
+        .map_err(|e| ServiceError::General(e.to_string()))?;
 
     log::debug!("Checking if the service is installed and active，delete it if exists");
     let service_access = ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE;
@@ -224,7 +229,7 @@ pub fn process(server_id: Option<String>) -> Result<()> {
             }
 
             log::debug!("Deleting service");
-            service.delete()?;
+            service.delete().map_err(|e| ServiceError::General(e.to_string()))?;
         }
     }
 
@@ -252,12 +257,18 @@ pub fn process(server_id: Option<String>) -> Result<()> {
 
     log::debug!("Creating service: {service_info:?}");
     let start_access = ServiceAccess::CHANGE_CONFIG | ServiceAccess::START;
-    let service = service_manager.create_service(&service_info, start_access)?;
+    let service = service_manager
+        .create_service(&service_info, start_access)
+        .map_err(|e| ServiceError::General(e.to_string()))?;
 
     log::debug!("Setting service description.");
-    service.set_description("Clash Verge Self Service helps to launch clash core")?;
+    service
+        .set_description("Clash Verge Self Service helps to launch clash core")
+        .map_err(|e| ServiceError::General(e.to_string()))?;
     log::debug!("Starting service.");
-    service.start(&Vec::<&OsStr>::new())?;
+    service
+        .start(&Vec::<&OsStr>::new())
+        .map_err(|e| ServiceError::General(e.to_string()))?;
 
     log::debug!("Service installed successfully.");
     Ok(())

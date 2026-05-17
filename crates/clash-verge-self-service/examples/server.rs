@@ -1,4 +1,4 @@
-use anyhow::Result;
+use clash_verge_self_service::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {

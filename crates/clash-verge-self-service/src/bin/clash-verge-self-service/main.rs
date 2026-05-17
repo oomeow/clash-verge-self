@@ -59,7 +59,7 @@ pub fn my_service_main(_arguments: Vec<std::ffi::OsString>) {
     }
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> clash_verge_self_service::Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Some(Commands::Install { log_dir, server_id }) => {
@@ -87,7 +87,8 @@ fn main() -> anyhow::Result<()> {
             #[cfg(windows)]
             {
                 SERVER_ID.set(server_id).expect("failed to set server id");
-                service_dispatcher::start(clash_verge_self_service::SERVICE_NAME, ffi_service_main)?;
+                service_dispatcher::start(clash_verge_self_service::SERVICE_NAME, ffi_service_main)
+                    .map_err(|e| clash_verge_self_service::ServiceError::General(e.to_string()))?;
             }
         }
     }
