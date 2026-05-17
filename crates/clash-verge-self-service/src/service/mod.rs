@@ -143,7 +143,10 @@ impl SecureChannel {
 
         // Check timestamp is recent (allow 5s drift) and ID not seen
         let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis();
-        let request_timestamp = now - ts;
+        let request_timestamp = now.checked_sub(ts).ok_or_else(|| {
+            ServiceError::General(format!("replay attack: future timestamp, request: {ts}, now: {now}"))
+        })?;
+
         if request_timestamp > self.timestamp_window {
             return Err(ServiceError::General(format!(
                 "replay attack: old timestamp, request: {ts}, now: {now}, timestamp: {}",
