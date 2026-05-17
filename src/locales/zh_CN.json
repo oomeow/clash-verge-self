@@ -158,7 +158,11 @@
         "openFile": "打开文件",
         "updateProxy": "更新(代理)",
         "toTop": "移到最前",
-        "toEnd": "移到末尾"
+        "toEnd": "移到末尾",
+        "selectMode": "多选",
+        "deleteSelected": "删除选中 ({{count}})",
+        "enableSelected": "启用选中 ({{count}})",
+        "disableSelected": "禁用选中 ({{count}})"
       },
       "inputs": {
         "profileUrl": "订阅文件链接"
@@ -168,7 +172,9 @@
         "editTitle": "编辑配置",
         "scriptConsole": "脚本控制台输出",
         "confirmDeletion": "确认删除",
-        "confirmDeletionMessage": "此操作不可逆"
+        "confirmDeletionMessage": "此操作不可逆",
+        "confirmBatchDeletion": "确认删除 {{count}} 项？",
+        "confirmBatchDeletionMessage": "此操作不可逆"
       },
       "fields": {
         "subscriptionUrl": "订阅链接",
@@ -516,6 +522,8 @@
       "imported": "导入订阅成功",
       "switched": "订阅已切换",
       "reactivated": "订阅已激活",
+      "batchDeleteSuccess": "已成功删除 {{count}} 项",
+      "batchToggleSuccess": "已更新 {{count}} 项",
       "onlyYamlSupported": "仅支持 YAML 文件",
       "unsupportedFiles": "以下文件不支持导入：{{files}}",
       "importFileFailed": "导入文件失败：{{file}}",

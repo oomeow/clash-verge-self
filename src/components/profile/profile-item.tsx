@@ -46,6 +46,8 @@ interface Props {
   onSelect: (uid: string) => void;
   onDelete: (uid: string) => void;
   onActivatedSave: () => void;
+  selectMode?: boolean;
+  multiSelected?: boolean;
 }
 
 export const ProfileItem = memo(function ProfileItem(props: Props) {
@@ -58,6 +60,8 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
     onSelect,
     onDelete,
     onActivatedSave,
+    selectMode,
+    multiSelected,
   } = props;
 
   const { t } = useTranslation();
@@ -250,6 +254,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
   return (
     <Box
+      className={selectMode ? "animate-shake" : undefined}
       sx={(theme) => ({
         width: "100%",
         bgcolor: "#FFFFFF",
@@ -261,6 +266,16 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         ...theme.applyStyles("dark", {
           boxShadow: "0 1px 4px rgba(0, 0, 0, 0.24)",
         }),
+        transition: "opacity 0.15s, box-shadow 0.15s, filter 0.15s",
+        ...(selectMode && {
+          filter: "saturate(0.75)",
+          opacity: 0.85,
+        }),
+        ...(multiSelected && {
+          filter: "saturate(1)",
+          opacity: 1,
+          boxShadow: `0 0 0 2px ${theme.palette.primary.main}, 0 2px 8px ${theme.palette.primary.main}33`,
+        }),
         ...{ sx },
       })}>
       <ProfileDiv
@@ -268,6 +283,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         aria-selected={selected}
         onClick={() => onSelect(uid)}
         onContextMenu={(event) => {
+          if (selectMode) return;
           const { clientX, clientY } = event;
           setPosition({ top: clientY, left: clientX });
           setAnchorEl(event.currentTarget);
@@ -290,6 +306,18 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
             }}>
             <CircularProgress size={20} />
           </Box>
+        )}
+        {multiSelected && (
+          <CheckCircle
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              zIndex: 10,
+              fontSize: 22,
+              color: "primary.main",
+            }}
+          />
         )}
         <Box sx={{ position: "relative", mb: 0.75 }}>
           <Box
@@ -328,7 +356,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
               }}
               size="small"
               color="inherit"
-              disabled={loading}
+              disabled={loading || selectMode}
               onClick={(e) => {
                 e.stopPropagation();
                 onUpdate(1);

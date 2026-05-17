@@ -1,14 +1,16 @@
 import { isSortable } from "@dnd-kit/dom/sortable";
 import { arrayMove } from "@dnd-kit/helpers";
 import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
+import CheckCircle from "@mui/icons-material/CheckCircle";
 import ClearRounded from "@mui/icons-material/ClearRounded";
 import ContentPasteRounded from "@mui/icons-material/ContentPasteRounded";
+import Delete from "@mui/icons-material/Delete";
 import LocalFireDepartmentRounded from "@mui/icons-material/LocalFireDepartmentRounded";
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import TextSnippetOutlined from "@mui/icons-material/TextSnippetOutlined";
 import { Box, Button, Divider, IconButton } from "@mui/material";
 import { readText } from "@tauri-apps/plugin-clipboard-manager";
-import { useLockFn, useMemoizedFn } from "ahooks";
+import { useLockFn } from "ahooks";
 import { isEqual } from "lodash-es";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +22,7 @@ import {
   SortableItem,
 } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
+import { ConfirmViewer } from "@/components/profile/confirm-viewer";
 import { ProfileItem } from "@/components/profile/profile-item";
 import { ProfileMore } from "@/components/profile/profile-more";
 import {
@@ -47,8 +50,12 @@ const ProfilePage = () => {
   const configRef = useRef<DialogRef>(null);
 
   const [url, setUrl] = useState("");
-  const [disabled, setDisabled] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedUids, setSelectedUids] = useState<string[]>([]);
+  const [selectionCategory, setSelectionCategory] = useState<
+    "profile" | "chain" | null
+  >(null);
 
   const currentProfileUid = useProfilesStore((s) => s.currentProfile?.uid);
   const profileItems = useProfilesStore((s) => s.profileItems);
@@ -63,6 +70,10 @@ const ProfilePage = () => {
   const importProfile = useProfilesStore((s) => s.importProfile);
   const reorderProfile = useProfilesStore((s) => s.reorderProfile);
   const deleteProfile = useProfilesStore((s) => s.deleteProfile);
+  const batchDeleteProfiles = useProfilesStore((s) => s.batchDeleteProfiles);
+  const batchToggleChainsEnable = useProfilesStore(
+    (s) => s.batchToggleChainsEnable,
+  );
   const updateProfile = useProfilesStore((s) => s.updateProfile);
   const enhanceProfiles = useProfilesStore((s) => s.enhanceProfiles);
   const activatingItemUids = useProfilesStore((s) => s.activatingItemUids);
@@ -126,6 +137,24 @@ const ProfilePage = () => {
     [setActivatingItemUids],
   );
 
+  const handleToggleSelect = useCallback(
+    (uid: string, category: "profile" | "chain") => {
+      setSelectedUids((prev) => {
+        const next = prev.includes(uid)
+          ? prev.filter((id) => id !== uid)
+          : [...prev, uid];
+
+        if (prev.length === 0 && next.length === 1) {
+          setSelectionCategory(category);
+        } else if (prev.length === 1 && next.length === 0) {
+          setSelectionCategory(null);
+        }
+        return next;
+      });
+    },
+    [selectionCategory, notice],
+  );
+
   const onEnhance = useLockFn(async () => {
     const nextActivatingItemUids = getActivationUids(currentProfileUid);
     try {
@@ -155,7 +184,6 @@ const ProfilePage = () => {
     } catch (err: any) {
       notice("error", err.message || err.toString());
     } finally {
-      setDisabled(false);
       setImportLoading(false);
     }
   }, [importProfile, notice, patchConfig, t, url]);
@@ -235,33 +263,89 @@ const ProfilePage = () => {
   // 更新所有订阅
   const setLoading = useLoadingCacheStore((s) => s.setLoading);
   const loadingCache = useLoadingCacheStore((s) => s.loadingCache);
-  const onUpdateAll = useMemoizedFn(
-    useLockFn(async () => {
-      const updateOne = async (uid: string) => {
-        try {
-          await updateProfile(uid);
-        } finally {
-          setLoading(uid, false);
-        }
-      };
+  const onUpdateAll = useLockFn(async () => {
+    const updateOne = async (uid: string) => {
+      try {
+        await updateProfile(uid);
+      } finally {
+        setLoading(uid, false);
+      }
+    };
 
-      return new Promise((resolve) => {
-        const items = profileItems.filter(
-          (e) => e.type === "remote" && !loadingCache[e.uid],
-        );
+    return new Promise((resolve) => {
+      const items = profileItems.filter(
+        (e) => e.type === "remote" && !loadingCache[e.uid],
+      );
 
-        // Set loading state for each item
-        items.forEach((e) => setLoading(e.uid, true));
+      // Set loading state for each item
+      items.forEach((e) => setLoading(e.uid, true));
 
-        Promise.allSettled(items.map((e) => updateOne(e.uid))).then(resolve);
-      });
-    }),
-  );
+      Promise.allSettled(items.map((e) => updateOne(e.uid))).then(resolve);
+    });
+  });
 
   const onCopyLink = useCallback(async () => {
     const text = await readText();
     if (text) setUrl(text);
   }, []);
+
+  const [batchDeleteOpen, setBatchDeleteOpen] = useState(false);
+
+  const exitSelectMode = useCallback(() => {
+    setSelectedUids([]);
+    setSelectionCategory(null);
+    setSelectMode(false);
+  }, []);
+
+  const handleBatchToggleChainsEnable = useLockFn(async (enable: boolean) => {
+    const togglingUids = [...selectedUids];
+    const activatingUids = getActivationUids(
+      currentProfileUid,
+      ...togglingUids,
+    );
+    try {
+      startActivation(activatingUids);
+      await batchToggleChainsEnable(togglingUids, enable);
+      notice(
+        "success",
+        t("messages.profiles.batchToggleSuccess", {
+          count: togglingUids.length,
+        }),
+      );
+    } catch (err: any) {
+      notice("error", err.message || err.toString());
+    } finally {
+      clearActivatingItemUids(activatingUids);
+      exitSelectMode();
+    }
+  });
+
+  const handleBatchDelete = useLockFn(async () => {
+    const deletingUids = [...selectedUids];
+    const anyEnabled = deletingUids.some(
+      (uid) =>
+        uid === currentProfileUid || enabledGlobalChainUids.includes(uid),
+    );
+    const activatingUids = anyEnabled
+      ? getActivationUids(currentProfileUid, ...deletingUids)
+      : [];
+    try {
+      if (anyEnabled) startActivation(activatingUids);
+      await batchDeleteProfiles(deletingUids);
+      notice(
+        "success",
+        t("messages.profiles.batchDeleteSuccess", {
+          count: deletingUids.length,
+        }),
+      );
+    } catch (err: any) {
+      notice("error", err.message || err.toString());
+    } finally {
+      if (anyEnabled) clearActivatingItemUids(activatingUids);
+      setBatchDeleteOpen(false);
+      exitSelectMode();
+    }
+  });
 
   return (
     <BasePage
@@ -269,6 +353,27 @@ const ProfilePage = () => {
       title={t("pages.profiles.title")}
       header={
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            color={selectMode ? "error" : "inherit"}
+            startIcon={selectMode ? undefined : <CheckCircle />}
+            sx={{
+              minWidth: 60,
+              whiteSpace: "nowrap",
+              borderColor: selectMode ? "error.main" : "divider",
+            }}
+            onClick={() => {
+              if (selectMode) {
+                exitSelectMode();
+              } else {
+                setSelectMode(true);
+              }
+            }}>
+            {selectMode
+              ? `${t("common.actions.cancel")}${selectedUids.length > 0 ? ` (${selectedUids.length})` : ""}`
+              : t("pages.profiles.actions.selectMode")}
+          </Button>
           <IconButton
             size="small"
             color="inherit"
@@ -336,7 +441,7 @@ const ProfilePage = () => {
           }}
         />
         <Button
-          disabled={!url || disabled}
+          disabled={!url}
           loading={importLoading}
           variant="contained"
           size="small"
@@ -353,78 +458,99 @@ const ProfilePage = () => {
         </Button>
       </div>
       <div className="px-2">
-        <DragDropProvider
-          onDragOver={(e) => {
-            // Prevent drag-and-drop when activating items are present
-            if (activatingItemUids.length > 0) e.preventDefault();
-          }}
-          onDragEnd={async (event) => {
-            const { operation, canceled } = event;
-            const { source, target } = operation;
-
-            if (canceled) return;
-
-            if (target && isSortable(source)) {
-              const newIndex = source.sortable.index;
-              const oldIndex = source.sortable.initialIndex;
-              if (oldIndex === newIndex) return;
-              const activeId = sortableProfileItems[oldIndex].uid;
-              const overId = sortableProfileItems[newIndex].uid;
-
-              const newProfileList = arrayMove(
-                sortableProfileItems,
-                oldIndex,
-                newIndex,
-              );
-              await reorderProfile(activeId, overId);
-              setSortableProfileItems(newProfileList);
-            }
+        <Box
+          sx={{
+            transition: "opacity 0.2s",
+            ...(selectMode &&
+              selectionCategory === "chain" && {
+                opacity: 0.35,
+                pointerEvents: "none",
+              }),
           }}>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2 px-2">
-            {sortableProfileItems.map((item, index) => (
-              <SortableItem key={item.uid} id={item.uid} index={index}>
-                <ProfileItem
-                  selected={
-                    activatingUidSet.has(item.uid) ||
-                    (!hasActivatingItems && currentProfileUid === item.uid)
-                  }
-                  activating={activatingUidSet.has(item.uid)}
-                  itemData={item}
-                  onSelect={onSelect}
-                  onDelete={onDelete}
-                  // onEdit={() => viewerRef.current?.edit(item)}
-                  onActivatedSave={onEnhance}
-                />
-              </SortableItem>
-            ))}
-          </div>
-          <DragOverlay>
-            {(source) => {
-              const draggingItem = sortableProfileItems.find(
-                (item) => item.uid === source.id,
-              );
-              if (!draggingItem) return null;
-              return (
-                <ProfileItem
-                  sx={{
-                    borderRadius: "8px",
-                    boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
-                  }}
-                  selected={
-                    activatingUidSet.has(draggingItem.uid) ||
-                    (!hasActivatingItems &&
-                      currentProfileUid === draggingItem.uid)
-                  }
-                  activating={activatingUidSet.has(draggingItem.uid)}
-                  itemData={draggingItem}
-                  onSelect={onSelect}
-                  onDelete={onDelete}
-                  onActivatedSave={onEnhance}
-                />
-              );
+          <DragDropProvider
+            onDragOver={(e) => {
+              // Prevent drag-and-drop when activating items or multi-select mode
+              if (hasActivatingItems || selectMode) e.preventDefault();
             }}
-          </DragOverlay>
-        </DragDropProvider>
+            onDragEnd={async (event) => {
+              const { operation, canceled } = event;
+              const { source, target } = operation;
+
+              if (canceled) return;
+
+              if (target && isSortable(source)) {
+                const newIndex = source.sortable.index;
+                const oldIndex = source.sortable.initialIndex;
+                if (oldIndex === newIndex) return;
+                const activeId = sortableProfileItems[oldIndex].uid;
+                const overId = sortableProfileItems[newIndex].uid;
+
+                const newProfileList = arrayMove(
+                  sortableProfileItems,
+                  oldIndex,
+                  newIndex,
+                );
+                await reorderProfile(activeId, overId);
+                setSortableProfileItems(newProfileList);
+              }
+            }}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2 px-2">
+              {sortableProfileItems.map((item, index) => {
+                return (
+                  <SortableItem key={item.uid} id={item.uid} index={index}>
+                    <ProfileItem
+                      selected={
+                        activatingUidSet.has(item.uid) ||
+                        (!hasActivatingItems && currentProfileUid === item.uid)
+                      }
+                      activating={activatingUidSet.has(item.uid)}
+                      itemData={item}
+                      onSelect={
+                        selectMode
+                          ? (uid: string) => handleToggleSelect(uid, "profile")
+                          : onSelect
+                      }
+                      onDelete={onDelete}
+                      onActivatedSave={onEnhance}
+                      selectMode={selectMode}
+                      multiSelected={
+                        selectMode && selectionCategory === "profile"
+                          ? selectedUids.includes(item.uid)
+                          : false
+                      }
+                    />
+                  </SortableItem>
+                );
+              })}
+            </div>
+            <DragOverlay>
+              {(source) => {
+                const draggingItem = sortableProfileItems.find(
+                  (item) => item.uid === source.id,
+                );
+                if (!draggingItem) return null;
+                return (
+                  <ProfileItem
+                    sx={{
+                      borderRadius: "8px",
+                      boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
+                    }}
+                    selected={
+                      activatingUidSet.has(draggingItem.uid) ||
+                      (!hasActivatingItems &&
+                        currentProfileUid === draggingItem.uid)
+                    }
+                    activating={activatingUidSet.has(draggingItem.uid)}
+                    itemData={draggingItem}
+                    onSelect={onSelect}
+                    onDelete={onDelete}
+                    onActivatedSave={onEnhance}
+                  />
+                );
+              }}
+            </DragOverlay>
+          </DragDropProvider>
+        </Box>
 
         {globalChainItems.length > 0 && (
           <>
@@ -441,87 +567,160 @@ const ProfilePage = () => {
               })}>
               {t("pages.profiles.actions.enhanceScripts")}
             </Divider>
-            <DragDropProvider
-              onDragOver={(e) => {
-                if (activatingItemUids.length > 0) e.preventDefault();
-              }}
-              onDragEnd={async (event) => {
-                const { operation, canceled } = event;
-                const { source, target } = operation;
-
-                if (canceled) return;
-
-                if (target && isSortable(source)) {
-                  const newIndex = source.sortable.index;
-                  const oldIndex = source.sortable.initialIndex;
-                  if (newIndex === oldIndex) return;
-                  const activeId = sortableGlobalChainItems[oldIndex].uid;
-                  const overId = sortableGlobalChainItems[newIndex].uid;
-
-                  const newChainList = arrayMove(
-                    sortableGlobalChainItems,
-                    oldIndex,
-                    newIndex,
-                  );
-                  const needToEnhance = !isEqual(
-                    enabledGlobalChainUids,
-                    getEnabledUids(newChainList),
-                  );
-
-                  await reorderProfile(activeId, overId);
-                  setSortableGlobalChainItems(newChainList);
-
-                  if (needToEnhance) {
-                    await onEnhance();
-                  }
-                }
+            <Box
+              sx={{
+                transition: "opacity 0.2s",
+                ...(selectMode &&
+                  selectionCategory === "profile" && {
+                    opacity: 0.35,
+                    pointerEvents: "none",
+                  }),
               }}>
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2 px-2">
-                {sortableGlobalChainItems.map((item, index) => (
-                  <SortableItem key={item.id} id={item.uid} index={index}>
-                    <ProfileMore
-                      selected={activatingUidSet.has(item.uid) || !!item.enable}
-                      itemData={item}
-                      logs={chainLogs[item.uid]}
-                      reactivating={activatingItemUids.includes(item.uid)}
-                      onToggleEnable={handleToggleEnable}
-                      onDelete={handleChainDelete}
-                      onActivatedSave={onEnhance}
-                    />
-                  </SortableItem>
-                ))}
-              </div>
-              <DragOverlay>
-                {(source) => {
-                  const draggingItem = sortableGlobalChainItems.find(
-                    (item) => item.id === source.id,
-                  );
-                  if (!draggingItem) return null;
-                  return (
-                    <ProfileMore
-                      selected={
-                        activatingUidSet.has(draggingItem.uid) ||
-                        !!draggingItem.enable
-                      }
-                      itemData={draggingItem}
-                      sx={{
-                        borderRadius: "8px",
-                        boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
-                      }}
-                      logs={chainLogs[draggingItem.uid]}
-                      reactivating={activatingUidSet.has(draggingItem.uid)}
-                      onToggleEnable={handleToggleEnable}
-                      onActivatedSave={onEnhance}
-                    />
-                  );
+              <DragDropProvider
+                onDragOver={(e) => {
+                  if (hasActivatingItems || selectMode) e.preventDefault();
                 }}
-              </DragOverlay>
-            </DragDropProvider>
+                onDragEnd={async (event) => {
+                  const { operation, canceled } = event;
+                  const { source, target } = operation;
+
+                  if (canceled) return;
+
+                  if (target && isSortable(source)) {
+                    const newIndex = source.sortable.index;
+                    const oldIndex = source.sortable.initialIndex;
+                    if (newIndex === oldIndex) return;
+                    const activeId = sortableGlobalChainItems[oldIndex].uid;
+                    const overId = sortableGlobalChainItems[newIndex].uid;
+
+                    const newChainList = arrayMove(
+                      sortableGlobalChainItems,
+                      oldIndex,
+                      newIndex,
+                    );
+                    const needToEnhance = !isEqual(
+                      enabledGlobalChainUids,
+                      getEnabledUids(newChainList),
+                    );
+
+                    await reorderProfile(activeId, overId);
+                    setSortableGlobalChainItems(newChainList);
+
+                    if (needToEnhance) {
+                      await onEnhance();
+                    }
+                  }
+                }}>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-2 px-2">
+                  {sortableGlobalChainItems.map((item, index) => {
+                    return (
+                      <SortableItem key={item.id} id={item.uid} index={index}>
+                        <ProfileMore
+                          selected={
+                            activatingUidSet.has(item.uid) || !!item.enable
+                          }
+                          itemData={item}
+                          logs={chainLogs[item.uid]}
+                          reactivating={activatingUidSet.has(item.uid)}
+                          onToggleEnable={handleToggleEnable}
+                          onDelete={handleChainDelete}
+                          onActivatedSave={onEnhance}
+                          onClick={
+                            selectMode
+                              ? (uid: string) =>
+                                  handleToggleSelect(uid, "chain")
+                              : undefined
+                          }
+                          selectMode={selectMode}
+                          multiSelected={
+                            selectMode && selectionCategory === "chain"
+                              ? selectedUids.includes(item.uid)
+                              : false
+                          }
+                        />
+                      </SortableItem>
+                    );
+                  })}
+                </div>
+                <DragOverlay>
+                  {(source) => {
+                    const draggingItem = sortableGlobalChainItems.find(
+                      (item) => item.id === source.id,
+                    );
+                    if (!draggingItem) return null;
+                    return (
+                      <ProfileMore
+                        selected={
+                          activatingUidSet.has(draggingItem.uid) ||
+                          !!draggingItem.enable
+                        }
+                        itemData={draggingItem}
+                        sx={{
+                          borderRadius: "8px",
+                          boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
+                        }}
+                        logs={chainLogs[draggingItem.uid]}
+                        reactivating={activatingUidSet.has(draggingItem.uid)}
+                        onToggleEnable={handleToggleEnable}
+                        onActivatedSave={onEnhance}
+                      />
+                    );
+                  }}
+                </DragOverlay>
+              </DragDropProvider>
+            </Box>
           </>
         )}
       </div>
       <ProfileViewer ref={viewerRef} onChange={() => refreshConfig()} />
       <ConfigViewer ref={configRef} />
+
+      {selectMode && selectedUids.length > 0 && (
+        <div className="bg-background-paper absolute right-3 bottom-3 left-3 z-10 flex items-center justify-center gap-2 rounded-xl py-2 shadow-md">
+          {selectionCategory === "chain" && (
+            <>
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
+                onClick={() => handleBatchToggleChainsEnable(true)}>
+                {t("pages.profiles.actions.enableSelected", {
+                  count: selectedUids.length,
+                })}
+              </Button>
+              <Button
+                variant="outlined"
+                color="warning"
+                size="small"
+                onClick={() => handleBatchToggleChainsEnable(false)}>
+                {t("pages.profiles.actions.disableSelected", {
+                  count: selectedUids.length,
+                })}
+              </Button>
+            </>
+          )}
+          <Button
+            variant="contained"
+            color="error"
+            size="small"
+            startIcon={<Delete />}
+            onClick={() => setBatchDeleteOpen(true)}>
+            {t("pages.profiles.actions.deleteSelected", {
+              count: selectedUids.length,
+            })}
+          </Button>
+        </div>
+      )}
+
+      <ConfirmViewer
+        title={t("pages.profiles.dialog.confirmBatchDeletion", {
+          count: selectedUids.length,
+        })}
+        message={t("pages.profiles.dialog.confirmBatchDeletionMessage")}
+        open={batchDeleteOpen}
+        onClose={() => setBatchDeleteOpen(false)}
+        onConfirm={handleBatchDelete}
+      />
     </BasePage>
   );
 };

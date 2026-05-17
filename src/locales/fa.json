@@ -158,7 +158,11 @@
         "openFile": "باز کردن فایل",
         "updateProxy": "به‌روزرسانی (پراکسی)",
         "toTop": "انتقال به ابتدا",
-        "toEnd": "انتقال به انتها"
+        "toEnd": "انتقال به انتها",
+        "selectMode": "انتخاب چندتایی",
+        "deleteSelected": "حذف انتخاب‌شده‌ها ({{count}})",
+        "enableSelected": "فعال کردن انتخاب‌شده‌ها ({{count}})",
+        "disableSelected": "غیرفعال کردن انتخاب‌شده‌ها ({{count}})"
       },
       "inputs": {
         "profileUrl": "آدرس پروفایل"
@@ -168,7 +172,9 @@
         "editTitle": "ویرایش پروفایل",
         "scriptConsole": "کنسول اسکریپت",
         "confirmDeletion": "تأیید حذف",
-        "confirmDeletionMessage": "این عملیات قابل برگشت نیست"
+        "confirmDeletionMessage": "این عملیات قابل برگشت نیست",
+        "confirmBatchDeletion": "{{count}} آیتم حذف شوند؟",
+        "confirmBatchDeletionMessage": "این عملیات قابل برگشت نیست"
       },
       "fields": {
         "subscriptionUrl": "آدرس اشتراک",
@@ -516,6 +522,8 @@
       "imported": "پروفایل با موفقیت وارد شد",
       "switched": "پروفایل تغییر کرد",
       "reactivated": "پروفایل دوباره فعال شد",
+      "batchDeleteSuccess": "{{count}} آیتم با موفقیت حذف شد",
+      "batchToggleSuccess": "{{count}} آیتم به‌روزرسانی شد",
       "onlyYamlSupported": "فقط فایل‌های YAML پشتیبانی می‌شوند",
       "unsupportedFiles": "فایل‌های پشتیبانی‌نشده: {{files}}",
       "importFileFailed": "درون‌ریزی فایل ناموفق بود: {{file}}",

@@ -125,6 +125,25 @@ pub async fn delete_profile(uid: String) -> CommandResult<()> {
     )
 }
 
+#[tauri::command]
+pub async fn batch_delete_profiles(uids: Vec<String>) -> CommandResult<()> {
+    into_command_result(
+        async {
+            let mut restart_core = false;
+            for uid in uids {
+                restart_core |= Config::profiles().data_mut().delete_item(uid)?;
+            }
+            // the running profile is deleted, update the core config
+            if restart_core {
+                CoreManager::global().update_config().await?;
+                handle::Handle::refresh_clash();
+            }
+            handle::Handle::update_systray_part()
+        }
+        .await,
+    )
+}
+
 /// 修改整个 profiles
 #[tauri::command]
 pub async fn patch_profiles_config(profiles: IProfiles) -> CommandResult<()> {
@@ -193,6 +212,43 @@ pub async fn patch_profile(uid: String, profile: PrfItem) -> CommandResult<()> {
             }
             if name_changed {
                 handle::Handle::update_systray_part()?;
+            }
+            Ok(())
+        }
+        .await,
+    )
+}
+
+#[tauri::command]
+pub async fn batch_toggle_chains_enable(uids: Vec<String>, enable: bool) -> CommandResult<()> {
+    into_command_result(
+        async {
+            let mut update_config = false;
+            for uid in uids {
+                Config::profiles().data_mut().patch_item(
+                    &uid,
+                    PrfItem {
+                        enable: Some(enable),
+                        ..Default::default()
+                    },
+                )?;
+                let profiles = Config::profiles().latest().clone();
+                let result_item = profiles
+                    .get_item(&uid)
+                    .with_context(|| format!("failed to get profile [{uid}]"))?;
+                match result_item.scope {
+                    Some(ScopeType::Global) => {
+                        update_config = true;
+                    }
+                    Some(ScopeType::Specific) if result_item.parent.as_ref() == profiles.get_current() => {
+                        update_config = true;
+                    }
+                    _ => {}
+                }
+            }
+            if update_config {
+                CoreManager::global().update_config().await?;
+                handle::Handle::refresh_clash();
             }
             Ok(())
         }

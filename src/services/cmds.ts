@@ -90,6 +90,14 @@ export async function deleteProfile(uid: string) {
   return invoke<void>("delete_profile", { uid });
 }
 
+export async function batchDeleteProfiles(uids: string[]) {
+  return invoke<void>("batch_delete_profiles", { uids });
+}
+
+export async function batchToggleChainsEnable(uids: string[], enable: boolean) {
+  return invoke<void>("batch_toggle_chains_enable", { uids, enable });
+}
+
 export async function patchProfile(
   uid: string,
   profile: Partial<IProfileItem>,

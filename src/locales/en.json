@@ -158,7 +158,11 @@
         "openFile": "Open File",
         "updateProxy": "Update(Proxy)",
         "toTop": "To Top",
-        "toEnd": "To End"
+        "toEnd": "To End",
+        "selectMode": "Select",
+        "deleteSelected": "Delete Selected ({{count}})",
+        "enableSelected": "Enable Selected ({{count}})",
+        "disableSelected": "Disable Selected ({{count}})"
       },
       "inputs": {
         "profileUrl": "Profile URL"
@@ -168,7 +172,9 @@
         "editTitle": "Edit Profile",
         "scriptConsole": "Script Console",
         "confirmDeletion": "Confirm deletion",
-        "confirmDeletionMessage": "This operation is not reversible"
+        "confirmDeletionMessage": "This operation is not reversible",
+        "confirmBatchDeletion": "Delete {{count}} items?",
+        "confirmBatchDeletionMessage": "This operation is not reversible"
       },
       "fields": {
         "subscriptionUrl": "Subscription URL",
@@ -516,6 +522,8 @@
       "imported": "Profile Imported Successfully",
       "switched": "Profile Switched",
       "reactivated": "Profile Reactivated",
+      "batchDeleteSuccess": "Successfully deleted {{count}} items",
+      "batchToggleSuccess": "Updated {{count}} items",
       "onlyYamlSupported": "Only YAML Files Supported",
       "unsupportedFiles": "Unsupported files: {{files}}",
       "importFileFailed": "Failed to import file: {{file}}",

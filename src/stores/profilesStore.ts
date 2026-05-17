@@ -4,6 +4,8 @@ import { persist } from "zustand/middleware";
 
 import type { LogMessage } from "@/components/profile/profile-more";
 import {
+  batchDeleteProfiles as batchDeleteProfilesCmd,
+  batchToggleChainsEnable as batchToggleChainsEnableCmd,
   createProfile as createProfileCmd,
   deleteProfile as deleteProfileCmd,
   enhanceProfiles as enhanceProfilesCmd,
@@ -53,6 +55,8 @@ type ProfilesActions = {
   reorderProfile: (activeId: string, overId: string) => Promise<void>;
   updateProfile: (uid: string, option?: IProfileOption) => Promise<void>;
   deleteProfile: (uid: string) => Promise<void>;
+  batchDeleteProfiles: (uids: string[]) => Promise<void>;
+  batchToggleChainsEnable: (uids: string[], enable: boolean) => Promise<void>;
   enhanceProfiles: () => Promise<void>;
   setProfileChains: (profileUid: string | null, chains: IProfileItem[]) => void;
   fetchProfileChains: (profileUid: string | null) => Promise<IProfileItem[]>;
@@ -269,6 +273,36 @@ export const useProfilesStore = create<ProfilesStore>()(
       deleteProfile: async (uid) => {
         const shouldRefreshLogs = shouldRefreshChainLogs(get(), uid);
         await deleteProfileCmd(uid);
+        await get().refreshConfig();
+        if (shouldRefreshLogs) {
+          await get().refreshChainLogs();
+        }
+      },
+
+      batchDeleteProfiles: async (uids: string[]) => {
+        let shouldRefreshLogs = false;
+        for (const uid of uids) {
+          if (shouldRefreshChainLogs(get(), uid)) {
+            shouldRefreshLogs = true;
+            break;
+          }
+        }
+        await batchDeleteProfilesCmd(uids);
+        await get().refreshConfig();
+        if (shouldRefreshLogs) {
+          await get().refreshChainLogs();
+        }
+      },
+
+      batchToggleChainsEnable: async (uids: string[], enable: boolean) => {
+        let shouldRefreshLogs = false;
+        for (const uid of uids) {
+          if (shouldRefreshChainLogs(get(), uid)) {
+            shouldRefreshLogs = true;
+            break;
+          }
+        }
+        await batchToggleChainsEnableCmd(uids, enable);
         await get().refreshConfig();
         if (shouldRefreshLogs) {
           await get().refreshChainLogs();
