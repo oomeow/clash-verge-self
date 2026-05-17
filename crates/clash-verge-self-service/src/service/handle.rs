@@ -1,6 +1,5 @@
 use std::{collections::VecDeque, ffi::OsString, sync::Arc, time::Duration};
 
-use anyhow::{Result, bail};
 use clash_verge_self_utils::format_raw_mihomo_log_line;
 use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
@@ -8,7 +7,7 @@ use process_supervisor::{ProcessEvent, ProcessLogConfig, ProcessSpec, ProcessSup
 use serde::{Deserialize, Serialize};
 
 use super::data::*;
-use crate::service::logger::Logger;
+use crate::{Result, ServiceError, service::logger::Logger};
 
 const MAX_RESTART_CORE_COUNT: usize = 10;
 const CORE_RESTART_INTERVAL: Duration = Duration::from_secs(1);
@@ -129,7 +128,7 @@ pub fn get_clash() -> Result<ClashRunInfo> {
     let restart_count = clash_status.sidecar.restart_count();
     let is_running = clash_status.sidecar.is_running();
     if info.is_none() || !is_running {
-        bail!("clash not executed");
+        return Err(ServiceError::General("clash not executed".into()));
     }
     Ok(ClashRunInfo {
         info,

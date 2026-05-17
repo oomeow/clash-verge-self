@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
-use anyhow::{Result, bail};
+use clash_verge_self_service::{Result, ServiceError};
 use log::LevelFilter;
 use log4rs::{
     Config, Handle,
@@ -76,7 +76,9 @@ impl LogConfig {
         } = self.clone();
         if c_log_handle.is_none() {
             log::error!("update log config failed, log handle is none, please init first");
-            bail!("update log config failed, log handle is none, please init first");
+            return Err(ServiceError::General(
+                "update log config failed, log handle is none, please init first".into(),
+            ));
         }
 
         // check if need to update log config

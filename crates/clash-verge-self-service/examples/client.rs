@@ -4,8 +4,10 @@ use std::{
     time::{Duration, Instant},
 };
 
-use anyhow::Result;
-use clash_verge_self_service::model::{ClashRunInfo, ServiceVersionInfo, SocketCommand, StartBody};
+use clash_verge_self_service::{
+    Result,
+    model::{ClashRunInfo, ServiceVersionInfo, SocketCommand, StartBody},
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -30,6 +32,8 @@ async fn main() -> Result<()> {
     stop_core(&mut client).await?;
     get_clash(&mut client).await?;
     get_logs(&mut client).await?;
+
+    stop_service(&mut client).await?;
 
     Ok(())
 }
@@ -75,5 +79,10 @@ async fn get_logs(client: &mut clash_verge_self_service::Client) -> Result<()> {
 async fn get_version(client: &mut clash_verge_self_service::Client) -> Result<()> {
     let msg = client.send::<ServiceVersionInfo>(SocketCommand::GetVersion).await?;
     println!("get version: {:?}", msg);
+    Ok(())
+}
+
+async fn stop_service(client: &mut clash_verge_self_service::Client) -> Result<()> {
+    client.send::<()>(SocketCommand::StopService).await?;
     Ok(())
 }
