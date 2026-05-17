@@ -295,18 +295,9 @@ export const useProfilesStore = create<ProfilesStore>()(
       },
 
       batchToggleChainsEnable: async (uids: string[], enable: boolean) => {
-        let shouldRefreshLogs = false;
-        for (const uid of uids) {
-          if (shouldRefreshChainLogs(get(), uid)) {
-            shouldRefreshLogs = true;
-            break;
-          }
-        }
         await batchToggleChainsEnableCmd(uids, enable);
         await get().refreshConfig();
-        if (shouldRefreshLogs) {
-          await get().refreshChainLogs();
-        }
+        await get().refreshChainLogs();
       },
 
       enhanceProfiles: async () => {

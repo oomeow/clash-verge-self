@@ -299,19 +299,24 @@ const ProfilePage = () => {
 
   const handleBatchToggleChainsEnable = useLockFn(async (enable: boolean) => {
     const togglingUids = [...selectedUids];
-    const activatingUids = getActivationUids(
-      currentProfileUid,
-      ...togglingUids,
+    const batchUids = togglingUids.filter((uid) =>
+      enable
+        ? !enabledGlobalChainUids.includes(uid)
+        : enabledGlobalChainUids.includes(uid),
     );
+    setSelectedUids(batchUids);
+    const activatingUids = getActivationUids(currentProfileUid, ...batchUids);
     try {
       startActivation(activatingUids);
-      await batchToggleChainsEnable(togglingUids, enable);
-      notice(
-        "success",
-        t("messages.profiles.batchToggleSuccess", {
-          count: togglingUids.length,
-        }),
-      );
+      if (batchUids.length !== 0) {
+        await batchToggleChainsEnable(batchUids, enable);
+        notice(
+          "success",
+          t("messages.profiles.batchToggleSuccess", {
+            count: togglingUids.length,
+          }),
+        );
+      }
     } catch (err: any) {
       notice("error", err.message || err.toString());
     } finally {
