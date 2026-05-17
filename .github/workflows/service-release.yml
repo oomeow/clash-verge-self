@@ -10,6 +10,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  get-service-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: Get version
+        id: get-version
+        run: |
+          echo "version=$(cargo metadata --no-deps --quiet | jq -r '.packages[] | select(.name == "clash-verge-self-service") | .version')" >> $GITHUB_OUTPUT
+
   release-build:
     strategy:
       fail-fast: false
@@ -71,18 +81,11 @@ jobs:
         run: |
           cp target/${{ matrix.target }}/release/clash-verge-self-service.exe ./clash-verge-self-service-${{ matrix.target }}.exe
 
-      - name: Get Version
-        id: get_version
-        run: |
-          version=$(cargo metadata --format-version 1 --no-deps \
-            | jq -r '.packages[] | select(.name=="clash-verge-self-service") | .version')
-          echo "version=$version" >> $GITHUB_OUTPUT
-
       - name: Create Pre-Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
           name: Clash Verge Self Service ${{ github.ref_name }}
-          tag_name: v${{ steps.get_version.outputs.version }}
+          tag_name: v${{ needs.get-service-version.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             ./clash-verge-self-service-${{ matrix.target }}
