@@ -13,8 +13,11 @@ jobs:
   get-service-version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.get-version.outputs.version }}
+      VERSION: ${{ steps.get-version.outputs.version }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - name: Get version
         id: get-version
         run: |
@@ -86,7 +89,7 @@ jobs:
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
           name: Clash Verge Self Service ${{ github.ref_name }}
-          tag_name: v${{ needs.get-service-version.outputs.version }}
+          tag_name: service-v${{ needs.get-service-version.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             ./clash-verge-self-service-${{ matrix.target }}
