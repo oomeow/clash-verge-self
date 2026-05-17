@@ -224,6 +224,8 @@ pub async fn batch_toggle_chains_enable(uids: Vec<String>, enable: bool) -> Comm
     into_command_result(
         async {
             let mut update_config = false;
+            let profiles = Config::profiles().latest().clone();
+            let current_profile = profiles.get_current().cloned();
             for uid in uids {
                 Config::profiles().data_mut().patch_item(
                     &uid,
@@ -232,7 +234,6 @@ pub async fn batch_toggle_chains_enable(uids: Vec<String>, enable: bool) -> Comm
                         ..Default::default()
                     },
                 )?;
-                let profiles = Config::profiles().latest().clone();
                 let result_item = profiles
                     .get_item(&uid)
                     .with_context(|| format!("failed to get profile [{uid}]"))?;
@@ -240,7 +241,7 @@ pub async fn batch_toggle_chains_enable(uids: Vec<String>, enable: bool) -> Comm
                     Some(ScopeType::Global) => {
                         update_config = true;
                     }
-                    Some(ScopeType::Specific) if result_item.parent.as_ref() == profiles.get_current() => {
+                    Some(ScopeType::Specific) if result_item.parent == current_profile => {
                         update_config = true;
                     }
                     _ => {}
