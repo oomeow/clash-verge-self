@@ -21,6 +21,7 @@ jobs:
           echo "version=$(cargo metadata --no-deps --quiet | jq -r '.packages[] | select(.name == "clash-verge-self-service") | .version')" >> $GITHUB_OUTPUT
 
   release-build:
+    needs: get-service-version
     strategy:
       fail-fast: false
       matrix:
