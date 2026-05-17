@@ -326,6 +326,7 @@ const ProfilePage = () => {
   });
 
   const handleBatchDelete = useLockFn(async () => {
+    setBatchDeleteOpen(false);
     const deletingUids = [...selectedUids];
     const anyEnabled = deletingUids.some(
       (uid) =>
@@ -347,7 +348,6 @@ const ProfilePage = () => {
       notice("error", err.message || err.toString());
     } finally {
       if (anyEnabled) clearActivatingItemUids(activatingUids);
-      setBatchDeleteOpen(false);
       exitSelectMode();
     }
   });
