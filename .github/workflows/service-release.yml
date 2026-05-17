@@ -88,7 +88,7 @@ jobs:
       - name: Create Pre-Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
         with:
-          name: Clash Verge Self Service ${{ github.ref_name }}
+          name: Clash Verge Self Service v${{ needs.get-service-version.outputs.version }}
           tag_name: service-v${{ needs.get-service-version.outputs.version }}
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
