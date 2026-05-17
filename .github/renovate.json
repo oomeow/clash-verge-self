@@ -29,10 +29,6 @@
       "allowedVersions": "<10"
     },
     {
-      "matchPackageNames": ["/(tauri)/"],
-      "groupName": "tauri monorepo"
-    },
-    {
       "matchPackageNames": ["monaco-editor"],
       "groupName": "monaco deps",
       "allowedVersions": "<0.55.0"
