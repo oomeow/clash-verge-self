@@ -49,8 +49,10 @@ define_windows_service!(ffi_service_main, my_service_main);
 pub fn my_service_main(_arguments: Vec<std::ffi::OsString>) {
     // this arguments is not same as launch arguments
     if let Ok(rt) = tokio::runtime::Runtime::new() {
-        let server_id = SERVER_ID.get().expect("failed to get server id").clone();
-        let server_id = server_id.unwrap_or(clash_verge_self_service::DEFAULT_SERVER_ID.to_string());
+        let server_id = SERVER_ID.get().and_then(|id| id.clone()).unwrap_or_else(|| {
+            log::error!("failed to get server id");
+            clash_verge_self_service::DEFAULT_SERVER_ID.to_string()
+        });
         let psk =
             option_env!("CLASH_VERGE_SELF_SERVICE_PSK").map_or(clash_verge_self_service::DEFAULT_PSK, |v| v.as_bytes());
         rt.block_on(async move {
@@ -86,7 +88,9 @@ fn main() -> clash_verge_self_service::Result<()> {
             }
             #[cfg(windows)]
             {
-                SERVER_ID.set(server_id).expect("failed to set server id");
+                SERVER_ID
+                    .set(server_id)
+                    .map_err(|_| clash_verge_self_service::ServiceError::General("failed to set server id".into()))?;
                 service_dispatcher::start(clash_verge_self_service::SERVICE_NAME, ffi_service_main)
                     .map_err(|e| clash_verge_self_service::ServiceError::General(e.to_string()))?;
             }

@@ -28,14 +28,14 @@ pub fn process() -> Result<()> {
     log::debug!("Removing service file [/Library/PrivilegedHelperTools/io.github.clashvergeself.helper]");
     let service_file = Path::new("/Library/PrivilegedHelperTools/io.github.clashvergeself.helper");
     if service_file.exists() {
-        remove_file(service_file).expect("Failed to remove service file.");
+        remove_file(service_file)?;
     }
 
     // Remove the plist file.
     log::debug!("Removing plist file [{}]", plist_file);
     let plist_file = Path::new(plist_file);
     if plist_file.exists() {
-        remove_file(plist_file).expect("Failed to remove plist file.");
+        remove_file(plist_file)?;
     }
 
     log::debug!("Service uninstalled successfully.");

@@ -118,6 +118,10 @@ impl SecureChannel {
             .await
             .map_err(|_| ServiceError::General("invalid connection".into()))?;
 
+        if frame_len < 24 {
+            return Err(ServiceError::General("frame too short".into()));
+        }
+
         let (nonce_bytes, cipher) = buf.split_at(24);
         let plaintext = self
             .aead
