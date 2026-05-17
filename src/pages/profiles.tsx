@@ -676,7 +676,7 @@ const ProfilePage = () => {
       <ConfigViewer ref={configRef} />
 
       {selectMode && selectedUids.length > 0 && (
-        <div className="bg-background-paper absolute right-3 bottom-3 left-3 z-10 flex items-center justify-center gap-2 rounded-xl py-2 shadow-md">
+        <div className="absolute right-3 bottom-3 left-3 z-10 flex items-center justify-center gap-2 rounded-xl bg-[#FFFFFF] py-2 shadow-md dark:bg-[#282A36]">
           {selectionCategory === "chain" && (
             <>
               <Button
