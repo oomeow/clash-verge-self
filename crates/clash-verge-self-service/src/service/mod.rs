@@ -2,6 +2,8 @@ pub mod data;
 mod handle;
 mod logger;
 
+#[cfg(windows)]
+use std::sync::OnceLock;
 use std::{
     collections::VecDeque,
     path::PathBuf,
@@ -30,12 +32,17 @@ use tokio::{
 };
 #[cfg(windows)]
 use windows_service::{
-    service::{ServiceControl, ServiceControlAccept, ServiceExitCode, ServiceState, ServiceStatus},
+    service::{
+        ServiceControl, ServiceControlAccept, ServiceExitCode, ServiceState, ServiceStatus, ServiceStatusHandle,
+    },
     service_control_handler::{self, ServiceControlHandlerResult},
 };
 use x25519_dalek::{PublicKey, StaticSecret};
 
 use crate::{DEFAULT_SERVER_ID, KEY_INFO, Result, ServiceError};
+
+#[cfg(windows)]
+static SERVICE_STATUS_HANDLE: OnceLock<parking_lot::Mutex<ServiceStatusHandle>> = OnceLock::new();
 
 macro_rules! wrap_response {
     ($expr: expr) => {
@@ -162,30 +169,40 @@ impl SecureChannel {
 
 /// The Service
 pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Result<()> {
+    // Create shutdown channel early so Windows handler can capture a sender
+    let (shutdown_tx, mut shutdown_rx) = channel(());
+
     // NOTE: comment follow windows code for debug
-    // 开启服务 设置服务状态
     #[cfg(windows)]
-    let status_handle =
-        service_control_handler::register(crate::SERVICE_NAME, move |event| -> ServiceControlHandlerResult {
-            match event {
-                ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
-                ServiceControl::Stop => std::process::exit(0),
-                _ => ServiceControlHandlerResult::NotImplemented,
-            }
-        })
-        .map_err(|e| ServiceError::General(e.to_string()))?;
-    #[cfg(windows)]
-    status_handle
-        .set_service_status(ServiceStatus {
-            service_type: crate::SERVICE_TYPE,
-            current_state: ServiceState::Running,
-            controls_accepted: ServiceControlAccept::STOP,
-            exit_code: ServiceExitCode::Win32(0),
-            checkpoint: 0,
-            wait_hint: std::time::Duration::default(),
-            process_id: None,
-        })
-        .map_err(|e| ServiceError::General(e.to_string()))?;
+    {
+        let stx = shutdown_tx.clone();
+        let status_handle =
+            service_control_handler::register(crate::SERVICE_NAME, move |event| -> ServiceControlHandlerResult {
+                match event {
+                    ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
+                    ServiceControl::Stop => {
+                        let _ = stx.send(());
+                        ServiceControlHandlerResult::NoError
+                    }
+                    _ => ServiceControlHandlerResult::NotImplemented,
+                }
+            })
+            .map_err(|e| ServiceError::General(e.to_string()))?;
+
+        let _ = SERVICE_STATUS_HANDLE.set(parking_lot::Mutex::new(status_handle));
+        let handle = SERVICE_STATUS_HANDLE.get().unwrap().lock();
+        handle
+            .set_service_status(ServiceStatus {
+                service_type: crate::SERVICE_TYPE,
+                current_state: ServiceState::Running,
+                controls_accepted: ServiceControlAccept::STOP,
+                exit_code: ServiceExitCode::Win32(0),
+                checkpoint: 0,
+                wait_hint: std::time::Duration::default(),
+                process_id: None,
+            })
+            .map_err(|e| ServiceError::General(e.to_string()))?;
+    }
 
     let server_id = server_id.unwrap_or(DEFAULT_SERVER_ID.to_string());
     let temp_dir = if cfg!(windows) {
@@ -201,8 +218,6 @@ pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Resul
         .security_attributes(security_attributes)
         .incoming()?;
     futures::pin_mut!(incoming);
-
-    let (shutdown_tx, mut shutdown_rx) = channel(());
 
     tokio::select! {
          _ = async {
@@ -373,12 +388,13 @@ async fn handle_socket_command(secured: &mut SecureChannel, cmd: SocketCommand) 
 /// 停止服务
 #[cfg(windows)]
 fn stop_service() -> Result<()> {
-    let status_handle =
-        service_control_handler::register(crate::SERVICE_NAME, |_| ServiceControlHandlerResult::NoError)
-            .map_err(|e| ServiceError::General(e.to_string()))?;
+    let handle = SERVICE_STATUS_HANDLE
+        .get()
+        .ok_or_else(|| ServiceError::General("service status handle not initialized".into()))?;
     use crate::SERVICE_TYPE;
 
-    status_handle
+    handle
+        .lock()
         .set_service_status(ServiceStatus {
             service_type: SERVICE_TYPE,
             current_state: ServiceState::Stopped,
