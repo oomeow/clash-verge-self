@@ -471,7 +471,7 @@ export const ConnectionTable = (props: Props) => {
   const headerContent = useMemo(
     () =>
       table.getHeaderGroups().map((headerGroup) => (
-        <tr key={headerGroup.id} style={{ display: "flex", width: "100%" }}>
+        <tr key={headerGroup.id} className="flex w-full">
           {headerGroup.headers.map((header) => {
             const meta = header.column.columnDef.meta as ColumnMeta | undefined;
             const sorted = header.column.getIsSorted();
@@ -624,6 +624,7 @@ export const ConnectionTable = (props: Props) => {
           "& thead": {
             display: "grid",
             position: "sticky",
+            bgcolor: theme.palette.background.paper,
             top: 0,
             zIndex: 1,
           },
