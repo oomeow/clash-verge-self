@@ -329,19 +329,14 @@ export const ConnectionFilterBox = ({
             ref={filterButtonRef}
             size="small"
             color={open || filters.length > 0 ? "primary" : "default"}
-            sx={[
-              {
-                flexShrink: 0,
-                width: 32,
-                height: 32,
-                border: "1px solid",
-                borderColor: "divider",
-                borderRadius: 1,
-              },
-              ({ palette: { mode } }) => ({
-                ...(mode === "light" && { backgroundColor: "#fff" }),
-              }),
-            ]}
+            sx={{
+              flexShrink: 0,
+              width: 32,
+              height: 32,
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 1,
+            }}
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -351,32 +346,28 @@ export const ConnectionFilterBox = ({
           </IconButton>
         </Tooltip>
         <Box
-          sx={[
-            {
-              height: 32,
-              width: "100%",
-              minWidth: 0,
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 0.5,
-              px: 0.75,
-              py: 0.25,
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 1,
-              boxSizing: "border-box",
-              cursor: "text",
-              overflow: "hidden",
-              "&:focus-within": {
-                borderColor: "primary.main",
-                boxShadow: (theme) => `0 0 0 1px ${theme.palette.primary.main}`,
-              },
+          sx={{
+            height: 32,
+            width: "100%",
+            minWidth: 0,
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            px: 0.75,
+            py: 0.25,
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 1,
+            boxSizing: "border-box",
+            cursor: "text",
+            overflow: "hidden",
+            "&:focus-within": {
+              borderColor: "primary.main",
+              boxShadow: (theme: any) =>
+                `0 0 0 1px ${theme.palette.primary.main}`,
             },
-            ({ palette: { mode } }) => ({
-              ...(mode === "light" && { backgroundColor: "#fff" }),
-            }),
-          ]}>
+          }}>
           <InputAdornment position="start" sx={{ mr: 0, flexShrink: 0 }}>
             <SearchRounded fontSize="small" color="action" />
           </InputAdornment>

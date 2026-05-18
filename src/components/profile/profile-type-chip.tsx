@@ -26,7 +26,7 @@ const StyledChip = styled(Chip, {
   shouldForwardProp: (prop) => prop !== "density",
 })<{ density: ProfileTypeChipDensity }>(({ theme, density }) => ({
   height: density === "compact" ? 18 : 20,
-  borderRadius: "5px",
+  borderRadius: "999px",
   fontSize: density === "compact" ? 10 : 11,
   fontWeight: 700,
   color: theme.palette.primary.main,

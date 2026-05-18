@@ -193,12 +193,13 @@ const RulesPage = () => {
           <Virtuoso
             data={filterRules}
             itemContent={(index, item) => (
-              <RuleItem
-                key={item.index}
-                index={index + 1}
-                value={item}
-                matchPayloadItems={item.matchPayloadItems}
-              />
+              <div key={item.index} className="pb-1.5">
+                <RuleItem
+                  index={index + 1}
+                  value={item}
+                  matchPayloadItems={item.matchPayloadItems}
+                />
+              </div>
             )}
           />
         ) : (

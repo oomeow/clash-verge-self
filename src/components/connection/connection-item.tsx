@@ -1,12 +1,5 @@
 import CloseRounded from "@mui/icons-material/CloseRounded";
-import {
-  alpha,
-  IconButton,
-  ListItem,
-  ListItemText,
-  styled,
-  Typography,
-} from "@mui/material";
+import { IconButton, ListItem, ListItemText, Typography } from "@mui/material";
 import { useLockFn } from "ahooks";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
@@ -14,17 +7,6 @@ import { closeConnection } from "tauri-plugin-mihomo-api";
 
 import { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import parseTraffic from "@/utils/parse-traffic";
-
-const Tag = styled("span")(({ theme }) => ({
-  fontSize: "10px",
-  padding: "0 4px",
-  lineHeight: 1.375,
-  border: "1px solid",
-  borderRadius: 4,
-  borderColor: alpha(theme.palette.text.secondary, 0.35),
-  marginTop: "4px",
-  marginRight: "4px",
-}));
 
 interface Props {
   value: IClosedConnectionItem;
@@ -52,7 +34,10 @@ export const ConnectionItem = (props: Props) => {
   return (
     <ListItem
       dense
-      sx={{ borderBottom: "1px solid var(--divider-color)" }}
+      sx={{
+        borderBottom: "1px solid var(--divider-color)",
+        "&:hover": { backgroundColor: "var(--background-color-alpha)" },
+      }}
       secondaryAction={
         isActive ? (
           <IconButton edge="end" color="inherit" onClick={onDelete}>
@@ -70,23 +55,37 @@ export const ConnectionItem = (props: Props) => {
         onClick={onShowDetail}
         secondary={
           <span className="inline-block flex-wrap">
-            <Tag sx={{ textTransform: "uppercase", color: "success" }}>
+            <span className="border-text-secondary/30 text-success mt-1 mr-1 inline-block rounded-full border px-1.5 text-[11px] leading-tight uppercase">
               {metadata.network}
-            </Tag>
+            </span>
 
-            <Tag>{metadata.type}</Tag>
+            <span className="border-text-secondary/30 mt-1 mr-1 inline-block rounded-full border px-1.5 text-[11px] leading-tight">
+              {metadata.type}
+            </span>
 
-            {!!metadata.process && <Tag>{metadata.process}</Tag>}
+            {!!metadata.process && (
+              <span className="border-text-secondary/30 mt-1 mr-1 inline-block rounded-full border px-1.5 text-[11px] leading-tight">
+                {metadata.process}
+              </span>
+            )}
 
-            {!!chainText && <Tag>{chainText}</Tag>}
+            {!!chainText && (
+              <span className="border-text-secondary/30 mt-1 mr-1 inline-block rounded-full border px-1.5 text-[11px] leading-tight">
+                {chainText}
+              </span>
+            )}
 
-            <Tag>
+            <span className="border-text-secondary/30 mt-1 mr-1 inline-block rounded-full border px-1.5 text-[11px] leading-tight">
               {t("pages.connections.columns.startAt", {
                 time: dayjs(start).fromNow(),
               })}
-            </Tag>
+            </span>
 
-            {!!trafficText && <Tag>{trafficText}</Tag>}
+            {!!trafficText && (
+              <span className="border-text-secondary/30 mt-1 mr-1 inline-block rounded-full border px-1.5 text-[11px] leading-tight">
+                {trafficText}
+              </span>
+            )}
           </span>
         }
       />

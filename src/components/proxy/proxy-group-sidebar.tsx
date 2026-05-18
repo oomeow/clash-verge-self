@@ -1,4 +1,4 @@
-import { Link, Tooltip, Typography } from "@mui/material";
+import { Link, Paper, Tooltip, Typography } from "@mui/material";
 import { memo, useMemo, useState } from "react";
 
 import { cn } from "@/utils";
@@ -32,11 +32,12 @@ export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
   }, [groupNameList]);
 
   return (
-    <div
+    <Paper
+      elevation={0}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
       className={cn(
-        "flex h-full w-full flex-col items-center justify-center bg-white text-center text-sm dark:bg-[#282A36]",
+        "flex h-full w-full flex-col items-center justify-center text-center text-sm",
         className,
       )}>
       <div className="no-scrollbar hover:scrollbar w-full space-y-2! overflow-auto px-1 py-2">
@@ -57,6 +58,6 @@ export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
           </Tooltip>
         ))}
       </div>
-    </div>
+    </Paper>
   );
 });

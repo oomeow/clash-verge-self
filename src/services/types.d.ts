@@ -134,7 +134,7 @@ interface IVergeThemeSettings {
   warning_color?: string;
   success_color?: string;
   background_color?: string;
-  // paper_background_color?: string;
+  paper_background_color?: string;
   css_injection?: string;
   font_family?: string;
 }

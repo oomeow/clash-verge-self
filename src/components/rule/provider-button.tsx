@@ -1,13 +1,6 @@
 import Error from "@mui/icons-material/Error";
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
-import {
-  alpha,
-  Button,
-  Divider,
-  IconButton,
-  styled,
-  Typography,
-} from "@mui/material";
+import { Button, Divider, IconButton, Paper, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import { throttle } from "lodash-es";
 import { useState } from "react";
@@ -102,9 +95,9 @@ export const ProviderButton = () => {
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-center">
               <Typography variant="h6">{t("pages.rules.provider")}</Typography>
-              <TypeSpan sx={{ ml: 1, fontSize: 14 }}>
+              <span className="bg-primary/20 text-primary ml-2 inline-block rounded px-1 text-sm font-bold">
                 {providers.length}
-              </TypeSpan>
+              </span>
             </div>
             <Button
               variant="contained"
@@ -114,19 +107,22 @@ export const ProviderButton = () => {
             </Button>
           </div>
         }
-        contentStyle={{ width: 400 }}
+        maxWidth="xs"
+        fullWidth
         hideOkBtn
-        hideCancelBtn
-        onClose={() => setOpen(false)}>
-        <div>
+        onClose={() => setOpen(false)}
+        onCancel={() => setOpen(false)}>
+        <div className="flex flex-col gap-2">
           {providers.map((item, index) => {
             const name = item.payload;
             const time = dayjs(item?.updatedAt);
             const error = errorItems?.includes(name);
             return (
-              <div
+              <Paper
                 key={name}
-                className="mb-2 flex items-center rounded-sm bg-white p-2 shadow-sm dark:bg-[#282A36]">
+                variant="outlined"
+                elevation={0}
+                className="flex items-center rounded-lg p-2">
                 <div className="w-full overflow-hidden">
                   <div className="flex items-center">
                     {error && (
@@ -137,15 +133,19 @@ export const ProviderButton = () => {
                       />
                     )}
                     <p className="text-text-primary text-xl">{name}</p>
-                    <TypeSpan sx={{ marginLeft: "8px" }}>
+                    <span className="bg-primary/20 text-primary ml-2 inline-block rounded px-1 text-xs font-bold">
                       {item?.ruleCount}
-                    </TypeSpan>
+                    </span>
                   </div>
-                  <StyledTypeSpan>{item?.vehicleType}</StyledTypeSpan>
-                  <StyledTypeSpan>{item?.behavior}</StyledTypeSpan>
-                  <StyledTypeSpan>
+                  <span className="border-primary/50 text-primary/80 mr-1 inline-block rounded border px-0.5 text-[10px]">
+                    {item?.vehicleType}
+                  </span>
+                  <span className="border-primary/50 text-primary/80 mr-1 inline-block rounded border px-0.5 text-[10px]">
+                    {item?.behavior}
+                  </span>
+                  <span className="border-primary/50 text-primary/80 mr-1 inline-block rounded border px-0.5 text-[10px]">
                     {t("pages.proxies.updateAt")} {time.fromNow()}
-                  </StyledTypeSpan>
+                  </span>
                 </div>
                 <Divider orientation="vertical" flexItem />
                 <IconButton
@@ -159,7 +159,7 @@ export const ProviderButton = () => {
                     })}
                   />
                 </IconButton>
-              </div>
+              </Paper>
             );
           })}
         </div>
@@ -167,25 +167,3 @@ export const ProviderButton = () => {
     </>
   );
 };
-
-const TypeSpan = styled("span")(({ theme }) => ({
-  display: "inline-block",
-  backgroundColor: alpha(theme.palette.primary.main, 0.2),
-  color: theme.palette.primary.main,
-  fontWeight: "bold",
-  borderRadius: 4,
-  fontSize: 12,
-  marginLeft: "8px",
-  padding: "0 4px",
-}));
-
-const StyledTypeSpan = styled("span")(({ theme }) => ({
-  display: "inline-block",
-  border: "1px solid #ccc",
-  borderColor: alpha(theme.palette.primary.main, 0.5),
-  color: alpha(theme.palette.primary.main, 0.8),
-  borderRadius: "4px",
-  fontSize: "10px",
-  marginRight: "4px",
-  padding: "0 2px",
-}));

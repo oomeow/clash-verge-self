@@ -62,8 +62,7 @@ export default function ProfileMoreMini(props: Props) {
   const isScriptMerge = item.type === "script";
   const hasError = isScriptMerge && !!logs?.find((item) => item.exception);
   const showConsole = isScriptMerge && item.enable;
-  const unselectedbackgroundColor =
-    theme.palette.mode === "light" ? "#ffffff" : "#282A36";
+  const unselectedbackgroundColor = theme.palette.background.paper;
   const selectedBackgroundColor =
     theme.palette.mode === "light"
       ? alpha(theme.palette.primary.main, 0.25)
@@ -75,7 +74,7 @@ export default function ProfileMoreMini(props: Props) {
 
   return (
     <>
-      <div className="bg-background-default my-2 h-14 w-full rounded-md">
+      <div className="bg-background-default my-2 h-14 w-full rounded-lg">
         <div
           style={{
             backgroundColor: item.enable
@@ -87,14 +86,13 @@ export default function ProfileMoreMini(props: Props) {
                 : unselectedbackgroundColor,
           }}
           className={cn(
-            "relative flex h-full w-full cursor-pointer items-center gap-1 overflow-hidden rounded-md px-2 py-1 shadow-xs",
+            "relative flex h-full w-full cursor-pointer items-center gap-1 overflow-hidden rounded-lg border border-(--divider-color) px-2 py-1 shadow-sm",
             {
               "border-primary border-0 border-l-2! border-solid":
                 item.enable && !hasError,
               "animate-pulse border border-red-500":
                 item.enable && hasError && !selected,
-              "border-primary animate-highlight border border-solid shadow-md":
-                selected,
+              "border-primary animate-highlight border border-solid": selected,
             },
           )}
           onClick={onClick}>
@@ -154,7 +152,7 @@ export default function ProfileMoreMini(props: Props) {
                     sx={{
                       width: 26,
                       height: 26,
-                      borderRadius: "6px",
+                      borderRadius: "8px",
                       bgcolor: alpha(
                         hasError
                           ? theme.palette.error.main
@@ -195,7 +193,7 @@ export default function ProfileMoreMini(props: Props) {
                 sx={{
                   width: 26,
                   height: 26,
-                  borderRadius: "6px",
+                  borderRadius: "8px",
                 }}
                 onClick={(event) => {
                   event.stopPropagation();
@@ -213,7 +211,7 @@ export default function ProfileMoreMini(props: Props) {
                 sx={{
                   width: 26,
                   height: 26,
-                  borderRadius: "6px",
+                  borderRadius: "8px",
                   "&:hover": {
                     bgcolor: alpha(
                       theme.palette.error.main,

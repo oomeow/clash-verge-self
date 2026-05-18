@@ -389,6 +389,16 @@
         "theme": {
           "title": "Theme Setting",
           "default": "Default Setting",
+          "currentTheme": "Current Theme",
+          "presets": {
+            "custom": "Custom",
+            "default": "Default Blue",
+            "ocean": "Ocean Teal",
+            "forest": "Forest Green",
+            "sunset": "Sunset Orange",
+            "lavender": "Lavender Purple",
+            "monochrome": "Monochrome"
+          },
           "colors": {
             "primary": "Primary Color",
             "secondary": "Secondary Color",
@@ -398,7 +408,8 @@
             "warning": "Warning Color",
             "error": "Error Color",
             "success": "Success Color",
-            "background": "Background Color"
+            "background": "Background Color",
+            "paperBackground": "Card Background Color"
           },
           "fontFamily": "Font Family",
           "cssInjection": "CSS Injection"

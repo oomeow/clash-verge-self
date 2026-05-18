@@ -79,7 +79,9 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
     <BaseDialog
       open={open}
       title={t("pages.settings.clash.serviceMode.label")}
-      contentStyle={{ width: 360, userSelect: "text" }}
+      maxWidth="xs"
+      fullWidth
+      contentStyle={{ userSelect: "text" }}
       hideFooter
       onClose={() => setOpen(false)}>
       <Box

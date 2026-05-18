@@ -4,7 +4,6 @@ import { nanoid } from "nanoid";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { useWindowSize } from "@/hooks/use-window-size";
 import {
   configureYaml,
   defaultOptions,
@@ -47,7 +46,6 @@ export const EditorViewer = (props: Props) => {
   const [monaco, setMonaco] = useState<typeof import("monaco-editor") | null>(
     null,
   );
-  const { size } = useWindowSize();
   const { notice } = useNotice();
 
   useEffect(() => {
@@ -81,7 +79,7 @@ export const EditorViewer = (props: Props) => {
         tabSize: ["yaml", "javascript", "css"].includes(language) ? 2 : 4,
         readOnly: readonly,
         theme: themeMode === "dark" ? "vs-dark" : "light",
-        minimap: { enabled: size.width >= 1000 },
+        minimap: { enabled: window.innerWidth >= 1000 },
       });
 
       if (scope && "pac" === scope) {
@@ -113,17 +111,17 @@ export const EditorViewer = (props: Props) => {
     const minimap = instanceRef.current.getOption(
       monaco.editor.EditorOption.minimap,
     );
-    if (!minimap.enabled && size.width >= 1000) {
+    if (!minimap.enabled && window.innerWidth >= 1000) {
       instanceRef.current.updateOptions({
         minimap: { enabled: true },
       });
     }
-    if (minimap.enabled && size.width < 1000) {
+    if (minimap.enabled && window.innerWidth < 1000) {
       instanceRef.current.updateOptions({
         minimap: { enabled: false },
       });
     }
-  }, [size, monaco]);
+  }, [monaco]);
 
   const onSave = useLockFn(async () => {
     const value = instanceRef.current?.getValue();
@@ -141,6 +139,7 @@ export const EditorViewer = (props: Props) => {
   return (
     <BaseDialog
       fullWidth
+      maxWidth="md"
       open={open}
       onClose={onClose}
       onOk={onSave}
@@ -148,7 +147,7 @@ export const EditorViewer = (props: Props) => {
       title={title ?? t("pages.profiles.actions.editFile")}>
       <div
         className="w-full overflow-hidden select-text"
-        style={{ height: `${size.height - 200}px` }}>
+        style={{ height: "calc(100vh - 220px)" }}>
         <div className="h-full w-full overflow-hidden" ref={editorDomRef} />
       </div>
     </BaseDialog>

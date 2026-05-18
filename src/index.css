@@ -382,7 +382,8 @@
     @apply bg-transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-[5px] bg-gray-400 dark:bg-gray-500;
+    @apply rounded-[5px];
+    background-color: var(--scroller-color);
   }
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-primary;

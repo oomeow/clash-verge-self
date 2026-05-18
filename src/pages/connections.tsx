@@ -5,12 +5,13 @@ import TableChartRounded from "@mui/icons-material/TableChartRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
 import Upload from "@mui/icons-material/Upload";
 import {
-  Box,
   Button,
   ButtonGroup,
   Fab,
   IconButton,
   MenuItem,
+  Paper,
+  Stack,
   Tooltip,
   Zoom,
 } from "@mui/material";
@@ -201,24 +202,32 @@ const ConnectionsPage = () => {
       }
       contentStyle={{ height: "100%" }}
       header={
-        <div className="mx-2 flex min-w-0 items-center gap-2 overflow-hidden p-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="flex w-fit shrink-0 items-center gap-4">
-              <div className="flex items-center gap-1">
+        <Stack
+          direction="row"
+          className="mx-2 min-w-0 items-center gap-2 overflow-hidden p-2">
+          <Stack direction="row" className="min-w-0 flex-1 items-center gap-2">
+            <Stack
+              direction="row"
+              className="w-fit shrink-0 items-center gap-4">
+              <Stack direction="row" className="items-center gap-1">
                 <Tooltip title={t("pages.connections.columns.totalUploaded")}>
                   <Upload fontSize="small" />
                 </Tooltip>
                 <span className="text-sm">{totalUpload[0]}</span>
-                <span className="text-sm">{totalUpload[1]}</span>
-              </div>
-              <div className="flex items-center gap-1">
+                <span className="text-text-secondary text-sm">
+                  {totalUpload[1]}
+                </span>
+              </Stack>
+              <Stack direction="row" className="items-center gap-1">
                 <Tooltip title={t("pages.connections.columns.totalDownloaded")}>
                   <Download fontSize="small" />
                 </Tooltip>
                 <span className="text-sm">{totalDownload[0]}</span>
-                <span className="text-sm">{totalDownload[1]}</span>
-              </div>
-            </div>
+                <span className="text-text-secondary text-sm">
+                  {totalDownload[1]}
+                </span>
+              </Stack>
+            </Stack>
             <Tooltip
               title={
                 isTableLayout
@@ -238,7 +247,7 @@ const ConnectionsPage = () => {
                 )}
               </IconButton>
             </Tooltip>
-          </div>
+          </Stack>
           <Button size="small" variant="contained" onClick={onCloseAll}>
             <span className="whitespace-nowrap">
               {t("pages.connections.actions.closeAll")}{" "}
@@ -247,49 +256,40 @@ const ConnectionsPage = () => {
                 : activeConns.length > 0 && activeConns.length}
             </span>
           </Button>
-        </div>
+        </Stack>
       }>
       <div className="relative flex h-full w-full flex-col overflow-hidden">
-        <Box
-          sx={{
-            mx: "10px",
-            py: "10px",
-            display: "flex",
-            alignItems: "center",
-            gap: 0.6,
-            flexShrink: 0,
-            userSelect: "text",
-            boxSizing: "border-box",
-          }}>
+        <Stack
+          direction="row"
+          className="mx-2.5 box-border min-h-10 shrink-0 items-center gap-1 select-text">
           <ButtonGroup size="small" className="flex w-40 text-nowrap">
             <Button
-              sx={{ flex: 1 }}
+              className="flex-1"
               variant={isActiveTab ? "contained" : "outlined"}
               onClick={() => handleTabChange("active")}>
               {t("common.status.active")}{" "}
               {activeConns.length > 0 && activeConns.length}
             </Button>
             <Button
-              sx={{ flex: 1 }}
+              className="flex-1"
               variant={!isActiveTab ? "contained" : "outlined"}
               onClick={() => handleTabChange("closed")}>
               {t("common.status.closed")}{" "}
               {closedConns.length > 0 && closedConns.length}
             </Button>
           </ButtonGroup>
-          {!isTableLayout && isActiveTab && (
-            <BaseStyledSelect
-              value={curOrderOpt}
-              onChange={(e) =>
-                setOrderType(e.target.value as ConnectionsOrderType)
-              }>
-              {Object.entries(orderOpts).map(([opt, config]) => (
-                <MenuItem key={opt} value={opt}>
-                  <span style={{ fontSize: 14 }}>{t(config.labelKey)}</span>
-                </MenuItem>
-              ))}
-            </BaseStyledSelect>
-          )}
+          <BaseStyledSelect
+            value={curOrderOpt}
+            onChange={(e) =>
+              setOrderType(e.target.value as ConnectionsOrderType)
+            }
+            className={!isTableLayout && isActiveTab ? "" : "hidden"}>
+            {Object.entries(orderOpts).map(([opt, config]) => (
+              <MenuItem key={opt} value={opt}>
+                <span style={{ fontSize: 14 }}>{t(config.labelKey)}</span>
+              </MenuItem>
+            ))}
+          </BaseStyledSelect>
           <ConnectionFilterBox
             connections={currentConnections}
             filters={filters}
@@ -297,26 +297,11 @@ const ConnectionsPage = () => {
             onChange={setFilters}
             onHostSearchChange={setHostSearch}
           />
-        </Box>
+        </Stack>
 
-        <Box
-          sx={[
-            {
-              flex: 1,
-              minHeight: 0,
-            },
-            (theme) => ({
-              userSelect: "text",
-              mx: "10px",
-              mb: "4px",
-              borderRadius: "8px",
-              bgcolor: "#ffffff",
-              ...theme.applyStyles("dark", {
-                bgcolor: "#282a36",
-              }),
-              boxSizing: "border-box",
-            }),
-          ]}>
+        <Paper
+          elevation={0}
+          className="bg-background-paper mx-2.5 mb-1 box-border min-h-0 flex-1 rounded-xl select-text">
           {filteredConnections.length === 0 ? (
             <BaseEmpty text={t("common.empty.noConnections")} />
           ) : isTableLayout ? (
@@ -345,7 +330,7 @@ const ConnectionsPage = () => {
               )}
             />
           )}
-        </Box>
+        </Paper>
         <ConnectionDetail ref={detailRef} />
         <Zoom in={showScrollTop} unmountOnExit>
           <Tooltip title={t("common.actions.scrollToTop")}>
@@ -373,7 +358,7 @@ const ConnectionsPage = () => {
             }}
             color="primary"
             onClick={() => clearClosedConnections()}>
-            <DeleteForeverRounded sx={{ mr: 1 }} fontSize="small" />
+            <DeleteForeverRounded fontSize="small" />
             {t("common.actions.clear")}
           </Fab>
         </Zoom>

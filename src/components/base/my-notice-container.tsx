@@ -64,7 +64,7 @@ export const MyNoticeContainer = (props: MyNoticeContainerProps) => {
     <ThemeProvider theme={theme}>
       <SnackbarContent
         ref={ref}
-        className="max-w-125 overflow-hidden rounded-md shadow-xl">
+        className="max-w-125 overflow-hidden rounded-lg shadow-xl">
         <div
           style={{ backgroundColor: contentColor }}
           className={cn("flex w-full items-center p-3", {

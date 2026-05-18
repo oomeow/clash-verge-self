@@ -1,48 +1,40 @@
-import { alpha, styled } from "@mui/material";
+import { cn } from "@/utils";
 
-export const TestDiv = styled("div")(({
-  theme,
+interface TestDivProps {
+  children?: React.ReactNode;
+  className?: string;
+  style?: Record<string, string>;
+  "aria-label"?: string;
+  "aria-selected"?: boolean;
+  onContextMenu?: (event: React.MouseEvent) => void;
+}
+
+export const TestDiv = ({
+  children,
+  className,
+  style,
   "aria-label": label,
   "aria-selected": selected,
-}) => {
-  const { mode, primary, text } = theme.palette;
-  const key = `${mode}-${!!selected}`;
+  onContextMenu,
+}: TestDivProps) => {
   const isDragging = label === "dragging";
 
-  const bgcolor = mode === "light" ? "#ffffff" : "#282A36";
-
-  const color = {
-    "light-true": text.secondary,
-    "light-false": text.secondary,
-    "dark-true": alpha(text.secondary, 0.65),
-    "dark-false": alpha(text.secondary, 0.65),
-  }[key];
-
-  const h2color = {
-    "light-true": primary.main,
-    "light-false": text.primary,
-    "dark-true": primary.main,
-    "dark-false": text.primary,
-  }[key];
-
-  return {
-    position: "relative",
-    width: "100%",
-    display: "block",
-    cursor: "pointer",
-    textAlign: "left",
-    borderRadius: 8,
-    boxShadow: theme.shadows[2],
-    padding: "8px 16px",
-    boxSizing: "border-box",
-    backgroundColor: bgcolor,
-    color,
-    "& h2": { color: h2color },
-    ...(isDragging && {
-      border: 1,
-      borderStyle: "solid",
-      borderColor: alpha(primary.main, 0.5),
-      boxShadow: `0 0 0 4px ${alpha(primary.main, 0.2)}`,
-    }),
-  };
-});
+  return (
+    <div
+      aria-label={label}
+      aria-selected={selected}
+      onClick={undefined}
+      onContextMenu={onContextMenu}
+      className={cn(
+        "bg-background-paper relative box-border block w-full cursor-pointer rounded-xl p-2 text-left",
+        "text-text-secondary dark:text-text-secondary/65 shadow-sm",
+        selected ? "[&_h2]:text-primary" : "[&_h2]:text-text-primary",
+        isDragging &&
+          "border-primary/50 border border-solid shadow-[0_0_0_4px_var(--mui-palette-primary-main)]",
+        className,
+      )}
+      style={style}>
+      {children}
+    </div>
+  );
+};

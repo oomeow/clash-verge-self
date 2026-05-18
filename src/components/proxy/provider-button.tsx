@@ -1,12 +1,11 @@
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import {
-  alpha,
   Box,
   Button,
   Divider,
   IconButton,
   LinearProgress,
-  styled,
+  Paper,
   Typography,
 } from "@mui/material";
 import dayjs from "dayjs";
@@ -91,14 +90,13 @@ export const ProviderButton = () => {
             </Button>
           </Box>
         }
-        contentStyle={{
-          width: 400,
-          backgroundColor: "var(--background-color)",
-        }}
+        maxWidth="xs"
+        fullWidth
+        contentStyle={{ backgroundColor: "var(--background-color)" }}
         hideOkBtn
-        hideCancelBtn
-        onClose={() => setOpen(false)}>
-        <div>
+        onClose={() => setOpen(false)}
+        onCancel={() => setOpen(false)}>
+        <div className="flex flex-col gap-2">
           {Object.entries(data || {}).map(([key, item], index) => {
             const time = dayjs(item?.updatedAt);
             const sub = item?.subscriptionInfo;
@@ -111,18 +109,24 @@ export const ProviderButton = () => {
               ((download + upload) * 100) / (total + 0.1),
             );
             return (
-              <div
+              <Paper
                 key={key}
-                className="mb-2 flex items-center rounded-sm bg-white p-2 shadow-sm dark:bg-[#282A36]">
+                variant="outlined"
+                elevation={0}
+                className="flex items-center rounded-lg p-2">
                 <div className="w-full overflow-hidden pr-4">
                   <div className="flex items-center">
                     <p className="text-text-primary text-xl">{key}</p>
-                    <TypeSpan>{item?.proxies.length}</TypeSpan>
+                    <span className="bg-primary/20 text-primary ml-2 inline-block rounded px-1 text-xs font-bold">
+                      {item?.proxies.length}
+                    </span>
                   </div>
-                  <StyledTypeSpan>{item?.vehicleType}</StyledTypeSpan>
-                  <StyledTypeSpan>
+                  <span className="border-primary/50 text-primary/80 mr-1 inline-block rounded border px-1 text-center text-[10px]">
+                    {item?.vehicleType}
+                  </span>
+                  <span className="border-primary/50 text-primary/80 mr-1 inline-block rounded border px-1 text-center text-[10px]">
                     {t("pages.proxies.updateAt")} {time.fromNow()}
-                  </StyledTypeSpan>
+                  </span>
                   {hasSubInfo && (
                     <div className="py-1">
                       <div className="mb-1 flex items-center justify-between text-sm">
@@ -148,7 +152,7 @@ export const ProviderButton = () => {
                     })}
                   />
                 </IconButton>
-              </div>
+              </Paper>
             );
           })}
         </div>
@@ -156,29 +160,6 @@ export const ProviderButton = () => {
     </>
   );
 };
-
-const TypeSpan = styled("span")(({ theme }) => ({
-  display: "inline-block",
-  backgroundColor: alpha(theme.palette.primary.main, 0.2),
-  color: theme.palette.primary.main,
-  fontWeight: "bold",
-  borderRadius: 4,
-  fontSize: 12,
-  marginLeft: "8px",
-  padding: "0 4px",
-}));
-
-const StyledTypeSpan = styled("span")(({ theme }) => ({
-  display: "inline-block",
-  border: "1px solid #ccc",
-  borderColor: alpha(theme.palette.primary.main, 0.5),
-  color: alpha(theme.palette.primary.main, 0.8),
-  borderRadius: "4px",
-  fontSize: "10px",
-  marginRight: "4px",
-  textAlign: "center",
-  padding: "1px 4px",
-}));
 
 function parseExpire(expire?: number) {
   if (!expire) return "-";

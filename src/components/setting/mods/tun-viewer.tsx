@@ -115,6 +115,8 @@ export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
   return (
     <BaseDialog
       open={open}
+      maxWidth="sm"
+      fullWidth
       title={
         <Box
           sx={{

@@ -10,7 +10,6 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
-  styled,
   TextField,
 } from "@mui/material";
 import { getVersion } from "@tauri-apps/api/app";
@@ -252,9 +251,9 @@ export const ProfileEditorViewer = (props: Props) => {
         loading={saving}
         onOk={onSave}
         contentStyle={{ userSelect: "text" }}>
-        <div className="bg-background-default flex h-full overflow-hidden">
+        <div className="bg-background-paper flex h-full overflow-hidden">
           <div className="no-scrollbar w-1/4 min-w-65 overflow-auto">
-            <div className="bg-background-default sticky top-0 z-10">
+            <div className="bg-background-paper sticky top-0 z-10">
               <div
                 className="bg-primary/10 flex cursor-pointer items-center justify-between p-2"
                 onClick={() => setExpand(!expand)}>
@@ -355,7 +354,7 @@ export const ProfileEditorViewer = (props: Props) => {
                       name="option.with_proxy"
                       control={control}
                       render={({ field }) => (
-                        <StyledDiv>
+                        <div className="my-2 ml-2 flex items-center justify-between">
                           <InputLabel>
                             {t("pages.profiles.fields.useSystemProxy")}
                           </InputLabel>
@@ -364,14 +363,14 @@ export const ProfileEditorViewer = (props: Props) => {
                             {...field}
                             color="primary"
                           />
-                        </StyledDiv>
+                        </div>
                       )}
                     />
                     <Controller
                       name="option.self_proxy"
                       control={control}
                       render={({ field }) => (
-                        <StyledDiv>
+                        <div className="my-2 ml-2 flex items-center justify-between">
                           <InputLabel>
                             {t("pages.profiles.fields.useClashProxy")}
                           </InputLabel>
@@ -380,14 +379,14 @@ export const ProfileEditorViewer = (props: Props) => {
                             {...field}
                             color="primary"
                           />
-                        </StyledDiv>
+                        </div>
                       )}
                     />
                     <Controller
                       name="option.danger_accept_invalid_certs"
                       control={control}
                       render={({ field }) => (
-                        <StyledDiv>
+                        <div className="my-2 ml-2 flex items-center justify-between">
                           <InputLabel>
                             {t(
                               "pages.profiles.fields.acceptInvalidCertsDanger",
@@ -398,7 +397,7 @@ export const ProfileEditorViewer = (props: Props) => {
                             {...field}
                             color="primary"
                           />
-                        </StyledDiv>
+                        </div>
                       )}
                     />
                   </>
@@ -410,7 +409,7 @@ export const ProfileEditorViewer = (props: Props) => {
               <>
                 <Divider
                   variant="fullWidth"
-                  className="my-2 text-sm text-gray-400"
+                  className="text-text-secondary my-2 text-sm"
                   flexItem>
                   {t("pages.profiles.actions.enhanceScripts")}
                 </Divider>
@@ -529,10 +528,3 @@ export const ProfileEditorViewer = (props: Props) => {
     </>
   );
 };
-
-const StyledDiv = styled("div")(() => ({
-  margin: "8px 0 8px 8px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-}));

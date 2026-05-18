@@ -171,7 +171,8 @@ export const ClashPortViewer = forwardRef<DialogRef>((_props, ref) => {
     <BaseDialog
       open={open}
       title={t("pages.settings.clash.portConfig.dialogTitle")}
-      contentStyle={{ width: 300 }}
+      maxWidth="xs"
+      fullWidth
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
       onClose={() => setOpen(false)}

@@ -17,6 +17,4 @@ export const BaseStyledTextField = styled((props: TextFieldProps) => {
       {...props}
     />
   );
-})(({ theme }) => ({
-  ...(theme.palette.mode === "light" && { backgroundColor: "#fff" }),
-}));
+})(() => ({}));

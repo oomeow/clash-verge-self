@@ -1,6 +1,6 @@
 import PauseCircleOutlineRounded from "@mui/icons-material/PauseCircleOutlineRounded";
 import PlayCircleOutlineRounded from "@mui/icons-material/PlayCircleOutlineRounded";
-import { Box, Button, IconButton, MenuItem } from "@mui/material";
+import { Button, IconButton, MenuItem, Paper, Stack } from "@mui/material";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
@@ -41,7 +41,7 @@ const LogPage = () => {
       title={t("pages.logs.title")}
       contentStyle={{ height: "100%" }}
       header={
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Stack direction="row" className="items-center" spacing={2}>
           <IconButton
             title={t("common.actions.pause")}
             size="small"
@@ -61,19 +61,12 @@ const LogPage = () => {
             onClick={() => clearClashLog()}>
             {t("common.actions.clear")}
           </Button>
-        </Box>
+        </Stack>
       }>
-      <Box
-        sx={{
-          mb: "10px",
-          pt: "10px",
-          mx: "10px",
-          gap: 0.6,
-          height: "36px",
-          display: "flex",
-          alignItems: "center",
-          boxSizing: "border-box",
-        }}>
+      <Stack
+        direction="row"
+        spacing={1}
+        className="mx-2.5 my-2 box-border h-9 items-center">
         <BaseStyledSelect
           value={logState}
           onChange={(e) => setLogFilter(e.target.value as LogFilter)}>
@@ -83,20 +76,10 @@ const LogPage = () => {
           <MenuItem value="err">ERROR</MenuItem>
         </BaseStyledSelect>
         <BaseSearchBox onSearch={(match) => setMatch(() => match)} />
-      </Box>
-      <Box
-        sx={(theme) => ({
-          pb: "6px",
-          mb: "4px",
-          mx: "10px",
-          height: "calc(100% - 50px)",
-          borderRadius: "8px",
-          bgcolor: "#ffffff",
-          ...theme.applyStyles("dark", {
-            bgcolor: "#282a36",
-          }),
-          boxSizing: "border-box",
-        })}>
+      </Stack>
+      <Paper
+        elevation={0}
+        className="bg-background-paper mx-2.5 mb-1 box-border h-[calc(100%-50px)] rounded-xl">
         {filterLogs.length > 0 ? (
           <Virtuoso
             initialTopMostItemIndex={999}
@@ -107,7 +90,7 @@ const LogPage = () => {
         ) : (
           <BaseEmpty text={t("common.empty.noLogs")} />
         )}
-      </Box>
+      </Paper>
     </BasePage>
   );
 };

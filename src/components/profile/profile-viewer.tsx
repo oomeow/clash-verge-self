@@ -3,7 +3,6 @@ import {
   ButtonGroup,
   InputAdornment,
   InputLabel,
-  styled,
   TextField,
 } from "@mui/material";
 import { getVersion } from "@tauri-apps/api/app";
@@ -333,7 +332,7 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                 name="option.with_proxy"
                 control={control}
                 render={({ field }) => (
-                  <StyledDiv>
+                  <div className="my-2 ml-2 flex items-center justify-between">
                     <InputLabel>
                       {t("pages.profiles.fields.useSystemProxy")}
                     </InputLabel>
@@ -342,14 +341,14 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                       {...field}
                       color="primary"
                     />
-                  </StyledDiv>
+                  </div>
                 )}
               />
               <Controller
                 name="option.self_proxy"
                 control={control}
                 render={({ field }) => (
-                  <StyledDiv>
+                  <div className="my-2 ml-2 flex items-center justify-between">
                     <InputLabel>
                       {t("pages.profiles.fields.useClashProxy")}
                     </InputLabel>
@@ -358,14 +357,14 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                       {...field}
                       color="primary"
                     />
-                  </StyledDiv>
+                  </div>
                 )}
               />
               <Controller
                 name="option.danger_accept_invalid_certs"
                 control={control}
                 render={({ field }) => (
-                  <StyledDiv>
+                  <div className="my-2 ml-2 flex items-center justify-between">
                     <InputLabel>
                       {t("pages.profiles.fields.acceptInvalidCertsDanger")}
                     </InputLabel>
@@ -374,7 +373,7 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
                       {...field}
                       color="primary"
                     />
-                  </StyledDiv>
+                  </div>
                 )}
               />
             </>
@@ -384,10 +383,3 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
     );
   },
 );
-
-const StyledDiv = styled("div")(() => ({
-  margin: "8px 0 8px 8px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-}));

@@ -1,4 +1,4 @@
-import { List } from "@mui/material";
+import { List, Paper } from "@mui/material";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -54,9 +54,11 @@ export const Sidebar = (props: Props) => {
   }, [router]);
 
   return (
-    <div
+    <Paper
+      component="nav"
+      elevation={0}
       className={cn(
-        "bg-background-default relative flex shrink-0 grow-0 basis-50 flex-col border-t-0 border-r border-b-0 border-l-0 border-solid border-(--divider-color) pt-2 transition-all transition-none duration-300",
+        "relative flex shrink-0 grow-0 basis-50 flex-col border-t-0 border-r border-b-0 border-l-0 border-solid border-(--divider-color) pt-2 transition-all transition-none duration-300",
         {
           "basis-14": sidebarCollapsed,
           "pt-4": !enableSystemTitleBar,
@@ -94,6 +96,6 @@ export const Sidebar = (props: Props) => {
         )}>
         <LayoutTraffic />
       </div>
-    </div>
+    </Paper>
   );
 };

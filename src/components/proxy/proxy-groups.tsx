@@ -286,7 +286,7 @@ export const ProxyGroups = (props: Props) => {
 
       {isRuleMode && (
         <div className="absolute top-0 right-0 bottom-0 z-10 mr-0 w-7 bg-transparent hover:w-30">
-          <div className="flex h-full w-full items-center justify-center hover:shadow-2xl">
+          <div className="hover:bg-primary/5 flex h-full w-full items-center justify-center">
             <ProxyGroupSidebar
               groupNameList={groupNameList}
               onGroupNameClick={(groupName) => {
