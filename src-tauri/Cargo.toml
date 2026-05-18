@@ -23,7 +23,7 @@ process_supervisor.workspace = true
 clash-verge-self-utils.workspace = true
 clash-verge-self-service.workspace = true
 
-tokio = { workspace = true, features = ["net", "sync", "macros"] }
+tokio.workspace = true
 reqwest.workspace = true
 dirs.workspace = true
 serde.workspace = true

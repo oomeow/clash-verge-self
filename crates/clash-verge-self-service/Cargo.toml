@@ -13,7 +13,7 @@ thiserror.workspace = true
 log.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-tokio = { workspace = true, features = [ "macros", "rt-multi-thread", "io-util", "sync", "signal" ] }
+tokio.workspace = true
 once_cell.workspace = true
 parking_lot.workspace = true
 
