@@ -1,15 +1,7 @@
 import ExpandLessRounded from "@mui/icons-material/ExpandLessRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
 import InboxRounded from "@mui/icons-material/InboxRounded";
-import {
-  alpha,
-  Box,
-  CircularProgress,
-  ListItemButton,
-  ListItemText,
-  styled,
-  Typography,
-} from "@mui/material";
+import { alpha, Box, Card, CircularProgress, Typography } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useAsyncEffect } from "ahooks";
 import { memo, useMemo, useState } from "react";
@@ -47,33 +39,10 @@ interface ProxyColProps {
   onChangeProxy: (group: IProxyGroupItem, proxy: Proxy) => void;
 }
 
-const StyledPrimary = styled("span")`
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.5;
-`;
-const StyledSubtitle = styled("span")(({ theme }) => ({
-  fontSize: "13px",
-  color: theme.palette.text.secondary,
-}));
-
-const ListItemTextChild = styled("span")`
-  display: block;
-`;
-
-const StyledTypeBox = styled(ListItemTextChild)(({ theme }) => ({
-  display: "inline-block",
-  border: "1px solid #ccc",
-  borderColor: alpha(theme.palette.primary.main, 0.5),
-  color: alpha(theme.palette.primary.main, 0.8),
-  borderRadius: 4,
-  fontSize: 10,
-  padding: "0 4px",
-  lineHeight: 1.5,
-  marginRight: "8px",
-}));
-
-const GROUP_ICON_STYLE = { marginRight: "12px", borderRadius: "6px" };
+const GROUP_ICON_STYLE: Record<string, string> = {
+  marginRight: "12px",
+  borderRadius: "6px",
+};
 const GROUP_ICON_LOADING_STYLE = {
   ...GROUP_ICON_STYLE,
   width: "32px",
@@ -185,14 +154,8 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
   const { group, headState, proxyCol } = item;
   return (
     <Box
-      sx={{
-        height: 56,
-        display: "grid",
-        gap: 1,
-        px: 2,
-        my: "4px",
-        gridTemplateColumns: `repeat(${item.col! || 2}, 1fr)`,
-      }}>
+      className="my-1 grid h-14 gap-2 px-4"
+      style={{ gridTemplateColumns: `repeat(${item.col! || 2}, 1fr)` }}>
       {proxyCol?.map((proxy) => (
         <ProxyItemMini
           key={item.key + proxy.name}
@@ -278,33 +241,22 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         className={cn("py-1", {
           // "py-0": stickyed && headState.open,
         })}>
-        <ListItemButton
+        <Card
           id={groupId(group.name)}
-          dense
-          sx={(theme) => ({
-            background: "#ffffff",
-            ...theme.applyStyles("dark", {
-              background: "#282A36",
-            }),
-            ":hover": {
-              background: "#f5f5f5",
-              ...theme.applyStyles("dark", {
-                background: "#383A46",
-              }),
-            },
-            height: "70px",
-            margin: "0 8px",
-            borderRadius: "8px",
-            transition:
-              "background-color 0s, margin 0.1s, border-radius 0.1s, box-shadow 0.1s",
-            ...(stickyed &&
-              headState.open && {
-                // margin: "0",
-                // borderRadius: "0",
-                boxShadow:
-                  "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
-              }),
-          })}
+          className={cn(
+            "mx-2 flex h-17.5 cursor-pointer items-center rounded-xl px-4 shadow-sm transition-[background-color_0s,box-shadow_0.1s]",
+            stickyed && headState.open && "shadow-md",
+          )}
+          sx={(theme) => {
+            const tint = theme.palette.mode === "light" ? 0.08 : 0.18;
+            const hoverTint = theme.palette.mode === "light" ? 0.14 : 0.28;
+            return {
+              background: `linear-gradient(0deg, ${alpha(theme.palette.primary.main, tint)}, ${alpha(theme.palette.primary.main, tint)}), ${theme.palette.background.paper}`,
+              "&:hover": {
+                background: `linear-gradient(0deg, ${alpha(theme.palette.primary.main, hoverTint)}, ${alpha(theme.palette.primary.main, hoverTint)}), ${theme.palette.background.paper}`,
+              },
+            };
+          }}
           onClick={async () => {
             if (headState?.open) {
               await onGroupToggle?.(group);
@@ -312,7 +264,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
             headStateActions.setOpen(!headState?.open);
           }}>
           {enableGroupIcon && (
-            <>
+            <Box className="flex h-15 w-15 shrink-0 items-center pr-2">
               {isHttpIcon && !iconCachePath && (
                 <Box sx={GROUP_ICON_LOADING_STYLE}>
                   <CircularProgress size={18} />
@@ -335,21 +287,21 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
                   style={GROUP_ICON_STYLE}
                 />
               )}
-            </>
+            </Box>
           )}
-          <ListItemText
-            sx={{ minWidth: 0 }}
-            primary={<StyledPrimary>{group.name}</StyledPrimary>}
-            secondary={
-              <span className="mt-0.5 inline-block truncate">
-                <StyledTypeBox>{group.type}</StyledTypeBox>
-                <StyledSubtitle>{group.now}</StyledSubtitle>
+          <Box className="flex w-full flex-col overflow-hidden">
+            <span className="text-text-primary truncate text-[16px] leading-tight font-bold">
+              {group.name}
+            </span>
+            <span className="mt-1 inline-block truncate">
+              <span className="bg-primary/15 text-primary mr-2 inline-block rounded-full px-2 py-0.5 text-[11px] leading-normal font-semibold">
+                {group.type}
               </span>
-            }
-            slotProps={{
-              secondary: { sx: { display: "flex", alignItems: "center" } },
-            }}
-          />
+              <span className="text-text-secondary text-[13px]">
+                {group.now}
+              </span>
+            </span>
+          </Box>
 
           <ProxyGroupTools
             sx={{ pr: 3 }}
@@ -358,7 +310,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
             onCheckDelay={() => onCheckAll(group.name)}
           />
           {headState?.open ? <ExpandLessRounded /> : <ExpandMoreRounded />}
-        </ListItemButton>
+        </Card>
       </div>
     );
   }
@@ -393,17 +345,9 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
 
   if (type === 3) {
     return (
-      <Box
-        sx={{
-          py: 2,
-          pl: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-        }}>
-        <InboxRounded sx={{ fontSize: "2.5em", color: "inherit" }} />
-        <Typography sx={{ color: "inherit" }}>
+      <Box className="flex flex-col items-center justify-center py-4 pl-0">
+        <InboxRounded className="text-[2.5em] text-inherit" />
+        <Typography className="text-inherit">
           {t("common.empty.noProxies")}
         </Typography>
       </Box>

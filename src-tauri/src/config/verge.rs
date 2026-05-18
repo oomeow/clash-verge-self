@@ -220,6 +220,7 @@ pub struct IVergeTheme {
     pub success_color: Option<String>,
 
     pub background_color: Option<String>,
+    pub paper_background_color: Option<String>,
 
     pub font_family: Option<String>,
     pub css_injection: Option<String>,

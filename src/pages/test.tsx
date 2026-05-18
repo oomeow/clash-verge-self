@@ -128,7 +128,7 @@ const TestPage = () => {
             test_list: newTestList.map(({ id, ...item }) => item),
           });
         }}>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 px-2">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 px-2.5">
           {sortableTestList.map((item, index) => (
             <SortableItem key={item.uid} id={item.uid} index={index}>
               <TestItem
@@ -150,7 +150,7 @@ const TestPage = () => {
               <TestItem
                 id={draggingItem.uid}
                 itemData={draggingItem}
-                sx={{
+                style={{
                   borderRadius: "8px",
                   boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
                 }}

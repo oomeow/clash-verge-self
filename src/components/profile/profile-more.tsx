@@ -28,7 +28,6 @@ import { LogViewer } from "@/components/profile/log-viewer";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
 import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { viewProfile } from "@/services/cmds";
-import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 
 import { useNotice } from "../base/notifies";
@@ -88,7 +87,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
   const { uid, type } = itemData;
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const themeMode = useThemeModeStore((s) => s.themeMode);
   const [anchorEl, setAnchorEl] = useState<any>(null);
   if (anchorEl && isDragging) {
     setAnchorEl(null);
@@ -175,15 +173,11 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
 
   return (
     <Box
-      className={selectMode ? "animate-shake" : undefined}
+      className={cn(selectMode ? "animate-shake" : undefined, "shadow-sm")}
       sx={(theme) => ({
         width: "100%",
-        bgcolor: themeMode === "light" ? "#FFFFFF" : "#282A36",
-        borderRadius: "8px",
-        boxShadow:
-          themeMode === "light"
-            ? "0 1px 4px rgba(15, 23, 42, 0.08)"
-            : "0 1px 4px rgba(0, 0, 0, 0.24)",
+        // bgcolor: theme.palette.background.paper,
+        borderRadius: "12px",
         transition: "opacity 0.15s, box-shadow 0.15s, filter 0.15s",
         ...(selectMode && {
           filter: "saturate(0.75)",
@@ -224,7 +218,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
               justifyContent: "center",
               alignItems: "center",
               backdropFilter: "blur(2px)",
-              borderRadius: "8px",
+              borderRadius: "12px",
             }}>
             <CircularProgress size={20} />
           </Box>
@@ -278,7 +272,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
                   width: 30,
                   height: 30,
                   mr: -0.25,
-                  borderRadius: "7px",
+                  borderRadius: "8px",
                   bgcolor: alpha(
                     hasError
                       ? theme.palette.error.main

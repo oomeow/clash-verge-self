@@ -389,6 +389,16 @@
         "theme": {
           "title": "主题设置",
           "default": "默认设置",
+          "currentTheme": "当前主题",
+          "presets": {
+            "custom": "自定义",
+            "default": "默认蓝色",
+            "ocean": "海洋青绿",
+            "forest": "森林绿色",
+            "sunset": "日落橙",
+            "lavender": "薰衣草紫",
+            "monochrome": "单色灰"
+          },
           "colors": {
             "primary": "主要颜色",
             "secondary": "次要颜色",
@@ -398,7 +408,8 @@
             "warning": "警告颜色",
             "error": "错误颜色",
             "success": "成功颜色",
-            "background": "背景颜色"
+            "background": "背景颜色",
+            "paperBackground": "卡片背景颜色"
           },
           "fontFamily": "字体系列",
           "cssInjection": "CSS 注入"

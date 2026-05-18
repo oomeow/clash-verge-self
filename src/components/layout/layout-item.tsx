@@ -52,7 +52,7 @@ export const LayoutItem = (props: Props) => {
           sx={(theme) => {
             const color = theme.palette.primary.main;
             return {
-              borderRadius: 2,
+              borderRadius: "999px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

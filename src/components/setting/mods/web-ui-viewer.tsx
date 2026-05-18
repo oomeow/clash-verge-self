@@ -99,11 +99,9 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
           </Button>
         </Box>
       }
-      contentStyle={{
-        width: 450,
-        overflowY: "auto",
-        userSelect: "text",
-      }}
+      maxWidth="sm"
+      fullWidth
+      contentStyle={{ overflowY: "auto", userSelect: "text" }}
       hideOkBtn
       hideCancelBtn
       onClose={() => setOpen(false)}>

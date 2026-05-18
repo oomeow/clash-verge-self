@@ -5,7 +5,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  styled,
   SxProps,
   Theme,
 } from "@mui/material";
@@ -30,36 +29,6 @@ interface Props {
   sx?: SxProps<Theme>;
   onClick?: (name: string) => void;
 }
-
-const Widget = styled("div")(() => ({
-  padding: "3px 6px",
-  fontSize: 14,
-  borderRadius: "4px",
-}));
-
-const TypeSpan = styled("span")(
-  ({
-    theme: {
-      palette: { text },
-      typography,
-    },
-  }) => ({
-    display: "inline-block",
-    border: `1px solid ${text.secondary}`,
-    color: "text.secondary",
-    borderRadius: 4,
-    fontSize: 10,
-    fontFamily: typography.fontFamily,
-    marginRight: "4px",
-    marginTop: "auto",
-    padding: "0 4px",
-    wordBreak: "keep-all",
-    lineHeight: 1.5,
-    "&[data-proxy-provider]": {
-      backgroundColor: alpha(text.secondary, 0.2),
-    },
-  }),
-);
 
 export const ProxyItem = memo(function ProxyItem(props: Props) {
   const {
@@ -86,6 +55,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
       <ListItemButton
         id={proxyId(group.name, proxy.name)}
         dense
+        className="shadow-sm"
         data-delay-version={delayVersion}
         data-fixed={fixed}
         selected={selected}
@@ -96,7 +66,10 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
           const selectColor = mode === "light" ? primary.main : primary.light;
           const fixedColor = mode === "light" ? warning.main : warning.light;
           return {
-            borderRadius: 1,
+            borderRadius: 2,
+            "&:hover": {
+              bgcolor: alpha(primary.main, mode === "light" ? 0.08 : 0.18),
+            },
             "&:hover .the-check": { display: !showDelay ? "block" : "none" },
             "&:hover .the-delay": { display: showDelay ? "block" : "none" },
             "&:hover .the-icon": { display: "none" },
@@ -114,45 +87,24 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
               filter: "grayscale(1)",
               opacity: 0.6,
             },
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: 0,
-              borderRadius: "3px 0 0 3px",
-              transition: "width 0s",
-            },
-            "&.Mui-selected::before": {
-              width: "3px",
-              backgroundColor: selectColor,
-            },
             "&.Mui-selected": {
+              borderLeft: `3px solid ${selectColor}`,
               bgcolor:
                 mode === "light"
-                  ? alpha(primary.main, 0.15)
-                  : alpha(primary.main, 0.35),
+                  ? alpha(primary.main, 0.25)
+                  : alpha(primary.main, 0.45),
             },
-            '&[data-fixed="true"]:not(.Mui-selected)::before': {
-              width: "2px",
-              backgroundColor: alpha(fixedColor, 0.25),
-            },
-            '&[data-fixed="true"].Mui-selected::before': {
-              width: "3px",
-              backgroundColor: fixedColor,
+            '&[data-fixed="true"]:not(.Mui-selected)': {
+              borderLeft: `2px solid ${alpha(fixedColor, 0.25)}`,
             },
             '&[data-fixed="true"].Mui-selected': {
+              borderLeft: `3px solid ${fixedColor}`,
               bgcolor:
                 mode === "light"
-                  ? alpha(warning.main, 0.08)
-                  : alpha(warning.main, 0.18),
+                  ? alpha(warning.main, 0.18)
+                  : alpha(warning.main, 0.28),
             },
-            backgroundColor: "#ffffff",
-            ...theme.applyStyles("dark", {
-              backgroundColor: "#24252f",
-            }),
-            transition: "background-color 0s",
+            backgroundColor: theme.palette.background.paper,
             marginBottom: "2px",
           };
         }}>
@@ -171,14 +123,30 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
                     </span>
                   )}
                   {!!proxy.providerName && (
-                    <TypeSpan data-proxy-provider>
+                    <span
+                      className="border-text-secondary/40 text-text-secondary data-proxy-provider:bg-text-secondary/15 mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep"
+                      data-proxy-provider>
                       {proxy.providerName}
-                    </TypeSpan>
+                    </span>
                   )}
-                  <TypeSpan>{proxy.type}</TypeSpan>
-                  {proxy.udp && <TypeSpan>UDP</TypeSpan>}
-                  {proxy.xudp && <TypeSpan>XUDP</TypeSpan>}
-                  {proxy.tfo && <TypeSpan>TFO</TypeSpan>}
+                  <span className="border-text-secondary/40 text-text-secondary mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep">
+                    {proxy.type}
+                  </span>
+                  {proxy.udp && (
+                    <span className="border-text-secondary/40 text-text-secondary mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep">
+                      UDP
+                    </span>
+                  )}
+                  {proxy.xudp && (
+                    <span className="border-text-secondary/40 text-text-secondary mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep">
+                      XUDP
+                    </span>
+                  )}
+                  {proxy.tfo && (
+                    <span className="border-text-secondary/40 text-text-secondary mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep">
+                      TFO
+                    </span>
+                  )}
                 </span>
               )}
             </span>
@@ -188,42 +156,37 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
         <ListItemIcon
           sx={{ justifyContent: "flex-end", color: "primary.main" }}>
           {delay === -2 && (
-            <Widget>
+            <div className="rounded-md px-1.5 py-0.75 text-sm">
               <BaseLoading />
-            </Widget>
+            </div>
           )}
 
           {proxy.type !== "Direct" && delay !== -2 && (
-            <Widget
-              className="the-check"
+            <Box
+              component="div"
+              className="the-check hover:bg-primary/15 rounded-md px-1.5 py-0.75 text-sm"
+              sx={{ display: "none" }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 onDelay();
-              }}
-              sx={({ palette }) => ({
-                display: "none", // hover才显示
-                ":hover": { bgcolor: alpha(palette.primary.main, 0.15) },
-              })}>
+              }}>
               Check
-            </Widget>
+            </Box>
           )}
 
           {proxy.type !== "Direct" && delay >= 0 && (
             // 显示延迟
-            <Widget
-              className="the-delay"
+            <div
+              className="the-delay hover:bg-primary/15 rounded-md px-1.5 py-0.75 text-sm"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 onDelay();
               }}
-              sx={({ palette }) => ({
-                color: delayManager.formatDelayColor(delay, timeout),
-                ":hover": { bgcolor: alpha(palette.primary.main, 0.15) },
-              })}>
+              style={{ color: delayManager.formatDelayColor(delay, timeout) }}>
               {delayManager.formatDelay(delay, timeout)}
-            </Widget>
+            </div>
           )}
 
           {proxy.type !== "Direct" && delay !== -2 && delay < 0 && selected && (

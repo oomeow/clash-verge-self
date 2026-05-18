@@ -161,7 +161,8 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
     <BaseDialog
       open={open}
       title={t("pages.settings.system.proxy.dialogTitle")}
-      contentStyle={{ width: 450 }}
+      maxWidth="xs"
+      fullWidth
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
       onClose={() => {

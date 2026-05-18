@@ -296,15 +296,15 @@
   /* 高亮动画关键帧 */
   @keyframes highlight-pulse {
     0% {
-      background-color: var(--background-color-alpha);
+      /*background-color: var(--background-color-alpha);*/
       box-shadow: 0 0 0 0 var(--background-color-alpha);
     }
     50% {
-      background-color: var(--background-color-alpha);
+      /*background-color: var(--background-color-alpha);*/
       box-shadow: 0 0 6px 1px var(--mui-palette-primary-main);
     }
     100% {
-      background-color: var(--background-color-alpha);
+      /*background-color: var(--background-color-alpha);*/
       box-shadow: 0 0 0 0 var(--background-color-alpha);
     }
   }
@@ -382,7 +382,8 @@
     @apply bg-transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-[5px] bg-gray-400 dark:bg-gray-500;
+    @apply rounded-[5px];
+    background-color: var(--scroller-color);
   }
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-primary;

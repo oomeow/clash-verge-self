@@ -87,13 +87,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
   }, [filterChange]);
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 0.5,
-        ...sx,
-      }}>
+    <Box className="flex items-center gap-1" style={sx as React.CSSProperties}>
       {textState === "filter" && (
         <TextField
           autoFocus={autoFocus}
@@ -111,10 +105,15 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
             setFilterTextInp(text);
             filterChange(text);
           }}
+          className="ml-1"
           sx={{
             width: 180,
-            ml: 0.5,
-            input: { py: 0.4, px: 1 },
+            "& .MuiOutlinedInput-root": { minHeight: 26 },
+          }}
+          slotProps={{
+            input: {
+              sx: { py: 0, fontSize: 12 },
+            },
           }}
         />
       )}
@@ -136,10 +135,15 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
           onChange={(e) => {
             headStateActions.setTestUrl(e.target.value);
           }}
+          className="ml-1"
           sx={{
             width: 180,
-            ml: 0.5,
-            input: { py: 0.4, px: 1 },
+            "& .MuiOutlinedInput-root": { minHeight: 26 },
+          }}
+          slotProps={{
+            input: {
+              sx: { py: 0, fontSize: 12 },
+            },
           }}
         />
       )}

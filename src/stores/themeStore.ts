@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { defaultDarkTheme, defaultTheme } from "@/pages/_theme";
+import { defaultDarkTheme, defaultTheme, THEME_PRESETS } from "@/pages/_theme";
 
 export type ThemeMode = "light" | "dark";
 export type ThemeSetting = NonNullable<IVergeThemeSettings>;
 
-const THEME_KEYS = [
+const THEME_COLOR_KEYS = [
   "primary_color",
   "secondary_color",
   "primary_text",
@@ -16,7 +16,11 @@ const THEME_KEYS = [
   "warning_color",
   "success_color",
   "background_color",
-  // "paper_background_color",
+  "paper_background_color",
+] as const satisfies readonly (keyof ThemeSetting)[];
+
+const THEME_KEYS = [
+  ...THEME_COLOR_KEYS,
   "font_family",
   "css_injection",
 ] as const satisfies readonly (keyof ThemeSetting)[];
@@ -26,7 +30,18 @@ type ThemeKey = keyof ThemeSetting;
 interface ThemeSettings {
   light: IVergeThemeSettings;
   dark: IVergeThemeSettings;
+  currentTheme?: string;
 }
+
+export const isSameThemeColors = (
+  left: IVergeThemeSettings,
+  right: IVergeThemeSettings,
+) =>
+  THEME_COLOR_KEYS.every((key) => {
+    const leftValue = left?.[key] ?? null;
+    const rightValue = right?.[key] ?? null;
+    return leftValue === rightValue;
+  });
 
 export const isSameThemeSetting = (
   left: IVergeThemeSettings,
@@ -91,6 +106,7 @@ type ThemeSettingsActions = {
   resetLightThemeSetting: () => void;
   resetDarkThemeSetting: () => void;
   syncThemeSettings: (verge: IVergeConfig) => void;
+  setCurrentTheme: (preset: string) => void;
 };
 
 export const useThemeSettingsStore = create<
@@ -158,6 +174,16 @@ export const useThemeSettingsStore = create<
             },
           };
         }),
+      setCurrentTheme: (preset) =>
+        set((state) => {
+          if (state.themeSettings.currentTheme === preset) return state;
+          return {
+            themeSettings: {
+              ...state.themeSettings,
+              currentTheme: preset,
+            },
+          };
+        }),
       syncThemeSettings: (verge) => {
         set((state) => {
           const { light_theme_setting, dark_theme_setting } = verge;
@@ -169,10 +195,20 @@ export const useThemeSettingsStore = create<
           ) {
             return state;
           }
+
+          const detectedPreset =
+            THEME_PRESETS.find((p) => {
+              return (
+                isSameThemeColors(nextLight, p.light) &&
+                isSameThemeColors(nextDark, p.dark)
+              );
+            })?.name ?? "custom";
+
           return {
             themeSettings: {
               light: nextLight,
               dark: nextDark,
+              currentTheme: detectedPreset,
             },
           };
         });

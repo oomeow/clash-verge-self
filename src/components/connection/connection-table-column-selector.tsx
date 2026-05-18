@@ -6,6 +6,8 @@ import DragIndicatorRounded from "@mui/icons-material/DragIndicatorRounded";
 import { Backdrop, Box, Checkbox, IconButton } from "@mui/material";
 import { useRef, useState } from "react";
 
+import { cn } from "@/utils";
+
 import { ColumnOption } from "./connection-table.types";
 
 const SortableColumnOption = ({
@@ -29,20 +31,8 @@ const SortableColumnOption = ({
     <Box
       ref={setElement}
       data-show={isDragging || undefined}
-      sx={(theme) => ({
-        bgcolor: "background.paper",
-        ...(isDragging && {
-          boxShadow: theme.shadows[8],
-        }),
-      })}>
-      <Box
-        className="flex items-center gap-2 px-3 py-2"
-        sx={{
-          borderRadius: 1,
-          "&:hover": {
-            bgcolor: "action.hover",
-          },
-        }}>
+      className={cn("bg-background-paper", isDragging && "shadow-8")}>
+      <Box className="hover:bg-action-hover flex items-center gap-2 rounded px-3 py-2">
         <button
           ref={handleRef}
           type="button"
@@ -82,27 +72,11 @@ export const ConnectionTableColumnSelector = ({
   onDragEnd,
 }: Props) => {
   return (
-    <Backdrop
-      open={open}
-      onClick={onClose}
-      sx={{ zIndex: 20, bgcolor: "rgba(0,0,0,0.24)" }}>
+    <Backdrop open={open} onClick={onClose} className="z-20 bg-black/24">
       <Box
         onClick={(event) => event.stopPropagation()}
-        sx={(theme) => ({
-          width: 320,
-          maxWidth: "calc(100vw - 32px)",
-          maxHeight: "min(560px, calc(100vh - 32px))",
-          overflow: "hidden",
-          border: `1px solid ${theme.palette.divider}`,
-          borderRadius: 1,
-          bgcolor: theme.palette.background.paper,
-          boxShadow: theme.shadows[16],
-        })}>
-        <Box
-          className="flex items-center justify-between gap-3 px-4 py-3"
-          sx={(theme) => ({
-            borderBottom: `1px solid ${theme.palette.divider}`,
-          })}>
+        className="border-divider bg-background-paper shadow-16 max-h-[min(560px,calc(100vh-32px))] w-[320px] max-w-[calc(100vw-32px)] overflow-hidden rounded border">
+        <Box className="border-divider flex items-center justify-between gap-3 border-b px-4 py-3">
           <div>
             <div className="text-sm font-medium">{title}</div>
             <div className="text-xs opacity-60">{description}</div>
@@ -112,13 +86,7 @@ export const ConnectionTableColumnSelector = ({
           </IconButton>
         </Box>
 
-        <Box
-          sx={{
-            maxHeight: "calc(min(560px, calc(100vh - 32px)) - 65px)",
-            overflowY: "auto",
-            px: 1,
-            py: 1,
-          }}>
+        <Box className="max-h-[calc(min(560px,calc(100vh-32px))-65px)] overflow-y-auto px-1 py-1">
           <DragDropProvider
             onDragEnd={(event) => {
               const { operation, canceled } = event;

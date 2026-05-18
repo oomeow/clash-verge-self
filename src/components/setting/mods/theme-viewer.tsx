@@ -6,24 +6,26 @@ import {
   List,
   ListItem,
   ListItemText,
-  styled,
+  MenuItem,
+  Select,
   TextField,
   Typography,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
+import { THEME_PRESETS } from "@/pages/_theme";
 import { useVergeStore } from "@/stores";
 import {
   defaultThemeSettings,
   useThemeModeStore,
   useThemeSettingsStore,
 } from "@/stores";
-import { normalizeThemeSetting } from "@/stores/themeStore";
+import { isSameThemeColors, normalizeThemeSetting } from "@/stores/themeStore";
 
 import ThemeColorSelect from "./theme-color-select";
 
@@ -45,6 +47,7 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
   const setDarkThemeSetting = useThemeSettingsStore(
     (s) => s.setDarkThemeSetting,
   );
+  const setCurrentTheme = useThemeSettingsStore((s) => s.setCurrentTheme);
   const resetLightThemeSetting = useThemeSettingsStore(
     (s) => s.resetLightThemeSetting,
   );
@@ -56,6 +59,31 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
     themeMode === "light" ? themeSettings.light : themeSettings.dark;
   const theme = normalizeThemeSetting(themeMode, currentThemeSetting);
   const [editorOpen, setEditorOpen] = useState(false);
+
+  const presetName = useMemo(() => {
+    return (
+      THEME_PRESETS.find((preset) => {
+        const target = themeMode === "light" ? preset.light : preset.dark;
+        return isSameThemeColors(
+          currentThemeSetting ?? ({} as IVergeThemeSettings),
+          target,
+        );
+      })?.name ?? "custom"
+    );
+  }, [themeMode, currentThemeSetting]);
+
+  const handlePresetChange = (name: string) => {
+    if (name === "custom") return;
+    const preset = THEME_PRESETS.find((p) => p.name === name);
+    if (!preset) return;
+    const target = themeMode === "light" ? preset.light : preset.dark;
+    Object.entries(target).forEach(([key, value]) => {
+      if (key !== "font_family" && typeof value === "string") {
+        setThemeColor(themeMode, key as keyof IVergeThemeSettings, value);
+      }
+    });
+    setCurrentTheme(name);
+  };
 
   useImperativeHandle(ref, () => ({
     open: () => {
@@ -94,6 +122,8 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
   return (
     <BaseDialog
       open={open}
+      maxWidth="xs"
+      fullWidth
       title={
         <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
           <Typography variant="h6">
@@ -149,6 +179,28 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
       }}
       onOk={onSave}>
       <List sx={{ pt: 0 }}>
+        <ListItem className="px-0.5 py-1.25">
+          <ListItemText
+            primary={t("pages.settings.verge.theme.currentTheme")}
+          />
+          <Select
+            size="small"
+            value={presetName}
+            onChange={(e) => handlePresetChange(e.target.value)}
+            sx={{ width: 180, "> div": { py: "7.5px" } }}
+            renderValue={(v) =>
+              v === "custom"
+                ? t("pages.settings.verge.theme.presets.custom")
+                : t(`pages.settings.verge.theme.presets.${v}`)
+            }>
+            {THEME_PRESETS.map((preset) => (
+              <MenuItem key={preset.name} value={preset.name}>
+                {t(`pages.settings.verge.theme.presets.${preset.name}`)}
+              </MenuItem>
+            ))}
+          </Select>
+        </ListItem>
+
         <ThemeColorSelect
           label={t("pages.settings.verge.theme.colors.primary")}
           themeKey="primary_color"
@@ -185,8 +237,12 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
           label={t("pages.settings.verge.theme.colors.background")}
           themeKey="background_color"
         />
+        <ThemeColorSelect
+          label={t("pages.settings.verge.theme.colors.paperBackground")}
+          themeKey="paper_background_color"
+        />
 
-        <Item>
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText primary={t("pages.settings.verge.theme.fontFamily")} />
           <TextField
             {...textProps}
@@ -196,9 +252,9 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
             onChange={handleChange("font_family")}
             onKeyDown={(e) => e.key === "Enter" && onSave()}
           />
-        </Item>
+        </ListItem>
 
-        <Item>
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={t("pages.settings.verge.theme.cssInjection")}
           />
@@ -214,7 +270,7 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
               </Button>
             }
           />
-        </Item>
+        </ListItem>
         <EditorViewer
           open={editorOpen}
           language="css"
@@ -226,9 +282,5 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
     </BaseDialog>
   );
 });
-
-const Item = styled(ListItem)(() => ({
-  padding: "5px 2px",
-}));
 
 export default ThemeViewer;

@@ -111,8 +111,8 @@ export const BackupFilesViewer = forwardRef<BackupFilesViewerRef>(
     return (
       <BaseDialog
         open={open}
+        maxWidth="sm"
         fullWidth
-        contentStyle={{ width: 600 }}
         title={
           <div className="flex items-center justify-between">
             {t("pages.settings.verge.backup.files")}
@@ -139,7 +139,7 @@ export const BackupFilesViewer = forwardRef<BackupFilesViewerRef>(
             <div>
               {filterBackupFiles.map((file) => (
                 <div
-                  className="bg-primary/10 my-2 flex items-center justify-between rounded-md px-2 py-1"
+                  className="bg-primary/10 my-2 flex items-center justify-between rounded-lg px-2 py-1"
                   key={file.href}>
                   <div className="mr-2 shrink-0 grow-0 basis-10 p-1">
                     {file.platform === "windows" ? (
@@ -165,7 +165,7 @@ export const BackupFilesViewer = forwardRef<BackupFilesViewerRef>(
                             : t("pages.settings.verge.backup.scopes.all")
                         }
                       />
-                      <span className="ml-4 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-text-secondary ml-4 text-xs">
                         {file.backupTime.fromNow()}
                       </span>
                     </div>

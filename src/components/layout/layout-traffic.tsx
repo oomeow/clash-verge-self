@@ -1,7 +1,7 @@
 import ArrowDownward from "@mui/icons-material/ArrowDownward";
 import ArrowUpward from "@mui/icons-material/ArrowUpward";
 import MemoryOutlined from "@mui/icons-material/MemoryOutlined";
-import { Box, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material";
 import { t } from "i18next";
 import { debounce } from "lodash-es";
 import { useEffect, useRef } from "react";
@@ -47,28 +47,6 @@ export const LayoutTraffic = () => {
   const [down, downUnit] = parseTraffic(traffic.down);
   const [inuse, inuseUnit] = parseTraffic(memory.inuse);
 
-  const iconStyle: any = {
-    sx: { fontSize: 16 },
-  };
-  const valStyle: any = {
-    component: "span",
-    sx: {
-      flex: "1 1 56px",
-      userSelect: "none",
-      textAlign: "center",
-    },
-  };
-  const unitStyle: any = {
-    component: "span",
-    color: "grey.500",
-    sx: {
-      flex: "0 1 27px",
-      userSelect: "none",
-      fontSize: "12px",
-      textAlign: "right",
-    },
-  };
-
   const restartClashCore = debounce(async () => {
     try {
       await restartSidecar();
@@ -79,70 +57,83 @@ export const LayoutTraffic = () => {
   }, 500);
 
   return (
-    <Box sx={{ width: "100%" }} onClick={trafficRef.current?.toggleStyle}>
+    <Box className="w-full" onClick={trafficRef.current?.toggleStyle}>
       {trafficGraph && pageVisible && (
         <div style={{ width: "100%", height: 60, marginBottom: 6 }}>
           <TrafficGraph ref={trafficRef} />
         </div>
       )}
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 0.75,
-        }}>
-        <Box
-          sx={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
+      <Stack direction="column" spacing={0.75}>
+        <Stack direction="row" className="items-center whitespace-nowrap">
           <ArrowUpward
-            {...iconStyle}
+            fontSize="small"
             color={+up > 0 ? "secondary" : "disabled"}
           />
-          <Typography {...valStyle} color="secondary">
+          <Typography
+            component="span"
+            className="flex-[1_1_56px] text-center select-none"
+            color="secondary">
             {up}
           </Typography>
-          <Typography {...unitStyle}>{upUnit}/s</Typography>
-        </Box>
+          <Typography
+            component="span"
+            className="flex-[0_1_27px] text-right text-xs select-none"
+            color="grey.500">
+            {upUnit}/s
+          </Typography>
+        </Stack>
 
-        <Box
-          sx={{ display: "flex", alignItems: "center", whiteSpace: "nowrap" }}>
+        <Stack direction="row" className="items-center whitespace-nowrap">
           <ArrowDownward
-            {...iconStyle}
+            fontSize="small"
             color={+down > 0 ? "primary" : "disabled"}
           />
-          <Typography {...valStyle} color="primary">
+          <Typography
+            component="span"
+            className="flex-[1_1_56px] text-center select-none"
+            color="primary">
             {down}
           </Typography>
-          <Typography {...unitStyle}>{downUnit}/s</Typography>
-        </Box>
+          <Typography
+            component="span"
+            className="flex-[0_1_27px] text-right text-xs select-none"
+            color="grey.500">
+            {downUnit}/s
+          </Typography>
+        </Stack>
 
         {displayMemory && (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              whiteSpace: "nowrap",
-            }}>
+          <Stack direction="row" className="items-center whitespace-nowrap">
             <Tooltip title={t("common.actions.restart")}>
               <IconButton
                 color="primary"
-                sx={{ p: 0 }}
+                className="p-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   restartClashCore();
                 }}>
-                <MemoryOutlined {...iconStyle} />
+                <MemoryOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
             <Box
               title={t("pages.settings.verge.layout.memoryUsage")}
-              sx={{ display: "flex", flexGrow: 1, alignItems: "center" }}>
-              <Typography {...valStyle}>{inuse}</Typography>
-              <Typography {...unitStyle}>{inuseUnit}</Typography>
+              className="flex flex-1 items-center">
+              <Typography
+                component="span"
+                className="flex-[1_1_56px] text-center select-none">
+                {inuse}
+              </Typography>
+              <Typography
+                component="span"
+                className="flex-[0_1_27px] text-right text-xs select-none"
+                color="grey.500">
+                {inuseUnit}
+              </Typography>
             </Box>
-          </Box>
+          </Stack>
         )}
-      </Box>
+      </Stack>
     </Box>
   );
 };

@@ -4,9 +4,9 @@ import DnsRounded from "@mui/icons-material/DnsRounded";
 import LanguageRounded from "@mui/icons-material/LanguageRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import {
-  Box,
   IconButton,
   InputAdornment,
+  Stack,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -50,9 +50,6 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
             pr: 0.5,
           },
           input: { py: 0.65, px: 1 },
-        },
-        ({ palette: { mode } }) => {
-          return { ...(mode === "light" && { backgroundColor: "#fff" }) };
         },
       ]}
       onChange={(e) => setText(e.target.value)}
@@ -106,7 +103,7 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
             </InputAdornment>
           ),
           endAdornment: (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <Stack direction="row" className="items-center" spacing={0.5}>
               {text !== "" && (
                 <Tooltip title={t("common.actions.clear")}>
                   <IconButton
@@ -130,7 +127,7 @@ export const RuleSearchBox = ({ onSearch }: Props) => {
                   <SearchRounded fontSize="inherit" />
                 </IconButton>
               </Tooltip>
-            </Box>
+            </Stack>
           ),
         },
       }}

@@ -1,40 +1,4 @@
-import { styled } from "@mui/material";
-
 import { ILogItem } from "@/hooks/use-log-data";
-
-const Item = styled("div")(({ theme: { palette, typography } }) => ({
-  padding: "8px 0",
-  margin: "0 12px",
-  lineHeight: 1.35,
-  // borderBottom: `1px solid ${palette.divider}`,
-  fontSize: "0.875rem",
-  fontFamily: typography.fontFamily,
-  userSelect: "text",
-  "& .time": {
-    color: palette.text.secondary,
-    marginLeft: 8,
-  },
-  "& .type": {
-    display: "inline-block",
-    textAlign: "center",
-    borderRadius: 2,
-    textTransform: "uppercase",
-    fontWeight: "600",
-  },
-  '& .type[data-type="error"], & .type[data-type="err"]': {
-    color: palette.error.main,
-  },
-  '& .type[data-type="warning"], & .type[data-type="warn"]': {
-    color: palette.warning.main,
-  },
-  '& .type[data-type="info"], & .type[data-type="inf"]': {
-    color: palette.info.main,
-  },
-  "& .data": {
-    color: palette.text.primary,
-    overflowWrap: "anywhere",
-  },
-}));
 
 interface Props {
   value: ILogItem;
@@ -53,7 +17,7 @@ const LogItem = (props: Props) => {
   msg = msg.replaceAll(" error: ", " ⇢ error ");
 
   return (
-    <Item>
+    <div className="hover:bg-action-hover [&_.time]:text-text-secondary [&_.type[data-type=error]]:text-error [&_.type[data-type=err]]:text-error [&_.type[data-type=warning]]:text-warning [&_.type[data-type=warn]]:text-warning [&_.type[data-type=info]]:text-info [&_.type[data-type=inf]]:text-info [&_.data]:text-text-primary [&_.data]:break-anywhere px-3 py-2 text-sm leading-tight transition-colors duration-150 select-text [&_.time]:ml-2 [&_.type]:inline-block [&_.type]:rounded-full [&_.type]:px-1.5 [&_.type]:text-center [&_.type]:text-xs [&_.type]:font-semibold [&_.type]:uppercase">
       <div>
         <span className="type" data-type={value.type.toLowerCase()}>
           {value.type}
@@ -63,7 +27,7 @@ const LogItem = (props: Props) => {
       <div>
         <span className="data">{msg}</span>
       </div>
-    </Item>
+    </div>
   );
 };
 

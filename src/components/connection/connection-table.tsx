@@ -626,7 +626,6 @@ export const ConnectionTable = (props: Props) => {
             position: "sticky",
             top: 0,
             zIndex: 1,
-            backgroundColor: "#ffffff",
           },
           "& th, & td": {
             margin: 0,
@@ -641,7 +640,6 @@ export const ConnectionTable = (props: Props) => {
             alignItems: "center",
           },
           "& th": {
-            backgroundColor: "#ffffff",
             fontWeight: 500,
           },
           "& tr[data-body-row='true']": {
@@ -650,11 +648,6 @@ export const ConnectionTable = (props: Props) => {
           "& tr[data-body-row='true']:hover": {
             backgroundColor: theme.palette.action.hover,
           },
-          ...theme.applyStyles("dark", {
-            "& thead, & th": {
-              backgroundColor: "#282a36",
-            },
-          }),
         })}>
         <table
           style={{

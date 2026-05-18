@@ -1,4 +1,4 @@
-import { Typography } from "@mui/material";
+import { Paper, Typography } from "@mui/material";
 import React, { ReactNode } from "react";
 
 import { cn } from "@/utils";
@@ -32,16 +32,16 @@ export const BasePage: React.FC<Props> = (props) => {
           {header}
         </div>
 
-        <div className={"min-h-0 flex-1 bg-white dark:bg-[#1e1f27]"}>
+        <Paper className={"min-h-0 flex-1"} elevation={0}>
           <div
             className={cn(
-              "bg-background-default h-full min-h-0 w-full overflow-auto px-2",
-              { "p-0": full },
+              "bg-background-default h-full min-h-0 w-full",
+              full ? "overflow-hidden p-0" : "overflow-auto px-2",
             )}
             style={contentStyle}>
             {children}
           </div>
-        </div>
+        </Paper>
       </div>
     </BaseErrorBoundary>
   );

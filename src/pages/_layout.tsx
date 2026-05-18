@@ -1,7 +1,7 @@
 import "dayjs/locale/ru";
 import "dayjs/locale/zh-cn";
 
-import { Paper } from "@mui/material";
+import { Box, Paper, Stack } from "@mui/material";
 import { Outlet, useRouterState } from "@tanstack/react-router";
 import { Event, listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
@@ -165,7 +165,7 @@ const Layout = () => {
         square
         elevation={0}
         className={cn("relative flex h-screen w-screen overflow-hidden", {
-          "rounded-md border-2 border-solid border-(--divider-color)":
+          "rounded-lg border border-solid border-(--divider-color)":
             OS === "linux" && !enableSystemTitleBar,
           "rounded-none": isMaximized,
         })}
@@ -195,28 +195,30 @@ const Layout = () => {
           }}
         />
 
-        <div className="bg-background-default flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+        <Stack
+          className="bg-background-default h-full min-w-0 flex-1 overflow-hidden"
+          direction="column">
           {!enableSystemTitleBar && (
-            <div className="z-10 box-border flex shrink-0 grow-0 basis-8 justify-end">
-              <div className="mt-1 w-full" data-tauri-drag-region="true" />
+            <Box className="z-10 box-border flex shrink-0 grow-0 basis-9 justify-end">
+              <Box className="w-full" data-tauri-drag-region="true" />
               {OS !== "macos" && (
                 <LayoutControl maximized={isMaximized} onClose={handleClose} />
               )}
-            </div>
+            </Box>
           )}
 
-          <div className="bg-background-default relative min-h-0 flex-1 overflow-hidden py-1 pr-1">
+          <Box className="relative min-h-0 flex-1 overflow-hidden py-1 pr-1">
             <Suspense fallback={<LoadingPage />}>
               <Outlet />
             </Suspense>
             {showRouteLoading && (
-              <div className="absolute inset-0 z-20 transition-opacity duration-150">
+              <Box className="absolute inset-0 z-20 transition-opacity duration-150">
                 <LoadingPage />
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
           <TailwindIndicator />
-        </div>
+        </Stack>
       </Paper>
     </SWRConfig>
   );

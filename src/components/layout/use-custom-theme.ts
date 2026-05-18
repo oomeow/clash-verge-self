@@ -2,7 +2,6 @@ import {
   alpha,
   createTheme,
   CssVarsThemeOptions,
-  Shadows,
   Theme,
   ThemeOptions,
 } from "@mui/material";
@@ -44,6 +43,7 @@ function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
   const rootElement = document.getElementById("root");
   return {
     cssVariables: true,
+    shape: { borderRadius: 8 },
     breakpoints: {
       values: { xs: 0, sm: 650, md: 900, lg: 1200, xl: 1536 },
     },
@@ -61,10 +61,11 @@ function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
       },
       background: {
         default: setting.background_color!,
-        // paper: setting.paper_background_color!,
+        paper: setting.paper_background_color!,
+        // paper: "#DDE8FD",
+        // paper: "#020511",
       },
     },
-    shadows: Array(25).fill("none") as Shadows,
     typography: { fontFamily: setting.font_family! },
     // All `Portal`-related components need to have the the main app wrapper element as a container
     // so that the are in the subtree under the element used in the `important` option of the Tailwind's config.

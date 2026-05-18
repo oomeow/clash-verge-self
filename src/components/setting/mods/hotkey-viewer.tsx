@@ -466,7 +466,8 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
       onClose={cancelHotkeySettings}
       onCancel={cancelHotkeySettings}
       onOk={saveHotkeys}
-      contentStyle={{ maxWidth: 640 }}>
+      maxWidth="sm"
+      fullWidth>
       {hasHotkeyChanges && !isEmptyInitKeys && (
         <ActionWrapper>
           <PreviousHotkeyActions>

@@ -87,7 +87,8 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
     <BaseDialog
       open={open}
       title={t("pages.settings.verge.misc.title")}
-      contentStyle={{ width: 450 }}
+      maxWidth="xs"
+      fullWidth
       okBtn={t("common.actions.save")}
       cancelBtn={t("common.actions.cancel")}
       onClose={() => setOpen(false)}

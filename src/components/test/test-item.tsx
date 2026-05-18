@@ -1,14 +1,5 @@
 import LanguageTwoTone from "@mui/icons-material/LanguageTwoTone";
-import {
-  alpha,
-  Box,
-  Divider,
-  Menu,
-  MenuItem,
-  styled,
-  SxProps,
-  Typography,
-} from "@mui/material";
+import { Box, Divider, Menu, MenuItem, Typography } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
@@ -25,7 +16,7 @@ import { TestDiv } from "./test-box";
 interface Props {
   id: string;
   isDragging?: boolean;
-  sx?: SxProps;
+  style?: React.CSSProperties;
   itemData: IVergeTestItem;
   onEdit: () => void;
   onDelete: (uid: string) => void;
@@ -35,7 +26,7 @@ const encodeSvgDataUri = (svg: string) =>
   `data:image/svg+xml,${encodeURIComponent(svg)}`;
 
 export const TestItem = (props: Props) => {
-  const { isDragging, sx, itemData, onEdit, onDelete: onDeleteItem } = props;
+  const { isDragging, style, itemData, onEdit, onDelete: onDeleteItem } = props;
 
   const { t } = useTranslation();
   const { notice } = useNotice();
@@ -103,7 +94,7 @@ export const TestItem = (props: Props) => {
     <Box sx={{ width: "100%" }}>
       <TestDiv
         aria-label={isDragging ? "dragging" : "test"}
-        sx={{ ...sx }}
+        style={style}
         onContextMenu={(event) => {
           const { clientX, clientY } = event;
           setPosition({ top: clientY, left: clientX });
@@ -152,41 +143,35 @@ export const TestItem = (props: Props) => {
             height: "25px",
           }}>
           {delay === -2 && (
-            <Widget>
+            <div className="rounded px-1.5 py-0.75 text-sm uppercase">
               <BaseLoading />
-            </Widget>
+            </div>
           )}
 
           {delay === -1 && (
-            <Widget
+            <div
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 onDelay();
               }}
-              sx={({ palette }) => ({
-                ":hover": { bgcolor: alpha(palette.primary.main, 0.15) },
-              })}>
+              className="hover:bg-primary/15 rounded px-1.5 py-0.75 text-sm uppercase">
               {t("pages.test.title")}
-            </Widget>
+            </div>
           )}
 
           {delay >= 0 && (
             // 显示延迟
-            <Widget
+            <div
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 onDelay();
               }}
-              sx={({ palette }) => ({
-                color: delayManager.formatDelayColor(delay),
-                ":hover": {
-                  bgcolor: alpha(palette.primary.main, 0.15),
-                },
-              })}>
+              className="hover:bg-primary/15 rounded px-1.5 py-0.75 text-sm uppercase"
+              style={{ color: delayManager.formatDelayColor(delay) }}>
               {delayManager.formatDelay(delay)}
-            </Widget>
+            </div>
           )}
         </Box>
       </TestDiv>
@@ -215,10 +200,3 @@ export const TestItem = (props: Props) => {
     </Box>
   );
 };
-const Widget = styled("div")(({ theme: { typography } }) => ({
-  padding: "3px 6px",
-  fontSize: 14,
-  fontFamily: typography.fontFamily,
-  borderRadius: "4px",
-  textTransform: "uppercase",
-}));

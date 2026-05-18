@@ -254,18 +254,11 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
   return (
     <Box
-      className={selectMode ? "animate-shake" : undefined}
+      className={cn(selectMode ? "animate-shake" : undefined, "shadow-sm")}
       sx={(theme) => ({
         width: "100%",
-        bgcolor: "#FFFFFF",
-        ...theme.applyStyles("dark", {
-          bgcolor: "#282A36",
-        }),
-        borderRadius: "8px",
-        boxShadow: "0 1px 4px rgba(15, 23, 42, 0.08)",
-        ...theme.applyStyles("dark", {
-          boxShadow: "0 1px 4px rgba(0, 0, 0, 0.24)",
-        }),
+        // bgcolor: theme.palette.background.paper,
+        borderRadius: "12px",
         transition: "opacity 0.15s, box-shadow 0.15s, filter 0.15s",
         ...(selectMode && {
           filter: "saturate(0.75)",
@@ -302,7 +295,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              borderRadius: "8px",
+              borderRadius: "12px",
               backdropFilter: "blur(2px)",
             }}>
             <CircularProgress size={20} />

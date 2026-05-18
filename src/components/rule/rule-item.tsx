@@ -78,22 +78,12 @@ export const RuleItem = (props: Props) => {
 
   return (
     <Card
-      sx={[
-        {
-          marginBottom: "6px",
-          backgroundImage: "none",
-        },
-        ({ palette: { mode, primary, action } }) => {
-          const bgcolor = mode === "light" ? "#ffffff" : "#282A36";
-          return {
-            bgcolor,
-            opacity: currentValue.extra?.disabled ? action.disabledOpacity : 1,
-            "& ::-webkit-scrollbar-thumb": {
-              backgroundColor: alpha(primary.main, 0.35),
-            },
-          };
-        },
-      ]}>
+      elevation={0}
+      className="shadow-sm"
+      sx={{
+        backgroundImage: "none",
+        borderRadius: "12px",
+      }}>
       <ListItemButton
         sx={(theme) => ({
           ...(expanded && {
@@ -213,7 +203,7 @@ export const RuleItem = (props: Props) => {
                 </div>
               )}
               {(showHit || showMiss) && (
-                <div className="flex items-center justify-end text-xs text-gray-400">
+                <div className="text-text-disabled flex items-center justify-end text-xs">
                   {showHit && (
                     <div className="md:flex">
                       <div>

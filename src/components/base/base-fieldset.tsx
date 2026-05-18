@@ -12,8 +12,9 @@ type Props = {
 export const BaseFieldset: React.FC<Props> = (props: Props) => {
   const Fieldset = styled("div")(() => ({
     position: "relative",
-    border: "1px solid #bbb",
-    borderRadius: "5px",
+    border: "1px solid",
+    borderColor: "var(--divider-color)",
+    borderRadius: "8px",
     width: props.width ?? "auto",
     padding: props.padding ?? "15px",
   }));

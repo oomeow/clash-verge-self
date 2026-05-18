@@ -104,12 +104,7 @@ export const BaseSearchBox = (props: SearchProps) => {
         spellCheck="false"
         value={filterText}
         placeholder={placeholder ?? t("common.search.filterConditions")}
-        sx={[
-          { input: { py: 0.65, px: 1.25 } },
-          ({ palette: { mode } }) => {
-            return { ...(mode === "light" && { backgroundColor: "#fff" }) };
-          },
-        ]}
+        sx={[{ input: { py: 0.65, px: 1.25 } }]}
         onChange={(e) => {
           setFilterText(() => e.target.value);
         }}

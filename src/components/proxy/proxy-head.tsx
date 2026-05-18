@@ -80,13 +80,7 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
   }, [filterChange]);
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 0.5,
-        ...sx,
-      }}>
+    <Box className="flex items-center gap-1" style={sx as React.CSSProperties}>
       <IconButton
         size="small"
         color="inherit"
@@ -184,7 +178,8 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
             setFilterTextInp(text);
             filterChange(text);
           }}
-          sx={{ ml: 0.5, flex: "1 1 auto", input: { py: 0.65, px: 1 } }}
+          className="ml-1 flex-1"
+          slotProps={{ input: { className: "py-[2.6px] px-1" } }}
         />
       )}
 
@@ -199,7 +194,8 @@ export const ProxyHead = memo(function ProxyHead(props: Props) {
           variant="outlined"
           placeholder={t("pages.proxies.actions.delayCheckUrl")}
           onChange={(e) => headStateActions.setTestUrl(e.target.value)}
-          sx={{ ml: 0.5, flex: "1 1 auto", input: { py: 0.65, px: 1 } }}
+          className="ml-1 flex-1"
+          slotProps={{ input: { className: "py-[2.6px] px-1" } }}
         />
       )}
     </Box>

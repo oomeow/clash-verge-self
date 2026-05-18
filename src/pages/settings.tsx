@@ -1,5 +1,5 @@
 import GitHub from "@mui/icons-material/GitHub";
-import { Box, Grid, IconButton } from "@mui/material";
+import { Grid, IconButton, Paper } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,8 +28,8 @@ const SettingPage = () => {
 
   return (
     <BasePage
+      full
       title={t("pages.settings.title")}
-      contentStyle={{ height: "100%" }}
       header={
         <IconButton
           size="medium"
@@ -39,42 +39,20 @@ const SettingPage = () => {
           <GitHub fontSize="inherit" />
         </IconButton>
       }>
-      <div className="box-border py-2">
+      <div className="box-border h-full overflow-y-auto py-2 pr-1 pl-2">
         <Grid container spacing={{ xs: 1.5, lg: 1.5 }}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Box
-              sx={(theme) => ({
-                borderRadius: 2,
-                marginBottom: 1.5,
-                backgroundColor: "#ffffff",
-                ...theme.applyStyles("dark", {
-                  backgroundColor: "#282a36",
-                }),
-              })}>
+          <Grid size={{ xs: 12, md: 6 }} className="space-y-2.5">
+            <Paper elevation={0} className="rounded-xl shadow-sm">
               <SettingSystem onError={onError} />
-            </Box>
-            <Box
-              sx={(theme) => ({
-                borderRadius: 2,
-                backgroundColor: "#ffffff",
-                ...theme.applyStyles("dark", {
-                  backgroundColor: "#282a36",
-                }),
-              })}>
+            </Paper>
+            <Paper elevation={0} className="rounded-xl shadow-sm">
               <SettingClash onError={onError} />
-            </Box>
+            </Paper>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
-            <Box
-              sx={(theme) => ({
-                borderRadius: 2,
-                backgroundColor: "#ffffff",
-                ...theme.applyStyles("dark", {
-                  backgroundColor: "#282a36",
-                }),
-              })}>
+            <Paper elevation={0} className="rounded-xl shadow-sm">
               <SettingVerge onError={onError} />
-            </Box>
+            </Paper>
           </Grid>
         </Grid>
       </div>

@@ -8,7 +8,6 @@ import {
   ListItemText,
   MenuItem,
   Select,
-  styled,
   Tooltip,
 } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
@@ -112,13 +111,14 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
     <BaseDialog
       open={open}
       title={t("pages.settings.verge.layout.title")}
-      contentStyle={{ width: 450 }}
+      maxWidth="xs"
+      fullWidth
       hideOkBtn
       hideCancelBtn
       onClose={() => setOpen(false)}>
       <List>
         {show_title_setting && (
-          <Item>
+          <ListItem className="px-0.5 py-[5px]">
             <ListItemText
               primary={
                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -137,11 +137,11 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               }}>
               <SwitchLovely edge="end" />
             </GuardState>
-          </Item>
+          </ListItem>
         )}
 
         {OS === "macos" && (
-          <Item>
+          <ListItem className="px-0.5 py-[5px]">
             <ListItemText
               primary={
                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -169,10 +169,10 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               onGuard={(e) => patchVerge({ keep_in_dock: e })}>
               <SwitchLovely edge="end" />
             </GuardState>
-          </Item>
+          </ListItem>
         )}
 
-        <Item>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText
             primary={
               <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -200,8 +200,8 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             onGuard={(e) => patchVerge({ enable_keep_ui_active: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
-        </Item>
-        <Item>
+        </ListItem>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText
             primary={t("pages.settings.verge.layout.trafficGraph")}
           />
@@ -213,9 +213,9 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             onGuard={(e) => patchVerge({ traffic_graph: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
-        </Item>
+        </ListItem>
 
-        <Item>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText
             primary={t("pages.settings.verge.layout.memoryUsage")}
           />
@@ -227,9 +227,9 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             onGuard={(e) => patchVerge({ enable_memory_usage: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
-        </Item>
+        </ListItem>
 
-        <Item>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText
             primary={t("pages.settings.verge.layout.proxyGroupIcon")}
           />
@@ -241,9 +241,9 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             onGuard={(e) => patchVerge({ enable_group_icon: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
-        </Item>
+        </ListItem>
 
-        <Item>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText primary={t("pages.settings.verge.layout.menuIcon")} />
           <GuardState
             value={menuIcon}
@@ -260,9 +260,9 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               <MenuItem value="disable">{t("common.actions.disable")}</MenuItem>
             </Select>
           </GuardState>
-        </Item>
+        </ListItem>
 
-        <Item>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText primary={t("pages.settings.verge.layout.tray.label")} />
           <GuardState
             value={enableTray}
@@ -272,10 +272,10 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             onGuard={(e) => patchVerge({ enable_tray: e })}>
             <SwitchLovely edge="end" />
           </GuardState>
-        </Item>
+        </ListItem>
 
         {OS === "macos" && (
-          <Item>
+          <ListItem className="px-0.5 py-[5px]">
             <ListItemText
               primary={t("pages.settings.verge.layout.tray.icon")}
             />
@@ -295,10 +295,10 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
                 </MenuItem>
               </Select>
             </GuardState>
-          </Item>
+          </ListItem>
         )}
 
-        <Item>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText
             primary={t("pages.settings.verge.layout.tray.common")}
           />
@@ -341,9 +341,9 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
                 : t("common.actions.browse")}
             </Button>
           </GuardState>
-        </Item>
+        </ListItem>
 
-        <Item>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText
             primary={t("pages.settings.verge.layout.tray.systemProxy")}
           />
@@ -386,9 +386,9 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
                 : t("common.actions.browse")}
             </Button>
           </GuardState>
-        </Item>
+        </ListItem>
 
-        <Item>
+        <ListItem className="px-0.5 py-[5px]">
           <ListItemText primary={t("pages.settings.verge.layout.tray.tun")} />
           <GuardState
             value={tunTrayIcon}
@@ -427,14 +427,10 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
                 : t("common.actions.browse")}
             </Button>
           </GuardState>
-        </Item>
+        </ListItem>
       </List>
     </BaseDialog>
   );
 });
-
-const Item = styled(ListItem)(() => ({
-  padding: "5px 2px",
-}));
 
 export default LayoutViewer;

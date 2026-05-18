@@ -5,7 +5,6 @@ import { Fragment, useMemo, useState } from "react";
 
 import { BaseDialog, BaseEmpty } from "@/components/base";
 import { LogMessage } from "@/components/profile/profile-more";
-import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 
 interface Props {
@@ -25,42 +24,23 @@ type SyntaxClasses = {
   separator: string;
 };
 
-const LIGHT_LEVEL_CLASSES: Record<string, string> = {
-  log: "bg-blue-50 text-blue-600",
-  info: "bg-teal-50 text-teal-700",
-  debug: "bg-violet-50 text-violet-600",
-  warn: "bg-amber-50 text-amber-700",
-  error: "bg-red-50 text-red-600",
+const LEVEL_CLASSES: Record<string, string> = {
+  log: "bg-info/15 text-info",
+  info: "bg-success/15 text-success",
+  debug: "bg-primary/15 text-primary",
+  warn: "bg-warning/15 text-warning",
+  error: "bg-error/15 text-error",
 };
 
-const DARK_LEVEL_CLASSES: Record<string, string> = {
-  log: "bg-blue-950 text-blue-300",
-  info: "bg-teal-900 text-teal-300",
-  debug: "bg-purple-950 text-violet-300",
-  warn: "bg-yellow-900 text-yellow-300",
-  error: "bg-red-900 text-red-300",
-};
-
-const LIGHT_SYNTAX_CLASSES: SyntaxClasses = {
-  key: "text-violet-600",
-  string: "text-green-700",
-  number: "text-amber-700",
-  boolean: "text-blue-600",
-  nullish: "text-gray-500",
-  summary: "text-cyan-600",
-  bracket: "text-gray-500",
-  separator: "text-gray-700",
-};
-
-const DARK_SYNTAX_CLASSES: SyntaxClasses = {
-  key: "text-violet-300",
-  string: "text-green-300",
-  number: "text-amber-300",
-  boolean: "text-blue-300",
-  nullish: "text-gray-400",
-  summary: "text-cyan-300",
-  bracket: "text-gray-400",
-  separator: "text-gray-200",
+const SYNTAX_CLASSES: SyntaxClasses = {
+  key: "text-primary",
+  string: "text-success",
+  number: "text-warning",
+  boolean: "text-info",
+  nullish: "text-text-disabled",
+  summary: "text-info",
+  bracket: "text-text-disabled",
+  separator: "text-text-secondary",
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -377,11 +357,8 @@ const LogContent = ({
 
 export const LogViewer = (props: Props) => {
   const { open, logInfo, onClose } = props;
-  const themeMode = useThemeModeStore((s) => s.themeMode);
 
-  const isDarkMode = themeMode === "dark";
-  const levelClasses = isDarkMode ? DARK_LEVEL_CLASSES : LIGHT_LEVEL_CLASSES;
-  const syntaxClasses = isDarkMode ? DARK_SYNTAX_CLASSES : LIGHT_SYNTAX_CLASSES;
+  const syntaxClasses = SYNTAX_CLASSES;
 
   const title = (
     <div className="flex items-center justify-between">
@@ -419,14 +396,14 @@ export const LogViewer = (props: Props) => {
             const method = (log.exception ? "error" : log.method || "log")
               .toLowerCase()
               .trim();
-            const levelClass = levelClasses[method] ?? levelClasses.log;
+            const levelClass = LEVEL_CLASSES[method] ?? LEVEL_CLASSES.log;
 
             return (
               <div
                 key={`${index}-${method}`}
                 className={cn(
                   "grid grid-cols-[72px_minmax(0,1fr)] gap-2.5 border-b py-2",
-                  isDarkMode ? "border-white/10" : "border-black/10",
+                  "border-(--divider-color)",
                 )}>
                 <span
                   className={cn(
@@ -439,8 +416,7 @@ export const LogViewer = (props: Props) => {
                 <div
                   className={cn(
                     "m-0 min-w-0 font-[inherit] wrap-anywhere whitespace-pre-wrap",
-                    log.exception &&
-                      (isDarkMode ? "text-red-300" : "text-red-600"),
+                    log.exception && "text-error",
                   )}>
                   <LogContent log={log} syntaxClasses={syntaxClasses} />
                 </div>

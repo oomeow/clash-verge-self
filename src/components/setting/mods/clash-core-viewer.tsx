@@ -183,7 +183,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       }
       hideOkBtn
       hideCancelBtn
-      contentStyle={{ minWidth: 480 }}
+      maxWidth="xs"
+      fullWidth
       onClose={() => setOpen(false)}>
       <List component="nav">
         {mihomoCoresInfo.map((each) => (
@@ -209,9 +210,9 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
                   {enableGrantPermissions && (
                     <div
                       className={cn(
-                        "ml-2 inline-block rounded-full bg-red-600/60 px-2 py-0.5 text-[10px] text-white",
+                        "bg-error/70 ml-2 inline-block rounded-full px-2 py-0.5 text-[10px] text-white",
                         {
-                          "bg-green-600/60": each.permissionsGranted,
+                          "bg-success/70": each.permissionsGranted,
                         },
                       )}>
                       {each.permissionsGranted

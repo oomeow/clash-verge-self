@@ -23,11 +23,9 @@ export const NetInfoViewer = forwardRef<DialogRef>((_props, ref) => {
     <BaseDialog
       open={open}
       title={t("pages.settings.clash.networkInterfaceInfo")}
-      contentStyle={{
-        width: 450,
-        overflowY: "auto",
-        userSelect: "text",
-      }}
+      maxWidth="xs"
+      fullWidth
+      contentStyle={{ overflowY: "auto", userSelect: "text" }}
       hideOkBtn
       hideCancelBtn
       onClose={() => setOpen(false)}>
