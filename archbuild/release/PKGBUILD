@@ -14,7 +14,7 @@ options=('!strip' '!emptydirs')
 conflicts=("$_pkgname" "$_pkgname-alpha" "$_pkgname-alpha-bin" "$_pkgname-git" "clash-meta")
 install=clash-verge-self.install
 
-source_x86_64=("${_pkgname}-${_pkgver}-x86_64.deb::${url}/releases/download/v${_pkgver}/clash-verge_${_pkgver}_amd64.deb")
+source_x86_64=("${_pkgname}-${_pkgver}-x86_64.deb::${url}/releases/download/v${_pkgver}/clash-verge-self_${_pkgver}_amd64.deb")
 
 sha256sums_x86_64=('81e72af54c806d2c57c6774192f5e972f9a768954e177e5a137157b2910d25f3')
 
