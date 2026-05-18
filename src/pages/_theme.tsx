@@ -1,5 +1,9 @@
 import getSystem from "@/utils/get-system";
+
 const OS = getSystem();
+const DEFAULT_FONT_FAMILY = `-apple-system, BlinkMacSystemFont,"Microsoft YaHei UI", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji"${
+  OS === "windows" ? ", twemoji mozilla" : ""
+}`;
 
 // default theme setting — Material Blue
 export const defaultTheme: IVergeThemeSettings = {
@@ -13,14 +17,11 @@ export const defaultTheme: IVergeThemeSettings = {
   success_color: "#388E3C",
   background_color: "#F5F8FF",
   paper_background_color: "#EBF2FC",
-  font_family: `-apple-system, BlinkMacSystemFont,"Microsoft YaHei UI", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji"${
-    OS === "windows" ? ", twemoji mozilla" : ""
-  }`,
+  font_family: DEFAULT_FONT_FAMILY,
 };
 
 // dark mode
 export const defaultDarkTheme: IVergeThemeSettings = {
-  ...defaultTheme,
   primary_color: "#64B5F6",
   secondary_color: "#90CAF9",
   primary_text: "#E3F0FF",
@@ -31,7 +32,7 @@ export const defaultDarkTheme: IVergeThemeSettings = {
   success_color: "#66BB6A",
   background_color: "#0A1628",
   paper_background_color: "#0F1E33",
-  font_family: "",
+  font_family: DEFAULT_FONT_FAMILY,
 };
 
 export type ThemePreset = {
@@ -59,7 +60,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#2E7D32",
       background_color: "#F0FAFA",
       paper_background_color: "#E0F2F2",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
     dark: {
       primary_color: "#4DB6AC",
@@ -72,7 +73,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#66BB6A",
       background_color: "#0F1A1A",
       paper_background_color: "#192929",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
   },
   {
@@ -88,7 +89,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#2E7D32",
       background_color: "#F2FAF2",
       paper_background_color: "#E4F2E4",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
     dark: {
       primary_color: "#66BB6A",
@@ -101,7 +102,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#66BB6A",
       background_color: "#0F1A10",
       paper_background_color: "#192A1A",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
   },
   {
@@ -117,7 +118,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#5D8A3C",
       background_color: "#FFF8F5",
       paper_background_color: "#FFEDE0",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
     dark: {
       primary_color: "#FF8A65",
@@ -130,7 +131,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#81C784",
       background_color: "#1A0F0A",
       paper_background_color: "#2A1910",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
   },
   {
@@ -146,7 +147,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#2E7D32",
       background_color: "#FAF5FC",
       paper_background_color: "#F3E5F7",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
     dark: {
       primary_color: "#CE93D8",
@@ -159,7 +160,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#66BB6A",
       background_color: "#140A1A",
       paper_background_color: "#22142A",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
   },
   {
@@ -175,7 +176,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#4A7A5A",
       background_color: "#F7F7F7",
       paper_background_color: "#ECECEC",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
     dark: {
       primary_color: "#C0C0C0",
@@ -188,41 +189,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       success_color: "#6A9A7A",
       background_color: "#1A1A1A",
       paper_background_color: "#2D2D2D",
-      font_family: "",
+      font_family: DEFAULT_FONT_FAMILY,
     },
   },
 ];
-
-// import { ThemeOptions } from '@mui/material/styles';
-// export const themeOptions: ThemeOptions = {
-//   palette: {
-//     mode: 'light',
-//     primary: {
-//       main: '#2F82F7',
-//     },
-//     secondary: {
-//       main: '#00c2cd',
-//     },
-//     background: {
-//       default: '#e4f2ff',
-//       paper: '#DDE8FD',
-//     },
-//     text: {
-//       primary: '#0D121B',
-//       secondary: '#383D47',
-//     },
-//     error: {
-//       main: '#f9423d',
-//     },
-//     warning: {
-//       main: '#de9a00',
-//     },
-//     info: {
-//       main: '#008ecc',
-//     },
-//     success: {
-//       main: '#00a14c',
-//     },
-//     divider: '#D1D8E5',
-//   },
-// };

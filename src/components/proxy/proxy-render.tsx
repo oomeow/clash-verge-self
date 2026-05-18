@@ -244,7 +244,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         <Card
           id={groupId(group.name)}
           className={cn(
-            "mx-2 flex h-17.5 items-center rounded-xl px-4 shadow-sm transition-[background-color_0s,box-shadow_0.1s]",
+            "hover:bg-action-hover mx-2 flex h-17.5 cursor-pointer items-center rounded-xl px-4 shadow-sm transition-[background-color_0s,box-shadow_0.1s]",
             stickyed && headState.open && "shadow-md",
           )}
           onClick={async () => {
@@ -279,8 +279,8 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
               )}
             </Box>
           )}
-          <Box className="flex w-full flex-col overflow-hidden text-ellipsis">
-            <span className="text-text-primary text-[16px] leading-tight font-bold">
+          <Box className="flex w-full flex-col overflow-hidden">
+            <span className="text-text-primary truncate text-[16px] leading-tight font-bold">
               {group.name}
             </span>
             <span className="mt-1 inline-block truncate">

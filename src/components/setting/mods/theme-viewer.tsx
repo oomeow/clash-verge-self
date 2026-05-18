@@ -179,7 +179,7 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
       }}
       onOk={onSave}>
       <List sx={{ pt: 0 }}>
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={t("pages.settings.verge.theme.currentTheme")}
           />
@@ -242,7 +242,7 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
           themeKey="paper_background_color"
         />
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText primary={t("pages.settings.verge.theme.fontFamily")} />
           <TextField
             {...textProps}
@@ -254,7 +254,7 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
           />
         </ListItem>
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={t("pages.settings.verge.theme.cssInjection")}
           />
