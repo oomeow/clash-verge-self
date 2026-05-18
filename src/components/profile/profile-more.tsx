@@ -176,7 +176,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
       className={cn(selectMode ? "animate-shake" : undefined, "shadow-sm")}
       sx={(theme) => ({
         width: "100%",
-        bgcolor: theme.palette.background.paper,
+        // bgcolor: theme.palette.background.paper,
         borderRadius: "12px",
         transition: "opacity 0.15s, box-shadow 0.15s, filter 0.15s",
         ...(selectMode && {
