@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useWindowSize } from "@/hooks/use-window-size";
 import {
   configureYaml,
   defaultOptions,
@@ -47,6 +48,9 @@ export const EditorViewer = (props: Props) => {
     null,
   );
   const { notice } = useNotice();
+  const {
+    size: { width },
+  } = useWindowSize();
 
   useEffect(() => {
     if (!open) return;
@@ -111,17 +115,17 @@ export const EditorViewer = (props: Props) => {
     const minimap = instanceRef.current.getOption(
       monaco.editor.EditorOption.minimap,
     );
-    if (!minimap.enabled && window.innerWidth >= 1000) {
+    if (!minimap.enabled && width >= 1000) {
       instanceRef.current.updateOptions({
         minimap: { enabled: true },
       });
     }
-    if (minimap.enabled && window.innerWidth < 1000) {
+    if (minimap.enabled && width < 1000) {
       instanceRef.current.updateOptions({
         minimap: { enabled: false },
       });
     }
-  }, [monaco]);
+  }, [width, monaco]);
 
   const onSave = useLockFn(async () => {
     const value = instanceRef.current?.getValue();
