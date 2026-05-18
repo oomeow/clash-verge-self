@@ -155,10 +155,10 @@ class DelayManager {
   }
 
   formatDelayColor(delay: number, timeout = DEFAULT_LATENCY_TIMEOUT) {
-    if (delay >= timeout) return "error.main";
-    if (delay <= 0) return "error.main";
-    if (delay > 500) return "warning.main";
-    return "success.main";
+    if (delay <= 0) return "#ff3d00"; // 超时 -> 红色
+    if (delay < 500) return "#2ecc71"; // 小于 500ms -> 绿色
+    if (delay < timeout) return "#f39c12"; // 小于超时时间 -> 黄色
+    return "#ff3d00"; // 大于等于超时时间 -> 红色
   }
 }
 
