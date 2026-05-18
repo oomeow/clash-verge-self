@@ -150,7 +150,7 @@ const TestPage = () => {
               <TestItem
                 id={draggingItem.uid}
                 itemData={draggingItem}
-                sx={{
+                style={{
                   borderRadius: "8px",
                   boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
                 }}

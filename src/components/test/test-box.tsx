@@ -3,7 +3,7 @@ import { cn } from "@/utils";
 interface TestDivProps {
   children?: React.ReactNode;
   className?: string;
-  style?: Record<string, string>;
+  style?: React.CSSProperties;
   "aria-label"?: string;
   "aria-selected"?: boolean;
   onContextMenu?: (event: React.MouseEvent) => void;

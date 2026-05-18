@@ -16,7 +16,7 @@ import { TestDiv } from "./test-box";
 interface Props {
   id: string;
   isDragging?: boolean;
-  sx?: Record<string, string>;
+  style?: React.CSSProperties;
   itemData: IVergeTestItem;
   onEdit: () => void;
   onDelete: (uid: string) => void;
@@ -26,7 +26,7 @@ const encodeSvgDataUri = (svg: string) =>
   `data:image/svg+xml,${encodeURIComponent(svg)}`;
 
 export const TestItem = (props: Props) => {
-  const { isDragging, sx, itemData, onEdit, onDelete: onDeleteItem } = props;
+  const { isDragging, style, itemData, onEdit, onDelete: onDeleteItem } = props;
 
   const { t } = useTranslation();
   const { notice } = useNotice();
@@ -94,7 +94,7 @@ export const TestItem = (props: Props) => {
     <Box sx={{ width: "100%" }}>
       <TestDiv
         aria-label={isDragging ? "dragging" : "test"}
-        style={sx}
+        style={style}
         onContextMenu={(event) => {
           const { clientX, clientY } = event;
           setPosition({ top: clientY, left: clientX });
@@ -143,7 +143,7 @@ export const TestItem = (props: Props) => {
             height: "25px",
           }}>
           {delay === -2 && (
-            <div className="rounded px-1.5 py-[3px] text-sm uppercase">
+            <div className="rounded px-1.5 py-0.75 text-sm uppercase">
               <BaseLoading />
             </div>
           )}
@@ -155,7 +155,7 @@ export const TestItem = (props: Props) => {
                 e.stopPropagation();
                 onDelay();
               }}
-              className="hover:bg-primary/15 rounded px-1.5 py-[3px] text-sm uppercase">
+              className="hover:bg-primary/15 rounded px-1.5 py-0.75 text-sm uppercase">
               {t("pages.test.title")}
             </div>
           )}
@@ -168,7 +168,7 @@ export const TestItem = (props: Props) => {
                 e.stopPropagation();
                 onDelay();
               }}
-              className="hover:bg-primary/15 rounded px-1.5 py-[3px] text-sm uppercase"
+              className="hover:bg-primary/15 rounded px-1.5 py-0.75 text-sm uppercase"
               style={{ color: delayManager.formatDelayColor(delay) }}>
               {delayManager.formatDelay(delay)}
             </div>
