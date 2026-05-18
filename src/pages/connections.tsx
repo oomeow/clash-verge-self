@@ -261,7 +261,7 @@ const ConnectionsPage = () => {
       <div className="relative flex h-full w-full flex-col overflow-hidden">
         <Stack
           direction="row"
-          className="mx-2.5 box-border min-h-10 shrink-0 items-center gap-1 select-text">
+          className="mx-2.5 mb-1 box-border min-h-10 shrink-0 items-center gap-1 select-text">
           <ButtonGroup size="small" className="flex w-40 text-nowrap">
             <Button
               className="flex-1"
