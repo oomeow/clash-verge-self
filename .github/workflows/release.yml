@@ -270,25 +270,25 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${{ needs.pkgbuild.outputs.VERSION }}"
-          BRANCH="changelog-update-$VERSION"
-          LABEL="release changelog"
+          # VERSION="${{ needs.pkgbuild.outputs.VERSION }}"
+          # BRANCH="changelog-update-$VERSION"
+          # LABEL="release changelog"
+          # git checkout -b $BRANCH
 
-          git checkout -b $BRANCH
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md UPDATELOG.md
           git commit -m "docs: update CHANGELOG.md and UPDATELOG.md"
-          git push --set-upstream origin $BRANCH
+          git push origin dev
 
-          gh label create "$LABEL" \
-            --color "C5DEF5" \
-            --description "Pull requests with release changelog update" \
-            --force \
-            || true
-
-          gh pr create \
-            --title "Release Changelog update" \
-            --body "Current pull request contains patched \`CHANGELOG.md\` and \`UPDATELOG.md\` files for the \`$VERSION\` version." \
-            --label "$LABEL" \
-            --head $BRANCH
+          # git push --set-upstream origin $BRANCH
+          # gh label create "$LABEL" \
+          #   --color "C5DEF5" \
+          #   --description "Pull requests with release changelog update" \
+          #   --force \
+          #   || true
+          # gh pr create \
+          #   --title "Release Changelog update" \
+          #   --body "Current pull request contains patched \`CHANGELOG.md\` and \`UPDATELOG.md\` files for the \`$VERSION\` version." \
+          #   --label "$LABEL" \
+          #   --head $BRANCH
