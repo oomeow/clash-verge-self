@@ -1,7 +1,7 @@
 import ExpandLessRounded from "@mui/icons-material/ExpandLessRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
 import InboxRounded from "@mui/icons-material/InboxRounded";
-import { Box, Card, CircularProgress, Typography } from "@mui/material";
+import { alpha, Box, Card, CircularProgress, Typography } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useAsyncEffect } from "ahooks";
 import { memo, useMemo, useState } from "react";
@@ -244,9 +244,19 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         <Card
           id={groupId(group.name)}
           className={cn(
-            "hover:bg-SpeedDialAction-fabHover mx-2 flex h-17.5 cursor-pointer items-center rounded-xl px-4 shadow-sm transition-[background-color_0s,box-shadow_0.1s]",
+            "mx-2 flex h-17.5 cursor-pointer items-center rounded-xl px-4 shadow-sm transition-[background-color_0s,box-shadow_0.1s]",
             stickyed && headState.open && "shadow-md",
           )}
+          sx={(theme) => {
+            const tint = theme.palette.mode === "light" ? 0.08 : 0.18;
+            const hoverTint = theme.palette.mode === "light" ? 0.14 : 0.28;
+            return {
+              background: `linear-gradient(0deg, ${alpha(theme.palette.primary.main, tint)}, ${alpha(theme.palette.primary.main, tint)}), ${theme.palette.background.paper}`,
+              "&:hover": {
+                background: `linear-gradient(0deg, ${alpha(theme.palette.primary.main, hoverTint)}, ${alpha(theme.palette.primary.main, hoverTint)}), ${theme.palette.background.paper}`,
+              },
+            };
+          }}
           onClick={async () => {
             if (headState?.open) {
               await onGroupToggle?.(group);
