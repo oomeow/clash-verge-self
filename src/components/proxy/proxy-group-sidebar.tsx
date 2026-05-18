@@ -39,7 +39,13 @@ export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
       className={cn(
         "flex h-full w-full flex-col items-center justify-center text-center text-sm",
         className,
-      )}>
+      )}
+      sx={(theme) => ({
+        boxShadow:
+          theme.palette.mode === "light"
+            ? "-2px 0 8px rgba(0,0,0,0.08)"
+            : "-2px 0 8px rgba(0,0,0,0.3)",
+      })}>
       <div className="no-scrollbar hover:scrollbar w-full space-y-2! overflow-auto px-1 py-2">
         {groupNameListWithShortName.map((item) => (
           <Tooltip
@@ -48,8 +54,12 @@ export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
             placement="top"
             followCursor>
             <Link
-              underline="hover"
-              className="text-text-primary hover:text-text-secondary line-clamp-1 cursor-pointer"
+              underline="none"
+              className="hover:bg-primary/15 block cursor-pointer rounded-md px-1 py-1.5 text-center leading-tight transition-[background-color]"
+              sx={{
+                color: "text.primary",
+                "&:hover": { color: "primary.main" },
+              }}
               onClick={() => onGroupNameClick && onGroupNameClick(item.name)}>
               <Typography variant="body2">
                 {open ? item.name : item.shortName}

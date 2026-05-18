@@ -269,7 +269,7 @@ export const ProxyGroups = (props: Props) => {
     <Box className="relative flex h-full w-full">
       <Box
         className={cn("h-full w-full", {
-          "pr-7": isRuleMode,
+          "pr-8": isRuleMode,
         })}>
         <StickyVirtualList
           ref={stickyListRef}
@@ -285,15 +285,13 @@ export const ProxyGroups = (props: Props) => {
       </Box>
 
       {isRuleMode && (
-        <div className="absolute top-0 right-0 bottom-0 z-10 mr-0 w-7 bg-transparent hover:w-30">
-          <div className="hover:bg-primary/5 flex h-full w-full items-center justify-center">
-            <ProxyGroupSidebar
-              groupNameList={groupNameList}
-              onGroupNameClick={(groupName) => {
-                handleGroupLocation(groupName);
-              }}
-            />
-          </div>
+        <div className="absolute top-0 right-0 bottom-0 z-10 mr-0 w-8 bg-transparent transition-all duration-100 hover:w-30">
+          <ProxyGroupSidebar
+            groupNameList={groupNameList}
+            onGroupNameClick={(groupName) => {
+              handleGroupLocation(groupName);
+            }}
+          />
         </div>
       )}
     </Box>
