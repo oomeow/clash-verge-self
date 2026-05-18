@@ -106,8 +106,15 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
             filterChange(text);
           }}
           className="ml-1"
-          sx={{ width: 180 }}
-          slotProps={{ input: { className: "py-[1.6px] px-1" } }}
+          sx={{
+            width: 180,
+            "& .MuiOutlinedInput-root": { minHeight: 26 },
+          }}
+          slotProps={{
+            input: {
+              sx: { py: 0, fontSize: 12 },
+            },
+          }}
         />
       )}
 
@@ -129,8 +136,15 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
             headStateActions.setTestUrl(e.target.value);
           }}
           className="ml-1"
-          sx={{ width: 180 }}
-          slotProps={{ input: { className: "py-[1.6px] px-1" } }}
+          sx={{
+            width: 180,
+            "& .MuiOutlinedInput-root": { minHeight: 26 },
+          }}
+          slotProps={{
+            input: {
+              sx: { py: 0, fontSize: 12 },
+            },
+          }}
         />
       )}
       <IconButton
