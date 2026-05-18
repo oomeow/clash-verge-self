@@ -389,6 +389,16 @@
         "theme": {
           "title": "تنظیمات تم",
           "default": "تنظیمات پیش‌فرض",
+          "currentTheme": "تم فعلی",
+          "presets": {
+            "custom": "سفارشی",
+            "default": "آبی پیش‌فرض",
+            "ocean": "اقیانوسی فیروزه‌ای",
+            "forest": "سبز جنگلی",
+            "sunset": "نارنجی غروب",
+            "lavender": "بنفش اسطوخودوس",
+            "monochrome": "تک‌رنگ"
+          },
           "colors": {
             "primary": "رنگ اصلی",
             "secondary": "رنگ ثانویه",
@@ -398,7 +408,8 @@
             "warning": "رنگ هشدار",
             "error": "رنگ خطا",
             "success": "رنگ موفقیت",
-            "background": "رنگ پس‌زمینه"
+            "background": "رنگ پس‌زمینه",
+            "paperBackground": "رنگ پس‌زمینه کارت"
           },
           "fontFamily": "خانواده فونت",
           "cssInjection": "تزریق CSS"
