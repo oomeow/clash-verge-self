@@ -19,11 +19,12 @@ export const ConfirmViewer = (props: Props) => {
 
   return (
     <BaseDialog
+      title={title}
       open={open}
+      contentStyle={{ width: 400 }}
       onClose={onClose}
       onOk={onConfirm}
-      onCancel={onClose}
-      title={title}>
+      onCancel={onClose}>
       {message}
     </BaseDialog>
   );
