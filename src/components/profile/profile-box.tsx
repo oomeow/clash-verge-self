@@ -1,3 +1,5 @@
+import { Card } from "@mui/material";
+
 import { cn } from "@/utils";
 
 interface ProfileDivProps {
@@ -22,24 +24,24 @@ export const ProfileDiv = ({
   const isDragging = label === "dragging";
 
   return (
-    <div
+    <Card
+      elevation={0}
       aria-label={label}
       aria-selected={selected}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
       className={cn(
-        "relative box-border block h-full w-full cursor-pointer overflow-hidden rounded-xl p-2 text-left",
+        "relative box-border block h-full w-full cursor-pointer overflow-hidden rounded-xl p-2 text-left shadow-sm",
         "text-text-secondary dark:text-text-secondary/65",
-        selected
-          ? "bg-primary/25 dark:bg-primary/35 border-primary w-full border-l-[3px]"
-          : "bg-background-paper w-full",
+        selected &&
+          "bg-primary/25 dark:bg-primary/35 border-primary w-full border-l-[3px]",
 
         isDragging && "shadow-[0_0_10px_5px_rgba(0,0,0,0.12)]",
         "[&_h2]:text-text-primary",
         className,
       )}>
       {children}
-    </div>
+    </Card>
   );
 };
