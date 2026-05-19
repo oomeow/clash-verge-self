@@ -86,6 +86,8 @@ const ProfilePage = () => {
   );
   const chainLogs = useProfilesStore((s) => s.chainLogs);
 
+  const dragEffectRef = useRef(false);
+
   const [sortableProfileItems, setSortableProfileItems] = useState<
     ISortableProfileItem[]
   >(profileItems.map((item) => ({ id: item.uid, ...item })));
@@ -140,6 +142,10 @@ const ProfilePage = () => {
 
   const handleToggleSelect = useCallback(
     (uid: string, category: "profile" | "chain") => {
+      if (dragEffectRef.current) {
+        dragEffectRef.current = false;
+        return;
+      }
       setSelectedUids((prev) => {
         const next = prev.includes(uid)
           ? prev.filter((id) => id !== uid)
@@ -190,6 +196,10 @@ const ProfilePage = () => {
   }, [importProfile, notice, patchConfig, t, url]);
 
   const onSelect = useLockFn(async (current: string) => {
+    if (dragEffectRef.current) {
+      dragEffectRef.current = false;
+      return;
+    }
     if (current === currentProfileUid || hasActivatingItems) return;
     const nextActivatingItemUids = getActivationUids(current);
     try {
@@ -487,7 +497,13 @@ const ProfilePage = () => {
               if (target && isSortable(source)) {
                 const newIndex = source.sortable.index;
                 const oldIndex = source.sortable.initialIndex;
-                if (oldIndex === newIndex) return;
+                if (oldIndex === newIndex) {
+                  dragEffectRef.current = true;
+                  setTimeout(() => {
+                    dragEffectRef.current = false;
+                  }, 0);
+                  return;
+                }
                 const activeId = sortableProfileItems[oldIndex].uid;
                 const overId = sortableProfileItems[newIndex].uid;
 
@@ -604,7 +620,13 @@ const ProfilePage = () => {
                   if (target && isSortable(source)) {
                     const newIndex = source.sortable.index;
                     const oldIndex = source.sortable.initialIndex;
-                    if (newIndex === oldIndex) return;
+                    if (newIndex === oldIndex) {
+                      dragEffectRef.current = true;
+                      setTimeout(() => {
+                        dragEffectRef.current = false;
+                      }, 0);
+                      return;
+                    }
                     const activeId = sortableGlobalChainItems[oldIndex].uid;
                     const overId = sortableGlobalChainItems[newIndex].uid;
 
