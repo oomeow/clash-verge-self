@@ -9,10 +9,6 @@
 A <a href="https://github.com/MetaCubeX/mihomo">Mihomo</a> GUI based on <a href="https://github.com/tauri-apps/tauri">Tauri</a>.
 </h3>
 
-<div align="center">
-  <img style="max-height: 500" src="./docs/verge.gif" />
-</div>
-
 <p align="center">
   <a href="https://github.com/oomeow/clash-verge-self/releases"><img src="https://img.shields.io/github/release/oomeow/clash-verge-self.svg" alt="Release" /></a>
   <a href="https://github.com/oomeow/clash-verge-self/blob/main/LICENSE"><img src="https://img.shields.io/github/license/oomeow/clash-verge-self" alt="License" /></a>
@@ -31,13 +27,7 @@ A <a href="https://github.com/MetaCubeX/mihomo">Mihomo</a> GUI based on <a href=
 
 ## Preview
 
-| Light                      | Dark                     |
-| -------------------------- | ------------------------ |
-| ![light](./docs/light.png) | ![dark](./docs/dark.png) |
-
-| Pink (customize)         | Blue (customize)         |
-| ------------------------ | ------------------------ |
-| ![pink](./docs/pink.png) | ![blue](./docs/blue.png) |
+![preview](./docs/preview.png)
 
 ## Features
 
