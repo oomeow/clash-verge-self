@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
+import * as prettier from "prettier";
 
 const cwd = process.cwd();
 const process_argvs = process.argv;
@@ -8,7 +9,13 @@ if (process_argvs.length !== 3) {
 }
 
 // all version file
-const changeJsonFile = ["package.json", "./src-tauri/tauri.conf.json"];
+const changeJsonFile = [
+  "package.json",
+  "./src-tauri/tauri.conf.json",
+  "./src-tauri/tauri.conf-dev.json",
+  "./src-tauri/tauri.conf-local.json",
+  "./src-tauri/tauri.conf-pr.json",
+];
 const changeFile = [
   "./src-tauri/Cargo.toml",
   "./archbuild/alpha/PKGBUILD",
@@ -27,8 +34,13 @@ for (const file of changeJsonFile) {
   const filePath = path.join(cwd, file);
   const data = fs.readFileSync(filePath, "utf8");
   const jsonData = JSON.parse(data);
-  jsonData.version = version;
-  fs.writeFileSync(file, JSON.stringify(jsonData, null, 2));
+  const newData = JSON.stringify(
+    jsonData,
+    (key, value) => (key === "version" ? version : value),
+    2,
+  );
+  const formattedData = await prettier.format(newData, { parser: "json" });
+  fs.writeFileSync(file, formattedData);
 }
 
 for (const file of changeFile) {

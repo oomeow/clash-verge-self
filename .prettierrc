@@ -1,0 +1,8 @@
+{
+  "tabWidth": 2,
+  "semi": true,
+  "singleQuote": false,
+  "endOfLine": "lf",
+  "bracketSameLine": true,
+  "plugins": ["prettier-plugin-tailwindcss"]
+}
