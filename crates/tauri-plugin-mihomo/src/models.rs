@@ -508,6 +508,13 @@ pub enum ProxyType {
     Compatible,
     Pass,
     Dns,
+
+    Relay,
+    Selector,
+    Fallback,
+    URLTest,
+    LoadBalance,
+
     Shadowsocks,
     ShadowsocksR,
     Snell,
@@ -526,11 +533,9 @@ pub enum ProxyType {
     Sudoku,
     Masque,
     TrustTunnel,
-    Relay,
-    Selector,
-    Fallback,
-    URLTest,
-    LoadBalance,
+    OpenVPN,
+    Tailscale,
+    GostRelay,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
