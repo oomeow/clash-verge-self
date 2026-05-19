@@ -34,8 +34,8 @@ export const ProfileDiv = ({
         selected
           ? "bg-primary/25 dark:bg-primary/35 border-primary w-full border-l-[3px]"
           : "bg-background-paper w-full",
-        isDragging && selected && "bg-primary/25 dark:bg-primary/35",
-        isDragging && !selected && "bg-[var(--background-color-alpha)]",
+
+        isDragging && "shadow-[0_0_10px_5px_rgba(0,0,0,0.12)]",
         "[&_h2]:text-text-primary",
         className,
       )}>

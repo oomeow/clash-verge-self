@@ -1,6 +1,7 @@
+import { PointerActivationConstraints } from "@dnd-kit/dom";
 import { isSortable } from "@dnd-kit/dom/sortable";
 import { arrayMove } from "@dnd-kit/helpers";
-import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
+import { DragDropProvider, DragOverlay, PointerSensor } from "@dnd-kit/react";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import ClearRounded from "@mui/icons-material/ClearRounded";
 import ContentPasteRounded from "@mui/icons-material/ContentPasteRounded";
@@ -536,6 +537,7 @@ const ProfilePage = () => {
                 if (!draggingItem) return null;
                 return (
                   <ProfileItem
+                    isDragging
                     sx={{
                       borderRadius: "8px",
                       boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
@@ -582,6 +584,14 @@ const ProfilePage = () => {
                   }),
               }}>
               <DragDropProvider
+                sensors={(defaults) => [
+                  ...defaults,
+                  PointerSensor.configure({
+                    activationConstraints: [
+                      new PointerActivationConstraints.Distance({ value: 5 }),
+                    ],
+                  }),
+                ]}
                 onDragOver={(e) => {
                   if (hasActivatingItems || selectMode) e.preventDefault();
                 }}
@@ -655,6 +665,7 @@ const ProfilePage = () => {
                     if (!draggingItem) return null;
                     return (
                       <ProfileMore
+                        isDragging
                         selected={
                           activatingUidSet.has(draggingItem.uid) ||
                           !!draggingItem.enable
