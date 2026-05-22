@@ -150,7 +150,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
             )}
             {!!proxy.providerName && (
               <span
-                className="border-text-secondary/40 text-text-secondary data-[proxy-provider]:bg-text-secondary/15 mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep"
+                className="border-text-secondary/40 text-text-secondary data-proxy-provider:bg-text-secondary/15 mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep"
                 data-proxy-provider>
                 {proxy.providerName}
               </span>

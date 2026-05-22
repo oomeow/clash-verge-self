@@ -8,6 +8,7 @@ import { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Proxy } from "tauri-plugin-mihomo-api";
 
+import DefaultGroupIcon from "@/assets/image/default_group_icon.svg?react";
 import { downloadIconCache } from "@/services/cmds";
 import { useProfilesStore, useVergeStore } from "@/stores";
 import {
@@ -40,13 +41,11 @@ interface ProxyColProps {
 }
 
 const GROUP_ICON_STYLE: Record<string, string> = {
-  marginRight: "12px",
-  borderRadius: "6px",
+  width: "36px",
+  height: "36px",
 };
 const GROUP_ICON_LOADING_STYLE = {
   ...GROUP_ICON_STYLE,
-  width: "32px",
-  height: "32px",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
@@ -199,6 +198,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
     [currentProfileUid, group.name],
   );
   const groupIcon = group.icon?.trim() ?? "";
+  const hasGroupIcon = groupIcon !== "";
   const isHttpIcon = groupIcon.startsWith("http");
   const isDataIcon = groupIcon.startsWith("data");
   const isInlineSvgIcon = groupIcon.startsWith("<svg");
@@ -265,27 +265,29 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           }}>
           {enableGroupIcon && (
             <Box className="flex h-15 w-15 shrink-0 items-center pr-2">
-              {isHttpIcon && !iconCachePath && (
-                <Box sx={GROUP_ICON_LOADING_STYLE}>
-                  <CircularProgress size={18} />
-                </Box>
-              )}
-              {isHttpIcon && iconCachePath && (
-                <img
-                  src={iconCachePath}
-                  width="32px"
-                  style={GROUP_ICON_STYLE}
-                />
-              )}
-              {isDataIcon && (
-                <img src={groupIcon} width="32px" style={GROUP_ICON_STYLE} />
-              )}
-              {isInlineSvgIcon && (
+              {!hasGroupIcon ? (
+                <div style={GROUP_ICON_LOADING_STYLE}>
+                  <DefaultGroupIcon className="text-primary h-full w-full" />
+                </div>
+              ) : isHttpIcon ? (
+                iconCachePath ? (
+                  <img src={iconCachePath} style={GROUP_ICON_STYLE} />
+                ) : (
+                  <Box sx={GROUP_ICON_LOADING_STYLE}>
+                    <CircularProgress size={18} />
+                  </Box>
+                )
+              ) : isDataIcon ? (
+                <img src={groupIcon} style={GROUP_ICON_STYLE} />
+              ) : isInlineSvgIcon ? (
                 <img
                   src={encodeSvgDataUri(groupIcon)}
-                  width="32px"
                   style={GROUP_ICON_STYLE}
                 />
+              ) : (
+                <div style={GROUP_ICON_LOADING_STYLE}>
+                  <DefaultGroupIcon className="text-primary h-full w-full" />
+                </div>
               )}
             </Box>
           )}
