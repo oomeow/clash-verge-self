@@ -211,16 +211,12 @@ impl Mihomo {
             });
         };
 
-        match self.protocol {
+        let (writer, reader) = match self.protocol {
             Protocol::Http => {
                 tracing::debug!("starting connect to websocket by using http");
                 let request = url.into_client_request()?;
                 let (ws_stream, _) = connect_async(request).await?;
-                let (writer, reader) = WsStream::from(ws_stream).split();
-
-                manager.0.write().await.insert(id, writer);
-                spawn_read(reader, on_message, manager.clone());
-                Ok(id)
+                WsStream::from(ws_stream).split()
             }
             Protocol::LocalSocket => {
                 if let Some(socket_path) = self.socket_path.as_ref() {
@@ -236,17 +232,17 @@ impl Mihomo {
                         .header(SEC_WEBSOCKET_VERSION, "13")
                         .body(())?;
                     let (ws_stream, _) = client_async(request, stream).await?;
-                    let (writer, reader) = WsStream::from(ws_stream).split();
-
-                    manager.0.write().await.insert(id, writer);
-                    spawn_read(reader, on_message, manager.clone());
-                    Ok(id)
+                    WsStream::from(ws_stream).split()
                 } else {
                     tracing::error!("missing socket path parameter");
-                    Err(Error::MissingPathParameter("socket_path".into()))
+                    return Err(Error::MissingPathParameter("socket_path".into()));
                 }
             }
-        }
+        };
+
+        manager.0.write().await.insert(id, writer);
+        spawn_read(reader, on_message, manager.clone());
+        Ok(id)
     }
 
     /// 向指定 WebSocket 连接发送消息 (暂无使用该方法的地方)
