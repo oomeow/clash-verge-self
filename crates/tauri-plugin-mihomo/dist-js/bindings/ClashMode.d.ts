@@ -1,4 +1,4 @@
 /**
  * clash mode enum
  */
-export type ClashMode = "rule" | "global" | "direct" | "unknown";
+export type ClashMode = "rule" | "global" | "direct";

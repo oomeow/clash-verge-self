@@ -1,34 +1,10 @@
 use std::{collections::HashMap, fmt::Display};
 
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 use ts_rs::TS;
 
 use crate::stream::WsWriteKind;
-
-macro_rules! impl_unknown_enum_deserialize {
-    ($enum:ident, {$($value:literal => $variant:ident),+ $(,)?}) => {
-        impl<'de> Deserialize<'de> for $enum {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de>,
-            {
-                let value = String::deserialize(deserializer)?;
-                Ok(match value.as_str() {
-                    $($value => Self::$variant,)+
-                    _ => {
-                        tracing::warn!(
-                            enum_name = stringify!($enum),
-                            raw_value = %value,
-                            "unknown enum value while deserializing mihomo response, falling back to Unknown"
-                        );
-                        Self::Unknown
-                    }
-                })
-            }
-        }
-    };
-}
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -412,22 +388,14 @@ impl Display for CoreUpdaterChannel {
 }
 
 /// clash mode enum
-#[derive(Debug, Clone, Copy, Serialize, TS, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, TS, PartialEq, Eq)]
 #[ts(export)]
 #[serde(rename_all = "lowercase")]
 pub enum ClashMode {
     Rule,
     Global,
     Direct,
-    #[serde(rename = "unknown")]
-    Unknown,
 }
-
-impl_unknown_enum_deserialize!(ClashMode, {
-    "rule" => Rule,
-    "global" => Global,
-    "direct" => Direct
-});
 
 impl Display for ClashMode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -435,28 +403,19 @@ impl Display for ClashMode {
             ClashMode::Rule => write!(f, "rule"),
             ClashMode::Global => write!(f, "global"),
             ClashMode::Direct => write!(f, "direct"),
-            ClashMode::Unknown => write!(f, "unknown"),
         }
     }
 }
 
 /// tun stack enum
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum TunStack {
     Mixed,
     #[serde(rename = "gVisor")]
     Gvisor,
     System,
-    #[serde(rename = "unknown")]
-    Unknown,
 }
-
-impl_unknown_enum_deserialize!(TunStack, {
-    "Mixed" => Mixed,
-    "gVisor" => Gvisor,
-    "System" => System
-});
 
 impl Display for TunStack {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -464,7 +423,6 @@ impl Display for TunStack {
             TunStack::Mixed => write!(f, "Mixed"),
             TunStack::Gvisor => write!(f, "gVisor"),
             TunStack::System => write!(f, "System"),
-            TunStack::Unknown => write!(f, "unknown"),
         }
     }
 }
@@ -540,7 +498,7 @@ pub struct Proxy {
     pub provider_name: String,
 }
 
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L18
 pub enum ProxyType {
@@ -578,44 +536,7 @@ pub enum ProxyType {
     OpenVPN,
     Tailscale,
     GostRelay,
-    #[serde(rename = "unknown")]
-    Unknown,
 }
-
-impl_unknown_enum_deserialize!(ProxyType, {
-    "Direct" => Direct,
-    "Reject" => Reject,
-    "RejectDrop" => RejectDrop,
-    "Compatible" => Compatible,
-    "Pass" => Pass,
-    "Dns" => Dns,
-    "Relay" => Relay,
-    "Selector" => Selector,
-    "Fallback" => Fallback,
-    "URLTest" => URLTest,
-    "LoadBalance" => LoadBalance,
-    "Shadowsocks" => Shadowsocks,
-    "ShadowsocksR" => ShadowsocksR,
-    "Snell" => Snell,
-    "Socks5" => Socks5,
-    "Http" => Http,
-    "Vmess" => Vmess,
-    "Vless" => Vless,
-    "Trojan" => Trojan,
-    "Hysteria" => Hysteria,
-    "Hysteria2" => Hysteria2,
-    "WireGuard" => WireGuard,
-    "Tuic" => Tuic,
-    "Ssh" => Ssh,
-    "Mieru" => Mieru,
-    "AnyTLS" => AnyTLS,
-    "Sudoku" => Sudoku,
-    "Masque" => Masque,
-    "TrustTunnel" => TrustTunnel,
-    "OpenVPN" => OpenVPN,
-    "Tailscale" => Tailscale,
-    "GostRelay" => GostRelay
-});
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -653,37 +574,21 @@ pub struct ProxyProviders {
     pub providers: HashMap<String, ProxyProvider>,
 }
 
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum ProviderType {
     Proxy,
     Rule,
-    #[serde(rename = "unknown")]
-    Unknown,
 }
 
-impl_unknown_enum_deserialize!(ProviderType, {
-    "Proxy" => Proxy,
-    "Rule" => Rule
-});
-
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum VehicleType {
     File,
     HTTP,
     Compatible,
     Inline,
-    #[serde(rename = "unknown")]
-    Unknown,
 }
-
-impl_unknown_enum_deserialize!(VehicleType, {
-    "File" => File,
-    "HTTP" => HTTP,
-    "Compatible" => Compatible,
-    "Inline" => Inline
-});
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -741,7 +646,7 @@ pub struct RuleExtra {
     pub miss_at: String,
 }
 
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum RuleType {
     Domain,
@@ -779,47 +684,7 @@ pub enum RuleType {
     AND,
     OR,
     NOT,
-    #[serde(rename = "unknown")]
-    Unknown,
 }
-
-impl_unknown_enum_deserialize!(RuleType, {
-    "Domain" => Domain,
-    "DomainSuffix" => DomainSuffix,
-    "DomainKeyword" => DomainKeyword,
-    "DomainRegex" => DomainRegex,
-    "DomainWildcard" => DomainWildcard,
-    "GeoSite" => GeoSite,
-    "GeoIP" => GeoIP,
-    "SrcGeoIP" => SrcGeoIP,
-    "IPASN" => IPASN,
-    "SrcIPASN" => SrcIPASN,
-    "IPCIDR" => IPCIDR,
-    "SrcIPCIDR" => SrcIPCIDR,
-    "IPSuffix" => IPSuffix,
-    "SrcIPSuffix" => SrcIPSuffix,
-    "SrcPort" => SrcPort,
-    "DstPort" => DstPort,
-    "InPort" => InPort,
-    "InUser" => InUser,
-    "InName" => InName,
-    "InType" => InType,
-    "ProcessName" => ProcessName,
-    "ProcessPath" => ProcessPath,
-    "ProcessNameRegex" => ProcessNameRegex,
-    "ProcessPathRegex" => ProcessPathRegex,
-    "ProcessNameWildcard" => ProcessNameWildcard,
-    "ProcessPathWildcard" => ProcessPathWildcard,
-    "Match" => Match,
-    "RuleSet" => RuleSet,
-    "Network" => Network,
-    "DSCP" => DSCP,
-    "Uid" => Uid,
-    "SubRules" => SubRules,
-    "AND" => AND,
-    "OR" => OR,
-    "NOT" => NOT
-});
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -897,7 +762,7 @@ pub enum Network {
     ALLNet,
 }
 
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum ConnectionType {
     HTTP,
@@ -930,30 +795,9 @@ pub enum ConnectionType {
     ANYTLS,
     #[serde(rename = "Inner")]
     INNER,
-    #[serde(rename = "unknown")]
-    Unknown,
 }
 
-impl_unknown_enum_deserialize!(ConnectionType, {
-    "HTTP" => HTTP,
-    "HTTPS" => HTTPS,
-    "Socks4" => SOCKS4,
-    "Socks5" => SOCKS5,
-    "ShadowSocks" => SHADOWSOCKS,
-    "Vmess" => VMESS,
-    "Vless" => VLESS,
-    "Redir" => REDIR,
-    "TProxy" => TPROXY,
-    "Trojan" => TROJAN,
-    "Tunnel" => TUNNEL,
-    "Tun" => TUN,
-    "Tuic" => TUIC,
-    "Hysteria2" => HYSTERIA2,
-    "AnyTLS" => ANYTLS,
-    "Inner" => INNER
-});
-
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum DNSMode {
     #[serde(rename = "normal")]
@@ -964,16 +808,7 @@ pub enum DNSMode {
     Mapping,
     #[serde(rename = "hosts")]
     Hosts,
-    #[serde(rename = "unknown")]
-    Unknown,
 }
-
-impl_unknown_enum_deserialize!(DNSMode, {
-    "normal" => Normal,
-    "fake-ip" => FakeIP,
-    "redir-host" => Mapping,
-    "hosts" => Hosts
-});
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
@@ -1065,123 +900,6 @@ pub enum WebSocketMessage {
     Ping(Vec<u8>),
     Pong(Vec<u8>),
     Close(Option<CloseFrame>),
-}
-
-#[cfg(test)]
-mod tests {
-    use serde_json::json;
-
-    use super::{
-        ClashMode, ConnectionMetaData, ConnectionType, DNSMode, ProviderType, Proxy, ProxyProvider, ProxyType, Rule,
-        RuleType, TunConfig, TunStack, VehicleType,
-    };
-
-    #[test]
-    fn deserialize_unknown_proxy_type_falls_back_without_error() {
-        let proxy: Proxy = serde_json::from_value(json!({
-            "alive": true,
-            "history": [],
-            "extra": {},
-            "name": "test",
-            "udp": true,
-            "uot": false,
-            "type": "BrandNewProxy",
-            "xudp": false,
-            "tfo": false,
-            "mptcp": false,
-            "smux": false,
-            "interface": "",
-            "dialer-proxy": "",
-            "routing-mark": 0,
-            "provider-name": ""
-        }))
-        .unwrap();
-        assert!(matches!(proxy.proxy_type, ProxyType::Unknown));
-    }
-
-    #[test]
-    fn deserialize_unknown_response_enums_fall_back_without_error() {
-        let provider: ProxyProvider = serde_json::from_value(json!({
-            "name": "provider",
-            "type": "brand-new-provider-type",
-            "vehicleType": "brand-new-vehicle-type",
-            "proxies": [],
-            "testUrl": "",
-            "expectedStatus": "",
-            "updatedAt": null,
-            "subscriptionInfo": null
-        }))
-        .unwrap();
-        assert!(matches!(provider.provider_type, ProviderType::Unknown));
-        assert!(matches!(provider.vehicle_type, VehicleType::Unknown));
-
-        let rule: Rule = serde_json::from_value(json!({
-            "index": 0,
-            "type": "brand-new-rule-type",
-            "payload": "",
-            "proxy": "",
-            "size": 0,
-            "extra": null
-        }))
-        .unwrap();
-        assert!(matches!(rule.rule_type, RuleType::Unknown));
-
-        let metadata: ConnectionMetaData = serde_json::from_value(json!({
-            "network": "tcp",
-            "type": "BrandNewConnectionType",
-            "sourceIP": "",
-            "destinationIP": "",
-            "sourceGeoIP": null,
-            "destinationGeoIP": null,
-            "sourceIPASN": "",
-            "destinationIPASN": "",
-            "sourcePort": "",
-            "destinationPort": "",
-            "inboundIP": "",
-            "inboundPort": "",
-            "inboundName": "",
-            "inboundUser": "",
-            "host": "",
-            "dnsMode": "brand-new-dns-mode",
-            "uid": 0,
-            "process": "",
-            "processPath": "",
-            "specialProxy": "",
-            "specialRules": "",
-            "remoteDestination": "",
-            "dscp": 0,
-            "sniffHost": ""
-        }))
-        .unwrap();
-        assert!(matches!(metadata.connection_type, ConnectionType::Unknown));
-        assert!(matches!(metadata.dns_mode, DNSMode::Unknown));
-    }
-
-    #[test]
-    fn deserialize_unknown_base_config_enums_fall_back_without_error() {
-        let tun: TunConfig = serde_json::from_value(json!({
-            "enable": true,
-            "device": "utun0",
-            "stack": "BrandNewStack",
-            "dns-hijack": [],
-            "auto-route": true,
-            "auto-detect-interface": true,
-            "file-descriptor": 0
-        }))
-        .unwrap();
-        assert!(matches!(tun.stack, TunStack::Unknown));
-
-        #[derive(serde::Deserialize)]
-        struct Wrapper {
-            mode: ClashMode,
-        }
-
-        let wrapper: Wrapper = serde_json::from_value(json!({
-            "mode": "brand-new-mode"
-        }))
-        .unwrap();
-        assert!(matches!(wrapper.mode, ClashMode::Unknown));
-    }
 }
 
 pub type WebSocketConnectionId = u32;
