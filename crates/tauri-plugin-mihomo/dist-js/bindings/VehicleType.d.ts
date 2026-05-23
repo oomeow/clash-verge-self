@@ -1,1 +1,1 @@
-export type VehicleType = "File" | "HTTP" | "Compatible" | "Inline";
+export type VehicleType = "File" | "HTTP" | "Compatible" | "Inline" | "Unknown";

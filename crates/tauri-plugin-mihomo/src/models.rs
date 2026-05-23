@@ -395,6 +395,9 @@ pub enum ClashMode {
     Rule,
     Global,
     Direct,
+
+    #[serde(other)]
+    Unknown,
 }
 
 impl Display for ClashMode {
@@ -403,6 +406,7 @@ impl Display for ClashMode {
             ClashMode::Rule => write!(f, "rule"),
             ClashMode::Global => write!(f, "global"),
             ClashMode::Direct => write!(f, "direct"),
+            ClashMode::Unknown => write!(f, "unknown"),
         }
     }
 }
@@ -415,6 +419,9 @@ pub enum TunStack {
     #[serde(rename = "gVisor")]
     Gvisor,
     System,
+
+    #[serde(other)]
+    Unknown,
 }
 
 impl Display for TunStack {
@@ -423,6 +430,7 @@ impl Display for TunStack {
             TunStack::Mixed => write!(f, "Mixed"),
             TunStack::Gvisor => write!(f, "gVisor"),
             TunStack::System => write!(f, "System"),
+            TunStack::Unknown => write!(f, "Unknown"),
         }
     }
 }
@@ -536,6 +544,9 @@ pub enum ProxyType {
     OpenVPN,
     Tailscale,
     GostRelay,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -579,6 +590,9 @@ pub struct ProxyProviders {
 pub enum ProviderType {
     Proxy,
     Rule,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -588,6 +602,9 @@ pub enum VehicleType {
     HTTP,
     Compatible,
     Inline,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -684,6 +701,9 @@ pub enum RuleType {
     AND,
     OR,
     NOT,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -699,6 +719,9 @@ pub enum RuleBehavior {
     #[serde(rename = "IPCIDR")]
     IpCidr,
     Classical,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -710,6 +733,9 @@ pub enum RuleFormat {
     Text,
     #[serde(rename = "MrsRule")]
     Mrs,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -760,6 +786,9 @@ pub enum Network {
     UDP,
     #[serde(rename = "all")]
     ALLNet,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -795,6 +824,9 @@ pub enum ConnectionType {
     ANYTLS,
     #[serde(rename = "Inner")]
     INNER,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -808,6 +840,9 @@ pub enum DNSMode {
     Mapping,
     #[serde(rename = "hosts")]
     Hosts,
+
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -881,6 +916,7 @@ pub struct Log {
 }
 
 // ------------- use in rust, no need export to typescript -----------------
+
 #[derive(Deserialize, Serialize)]
 pub struct ErrorResponse {
     pub message: String,
@@ -906,3 +942,120 @@ pub type WebSocketConnectionId = u32;
 
 #[derive(Default)]
 pub struct ConnectionManager(pub RwLock<HashMap<WebSocketConnectionId, WsWriteKind>>);
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::{
+        ClashMode, ConnectionMetaData, ConnectionType, DNSMode, ProviderType, Proxy, ProxyProvider, ProxyType, Rule,
+        RuleType, TunConfig, TunStack, VehicleType,
+    };
+
+    #[test]
+    fn deserialize_unknown_proxy_type_falls_back_without_error() {
+        let proxy: Proxy = serde_json::from_value(json!({
+            "alive": true,
+            "history": [],
+            "extra": {},
+            "name": "test",
+            "udp": true,
+            "uot": false,
+            "type": "BrandNewProxy",
+            "xudp": false,
+            "tfo": false,
+            "mptcp": false,
+            "smux": false,
+            "interface": "",
+            "dialer-proxy": "",
+            "routing-mark": 0,
+            "provider-name": ""
+        }))
+        .unwrap();
+        assert!(matches!(proxy.proxy_type, ProxyType::Unknown));
+    }
+
+    #[test]
+    fn deserialize_unknown_response_enums_fall_back_without_error() {
+        let provider: ProxyProvider = serde_json::from_value(json!({
+            "name": "provider",
+            "type": "brand-new-provider-type",
+            "vehicleType": "brand-new-vehicle-type",
+            "proxies": [],
+            "testUrl": "",
+            "expectedStatus": "",
+            "updatedAt": null,
+            "subscriptionInfo": null
+        }))
+        .unwrap();
+        assert!(matches!(provider.provider_type, ProviderType::Unknown));
+        assert!(matches!(provider.vehicle_type, VehicleType::Unknown));
+
+        let rule: Rule = serde_json::from_value(json!({
+            "index": 0,
+            "type": "brand-new-rule-type",
+            "payload": "",
+            "proxy": "",
+            "size": 0,
+            "extra": null
+        }))
+        .unwrap();
+        assert!(matches!(rule.rule_type, RuleType::Unknown));
+
+        let metadata: ConnectionMetaData = serde_json::from_value(json!({
+            "network": "tcp",
+            "type": "BrandNewConnectionType",
+            "sourceIP": "",
+            "destinationIP": "",
+            "sourceGeoIP": null,
+            "destinationGeoIP": null,
+            "sourceIPASN": "",
+            "destinationIPASN": "",
+            "sourcePort": "",
+            "destinationPort": "",
+            "inboundIP": "",
+            "inboundPort": "",
+            "inboundName": "",
+            "inboundUser": "",
+            "host": "",
+            "dnsMode": "brand-new-dns-mode",
+            "uid": 0,
+            "process": "",
+            "processPath": "",
+            "specialProxy": "",
+            "specialRules": "",
+            "remoteDestination": "",
+            "dscp": 0,
+            "sniffHost": ""
+        }))
+        .unwrap();
+        assert!(matches!(metadata.connection_type, ConnectionType::Unknown));
+        assert!(matches!(metadata.dns_mode, DNSMode::Unknown));
+    }
+
+    #[test]
+    fn deserialize_unknown_base_config_enums_fall_back_without_error() {
+        let tun: TunConfig = serde_json::from_value(json!({
+            "enable": true,
+            "device": "utun0",
+            "stack": "BrandNewStack",
+            "dns-hijack": [],
+            "auto-route": true,
+            "auto-detect-interface": true,
+            "file-descriptor": 0
+        }))
+        .unwrap();
+        assert!(matches!(tun.stack, TunStack::Unknown));
+
+        #[derive(serde::Deserialize)]
+        struct Wrapper {
+            mode: ClashMode,
+        }
+
+        let wrapper: Wrapper = serde_json::from_value(json!({
+            "mode": "brand-new-mode"
+        }))
+        .unwrap();
+        assert!(matches!(wrapper.mode, ClashMode::Unknown));
+    }
+}

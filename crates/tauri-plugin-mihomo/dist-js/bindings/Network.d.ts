@@ -1,1 +1,1 @@
-export type Network = "tcp" | "udp" | "all";
+export type Network = "tcp" | "udp" | "all" | "Unknown";

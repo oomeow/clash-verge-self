@@ -1,1 +1,1 @@
-export type RuleFormat = "YamlRule" | "TextRule" | "MrsRule";
+export type RuleFormat = "YamlRule" | "TextRule" | "MrsRule" | "Unknown";
