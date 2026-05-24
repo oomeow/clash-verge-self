@@ -28,7 +28,11 @@ use parking_lot::Mutex;
 use tipsy::{Connection, Endpoint, IntoIpcPath, OnConflict, SecurityAttributes, ServerId};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
-    sync::watch::{Sender, channel},
+    sync::{
+        OwnedSemaphorePermit, Semaphore,
+        watch::{Receiver, Sender, channel},
+    },
+    time::timeout,
 };
 #[cfg(windows)]
 use windows_service::{
@@ -41,6 +45,9 @@ use crate::{DEFAULT_SERVER_ID, KEY_INFO, Result, ServiceError};
 
 #[cfg(windows)]
 static SERVICE_STATUS_HANDLE: OnceLock<parking_lot::Mutex<ServiceStatusHandle>> = OnceLock::new();
+
+const IPC_MAX_ACTIVE_CONNECTIONS: usize = 32;
+const IPC_CONNECTION_IDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30);
 
 macro_rules! wrap_response {
     ($expr: expr) => {
@@ -65,6 +72,18 @@ pub struct SecureChannel {
     seen_ids: Arc<Mutex<VecDeque<u64>>>,
     /// each request timestamp (millions)
     timestamp_window: u128,
+}
+
+fn try_acquire_connection_permit(semaphore: &Arc<Semaphore>) -> Option<OwnedSemaphorePermit> {
+    log::debug!("{}", semaphore.available_permits());
+    semaphore.clone().try_acquire_owned().ok()
+}
+
+async fn idle_timeout_result<T, F>(duration: std::time::Duration, future: F) -> Option<T>
+where
+    F: std::future::Future<Output = T>,
+{
+    timeout(duration, future).await.ok()
 }
 
 impl SecureChannel {
@@ -219,16 +238,21 @@ pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Resul
         .security_attributes(security_attributes)
         .incoming()?;
     futures::pin_mut!(incoming);
+    let connection_semaphore = Arc::new(Semaphore::new(IPC_MAX_ACTIVE_CONNECTIONS));
 
     tokio::select! {
          _ = async {
             while let Some(result) = incoming.next().await {
                 match result {
                     Ok(stream) => {
+                        let Some(connection_permit) = try_acquire_connection_permit(&connection_semaphore) else {
+                            log::warn!("reject ipc connection because active connection limit {} is reached", IPC_MAX_ACTIVE_CONNECTIONS);
+                            continue;
+                        };
                         log::info!("handshake server");
                         let secured = SecureChannel::handshake_server(stream, psk).await?;
                         log::info!("receive client request");
-                        spawn_read_task(secured, shutdown_tx.clone()).await;
+                        spawn_read_task(secured, shutdown_tx.clone(), shutdown_tx.subscribe(), connection_permit);
                     }
                     _ => unreachable!("ideally")
                 }
@@ -308,9 +332,33 @@ impl SecureChannel {
     }
 }
 
-async fn spawn_read_task(mut secured: SecureChannel, shutdown_tx: Sender<()>) {
+fn spawn_read_task(
+    mut secured: SecureChannel,
+    shutdown_tx: Sender<()>,
+    mut shutdown_rx: Receiver<()>,
+    _connection_permit: OwnedSemaphorePermit,
+) {
     tokio::spawn(async move {
-        while let Ok(msg) = secured.recv().await {
+        loop {
+            let recv_result = tokio::select! {
+                result = shutdown_rx.changed() => {
+                    if result.is_ok() {
+                        log::info!("service shutdown received, closing ipc connection");
+                    }
+                    break;
+                }
+                result = idle_timeout_result(IPC_CONNECTION_IDLE_TIMEOUT, secured.recv()) => result,
+            };
+
+            let Some(recv_result) = recv_result else {
+                log::info!("closing idle ipc connection after {:?}", IPC_CONNECTION_IDLE_TIMEOUT);
+                break;
+            };
+
+            let Ok(msg) = recv_result else {
+                break;
+            };
+
             let send_error_resp = async |secured: &mut SecureChannel, e: Result<()>| {
                 log::info!("send error response to back");
                 let response = wrap_response!(e)?;
@@ -417,6 +465,31 @@ fn stop_service() -> Result<()> {
         .arg(crate::SERVICE_NAME)
         .output()?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{sync::Arc, time::Duration};
+
+    use tokio::sync::Semaphore;
+
+    use super::{idle_timeout_result, try_acquire_connection_permit};
+
+    #[tokio::test]
+    async fn idle_timeout_result_returns_none_when_future_stalls() {
+        let result = idle_timeout_result(Duration::from_millis(10), std::future::pending::<crate::Result<u8>>()).await;
+        assert!(result.is_none(), "idle timeout should stop stalled connections");
+    }
+
+    #[test]
+    fn try_acquire_connection_permit_rejects_connections_over_limit() {
+        let semaphore = Arc::new(Semaphore::new(1));
+        let first = try_acquire_connection_permit(&semaphore);
+        assert!(first.is_some(), "first connection should acquire a permit");
+
+        let second = try_acquire_connection_permit(&semaphore);
+        assert!(second.is_none(), "connections over the limit should be rejected");
+    }
 }
 
 #[cfg(target_os = "macos")]
