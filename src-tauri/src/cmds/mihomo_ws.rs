@@ -99,6 +99,7 @@ static MIHOMO_WS_CONNECTIONS: Lazy<RwLock<HashMap<WebSocketConnectionId, MihomoW
 const WS_RECONNECT_DELAY: Duration = Duration::from_millis(500);
 const WS_MAX_RECONNECT_DELAY: Duration = Duration::from_secs(5);
 const WS_CONNECTION_CHECK_INTERVAL: Duration = Duration::from_secs(1);
+const WS_LOG_BUFFER_LIMIT: usize = 500;
 
 fn next_ws_connection_id() -> WebSocketConnectionId {
     loop {
@@ -159,6 +160,14 @@ fn forward_mihomo_ws_message(
     }
 }
 
+fn buffer_log_message(log_buffer: &mut BufferedLogMessages, data: Value, limit: usize) {
+    if log_buffer.messages.len() >= limit {
+        let overflow = log_buffer.messages.len() + 1 - limit;
+        log_buffer.messages.drain(..overflow);
+    }
+    log_buffer.messages.push(data);
+}
+
 fn buffer_or_forward_mihomo_log_ws_message(
     data: Value,
     on_message: &Channel<Value>,
@@ -171,7 +180,7 @@ fn buffer_or_forward_mihomo_log_ws_message(
         && let Some(data) = data.take()
     {
         tracing::debug!("log snapshot not send done, buffering log data");
-        log_buffer.messages.push(data);
+        buffer_log_message(&mut log_buffer, data, WS_LOG_BUFFER_LIMIT);
     }
 
     if let Some(data) = data {
@@ -491,4 +500,27 @@ pub async fn ws_disconnect(id: WebSocketConnectionId, force_timeout: Option<u64>
 #[tauri::command]
 pub async fn clear_all_ws_connections() -> CommandResult<()> {
     into_command_result(clear_mihomo_ws_connections().await)
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::{BufferedLogMessages, buffer_log_message};
+
+    #[test]
+    fn buffer_log_message_keeps_only_latest_entries_within_limit() {
+        let mut log_buffer = BufferedLogMessages {
+            buffering: true,
+            messages: Vec::new(),
+        };
+
+        for index in 0..3 {
+            buffer_log_message(&mut log_buffer, json!({ "index": index }), 2);
+        }
+
+        assert_eq!(log_buffer.messages.len(), 2);
+        assert_eq!(log_buffer.messages[0], json!({ "index": 1 }));
+        assert_eq!(log_buffer.messages[1], json!({ "index": 2 }));
+    }
 }
