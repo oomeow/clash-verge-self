@@ -99,7 +99,7 @@
     "fs-extra": "11.3.5",
     "globals": "17.6.0",
     "https-proxy-agent": "9.0.0",
-    "meta-json-schema": "1.19.24",
+    "meta-json-schema": "1.19.25",
     "node-fetch": "3.3.2",
     "picocolors": "1.1.1",
     "postcss": "8.5.15",
