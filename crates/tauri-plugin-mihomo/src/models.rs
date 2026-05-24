@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
+use tokio::{sync::RwLock, task::AbortHandle};
 use ts_rs::TS;
 
 use crate::stream::WsWriteKind;
@@ -940,8 +940,35 @@ pub enum WebSocketMessage {
 
 pub type WebSocketConnectionId = u32;
 
+pub struct ManagedWsConnection {
+    pub writer: WsWriteKind,
+    pub read_task: AbortHandle,
+}
+
 #[derive(Default)]
-pub struct ConnectionManager(pub RwLock<HashMap<WebSocketConnectionId, WsWriteKind>>);
+pub struct ConnectionManager(pub RwLock<HashMap<WebSocketConnectionId, ManagedWsConnection>>);
+
+impl ConnectionManager {
+    pub async fn contains(&self, id: WebSocketConnectionId) -> bool {
+        self.0.read().await.contains_key(&id)
+    }
+
+    pub async fn ids(&self) -> Vec<WebSocketConnectionId> {
+        self.0.read().await.keys().copied().collect()
+    }
+
+    pub async fn insert(&self, id: WebSocketConnectionId, connection: ManagedWsConnection) {
+        self.0.write().await.insert(id, connection);
+    }
+
+    pub async fn remove(&self, id: WebSocketConnectionId) -> Option<ManagedWsConnection> {
+        self.0.write().await.remove(&id)
+    }
+
+    pub async fn take_all(&self) -> Vec<ManagedWsConnection> {
+        self.0.write().await.drain().map(|(_, connection)| connection).collect()
+    }
+}
 
 #[cfg(test)]
 mod tests {
