@@ -14,7 +14,8 @@ RUN rm -f /etc/apt/sources.list && \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     g++-arm-linux-gnueabihf libc6-dev-armhf-cross \
-    ca-certificates curl wget gnupg build-essential pkg-config file && \
+    ca-certificates curl wget gnupg build-essential pkg-config file \
+    clang libclang-dev git python3 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN dpkg --add-architecture armhf && \
@@ -22,6 +23,7 @@ RUN dpkg --add-architecture armhf && \
     apt-get autoremove -y && \
     apt-get install -y --no-install-recommends \
     libgtk-3-dev:armhf \
+    libglib2.0-dev:armhf \
     libwebkit2gtk-4.1-dev:armhf \
     libayatana-appindicator3-dev:armhf \
     librsvg2-dev:armhf \
@@ -34,7 +36,10 @@ RUN rustup target add armv7-unknown-linux-gnueabihf
 ENV CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc \
     CC_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-gcc \
     CXX_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-g++ \
-    PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig:$PKG_CONFIG_PATH \
-    PKG_CONFIG_ALLOW_CROSS=1
+    AR_armv7_unknown_linux_gnueabihf=arm-linux-gnueabihf-ar \
+    PKG_CONFIG_PATH=/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH \
+    PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig \
+    PKG_CONFIG_ALLOW_CROSS=1 \
+    PKG_CONFIG_SYSROOT_DIR=/
 
 WORKDIR /app

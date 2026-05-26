@@ -14,7 +14,8 @@ RUN rm -f /etc/apt/sources.list && \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     g++-aarch64-linux-gnu libc6-dev-arm64-cross \
-    ca-certificates curl wget gnupg build-essential pkg-config file && \
+    ca-certificates curl wget gnupg build-essential pkg-config file \
+    clang libclang-dev git python3 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN dpkg --add-architecture arm64 && \
@@ -22,6 +23,7 @@ RUN dpkg --add-architecture arm64 && \
     apt-get autoremove -y && \
     apt-get install -y --no-install-recommends \
     libgtk-3-dev:arm64 \
+    libglib2.0-dev:arm64 \
     libwebkit2gtk-4.1-dev:arm64 \
     libayatana-appindicator3-dev:arm64 \
     librsvg2-dev:arm64 \
@@ -34,7 +36,10 @@ RUN rustup target add aarch64-unknown-linux-gnu
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
     CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc \
     CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++ \
-    PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:$PKG_CONFIG_PATH \
-    PKG_CONFIG_ALLOW_CROSS=1
+    AR_aarch64_unknown_linux_gnu=aarch64-linux-gnu-ar \
+    PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH \
+    PKG_CONFIG_LIBDIR=/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig \
+    PKG_CONFIG_ALLOW_CROSS=1 \
+    PKG_CONFIG_SYSROOT_DIR=/
 
 WORKDIR /app
