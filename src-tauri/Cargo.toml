@@ -78,7 +78,7 @@ rfd = { version = "0.17", default-features = false, features = [
   "common-controls-v6",
 ] }
 network-interface = "2.0.1"
-rquickjs = { version = "0.11", features = ["bindgen"] }
+rquickjs = { version = "0.12", features = ["bindgen"] }
 
 [target.'cfg(windows)'.dependencies]
 runas = "=1.2"
