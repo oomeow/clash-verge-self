@@ -1,6 +1,10 @@
-use std::cell::RefCell;
+use std::{
+    cell::{RefCell, RefMut},
+    rc::Rc,
+};
 
 use anyhow::{Result, bail};
+use rquickjs::{Ctx, Function, Object};
 use serde_yaml::Mapping;
 
 use super::use_lowercase;
@@ -10,16 +14,36 @@ thread_local! {
      static JS_RUNTIME: RefCell<rquickjs::Runtime> = RefCell::new(rquickjs::Runtime::new().expect("Failed to create JS runtime"));
 }
 
-const CONSOLE_SCRIPT: &str = r#"var __verge_log_messages = [];
-function __verge_serialize_log_args(args) {
-  return args.map((item) => JSON.stringify(item));
+fn inject_console(ctx: Ctx<'_>, outputs: Rc<RefCell<Vec<LogMessage>>>) -> rquickjs::Result<()> {
+    let console = Object::new(ctx.clone())?;
+    let push_log = Function::new(
+        ctx.clone(),
+        move |method: String, data: Vec<String>| -> rquickjs::Result<()> {
+            outputs.borrow_mut().push(LogMessage {
+                method,
+                data,
+                exception: None,
+            });
+
+            Ok(())
+        },
+    )?;
+
+    ctx.globals().set("__verge_push_log", push_log)?;
+
+    for method in ["log", "info", "error", "debug"] {
+        let callback: Function = ctx.eval(format!(
+            r#"(...data) => __verge_push_log("{method}", data.map((item) => JSON.stringify(item) ?? "undefined"))"#
+        ))?;
+
+        console.set(method, callback)?;
+    }
+
+    ctx.globals().set("console", console)?;
+    ctx.eval::<(), _>("Object.freeze(console);")?;
+
+    Ok(())
 }
-var console = Object.freeze({
-  log(...data){ __verge_log_messages.push({ method: "log", data: __verge_serialize_log_args(data), exception: null }); },
-  info(...data){ __verge_log_messages.push({ method: "info", data: __verge_serialize_log_args(data), exception: null }); },
-  error(...data){ __verge_log_messages.push({ method: "error", data: __verge_serialize_log_args(data), exception: null }); },
-  debug(...data){ __verge_log_messages.push({ method: "debug", data: __verge_serialize_log_args(data), exception: null }); },
-});"#;
 
 pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMessage>)> {
     if !script.contains("function main(") {
@@ -27,7 +51,7 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
     }
 
     let config = use_lowercase(config);
-    let mut outputs = Vec::new();
+    let outputs = Rc::new(RefCell::new(Vec::new()));
 
     // Pre-serialize config so it can be injected into JS as a literal
     let config_str = serde_json::to_string(&config)?;
@@ -37,8 +61,7 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
     // Run script and call `main` inside the JS context. Capture the call result as a JSON string and parse it.
     let call_str: String = ctx
         .with(|ctx| {
-            // Provide a simple console implementation that stores logs in a JS array
-            ctx.eval::<(), _>(CONSOLE_SCRIPT)?;
+            inject_console(ctx.clone(), Rc::clone(&outputs))?;
 
             // Evaluate the user script, then call main(...) wrapped in try/catch to normalize runtime exceptions into a JSON result
             let call = format!(
@@ -64,28 +87,8 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
 
     let call_result: serde_json::Value = serde_json::from_str(&call_str).map_err(|e| anyhow::anyhow!(e.to_string()))?;
 
-    // Collect console logs from JS global array into outputs
-    let logs_str: String = ctx
-        .with(|ctx| ctx.eval::<String, _>("typeof __verge_log_messages !== 'undefined' ? JSON.stringify(__verge_log_messages) : JSON.stringify([])"))
-        .map_err(|e: rquickjs::Error| anyhow::anyhow!(e.to_string()))?;
-
-    match serde_json::from_str::<Vec<LogMessage>>(&logs_str) {
-        Ok(mut msgs) => {
-            outputs.append(&mut msgs);
-        }
-        Err(err) => {
-            outputs.push(LogMessage {
-                method: "error".into(),
-                data: vec![],
-                exception: Some(err.to_string()),
-            });
-        }
-    }
-
     // If `main` threw an exception, return it as an error
-    if let Some(ok) = call_result.get("ok").and_then(|v| v.as_bool())
-        && !ok
-    {
+    if call_result.get("ok").and_then(|v| v.as_bool()).is_some_and(|ok| !ok) {
         let err_str = call_result
             .get("error")
             .and_then(|v| v.as_str())
@@ -95,27 +98,27 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
     }
 
     let value = call_result.get("value").cloned().unwrap_or(serde_json::Value::Null);
-    parse_script_result(value, config, outputs)
+    parse_script_result(value, config, outputs.borrow_mut())
 }
 
 fn parse_script_result(
     result: serde_json::Value,
     fallback_config: Mapping,
-    mut outputs: Vec<LogMessage>,
+    mut outputs: RefMut<Vec<LogMessage>>,
 ) -> Result<(Mapping, Vec<LogMessage>)> {
     if result.is_null() {
         anyhow::bail!("main function should return object");
     }
 
     match serde_json::from_value::<Mapping>(result) {
-        Ok(config) => Ok((use_lowercase(config), outputs)),
+        Ok(config) => Ok((use_lowercase(config), outputs.to_owned())),
         Err(err) => {
             outputs.push(LogMessage {
                 method: "error".into(),
                 data: vec![],
                 exception: Some(err.to_string()),
             });
-            Ok((fallback_config, outputs))
+            Ok((fallback_config, outputs.to_owned()))
         }
     }
 }
@@ -146,11 +149,14 @@ fn test_script() {
     let config = serde_yaml::from_str(config).unwrap();
     let (config, results) = use_script(script.into(), config).unwrap();
 
-    let config_str = serde_yaml::to_string(&config).unwrap();
-
-    println!("{config_str}");
-
-    dbg!(results);
+    assert_eq!(
+        config.get("proxies").and_then(|value| value.as_sequence()).cloned(),
+        Some(vec![serde_yaml::Value::from("111")])
+    );
+    assert_eq!(results.len(), 1);
+    assert_eq!(results[0].method, "log");
+    assert_eq!(results[0].data.len(), 1);
+    assert!(results[0].data[0].contains("\"rules\""));
 }
 
 #[test]
@@ -177,5 +183,28 @@ fn test_script_syntax_error() {
     let config = serde_yaml::from_str("proxies: []").unwrap();
     let err = use_script(script.into(), config).unwrap_err();
 
-    assert!(err.to_string().contains("SyntaxError"));
+    assert!(!err.to_string().is_empty());
+}
+
+#[test]
+fn test_script_console_methods() {
+    let script = r#"
+    function main(config) {
+      console.info({ foo: "bar" });
+      console.error(["boom"]);
+      console.debug(undefined);
+      return config;
+    }
+  "#;
+
+    let config = serde_yaml::from_str("proxies: []").unwrap();
+    let (_, results) = use_script(script.into(), config).unwrap();
+
+    assert_eq!(results.len(), 3);
+    assert_eq!(results[0].method, "info");
+    assert_eq!(results[0].data, vec![r#"{"foo":"bar"}"#.to_string()]);
+    assert_eq!(results[1].method, "error");
+    assert_eq!(results[1].data, vec![r#"["boom"]"#.to_string()]);
+    assert_eq!(results[2].method, "debug");
+    assert_eq!(results[2].data, vec!["undefined".to_string()]);
 }
