@@ -1,8 +1,14 @@
+use std::cell::RefCell;
+
 use anyhow::{Result, bail};
 use serde_yaml::Mapping;
 
 use super::use_lowercase;
 use crate::enhance::LogMessage;
+
+thread_local! {
+     static JS_RUNTIME: RefCell<rquickjs::Runtime> = RefCell::new(rquickjs::Runtime::new().expect("Failed to create JS runtime"));
+}
 
 const CONSOLE_SCRIPT: &str = r#"var __verge_log_messages = [];
 function __verge_serialize_log_args(args) {
@@ -16,8 +22,6 @@ var console = Object.freeze({
 });"#;
 
 pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMessage>)> {
-    use rquickjs::{Context, Runtime};
-
     if !script.contains("function main(") {
         bail!("Script does not contain main function");
     }
@@ -28,8 +32,7 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
     // Pre-serialize config so it can be injected into JS as a literal
     let config_str = serde_json::to_string(&config)?;
 
-    let rt = Runtime::new()?;
-    let ctx = Context::full(&rt)?;
+    let ctx = JS_RUNTIME.with(|rt| rquickjs::Context::full(&rt.borrow()))?;
 
     // Run script and call `main` inside the JS context. Capture the call result as a JSON string and parse it.
     let call_str: String = ctx
