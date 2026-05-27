@@ -16,31 +16,40 @@ thread_local! {
 
 fn inject_console(ctx: Ctx<'_>, outputs: Rc<RefCell<Vec<LogMessage>>>) -> rquickjs::Result<()> {
     let console = Object::new(ctx.clone())?;
-    let push_log = Function::new(
-        ctx.clone(),
-        move |method: String, data: Vec<String>| -> rquickjs::Result<()> {
-            outputs.borrow_mut().push(LogMessage {
-                method,
-                data,
-                exception: None,
-            });
-
-            Ok(())
-        },
-    )?;
-
+    let push_log = Function::new(ctx.clone(), move |method: String, data: Vec<String>| {
+        outputs.borrow_mut().push(LogMessage {
+            method,
+            data,
+            exception: None,
+        });
+    })?;
     ctx.globals().set("__verge_push_log", push_log)?;
 
     for method in ["log", "info", "error", "debug"] {
         let callback: Function = ctx.eval(format!(
-            r#"(...data) => __verge_push_log("{method}", data.map((item) => JSON.stringify(item) ?? "undefined"))"#
+            r#"(function(pushLog) {{
+                return (...data) => pushLog("{method}", data.map((item) => JSON.stringify(item) ?? "undefined"));
+            }})(__verge_push_log)"#
         ))?;
-
         console.set(method, callback)?;
     }
+    // remove __verge_push_log from globalThis
+    ctx.eval::<(), _>("delete globalThis.__verge_push_log;")?;
 
     ctx.globals().set("console", console)?;
+
+    // freeze console object
     ctx.eval::<(), _>("Object.freeze(console);")?;
+
+    // prevent console from being replaced
+    ctx.eval::<(), _>(
+        "Object.defineProperty(globalThis, 'console', {
+          value: console,
+          writable: false,
+          configurable: false,
+          enumerable: true,
+        });",
+    )?;
 
     Ok(())
 }
