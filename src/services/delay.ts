@@ -82,7 +82,7 @@ class DelayManager {
   }
 
   async checkDelay(name: string, group: string, timeout: number) {
-    let delay = -1;
+    let delay: number;
     this.setDelay(name, group, -2);
 
     try {

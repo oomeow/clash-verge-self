@@ -23,11 +23,6 @@
       "versioning": "22.04"
     },
     {
-      "matchPackageNames": ["eslint", "@eslint/js"],
-      "groupName": "eslint deps",
-      "allowedVersions": "<10"
-    },
-    {
       "matchPackageNames": ["monaco-editor"],
       "groupName": "monaco deps",
       "allowedVersions": "<0.55.0"

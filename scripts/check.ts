@@ -149,7 +149,7 @@ async function fetchWithTimeout(resource: string, options: FetchOptions = {}) {
     return response;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
-      throw new Error(`fetch timeout: ${timeout}ms`);
+      throw new Error(`fetch timeout: ${timeout}ms`, { cause: error });
     } else {
       throw error;
     }
