@@ -108,8 +108,8 @@ export const TrafficGraph = forwardRef<TrafficRef>((_props, ref) => {
         countY(y),
       ]);
 
-      let x = points[0][0];
-      let y = points[0][1];
+      const x = points[0][0];
+      const y = points[0][1];
 
       context.moveTo(x, y);
 
@@ -121,8 +121,8 @@ export const TrafficGraph = forwardRef<TrafficRef>((_props, ref) => {
         const y1 = (p1[1] + p2[1]) / 2;
 
         context.quadraticCurveTo(p1[0], p1[1], x1, y1);
-        x = x1;
-        y = y1;
+        // x = x1;
+        // y = y1;
       }
     };
 

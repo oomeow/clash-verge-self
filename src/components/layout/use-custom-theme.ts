@@ -201,7 +201,7 @@ export const useCustomTheme = () => {
   }, [currentThemeMode, themeSettings, language]);
 
   const toggleTheme = async (changeMode: "light" | "dark" | "system") => {
-    let nextThemeMode: "light" | "dark" = "light";
+    let nextThemeMode: ThemeMode;
     if (changeMode === "system") {
       const appTheme = (await appWindow.theme()) ?? "light";
       nextThemeMode = appTheme;
