@@ -334,15 +334,22 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
             let restart_core = {
                 if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
                     if let Ok(restart_core_) = Config::profiles().latest_mut().append_item(item) {
-                        // handle::Handle::notify("Clash Verge", t!("notice.import.success"));
-                        handle::Handle::notice_message(handle::NoticeStatus::Success, t!("notice.import.success"));
+                        if handle::Handle::get_window().is_some() {
+                            handle::Handle::notice_message(handle::NoticeStatus::Success, t!("notice.import.success"));
+                        } else {
+                            handle::Handle::notify("Clash Verge", t!("notice.import.success"));
+                        }
                         handle::Handle::refresh_profiles();
                         restart_core_
                     } else {
                         false
                     }
                 } else {
-                    handle::Handle::notice_message(handle::NoticeStatus::Error, t!("notice.import.failed"));
+                    if handle::Handle::get_window().is_some() {
+                        handle::Handle::notice_message(handle::NoticeStatus::Error, t!("notice.import.failed"));
+                    } else {
+                        handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
+                    }
                     tracing::error!("failed to parse url: {}", url);
                     false
                 }
