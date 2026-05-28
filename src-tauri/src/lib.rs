@@ -78,7 +78,13 @@ pub fn run() -> Result<()> {
     resolve::setup_panic_hook();
 
     let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
+            let mut args = argv.into_iter();
+            args.next(); // bin name
+            let arg = args.next(); // first argument
+            if arg.is_some_and(|arg| arg.starts_with("clash:")) {
+                return;
+            }
             resolve::create_window();
         }))
         .plugin(tauri_plugin_shell::init())
