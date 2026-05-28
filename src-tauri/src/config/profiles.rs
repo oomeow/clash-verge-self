@@ -411,6 +411,10 @@ impl IProfiles {
                     // delete current profile, use next profile
                     if delete_current {
                         if let Some(first) = items.first()
+                            && first
+                                .itype
+                                .as_ref()
+                                .is_some_and(|t| matches!(t, ProfileType::Local | ProfileType::Remote))
                             && let Some(uid) = first.uid.as_ref()
                         {
                             self.current = Some(uid.clone());
