@@ -8,6 +8,7 @@ Thank you for your interest in contributing!
 - [Node.js](https://nodejs.org/) >= 20
 - [pnpm](https://pnpm.io/installation) >= 9
 - [Tauri system dependencies](https://v2.tauri.app/start/prerequisites/)
+- [LLVM](https://github.com/llvm/llvm-project/releases) (Windows Need)
 
 ## Setup
 
