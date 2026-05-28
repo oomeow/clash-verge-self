@@ -78,7 +78,15 @@ pub fn run() -> Result<()> {
     resolve::setup_panic_hook();
 
     let builder = tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
+            // 当通过深链（clash: 协议）启动第二个实例时，避免创建重复窗口。(Only supported on Windows/Linux)
+            // 深链处理系统会通过 on_open_url 事件监听器创建带有正确路由的窗口。
+            let mut args = argv.into_iter();
+            args.next(); // bin name
+            let arg = args.next(); // first argument
+            if arg.is_some_and(|arg| arg.starts_with("clash:")) {
+                return;
+            }
             resolve::create_window();
         }))
         .plugin(tauri_plugin_shell::init())

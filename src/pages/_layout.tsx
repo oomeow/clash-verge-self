@@ -2,7 +2,7 @@ import "dayjs/locale/ru";
 import "dayjs/locale/zh-cn";
 
 import { Box, Paper, Stack } from "@mui/material";
-import { Outlet, useRouterState } from "@tanstack/react-router";
+import { Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { Event, listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import dayjs from "dayjs";
@@ -24,6 +24,7 @@ import { useProfilesStore } from "@/stores/profilesStore";
 import { useRulesStateStore } from "@/stores/rulesStateStore";
 import { useVergeStore } from "@/stores/vergeStore";
 import { cn } from "@/utils";
+import { signalFrontendReady } from "@/utils/frontend-ready";
 import getSystem from "@/utils/get-system";
 
 dayjs.extend(relativeTime);
@@ -37,6 +38,7 @@ interface NoticePayload {
 
 const Layout = () => {
   usePortable();
+  const router = useRouter();
   const [isMaximized, setIsMaximized] = useState(false);
   const [pendingPath, setPendingPath] = useState<string | null>(null);
   const [showRouteLoading, setShowRouteLoading] = useState(false);
@@ -106,6 +108,15 @@ const Layout = () => {
       },
     );
 
+    // navigate to a specific route when triggered from Rust backend
+    const unlistenNavigateToRoute = listen(
+      "navigate_to_route",
+      (e: Event<string>) => {
+        const route = e.payload;
+        void router.navigate({ to: route });
+      },
+    );
+
     setTimeout(async () => {
       await appWindow.unminimize();
       await appWindow.show();
@@ -117,6 +128,7 @@ const Layout = () => {
       unlistenRefreshClash.then((fn) => fn());
       unlistenRefreshVerge.then((fn) => fn());
       unlistenNotice.then((fn) => fn());
+      unlistenNavigateToRoute.then((fn) => fn());
     };
   }, []);
 
@@ -210,6 +222,7 @@ const Layout = () => {
           <Box className="relative min-h-0 flex-1 overflow-hidden py-1 pr-1">
             <Suspense fallback={<LoadingPage />}>
               <Outlet />
+              <FrontendReadySignal />
             </Suspense>
             {showRouteLoading && (
               <Box className="absolute inset-0 z-20 transition-opacity duration-150">
@@ -222,6 +235,14 @@ const Layout = () => {
       </Paper>
     </SWRConfig>
   );
+};
+
+const FrontendReadySignal = () => {
+  useEffect(() => {
+    signalFrontendReady();
+  }, []);
+
+  return null;
 };
 
 export default Layout;

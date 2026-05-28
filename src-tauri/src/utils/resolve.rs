@@ -1,11 +1,13 @@
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
-    sync::atomic::Ordering,
+    sync::atomic::{AtomicBool, Ordering},
+    time::Duration,
 };
 
 use anyhow::Result;
 use rust_i18n::t;
-use tauri::{AppHandle, CloseRequestApi, Manager};
+use tauri::{AppHandle, CloseRequestApi, Emitter, Listener, Manager};
+use tokio::sync::oneshot;
 
 use crate::{
     APP_HANDLE, AppState,
@@ -18,6 +20,77 @@ use crate::{
         init, server,
     },
 };
+
+const FRONTEND_READY_EVENT: &str = "verge://frontend-ready";
+const FRONTEND_READY_TIMEOUT: Duration = Duration::from_secs(8);
+const FRONTEND_READY_SCRIPT: &str = r#"
+(() => {
+  const readyEvent = "verge://frontend-ready";
+  window.__VERGE_FRONTEND_READY__ = false;
+  window.addEventListener(readyEvent, () => {
+    window.__VERGE_FRONTEND_READY__ = true;
+    window.__TAURI_INTERNALS__
+      ?.invoke("plugin:event|emit", { event: readyEvent, payload: null })
+      ?.catch(console.error);
+  }, { once: true });
+})();
+"#;
+
+static FRONTEND_READY: AtomicBool = AtomicBool::new(false);
+
+fn listen_frontend_ready(app_handle: &AppHandle) -> (tauri::EventId, oneshot::Receiver<()>) {
+    let (sender, receiver) = oneshot::channel();
+    let event_id = app_handle.once(FRONTEND_READY_EVENT, move |_| {
+        FRONTEND_READY.store(true, Ordering::SeqCst);
+        let _ = sender.send(());
+    });
+    (event_id, receiver)
+}
+
+async fn wait_frontend_ready(app_handle: AppHandle, frontend_ready: (tauri::EventId, oneshot::Receiver<()>)) {
+    let (event_id, receiver) = frontend_ready;
+    if FRONTEND_READY.load(Ordering::SeqCst) {
+        app_handle.unlisten(event_id);
+        return;
+    }
+
+    match tokio::time::timeout(FRONTEND_READY_TIMEOUT, receiver).await {
+        Ok(Ok(())) => {
+            tracing::info!("frontend ready event received");
+        }
+        Ok(Err(_)) => {
+            app_handle.unlisten(event_id);
+            tracing::warn!("frontend ready listener was canceled");
+        }
+        Err(_) => {
+            app_handle.unlisten(event_id);
+            tracing::warn!("timed out waiting for frontend ready event");
+        }
+    }
+}
+
+fn navigate_after_frontend_ready(app_handle: AppHandle, route: String) {
+    if FRONTEND_READY.load(Ordering::SeqCst) {
+        navigate_window_to_route(&route);
+        return;
+    }
+
+    let frontend_ready = listen_frontend_ready(&app_handle);
+    tauri::async_runtime::spawn(async move {
+        wait_frontend_ready(app_handle, frontend_ready).await;
+        navigate_window_to_route(&route);
+    });
+}
+
+#[allow(unused)]
+async fn wait_current_frontend_ready(app_handle: AppHandle) {
+    if FRONTEND_READY.load(Ordering::SeqCst) {
+        return;
+    }
+
+    let frontend_ready = listen_frontend_ready(&app_handle);
+    wait_frontend_ready(app_handle, frontend_ready).await;
+}
 
 pub fn priority_initialization() {
     tracing::trace!("init system tray");
@@ -141,30 +214,55 @@ pub async fn resolve_reset() {
     log_err!(CoreManager::global().stop_core().await);
 }
 
-/// create main window
+/// Navigate the existing main window to a React Router route.
+/// If the window doesn't exist, this is a no-op.
+#[allow(unused)]
+pub fn navigate_window_to_route(route: &str) {
+    if let Some(window) = handle::Handle::app_handle().get_webview_window("main") {
+        trace_err!(window.emit("navigate_to_route", route), "emit navigate_to_route event");
+    }
+}
+
+/// create main window (with optional route navigation)
 pub fn create_window() {
+    create_window_with_route(None);
+}
+
+/// create main window and optionally navigate to a route if window already exists
+pub fn create_window_with_route(route: Option<&str>) {
     CANCEL_MIHOMO_WS_RECONNECT.store(false, Ordering::SeqCst);
     let app_handle = handle::Handle::app_handle();
     if let Some(window) = app_handle.get_webview_window("main") {
         trace_err!(window.unminimize(), "set win unminimize");
         trace_err!(window.show(), "set win visible");
         trace_err!(window.set_focus(), "set win focus");
+        if let Some(route) = route {
+            navigate_after_frontend_ready(app_handle.clone(), route.to_string());
+        }
         #[cfg(target_os = "macos")]
         {
             apply_tray_policy(app_handle, true);
         }
         return;
     }
+    FRONTEND_READY.store(false, Ordering::SeqCst);
+    let should_wait_frontend_ready = route.is_some();
+    let frontend_ready = should_wait_frontend_ready.then(|| listen_frontend_ready(app_handle));
 
-    let verge = Config::verge();
-    let verge = verge.latest();
-    let start_page = verge.start_page.as_deref().unwrap_or("/");
+    let verge = Config::verge().latest().clone();
+    let start_page = if let Some(route) = route {
+        route
+    } else {
+        verge.start_page.as_deref().unwrap_or("/")
+    };
+    tracing::info!("start_page: {}", start_page);
 
     let mut builder = tauri::WebviewWindowBuilder::new(app_handle, "main", tauri::WebviewUrl::App(start_page.into()))
         .title("Clash Verge Self")
         .fullscreen(false)
         .maximized(verge.window_is_maximized.unwrap_or(false))
         .min_inner_size(600.0, 550.0)
+        .initialization_script(FRONTEND_READY_SCRIPT)
         .general_autofill_enabled(false);
 
     let _decoration = verge.enable_system_title_bar.unwrap_or(false);
@@ -173,7 +271,8 @@ pub fn create_window() {
         builder = builder.decorations(_decoration);
     }
 
-    match &verge.window_size_position {
+    tracing::info!("window_size_position: {:?}", verge.window_size_position);
+    match verge.window_size_position {
         Some(size_pos) if size_pos.len() == 4 => {
             let size = (size_pos[0], size_pos[1]);
             let pos = (size_pos[2], size_pos[3]);
@@ -185,6 +284,8 @@ pub fn create_window() {
             builder = builder.inner_size(1100.0, 750.0).center();
         }
     };
+
+    tracing::info!("build window");
     #[cfg(target_os = "windows")]
     let window = builder
         .additional_browser_args("--enable-features=msWebView2EnableDraggableRegions --disable-features=OverscrollHistoryNavigation,msExperimentalScrolling")
@@ -213,7 +314,7 @@ pub fn create_window() {
 
     match window {
         Ok(win) => {
-            tracing::trace!("try to calculate the monitor size");
+            tracing::debug!("try to calculate the monitor size");
             let center = (|| -> Result<bool> {
                 let mut center = false;
                 let monitors = win.available_monitors()?;
@@ -234,10 +335,21 @@ pub fn create_window() {
 
             #[cfg(target_os = "macos")]
             {
+                tracing::debug!("apply tray policy");
                 apply_tray_policy(app_handle, true);
+            }
+
+            if let Some(frontend_ready) = frontend_ready {
+                let app_handle = app_handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    wait_frontend_ready(app_handle, frontend_ready).await;
+                });
             }
         }
         Err(e) => {
+            if let Some((event_id, _)) = frontend_ready {
+                app_handle.unlisten(event_id);
+            }
             tracing::error!("failed to create window: {e}");
         }
     }
@@ -289,6 +401,7 @@ pub fn save_window_size_position(app_handle: &AppHandle) -> Result<()> {
 pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
     let urls: Vec<String> = urls.into_iter().collect();
     tauri::async_runtime::spawn(async move {
+        create_window_with_route(Some("/profiles"));
         for url in urls {
             if !url.starts_with("clash:") {
                 tracing::debug!("ignored unsupported deep link: {url}");
@@ -308,14 +421,22 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
             let restart_core = {
                 if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
                     if let Ok(restart_core_) = Config::profiles().latest_mut().append_item(item) {
-                        handle::Handle::notify("Clash Verge", t!("notice.import.success"));
+                        if handle::Handle::get_window().is_some() {
+                            handle::Handle::notice_message(handle::NoticeStatus::Success, t!("notice.import.success"));
+                        } else {
+                            handle::Handle::notify("Clash Verge", t!("notice.import.success"));
+                        }
                         handle::Handle::refresh_profiles();
                         restart_core_
                     } else {
                         false
                     }
                 } else {
-                    handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
+                    if handle::Handle::get_window().is_some() {
+                        handle::Handle::notice_message(handle::NoticeStatus::Error, t!("notice.import.failed"));
+                    } else {
+                        handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
+                    }
                     tracing::error!("failed to parse url: {}", url);
                     false
                 }

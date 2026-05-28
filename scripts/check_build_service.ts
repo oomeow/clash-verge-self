@@ -1,12 +1,11 @@
 import { intro, outro, spinner } from "@clack/prompts";
 import fs from "fs-extra";
-import path from "path";
 import pc from "picocolors";
 
 import { buildService } from "./build-service";
 import {
-  SERVICE_CACHE_FILE,
   cratesPath,
+  SERVICE_CACHE_FILE,
   snapshotFilesHashOnDir,
 } from "./utils";
 
