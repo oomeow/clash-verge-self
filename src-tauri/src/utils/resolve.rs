@@ -255,7 +255,6 @@ pub fn create_window_with_route(route: Option<&str>) {
     } else {
         verge.start_page.as_deref().unwrap_or("/")
     };
-    tracing::info!("start_page: {}", start_page);
 
     let mut builder = tauri::WebviewWindowBuilder::new(app_handle, "main", tauri::WebviewUrl::App(start_page.into()))
         .title("Clash Verge Self")
@@ -271,7 +270,6 @@ pub fn create_window_with_route(route: Option<&str>) {
         builder = builder.decorations(_decoration);
     }
 
-    tracing::info!("window_size_position: {:?}", verge.window_size_position);
     match verge.window_size_position {
         Some(size_pos) if size_pos.len() == 4 => {
             let size = (size_pos[0], size_pos[1]);
@@ -285,7 +283,6 @@ pub fn create_window_with_route(route: Option<&str>) {
         }
     };
 
-    tracing::info!("build window");
     #[cfg(target_os = "windows")]
     let window = builder
         .additional_browser_args("--enable-features=msWebView2EnableDraggableRegions --disable-features=OverscrollHistoryNavigation,msExperimentalScrolling")
