@@ -315,6 +315,16 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
     let urls: Vec<String> = urls.into_iter().collect();
     tauri::async_runtime::spawn(async move {
         create_window_with_route(Some("/profiles"));
+        for _ in 0..10 {
+            if handle::Handle::get_window().is_none() {
+                tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+                continue;
+            }
+            // route again, avoid window created but dom not render finished
+            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+            navigate_window_to_route("/profiles");
+            break;
+        }
         for url in urls {
             if !url.starts_with("clash:") {
                 tracing::debug!("ignored unsupported deep link: {url}");
