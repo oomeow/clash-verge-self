@@ -304,15 +304,30 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
                 danger_accept_invalid_certs: None,
                 update_interval: None,
             };
-            if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
-                if Config::profiles().data_mut().append_item(item).is_ok() {
-                    handle::Handle::notify("Clash Verge", t!("notice.import.success"));
-                };
-            } else {
-                handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
-                tracing::error!("failed to parse url: {}", url);
+
+            let restart_core = {
+                if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
+                    if let Ok(restart_core_) = Config::profiles().latest_mut().append_item(item) {
+                        handle::Handle::notify("Clash Verge", t!("notice.import.success"));
+                        restart_core_
+                    } else {
+                        false
+                    }
+                } else {
+                    handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
+                    tracing::error!("failed to parse url: {}", url);
+                    false
+                }
+            };
+
+            if restart_core {
+                CoreManager::global().update_config().await?;
+                handle::Handle::refresh_clash();
             }
+            handle::Handle::update_systray_part()?;
         }
+
+        anyhow::Ok(())
     });
 }
 

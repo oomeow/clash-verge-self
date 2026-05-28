@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import crypto from "crypto";
 import fs from "fs-extra";
 import path from "path";
 
@@ -6,6 +7,11 @@ const cwd = process.cwd();
 export const TEMP_DIR = path.join(cwd, "node_modules/.verge");
 export const SIDECAR_DIR = path.join(cwd, "src-tauri", "sidecar");
 export const RESOURCE_DIR = path.join(cwd, "src-tauri", "resources");
+export const CRATES_DIR = path.join(cwd, "crates");
+export const SERVICE_CACHE_FILE = path.join(
+  TEMP_DIR,
+  "service-files-hash.json",
+);
 
 export function sidecarPath(file: string) {
   return path.join(SIDECAR_DIR, file);
@@ -13,6 +19,10 @@ export function sidecarPath(file: string) {
 
 export function resourcePath(file: string) {
   return path.join(RESOURCE_DIR, file);
+}
+
+export function cratesPath(file: string) {
+  return path.join(CRATES_DIR, file);
 }
 
 export const PLATFORM_MAP: Record<string, NodeJS.Platform> = {
@@ -132,4 +142,59 @@ export function getClashVergeSelfServiceVersion() {
   return fs
     .readFileSync(cargoFilePath, "utf-8")
     .match(/(?<=version\s*=\s*")[^"]+/)?.[0];
+}
+
+export function hasChanges(dir: string): boolean {
+  try {
+    const output = execSync(`git status --porcelain ${dir}`, {
+      encoding: "utf8",
+    });
+    return output.trim().length > 0;
+  } catch (err) {
+    console.error("执行git命令失败", err);
+    return false;
+  }
+}
+
+/**
+ * Create a stable snapshot of all files under `dir`.
+ * Keys are relative paths (forward slashes) to make the snapshot machine-independent.
+ */
+export function snapshotFilesHashOnDir(
+  dir: string,
+  excludedFileNames = [".git", "target", "node_modules"],
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  const stack = [dir];
+
+  while (stack.length) {
+    const current = stack.pop()!;
+    const entries = fs.readdirSync(current, { withFileTypes: true });
+    for (const entry of entries) {
+      const full = path.join(current, entry.name);
+
+      // Skip common build/metadata directories to avoid noisy changes.
+      if (entry.isDirectory()) {
+        if (
+          excludedFileNames.includes(entry.name) ||
+          entry.name.startsWith(".")
+        ) {
+          continue;
+        }
+        stack.push(full);
+        continue;
+      }
+
+      if (!entry.isFile()) continue;
+
+      const buf = fs.readFileSync(full);
+      const hash = crypto.createHash("md5").update(buf).digest("hex");
+
+      // store relative path so cache is portable
+      const rel = path.relative(dir, full).replace(/\\/g, "/");
+      map[rel] = hash;
+    }
+  }
+
+  return map;
 }

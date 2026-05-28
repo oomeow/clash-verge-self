@@ -1,7 +1,15 @@
 import { execSync, spawn } from "child_process";
 import fs from "fs-extra";
 
-import { getExeSuffix, getTarget, RESOURCE_DIR, resourcePath } from "./utils";
+import {
+  SERVICE_CACHE_FILE,
+  cratesPath,
+  getExeSuffix,
+  getTarget,
+  RESOURCE_DIR,
+  resourcePath,
+  snapshotFilesHashOnDir,
+} from "./utils";
 
 export async function buildService(logger?: (message: string) => void) {
   const argv = process.argv;
@@ -72,6 +80,14 @@ export async function buildService(logger?: (message: string) => void) {
 }
 
 if (import.meta.main) {
-  console.log("run...");
-  buildService();
+  buildService().then(() => {
+    const serviceDir = cratesPath("clash-verge-self-service");
+    const snapshot = snapshotFilesHashOnDir(serviceDir);
+    try {
+      fs.writeJsonSync(SERVICE_CACHE_FILE, snapshot, { spaces: 2 });
+    } catch (err) {
+      // cache write failure should not hide successful build, but notify user
+      process.exit(1);
+    }
+  });
 }
