@@ -309,6 +309,7 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
                 if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
                     if let Ok(restart_core_) = Config::profiles().latest_mut().append_item(item) {
                         handle::Handle::notify("Clash Verge", t!("notice.import.success"));
+                        handle::Handle::refresh_profiles();
                         restart_core_
                     } else {
                         false
