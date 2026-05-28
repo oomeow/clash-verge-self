@@ -24,6 +24,7 @@ import { useProfilesStore } from "@/stores/profilesStore";
 import { useRulesStateStore } from "@/stores/rulesStateStore";
 import { useVergeStore } from "@/stores/vergeStore";
 import { cn } from "@/utils";
+import { signalFrontendReady } from "@/utils/frontend-ready";
 import getSystem from "@/utils/get-system";
 
 dayjs.extend(relativeTime);
@@ -221,6 +222,7 @@ const Layout = () => {
           <Box className="relative min-h-0 flex-1 overflow-hidden py-1 pr-1">
             <Suspense fallback={<LoadingPage />}>
               <Outlet />
+              <FrontendReadySignal />
             </Suspense>
             {showRouteLoading && (
               <Box className="absolute inset-0 z-20 transition-opacity duration-150">
@@ -233,6 +235,14 @@ const Layout = () => {
       </Paper>
     </SWRConfig>
   );
+};
+
+const FrontendReadySignal = () => {
+  useEffect(() => {
+    signalFrontendReady();
+  }, []);
+
+  return null;
 };
 
 export default Layout;

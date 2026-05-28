@@ -1,11 +1,13 @@
 use std::{
     backtrace::{Backtrace, BacktraceStatus},
-    sync::atomic::Ordering,
+    sync::atomic::{AtomicBool, Ordering},
+    time::Duration,
 };
 
 use anyhow::Result;
 use rust_i18n::t;
-use tauri::{AppHandle, CloseRequestApi, Emitter, Manager};
+use tauri::{AppHandle, CloseRequestApi, Emitter, Listener, Manager};
+use tokio::sync::oneshot;
 
 use crate::{
     APP_HANDLE, AppState,
@@ -18,6 +20,77 @@ use crate::{
         init, server,
     },
 };
+
+const FRONTEND_READY_EVENT: &str = "verge://frontend-ready";
+const FRONTEND_READY_TIMEOUT: Duration = Duration::from_secs(8);
+const FRONTEND_READY_SCRIPT: &str = r#"
+(() => {
+  const readyEvent = "verge://frontend-ready";
+  window.__VERGE_FRONTEND_READY__ = false;
+  window.addEventListener(readyEvent, () => {
+    window.__VERGE_FRONTEND_READY__ = true;
+    window.__TAURI_INTERNALS__
+      ?.invoke("plugin:event|emit", { event: readyEvent, payload: null })
+      ?.catch(console.error);
+  }, { once: true });
+})();
+"#;
+
+static FRONTEND_READY: AtomicBool = AtomicBool::new(false);
+
+fn listen_frontend_ready(app_handle: &AppHandle) -> (tauri::EventId, oneshot::Receiver<()>) {
+    let (sender, receiver) = oneshot::channel();
+    let event_id = app_handle.once(FRONTEND_READY_EVENT, move |_| {
+        FRONTEND_READY.store(true, Ordering::SeqCst);
+        let _ = sender.send(());
+    });
+    (event_id, receiver)
+}
+
+async fn wait_frontend_ready(app_handle: AppHandle, frontend_ready: (tauri::EventId, oneshot::Receiver<()>)) {
+    let (event_id, receiver) = frontend_ready;
+    if FRONTEND_READY.load(Ordering::SeqCst) {
+        app_handle.unlisten(event_id);
+        return;
+    }
+
+    match tokio::time::timeout(FRONTEND_READY_TIMEOUT, receiver).await {
+        Ok(Ok(())) => {
+            tracing::info!("frontend ready event received");
+        }
+        Ok(Err(_)) => {
+            app_handle.unlisten(event_id);
+            tracing::warn!("frontend ready listener was canceled");
+        }
+        Err(_) => {
+            app_handle.unlisten(event_id);
+            tracing::warn!("timed out waiting for frontend ready event");
+        }
+    }
+}
+
+fn navigate_after_frontend_ready(app_handle: AppHandle, route: String) {
+    if FRONTEND_READY.load(Ordering::SeqCst) {
+        navigate_window_to_route(&route);
+        return;
+    }
+
+    let frontend_ready = listen_frontend_ready(&app_handle);
+    tauri::async_runtime::spawn(async move {
+        wait_frontend_ready(app_handle, frontend_ready).await;
+        navigate_window_to_route(&route);
+    });
+}
+
+#[allow(unused)]
+async fn wait_current_frontend_ready(app_handle: AppHandle) {
+    if FRONTEND_READY.load(Ordering::SeqCst) {
+        return;
+    }
+
+    let frontend_ready = listen_frontend_ready(&app_handle);
+    wait_frontend_ready(app_handle, frontend_ready).await;
+}
 
 pub fn priority_initialization() {
     tracing::trace!("init system tray");
@@ -152,7 +225,8 @@ pub fn navigate_window_to_route(route: &str) {
 
 /// create main window (with optional route navigation)
 pub fn create_window() {
-    create_window_with_route(None);
+    // TODO: None
+    create_window_with_route(Some("/"));
 }
 
 /// create main window and optionally navigate to a route if window already exists
@@ -164,7 +238,7 @@ pub fn create_window_with_route(route: Option<&str>) {
         trace_err!(window.show(), "set win visible");
         trace_err!(window.set_focus(), "set win focus");
         if let Some(route) = route {
-            trace_err!(window.emit("navigate_to_route", route), "emit navigate_to_route event");
+            navigate_after_frontend_ready(app_handle.clone(), route.to_string());
         }
         #[cfg(target_os = "macos")]
         {
@@ -172,6 +246,9 @@ pub fn create_window_with_route(route: Option<&str>) {
         }
         return;
     }
+    FRONTEND_READY.store(false, Ordering::SeqCst);
+    let should_wait_frontend_ready = route.is_some();
+    let frontend_ready = should_wait_frontend_ready.then(|| listen_frontend_ready(app_handle));
 
     let verge = Config::verge().latest().clone();
     let start_page = if let Some(route) = route {
@@ -186,6 +263,7 @@ pub fn create_window_with_route(route: Option<&str>) {
         .fullscreen(false)
         .maximized(verge.window_is_maximized.unwrap_or(false))
         .min_inner_size(600.0, 550.0)
+        .initialization_script(FRONTEND_READY_SCRIPT)
         .general_autofill_enabled(false);
 
     let _decoration = verge.enable_system_title_bar.unwrap_or(false);
@@ -261,8 +339,18 @@ pub fn create_window_with_route(route: Option<&str>) {
                 tracing::debug!("apply tray policy");
                 apply_tray_policy(app_handle, true);
             }
+
+            if let Some(frontend_ready) = frontend_ready {
+                let app_handle = app_handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    wait_frontend_ready(app_handle, frontend_ready).await;
+                });
+            }
         }
         Err(e) => {
+            if let Some((event_id, _)) = frontend_ready {
+                app_handle.unlisten(event_id);
+            }
             tracing::error!("failed to create window: {e}");
         }
     }
@@ -315,16 +403,6 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
     let urls: Vec<String> = urls.into_iter().collect();
     tauri::async_runtime::spawn(async move {
         create_window_with_route(Some("/profiles"));
-        for _ in 0..10 {
-            if handle::Handle::get_window().is_none() {
-                tokio::time::sleep(std::time::Duration::from_millis(300)).await;
-                continue;
-            }
-            // route again, avoid window created but dom not render finished
-            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
-            navigate_window_to_route("/profiles");
-            break;
-        }
         for url in urls {
             if !url.starts_with("clash:") {
                 tracing::debug!("ignored unsupported deep link: {url}");
