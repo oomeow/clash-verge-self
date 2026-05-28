@@ -2,12 +2,12 @@ import { execSync, spawn } from "child_process";
 import fs from "fs-extra";
 
 import {
-  SERVICE_CACHE_FILE,
   cratesPath,
   getExeSuffix,
   getTarget,
   RESOURCE_DIR,
   resourcePath,
+  SERVICE_CACHE_FILE,
   snapshotFilesHashOnDir,
 } from "./utils";
 
@@ -85,7 +85,7 @@ if (import.meta.main) {
     const snapshot = snapshotFilesHashOnDir(serviceDir);
     try {
       fs.writeJsonSync(SERVICE_CACHE_FILE, snapshot, { spaces: 2 });
-    } catch (err) {
+    } catch (_err) {
       // cache write failure should not hide successful build, but notify user
       process.exit(1);
     }

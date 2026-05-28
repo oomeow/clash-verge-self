@@ -5,7 +5,7 @@ use std::{
 
 use anyhow::Result;
 use rust_i18n::t;
-use tauri::{AppHandle, CloseRequestApi, Manager};
+use tauri::{AppHandle, CloseRequestApi, Emitter, Manager};
 
 use crate::{
     APP_HANDLE, AppState,
@@ -141,14 +141,31 @@ pub async fn resolve_reset() {
     log_err!(CoreManager::global().stop_core().await);
 }
 
-/// create main window
+/// Navigate the existing main window to a React Router route.
+/// If the window doesn't exist, this is a no-op.
+#[allow(unused)]
+pub fn navigate_window_to_route(route: &str) {
+    if let Some(window) = handle::Handle::app_handle().get_webview_window("main") {
+        trace_err!(window.emit("navigate_to_route", route), "emit navigate_to_route event");
+    }
+}
+
+/// create main window (with optional route navigation)
 pub fn create_window() {
+    create_window_with_route(None);
+}
+
+/// create main window and optionally navigate to a route if window already exists
+pub fn create_window_with_route(route: Option<&str>) {
     CANCEL_MIHOMO_WS_RECONNECT.store(false, Ordering::SeqCst);
     let app_handle = handle::Handle::app_handle();
     if let Some(window) = app_handle.get_webview_window("main") {
         trace_err!(window.unminimize(), "set win unminimize");
         trace_err!(window.show(), "set win visible");
         trace_err!(window.set_focus(), "set win focus");
+        if let Some(route) = route {
+            trace_err!(window.emit("navigate_to_route", route), "emit navigate_to_route event");
+        }
         #[cfg(target_os = "macos")]
         {
             apply_tray_policy(app_handle, true);
@@ -156,9 +173,13 @@ pub fn create_window() {
         return;
     }
 
-    let verge = Config::verge();
-    let verge = verge.latest();
-    let start_page = verge.start_page.as_deref().unwrap_or("/");
+    let verge = Config::verge().latest().clone();
+    let start_page = if let Some(route) = route {
+        route
+    } else {
+        verge.start_page.as_deref().unwrap_or("/")
+    };
+    tracing::info!("start_page: {}", start_page);
 
     let mut builder = tauri::WebviewWindowBuilder::new(app_handle, "main", tauri::WebviewUrl::App(start_page.into()))
         .title("Clash Verge Self")
@@ -173,7 +194,8 @@ pub fn create_window() {
         builder = builder.decorations(_decoration);
     }
 
-    match &verge.window_size_position {
+    tracing::info!("window_size_position: {:?}", verge.window_size_position);
+    match verge.window_size_position {
         Some(size_pos) if size_pos.len() == 4 => {
             let size = (size_pos[0], size_pos[1]);
             let pos = (size_pos[2], size_pos[3]);
@@ -185,6 +207,8 @@ pub fn create_window() {
             builder = builder.inner_size(1100.0, 750.0).center();
         }
     };
+
+    tracing::info!("build window");
     #[cfg(target_os = "windows")]
     let window = builder
         .additional_browser_args("--enable-features=msWebView2EnableDraggableRegions --disable-features=OverscrollHistoryNavigation,msExperimentalScrolling")
@@ -213,7 +237,7 @@ pub fn create_window() {
 
     match window {
         Ok(win) => {
-            tracing::trace!("try to calculate the monitor size");
+            tracing::debug!("try to calculate the monitor size");
             let center = (|| -> Result<bool> {
                 let mut center = false;
                 let monitors = win.available_monitors()?;
@@ -234,6 +258,7 @@ pub fn create_window() {
 
             #[cfg(target_os = "macos")]
             {
+                tracing::debug!("apply tray policy");
                 apply_tray_policy(app_handle, true);
             }
         }
@@ -289,6 +314,7 @@ pub fn save_window_size_position(app_handle: &AppHandle) -> Result<()> {
 pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
     let urls: Vec<String> = urls.into_iter().collect();
     tauri::async_runtime::spawn(async move {
+        create_window_with_route(Some("/profiles"));
         for url in urls {
             if !url.starts_with("clash:") {
                 tracing::debug!("ignored unsupported deep link: {url}");
@@ -308,14 +334,15 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
             let restart_core = {
                 if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
                     if let Ok(restart_core_) = Config::profiles().latest_mut().append_item(item) {
-                        handle::Handle::notify("Clash Verge", t!("notice.import.success"));
+                        // handle::Handle::notify("Clash Verge", t!("notice.import.success"));
+                        handle::Handle::notice_message(handle::NoticeStatus::Success, t!("notice.import.success"));
                         handle::Handle::refresh_profiles();
                         restart_core_
                     } else {
                         false
                     }
                 } else {
-                    handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
+                    handle::Handle::notice_message(handle::NoticeStatus::Error, t!("notice.import.failed"));
                     tracing::error!("failed to parse url: {}", url);
                     false
                 }
