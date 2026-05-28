@@ -225,8 +225,7 @@ pub fn navigate_window_to_route(route: &str) {
 
 /// create main window (with optional route navigation)
 pub fn create_window() {
-    // TODO: None
-    create_window_with_route(Some("/"));
+    create_window_with_route(None);
 }
 
 /// create main window and optionally navigate to a route if window already exists
