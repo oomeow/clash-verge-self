@@ -79,6 +79,8 @@ pub fn run() -> Result<()> {
 
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
+            // 当通过深链（clash: 协议）启动第二个实例时，避免创建重复窗口。(Only supported on Windows/Linux)
+            // 深链处理系统会通过 on_open_url 事件监听器创建带有正确路由的窗口。
             let mut args = argv.into_iter();
             args.next(); // bin name
             let arg = args.next(); // first argument
