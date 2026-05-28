@@ -11,7 +11,7 @@ use super::use_lowercase;
 use crate::enhance::LogMessage;
 
 thread_local! {
-     static JS_RUNTIME: RefCell<rquickjs::Runtime> = RefCell::new(rquickjs::Runtime::new().expect("Failed to create JS runtime"));
+     static JS_RUNTIME: rquickjs::Runtime = rquickjs::Runtime::new().expect("Failed to create JS runtime");
 }
 
 fn inject_console(ctx: Ctx<'_>, outputs: Rc<RefCell<Vec<LogMessage>>>) -> rquickjs::Result<()> {
@@ -65,7 +65,7 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
     // Pre-serialize config so it can be injected into JS as a literal
     let config_str = serde_json::to_string(&config)?;
 
-    let ctx = JS_RUNTIME.with(|rt| rquickjs::Context::full(&rt.borrow()))?;
+    let ctx = JS_RUNTIME.with(rquickjs::Context::full)?;
 
     // Run script and call `main` inside the JS context. Capture the call result as a JSON string and parse it.
     let call_str: String = ctx
