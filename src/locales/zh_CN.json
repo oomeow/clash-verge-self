@@ -392,12 +392,12 @@
           "currentTheme": "当前主题",
           "presets": {
             "custom": "自定义",
-            "default": "默认蓝色",
+            "default": "天空蓝",
             "ocean": "海洋青绿",
-            "forest": "森林绿色",
-            "sunset": "日落橙",
+            "indigo": "深靛蓝",
+            "sunset": "玫瑰粉",
             "lavender": "薰衣草紫",
-            "monochrome": "单色灰"
+            "monochrome": "岩石灰"
           },
           "colors": {
             "primary": "主要颜色",

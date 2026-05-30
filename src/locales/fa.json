@@ -392,12 +392,12 @@
           "currentTheme": "تم فعلی",
           "presets": {
             "custom": "سفارشی",
-            "default": "آبی پیش‌فرض",
-            "ocean": "اقیانوسی فیروزه‌ای",
-            "forest": "سبز جنگلی",
-            "sunset": "نارنجی غروب",
+            "default": "آبی آسمانی",
+            "ocean": "فیروزه‌ای اقیانوسی",
+            "indigo": "نیلی تیره",
+            "sunset": "صورتی گل رز",
             "lavender": "بنفش اسطوخودوس",
-            "monochrome": "تک‌رنگ"
+            "monochrome": "خاکستری سنگی"
           },
           "colors": {
             "primary": "رنگ اصلی",

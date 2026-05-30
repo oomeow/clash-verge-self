@@ -392,12 +392,12 @@
           "currentTheme": "Current Theme",
           "presets": {
             "custom": "Custom",
-            "default": "Default Blue",
+            "default": "Sky Blue",
             "ocean": "Ocean Teal",
-            "forest": "Forest Green",
-            "sunset": "Sunset Orange",
+            "indigo": "Deep Indigo",
+            "sunset": "Rose Pink",
             "lavender": "Lavender Purple",
-            "monochrome": "Monochrome"
+            "monochrome": "Stone Gray"
           },
           "colors": {
             "primary": "Primary Color",
