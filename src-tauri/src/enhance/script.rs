@@ -25,7 +25,7 @@ fn inject_console(ctx: Ctx<'_>, outputs: Rc<RefCell<Vec<LogMessage>>>) -> rquick
     })?;
     ctx.globals().set("__verge_push_log", push_log)?;
 
-    for method in ["log", "info", "error", "debug"] {
+    for method in ["log", "info", "warn", "error", "debug"] {
         let callback: Function = ctx.eval(format!(
             r#"(function(pushLog) {{
                 return (...data) => pushLog("{method}", data.map((item) => JSON.stringify(item) ?? "undefined"));
