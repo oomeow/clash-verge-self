@@ -75,7 +75,7 @@ export const ConnectionTableColumnSelector = ({
     <Backdrop open={open} onClick={onClose} className="z-20 bg-black/24">
       <Box
         onClick={(event) => event.stopPropagation()}
-        className="border-divider bg-background-paper shadow-16 max-h-[min(560px,calc(100vh-32px))] w-[320px] max-w-[calc(100vw-32px)] overflow-hidden rounded border">
+        className="border-divider bg-background-paper shadow-16 max-h-[min(560px,calc(100vh-32px))] w-[320px] max-w-[calc(100vw-32px)] overflow-hidden rounded-xl border">
         <Box className="border-divider flex items-center justify-between gap-3 border-b px-4 py-3">
           <div>
             <div className="text-sm font-medium">{title}</div>
