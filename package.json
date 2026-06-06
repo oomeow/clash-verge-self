@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@actions/github": "9.1.1",
-    "@clack/prompts": "1.5.0",
+    "@clack/prompts": "1.5.1",
     "@eslint/js": "10.0.1",
     "@tailwindcss/vite": "4.3.0",
     "@tanstack/router-cli": "1.167.13",
