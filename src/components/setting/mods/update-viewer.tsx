@@ -17,9 +17,6 @@ import { usePortable } from "@/hooks/use-portable";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { useCheckUpdateSWR } from "@/services/swr";
 import { useAppUpdatingStore, useThemeModeStore } from "@/stores";
-import getSystem from "@/utils/get-system";
-
-const OS = getSystem();
 
 export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
@@ -111,7 +108,6 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
       contentStyle={{ minWidth: 360, maxWidth: "60%" }}
       okBtn={t("common.actions.update")}
       cancelBtn={t("common.actions.cancel")}
-      hideFooter={OS === "linux"}
       onClose={() => setOpen(false)}
       onCancel={() => setOpen(false)}
       onOk={onUpdate}>
