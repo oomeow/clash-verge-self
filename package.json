@@ -98,7 +98,7 @@
     "eslint-plugin-simple-import-sort": "13.0.0",
     "fs-extra": "11.3.5",
     "globals": "17.6.0",
-    "https-proxy-agent": "9.0.0",
+    "https-proxy-agent": "9.1.0",
     "meta-json-schema": "1.19.27",
     "node-fetch": "3.3.2",
     "picocolors": "1.1.1",
