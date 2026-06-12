@@ -18,6 +18,8 @@ use crate::{config::Config, feat, log_err, utils::dirs};
 type TaskId = u64;
 
 const ACTIVATING_SELECTED_TASK_ID: TaskId = 0;
+const PROFILE_UPDATE_RETRY_DELAY_SECS: u64 = 30;
+const PROFILE_UPDATE_MAX_RETRIES: u8 = 3;
 
 pub struct Timer {
     /// cron manager
@@ -260,7 +262,7 @@ impl Timer {
             .set_maximum_parallel_runnable_num(1)
             .set_frequency_repeated_by_minutes(minutes)
             // .set_frequency_repeated_by_seconds(minutes) // for test
-            .spawn_async_routine(move || Self::update_profile_task(tid, uid.to_owned()))?;
+            .spawn_async_routine(move || Self::update_profile_task(tid, uid.to_owned(), 0))?;
 
         delay_timer.add_task(task)?;
 
@@ -268,25 +270,50 @@ impl Timer {
     }
 
     /// the task runner
-    async fn update_profile_task(task_id: TaskId, uid: String) {
-        tracing::info!("running timer update profile `{uid}` task");
-        match feat::update_profile(&uid, None).await {
-            Ok(_) => {
-                tracing::info!("update profile successfully, refresh profiles");
+    async fn update_profile_task(_task_id: TaskId, uid: String, initial_retry_count: u8) {
+        let mut retry_count = initial_retry_count;
+
+        loop {
+            if retry_count == 0 {
+                tracing::info!("running timer update profile `{uid}` task");
+            } else {
+                tracing::info!("retrying timer update profile `{uid}` task, attempt {retry_count}");
             }
-            Err(e) => {
-                let msg = e.to_string();
-                if let Some(msg) = msg.strip_prefix("invalid clash config: ") {
-                    let msg = msg.to_string();
-                    tracing::error!("update profile `{uid}` failed, {msg}");
-                    handle::Handle::notice_message(handle::NoticeStatus::Error, msg);
-                } else {
-                    tracing::debug!("update profile `{uid}` failed, retry update after 30 seconds, {e}");
-                    tokio::time::sleep(Duration::from_secs(30)).await;
-                    log_err!(Self::global().delay_timer.lock().advance_task(task_id));
+
+            match feat::update_profile(&uid, None).await {
+                Ok(_) => {
+                    if retry_count == 0 {
+                        tracing::info!("update profile successfully, refresh profiles");
+                    } else {
+                        tracing::info!("update profile successfully after retry, refresh profiles");
+                    }
+                    break;
+                }
+                Err(e) => {
+                    let msg = e.to_string();
+                    if let Some(msg) = msg.strip_prefix("invalid clash config: ") {
+                        let msg = msg.to_string();
+                        tracing::error!("update profile `{uid}` failed, {msg}");
+                        handle::Handle::notice_message(handle::NoticeStatus::Error, msg);
+                        break;
+                    }
+
+                    retry_count = retry_count.saturating_add(1);
+                    if retry_count > PROFILE_UPDATE_MAX_RETRIES {
+                        tracing::error!(
+                            "update profile `{uid}` failed after {PROFILE_UPDATE_MAX_RETRIES} retries, {e}"
+                        );
+                        break;
+                    }
+
+                    tracing::debug!(
+                        "update profile `{uid}` failed, retry {retry_count}/{PROFILE_UPDATE_MAX_RETRIES} after {PROFILE_UPDATE_RETRY_DELAY_SECS} seconds, {e}"
+                    );
+                    tokio::time::sleep(Duration::from_secs(PROFILE_UPDATE_RETRY_DELAY_SECS)).await;
                 }
             }
         }
+
         handle::Handle::refresh_profiles();
     }
 }
