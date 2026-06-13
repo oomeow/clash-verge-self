@@ -820,6 +820,7 @@ pub enum RuleFormat {
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/rules/provider/provider.go#L35-L44
+// rule provider json: https://github.com/MetaCubeX/mihomo/blob/Alpha/rules/provider/provider.go#L107-L118
 pub struct RuleProvider {
     pub behavior: RuleBehavior,
     pub format: RuleFormat,
@@ -829,10 +830,6 @@ pub struct RuleProvider {
     pub provider_type: ProviderType,
     pub updated_at: Option<String>,
     pub vehicle_type: VehicleType,
-
-    #[ts(optional)]
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub payload: Option<Vec<String>>,
 }
 
 /// connections

@@ -10,5 +10,4 @@ export type RuleProvider = {
     type: ProviderType;
     updatedAt: string | null;
     vehicleType: VehicleType;
-    payload?: Array<string>;
 };
