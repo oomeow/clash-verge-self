@@ -78,7 +78,7 @@ pub struct BaseConfig {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
 #[serde(rename_all(serialize = "camelCase", deserialize = "kebab-case"))]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tun.go#L11-L65
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tun.go#L12-L65
 pub struct TunConfig {
     pub enable: bool,
     pub device: String,
@@ -260,7 +260,7 @@ pub struct TunConfig {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
 #[serde(rename_all(serialize = "camelCase", deserialize = "kebab-case"))]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tuic.go#L8-L28
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tuic.go#L9-L28
 pub struct TuicServer {
     pub enable: bool,
     pub listen: String,
@@ -275,8 +275,15 @@ pub struct TuicServer {
 
     pub certificate: String,
     pub private_key: String,
-    pub client_auth_type: String,
-    pub client_auth_cert: String,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub client_auth_type: Option<String>,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub client_auth_cert: Option<String>,
+
     pub ech_key: String,
 
     #[ts(optional)]
@@ -402,7 +409,7 @@ pub struct MihomoVersion {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/mode.go#L17-L21
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/component/updater/update_core.go#L39-L42
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/component/updater/update_core.go#L91-L102
 pub enum CoreUpdaterChannel {
     #[serde(rename = "release")]
@@ -541,10 +548,17 @@ pub struct Proxy {
     pub dialer_proxy: String,
 
     #[serde(rename(serialize = "routingMark", deserialize = "routing-mark"))]
-    pub routing_mark: i8,
+    pub routing_mark: i32,
 
     #[serde(rename(serialize = "providerName", deserialize = "provider-name"))]
     pub provider_name: String,
+
+    // group type need: fallback proxy name when the group has no available proxies
+    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/selector.go
+    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/urltest.go
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub empty_fallback: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -612,7 +626,7 @@ pub struct DelayHistory {
 /// proxies
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/proxies.go#L54-L59
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/proxies.go#L62-L67
 pub struct Proxies {
     pub proxies: HashMap<String, Proxy>,
 }
@@ -628,14 +642,15 @@ pub struct ProxyDelay {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/provider/provider.go#L31-L33
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/provider.go#L40-L43
 pub struct ProxyProviders {
     pub providers: HashMap<String, ProxyProvider>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L31-L42
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L47-L50
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L55-L64
 pub enum ProviderType {
     Proxy,
     Rule,
@@ -646,6 +661,7 @@ pub enum ProviderType {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L12-L17
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L22-L35
 pub enum VehicleType {
     File,
@@ -676,7 +692,7 @@ pub struct ProxyProvider {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "PascalCase")]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/provider/subscription_info.go#L10-L16
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/provider/subscription_info.go#L11-L16
 pub struct SubscriptionInfo {
     pub upload: i64,
     pub download: i64,
@@ -739,6 +755,7 @@ pub enum RuleType {
     SrcPort,
     DstPort,
     InPort,
+    DSCP,
     InUser,
     InName,
     InType,
@@ -748,12 +765,12 @@ pub enum RuleType {
     ProcessPathRegex,
     ProcessNameWildcard,
     ProcessPathWildcard,
-    Match,
+    RematchName,
     RuleSet,
     Network,
-    DSCP,
     Uid,
     SubRules,
+    Match,
     AND,
     OR,
     NOT,
@@ -771,6 +788,7 @@ pub struct RuleProviders {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L99-L103
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L108-L119
 pub enum RuleBehavior {
     Domain,
@@ -784,6 +802,7 @@ pub enum RuleBehavior {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L148-L152
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/provider/interface.go#L156-L167
 pub enum RuleFormat {
     #[serde(rename = "YamlRule")]
@@ -800,7 +819,8 @@ pub enum RuleFormat {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/rules/provider/provider.go#L107-L118
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/rules/provider/provider.go#L35-L44
+// rule provider json: https://github.com/MetaCubeX/mihomo/blob/Alpha/rules/provider/provider.go#L107-L118
 pub struct RuleProvider {
     pub behavior: RuleBehavior,
     pub format: RuleFormat,
@@ -988,8 +1008,8 @@ pub struct Traffic {
 #[ts(export)]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/server.go#L55-L58
 pub struct Memory {
-    pub inuse: u32,
-    pub oslimit: u32,
+    pub inuse: u64,
+    pub oslimit: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
