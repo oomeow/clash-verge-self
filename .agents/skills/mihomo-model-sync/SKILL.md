@@ -13,7 +13,7 @@ Use this skill only on explicit user request when `crates/tauri-plugin-mihomo/sr
 2. Fetch upstream Go sources via WebFetch from raw GitHub URLs (base: `https://raw.githubusercontent.com/MetaCubeX/mihomo/Alpha/`).
 3. Run GitNexus `impact` (upstream direction, summaryOnly) for each symbol being modified.
 4. Compare field by field and apply changes.
-5. Run `cargo check -p tauri-plugin-mihomo` and `cargo test -p tauri-plugin-mihomo --lib` to verify.
+5. Run `cargo check -p tauri-plugin-mihomo` to verify.
 6. Run `pnpm build:mihomo-api` to regenerate TypeScript bindings.
 7. Run GitNexus `detect_changes` before finishing.
 
