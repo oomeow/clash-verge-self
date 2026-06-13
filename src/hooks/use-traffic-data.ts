@@ -19,7 +19,7 @@ export const useTrafficData = () => {
           next(err, { up: 0, down: 0, up_total: 0, down_total: 0 }),
       }),
     {
-      fallbackData: { up: 0, down: 0 },
+      fallbackData: { up: 0, down: 0, up_total: 0, down_total: 0 },
       keepPreviousData: true,
     },
   );
