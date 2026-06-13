@@ -16,7 +16,8 @@ export type TunConfig = {
     autoRedirect?: boolean;
     autoRedirectInputMark?: number;
     autoRedirectOutputMark?: number;
-    loopbackAddress?: string;
+    autoRedirectIproute2FallbackRuleIndex?: number;
+    loopbackAddress?: Array<string>;
     strictRoute?: boolean;
     routeAddress?: Array<string>;
     routeAddressSet?: Array<string>;
@@ -35,8 +36,11 @@ export type TunConfig = {
     includeAndroidUser?: Array<number>;
     includePackage?: Array<string>;
     excludePackage?: Array<string>;
+    includeMacAddress?: Array<string>;
+    excludeMacAddress?: Array<string>;
     endpointIndependentNat?: boolean;
     udpTimeout?: number;
+    disableIcmpForwarding?: boolean;
     fileDescriptor: number;
     inet4RouteAddress?: Array<string>;
     inet6RouteAddress?: Array<string>;

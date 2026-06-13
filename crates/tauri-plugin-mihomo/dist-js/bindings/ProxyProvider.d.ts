@@ -1,6 +1,6 @@
 import type { ProviderType } from "./ProviderType";
 import type { Proxy } from "./Proxy";
-import type { SubScriptionInfo } from "./SubScriptionInfo";
+import type { SubscriptionInfo } from "./SubscriptionInfo";
 import type { VehicleType } from "./VehicleType";
 export type ProxyProvider = {
     name: string;
@@ -10,5 +10,5 @@ export type ProxyProvider = {
     testUrl: string;
     expectedStatus: string;
     updatedAt: string | null;
-    subscriptionInfo: SubScriptionInfo | null;
+    subscriptionInfo: SubscriptionInfo | null;
 };

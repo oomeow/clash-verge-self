@@ -8,6 +8,8 @@ export type TuicServer = {
     };
     certificate: string;
     privateKey: string;
+    clientAuthType: string;
+    clientAuthCert: string;
     echKey: string;
     congestionController?: string;
     maxIdleTime?: number;
@@ -16,5 +18,6 @@ export type TuicServer = {
     maxUdpRelayPacketSize?: number;
     maxDatagramFrameSize?: number;
     cwnd?: number;
+    bbrProfile?: string;
     muxOption?: MuxOption;
 };

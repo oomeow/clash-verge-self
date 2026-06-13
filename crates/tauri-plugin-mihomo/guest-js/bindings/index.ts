@@ -32,7 +32,7 @@ export * from "./RuleProvider";
 export * from "./RuleProviders";
 export * from "./Rules";
 export * from "./RuleType";
-export * from "./SubScriptionInfo";
+export * from "./SubscriptionInfo";
 export * from "./Traffic";
 export * from "./TuicServer";
 export * from "./TunConfig";

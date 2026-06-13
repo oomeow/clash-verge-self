@@ -8,6 +8,6 @@ export type RuleProvider = {
     name: string;
     ruleCount: number;
     type: ProviderType;
-    updatedAt: string;
+    updatedAt: string | null;
     vehicleType: VehicleType;
 };

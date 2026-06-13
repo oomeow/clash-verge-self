@@ -1,6 +1,6 @@
-export type SubScriptionInfo = {
-    Upload: number;
-    Download: number;
-    Total: number;
-    Expire: number;
+export type SubscriptionInfo = {
+    upload: number;
+    download: number;
+    total: number;
+    expire: number;
 };

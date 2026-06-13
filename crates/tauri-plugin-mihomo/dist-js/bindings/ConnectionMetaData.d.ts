@@ -16,6 +16,7 @@ export type ConnectionMetaData = {
     inboundPort: string;
     inboundName: string;
     inboundUser: string;
+    rematchName: string;
     host: string;
     dnsMode: DNSMode;
     uid: number;

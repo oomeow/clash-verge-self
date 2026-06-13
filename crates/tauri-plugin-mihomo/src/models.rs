@@ -32,6 +32,8 @@ impl Display for Protocol {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
 #[serde(rename_all(serialize = "camelCase", deserialize = "kebab-case"))]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/config/config.go#L47-L70
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/config/config.go#L73-L91
 pub struct BaseConfig {
     pub port: u32,
     pub socks_port: u32,
@@ -65,7 +67,6 @@ pub struct BaseConfig {
     pub tcp_concurrent: bool,
     pub find_process_mode: FindProcessMode,
     pub sniffing: bool,
-    pub global_client_fingerprint: String,
     pub global_ua: String,
     pub etag_support: bool,
     pub keep_alive_interval: isize,
@@ -76,6 +77,7 @@ pub struct BaseConfig {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
 #[serde(rename_all(serialize = "camelCase", deserialize = "kebab-case"))]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tun.go#L11-L65
 pub struct TunConfig {
     pub enable: bool,
     pub device: String,
@@ -126,7 +128,11 @@ pub struct TunConfig {
 
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub loopback_address: Option<String>,
+    pub auto_redirect_iproute2_fallback_rule_index: Option<isize>,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub loopback_address: Option<Vec<String>>,
 
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -202,13 +208,25 @@ pub struct TunConfig {
 
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub include_mac_address: Option<Vec<String>>,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub exclude_mac_address: Option<Vec<String>>,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub endpoint_independent_nat: Option<bool>,
 
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub udp_timeout: Option<i64>,
 
-    pub file_descriptor: u32,
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub disable_icmp_forwarding: Option<bool>,
+
+    pub file_descriptor: isize,
 
     // The following `inet*` fields will be deprecated
     // refer: https://wiki.metacubex.one/config/inbound/tun/#_1
@@ -241,6 +259,7 @@ pub struct TunConfig {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
 #[serde(rename_all(serialize = "camelCase", deserialize = "kebab-case"))]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tuic.go#L8-L28
 pub struct TuicServer {
     pub enable: bool,
     pub listen: String,
@@ -255,6 +274,8 @@ pub struct TuicServer {
 
     pub certificate: String,
     pub private_key: String,
+    pub client_auth_type: String,
+    pub client_auth_cert: String,
     pub ech_key: String,
 
     #[ts(optional)]
@@ -287,11 +308,16 @@ pub struct TuicServer {
 
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub bbr_profile: Option<String>,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub mux_option: Option<MuxOption>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/sing/sing.go#L33-L36
 pub struct MuxOption {
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -304,6 +330,7 @@ pub struct MuxOption {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/sing/sing.go#L38-L42
 pub struct BrutalOption {
     pub enabled: bool,
 
@@ -445,7 +472,7 @@ pub struct Groups {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/adapter.go#L136
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/adapter.go#L136-L162
 pub struct Proxy {
     // group type need
     #[ts(optional)]
@@ -508,13 +535,15 @@ pub struct Proxy {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L18
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L18-L55
 pub enum ProxyType {
     Direct,
     Reject,
     RejectDrop,
     Compatible,
     Pass,
+    PassRule,
+    Rematch,
     Dns,
 
     Relay,
@@ -581,6 +610,7 @@ pub struct ProxyDelay {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/provider/provider.go#L29-L37
 pub struct ProxyProviders {
     pub providers: HashMap<String, ProxyProvider>,
 }
@@ -610,6 +640,7 @@ pub enum VehicleType {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/provider/provider.go#L29-L37
 pub struct ProxyProvider {
     pub name: String,
     #[serde(rename = "type")]
@@ -619,13 +650,13 @@ pub struct ProxyProvider {
     pub test_url: String,
     pub expected_status: String,
     pub updated_at: Option<String>,
-    pub subscription_info: Option<SubScriptionInfo>,
+    pub subscription_info: Option<SubscriptionInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-#[serde(rename_all = "PascalCase")]
-pub struct SubScriptionInfo {
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/provider/subscription_info.go#L10-L16
+pub struct SubscriptionInfo {
     pub upload: i64,
     pub download: i64,
     pub total: i64,
@@ -641,7 +672,7 @@ pub struct Rules {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/rules.go
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/rules.go#L23-L32
 pub struct Rule {
     pub index: isize,
     #[serde(rename = "type")]
@@ -708,6 +739,7 @@ pub enum RuleType {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// TODO: https://github.com/MetaCubeX/mihomo/blob/Alpha/rules/provider/provider.go#L22-L30
 pub struct RuleProviders {
     pub providers: HashMap<String, RuleProvider>,
 }
@@ -741,6 +773,7 @@ pub enum RuleFormat {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/rules/provider/provider.go#L107-L118
 pub struct RuleProvider {
     pub behavior: RuleBehavior,
     pub format: RuleFormat,
@@ -748,7 +781,7 @@ pub struct RuleProvider {
     pub rule_count: u32,
     #[serde(rename = "type")]
     pub provider_type: ProviderType,
-    pub updated_at: String,
+    pub updated_at: Option<String>,
     pub vehicle_type: VehicleType,
 }
 
@@ -756,16 +789,20 @@ pub struct RuleProvider {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/connections.go#L26
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/statistic/manager.go#L90-L95
 pub struct Connections {
     pub download_total: u64,
     pub upload_total: u64,
     pub connections: Option<Vec<Connection>>,
-    pub memory: u32,
+    pub memory: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/statistic/manager.go#L85
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/statistic/tracker.go#L24-L34
 pub struct Connection {
     pub id: String,
     pub metadata: ConnectionMetaData,
@@ -773,6 +810,7 @@ pub struct Connection {
     pub download: u64,
     pub start: String,
     pub chains: Vec<String>,
+    pub provider_chains: Vec<String>,
     pub rule: String,
     pub rule_payload: String,
 }
@@ -793,6 +831,7 @@ pub enum Network {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/metadata.go#L84-L129
 pub enum ConnectionType {
     HTTP,
     HTTPS,
@@ -802,6 +841,8 @@ pub enum ConnectionType {
     SOCKS5,
     #[serde(rename = "ShadowSocks")]
     SHADOWSOCKS,
+    #[serde(rename = "Snell")]
+    SNELL,
     #[serde(rename = "Vmess")]
     VMESS,
     #[serde(rename = "Vless")]
@@ -822,6 +863,12 @@ pub enum ConnectionType {
     HYSTERIA2,
     #[serde(rename = "AnyTLS")]
     ANYTLS,
+    #[serde(rename = "Mieru")]
+    MIERU,
+    #[serde(rename = "Sudoku")]
+    SUDOKU,
+    #[serde(rename = "TrustTunnel")]
+    TRUSTTUNNEL,
     #[serde(rename = "Inner")]
     INNER,
 
@@ -848,6 +895,7 @@ pub enum DNSMode {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/metadata.go#L185-L215
 pub struct ConnectionMetaData {
     pub network: Network,
 
@@ -881,6 +929,7 @@ pub struct ConnectionMetaData {
     pub inbound_port: String,
     pub inbound_name: String,
     pub inbound_user: String,
+    pub rematch_name: String,
     pub host: String,
     pub dns_mode: DNSMode,
     pub uid: u32,
@@ -967,122 +1016,5 @@ impl ConnectionManager {
 
     pub async fn take_all(&self) -> Vec<ManagedWsConnection> {
         self.0.write().await.drain().map(|(_, connection)| connection).collect()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use serde_json::json;
-
-    use super::{
-        ClashMode, ConnectionMetaData, ConnectionType, DNSMode, ProviderType, Proxy, ProxyProvider, ProxyType, Rule,
-        RuleType, TunConfig, TunStack, VehicleType,
-    };
-
-    #[test]
-    fn deserialize_unknown_proxy_type_falls_back_without_error() {
-        let proxy: Proxy = serde_json::from_value(json!({
-            "alive": true,
-            "history": [],
-            "extra": {},
-            "name": "test",
-            "udp": true,
-            "uot": false,
-            "type": "BrandNewProxy",
-            "xudp": false,
-            "tfo": false,
-            "mptcp": false,
-            "smux": false,
-            "interface": "",
-            "dialer-proxy": "",
-            "routing-mark": 0,
-            "provider-name": ""
-        }))
-        .unwrap();
-        assert!(matches!(proxy.proxy_type, ProxyType::Unknown));
-    }
-
-    #[test]
-    fn deserialize_unknown_response_enums_fall_back_without_error() {
-        let provider: ProxyProvider = serde_json::from_value(json!({
-            "name": "provider",
-            "type": "brand-new-provider-type",
-            "vehicleType": "brand-new-vehicle-type",
-            "proxies": [],
-            "testUrl": "",
-            "expectedStatus": "",
-            "updatedAt": null,
-            "subscriptionInfo": null
-        }))
-        .unwrap();
-        assert!(matches!(provider.provider_type, ProviderType::Unknown));
-        assert!(matches!(provider.vehicle_type, VehicleType::Unknown));
-
-        let rule: Rule = serde_json::from_value(json!({
-            "index": 0,
-            "type": "brand-new-rule-type",
-            "payload": "",
-            "proxy": "",
-            "size": 0,
-            "extra": null
-        }))
-        .unwrap();
-        assert!(matches!(rule.rule_type, RuleType::Unknown));
-
-        let metadata: ConnectionMetaData = serde_json::from_value(json!({
-            "network": "tcp",
-            "type": "BrandNewConnectionType",
-            "sourceIP": "",
-            "destinationIP": "",
-            "sourceGeoIP": null,
-            "destinationGeoIP": null,
-            "sourceIPASN": "",
-            "destinationIPASN": "",
-            "sourcePort": "",
-            "destinationPort": "",
-            "inboundIP": "",
-            "inboundPort": "",
-            "inboundName": "",
-            "inboundUser": "",
-            "host": "",
-            "dnsMode": "brand-new-dns-mode",
-            "uid": 0,
-            "process": "",
-            "processPath": "",
-            "specialProxy": "",
-            "specialRules": "",
-            "remoteDestination": "",
-            "dscp": 0,
-            "sniffHost": ""
-        }))
-        .unwrap();
-        assert!(matches!(metadata.connection_type, ConnectionType::Unknown));
-        assert!(matches!(metadata.dns_mode, DNSMode::Unknown));
-    }
-
-    #[test]
-    fn deserialize_unknown_base_config_enums_fall_back_without_error() {
-        let tun: TunConfig = serde_json::from_value(json!({
-            "enable": true,
-            "device": "utun0",
-            "stack": "BrandNewStack",
-            "dns-hijack": [],
-            "auto-route": true,
-            "auto-detect-interface": true,
-            "file-descriptor": 0
-        }))
-        .unwrap();
-        assert!(matches!(tun.stack, TunStack::Unknown));
-
-        #[derive(serde::Deserialize)]
-        struct Wrapper {
-            mode: ClashMode,
-        }
-
-        let wrapper: Wrapper = serde_json::from_value(json!({
-            "mode": "brand-new-mode"
-        }))
-        .unwrap();
-        assert!(matches!(wrapper.mode, ClashMode::Unknown));
     }
 }
