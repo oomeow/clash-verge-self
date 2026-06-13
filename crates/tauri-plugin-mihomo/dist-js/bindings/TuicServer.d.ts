@@ -8,8 +8,8 @@ export type TuicServer = {
     };
     certificate: string;
     privateKey: string;
-    clientAuthType: string;
-    clientAuthCert: string;
+    clientAuthType?: string;
+    clientAuthCert?: string;
     echKey: string;
     congestionController?: string;
     maxIdleTime?: number;

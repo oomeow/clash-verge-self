@@ -275,8 +275,15 @@ pub struct TuicServer {
 
     pub certificate: String,
     pub private_key: String,
-    pub client_auth_type: String,
-    pub client_auth_cert: String,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub client_auth_type: Option<String>,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub client_auth_cert: Option<String>,
+
     pub ech_key: String,
 
     #[ts(optional)]
@@ -402,7 +409,6 @@ pub struct MihomoVersion {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/mode.go#L17-L21
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/component/updater/update_core.go#L91-L102
 pub enum CoreUpdaterChannel {
     #[serde(rename = "release")]
@@ -541,10 +547,15 @@ pub struct Proxy {
     pub dialer_proxy: String,
 
     #[serde(rename(serialize = "routingMark", deserialize = "routing-mark"))]
-    pub routing_mark: i8,
+    pub routing_mark: i32,
 
     #[serde(rename(serialize = "providerName", deserialize = "provider-name"))]
     pub provider_name: String,
+
+    // group type need (Selector/URLTest emptyFallback)
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub empty_fallback: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -739,6 +750,7 @@ pub enum RuleType {
     SrcPort,
     DstPort,
     InPort,
+    DSCP,
     InUser,
     InName,
     InType,
@@ -748,12 +760,12 @@ pub enum RuleType {
     ProcessPathRegex,
     ProcessNameWildcard,
     ProcessPathWildcard,
-    Match,
+    RematchName,
     RuleSet,
     Network,
-    DSCP,
     Uid,
     SubRules,
+    Match,
     AND,
     OR,
     NOT,
@@ -810,6 +822,10 @@ pub struct RuleProvider {
     pub provider_type: ProviderType,
     pub updated_at: Option<String>,
     pub vehicle_type: VehicleType,
+
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub payload: Option<Vec<String>>,
 }
 
 /// connections
@@ -988,8 +1004,8 @@ pub struct Traffic {
 #[ts(export)]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/server.go#L55-L58
 pub struct Memory {
-    pub inuse: u32,
-    pub oslimit: u32,
+    pub inuse: u64,
+    pub oslimit: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]

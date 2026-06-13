@@ -7,25 +7,93 @@ description: Synchronize Rust Mihomo API model structs and enums with the MetaCu
 
 Use this skill only on explicit user request when `crates/tauri-plugin-mihomo/src/models.rs` needs to match `https://github.com/MetaCubeX/mihomo/tree/Alpha`.
 
-## Quick start
+## Workflow
 
-1. Identify the local Rust model being changed.
-2. Run GitNexus upstream impact for each edited symbol in `models.rs`.
-3. Find the Mihomo Alpha source of truth:
-   - config models: `config/config.go`, `listener/config/*.go`
-   - enum definitions: `constant/*.go`, `constant/provider/interface.go`, `component/process/find_process_mode.go`, `log/level.go`, `tunnel/mode.go`
-   - route response wrappers: `hub/route/*.go`
-   - runtime response structs: `adapter/*.go`, `adapter/provider/*.go`, `rules/provider/*.go`, `tunnel/statistic/*.go`
-4. Compare fields and enum variants one by one.
-5. Update Rust types and add/refresh code-location comments above each synced struct/enum.
-6. Run focused tests and GitNexus change detection.
+1. Read the local `models.rs` to understand current state.
+2. Fetch upstream Go sources via WebFetch from raw GitHub URLs (base: `https://raw.githubusercontent.com/MetaCubeX/mihomo/Alpha/`).
+3. Run GitNexus `impact` (upstream direction, summaryOnly) for each symbol being modified.
+4. Compare field by field and apply changes.
+5. Run `cargo check -p tauri-plugin-mihomo` and `cargo test -p tauri-plugin-mihomo --lib` to verify.
+6. Run `pnpm build:mihomo-api` to regenerate TypeScript bindings.
+7. Run GitNexus `detect_changes` before finishing.
 
-## Source mapping rules
+## Upstream source locations
 
-- Prefer the exact Go struct or enum definition when one exists.
-- If the JSON shape is assembled by a route wrapper, annotate the wrapper location instead of a lower-level interface.
-- If a Rust type is local-only and has no Mihomo counterpart, say so in a short comment instead of attaching a false upstream link.
-- When a Rust type merges multiple Mihomo sources, add multiple links, one per source block.
+Use WebFetch with these raw GitHub paths to get the authoritative Go source:
+
+| Model category | Upstream file(s) |
+|---|---|
+| General / BaseConfig | `config/config.go` (General + Inbound structs) |
+| TUN config | `listener/config/tun.go` |
+| TuicServer config | `listener/config/tuic.go` |
+| MuxOption / BrutalOption | `listener/sing/sing.go` |
+| ClashMode | `tunnel/mode.go` |
+| TunStack | `constant/tun.go` |
+| LogLevel | `log/level.go` |
+| FindProcessMode | `component/process/find_process_mode.go` |
+| ProxyType (AdapterType) | `constant/adapters.go` |
+| Proxy MarshalJSON | `adapter/adapter.go` |
+| Proxy group fields | `adapter/outboundgroup/selector.go`, `urltest.go`, `fallback.go`, `loadbalance.go` |
+| ProxyProvider | `adapter/provider/provider.go` (providerForApi struct) |
+| SubscriptionInfo | `adapter/provider/subscription_info.go` |
+| RuleType | `constant/rule.go` |
+| RuleProvider | `rules/provider/provider.go` (providerForApi struct) |
+| RuleBehavior / RuleFormat | `constant/provider/interface.go` |
+| ProviderType / VehicleType | `constant/provider/interface.go` |
+| Connection / Tracker | `tunnel/statistic/tracker.go`, `tunnel/statistic/manager.go` (Snapshot struct) |
+| Metadata / Network / Type | `constant/metadata.go` |
+| DNSMode | `constant/dns.go` |
+| Traffic / Memory / Log | `hub/route/server.go` |
+| Version | `hub/route/server.go` (version handler) |
+| CoreUpdaterChannel | `component/updater/update_core.go` |
+| Groups route | `hub/route/groups.go` |
+| Rules route | `hub/route/rules.go` |
+
+## Key sync patterns
+
+### Type mapping (Go → Rust)
+
+| Go type | Rust type | Notes |
+|---|---|---|
+| `int` | `i32` | Go int is at least 32-bit |
+| `int64` | `i64` or `u64` | Use unsigned for always-positive values (traffic, memory) |
+| `uint64` | `u64` | |
+| `uint32` | `u32` | |
+| `uint16` | `u16` | |
+| `bool` | `bool` | |
+| `string` | `String` | |
+| `[]string` | `Vec<String>` | |
+| `map[string]T` | `HashMap<String, T>` | |
+| `time.Time` | `String` | JSON serializes as RFC3339 string |
+| `netip.Prefix` / `netip.Addr` | `String` | JSON serializes as string |
+| `atomic.Int64` | `u64` or `i64` | Serializes as plain number |
+| Field with `omitempty` | `Option<T>` with `#[serde(skip_serializing_if = "Option::is_none", default)]` | |
+| Field without `omitempty` but can be absent | Add `#[serde(default)]` | When field might not be in response |
+
+### JSON key mapping
+
+- Upstream `MarshalJSON` with custom map: use `#[serde(rename = "...")]`
+- Upstream kebab-case json tags: use `#[serde(rename_all(deserialize = "kebab-case"))]`
+- Upstream camelCase json tags: use `#[serde(rename_all = "camelCase")]`
+- PascalCase (no json tags, Go exported fields): use `#[serde(rename_all = "PascalCase")]`
+
+### Enum serialization
+
+- String-based enums from Go `String()` methods: variants serialize as the String() output
+- Always include `#[serde(other)] Unknown` fallback for forward compatibility
+- Use `#[serde(rename = "...")]` when variant name differs from serialized form
+
+## Field sync checklist
+
+- [ ] Added upstream fields present locally?
+- [ ] Removed upstream fields deleted locally?
+- [ ] Optional vs required aligned with `omitempty`?
+- [ ] Scalar type width sufficient? (especially `int` → `i32` not `i8`)
+- [ ] Collection shape aligned?
+- [ ] Renames handled with `serde(rename = ...)`?
+- [ ] Response wrapper fields included when route MarshalJSON differs from core struct?
+- [ ] Unknown enum fallback preserved with `#[serde(other)]`?
+- [ ] New enum variants from upstream added?
 
 ## Annotation format
 
@@ -51,25 +119,19 @@ For local-only helpers:
 pub enum Protocol { ... }
 ```
 
-## Field sync checklist
+## Validation steps
 
-- Added upstream fields present locally?
-- Removed upstream fields deleted locally?
-- Optional vs required aligned?
-- Scalar type width aligned enough for JSON payloads?
-- Collection shape aligned?
-- Renames handled with `serde(rename = ...)`?
-- Response wrapper fields included when route output differs from core struct?
-- Unknown enum fallback still preserved with `#[serde(other)]` where needed?
-
-## Validation
-
-- Run focused tests for model deserialization.
-- If tests do not cover the changed model, add targeted JSON decode tests using Alpha-shaped payloads.
-- Run GitNexus `detect_changes` before finishing.
+1. `cargo check -p tauri-plugin-mihomo` — must compile
+2. `cargo clippy -p tauri-plugin-mihomo -- -D warnings` — no warnings
+3. `cargo test -p tauri-plugin-mihomo --lib` — all unit tests pass
+4. `pnpm build:mihomo-api` — regenerate TS bindings (runs `cargo test export_bindings && rollup -c`)
+5. `gitnexus detect_changes` — verify only expected symbols affected
 
 ## Do not do
 
-- Do not guess upstream fields from docs when code is available.
+- Do not guess upstream fields from docs when code is available via WebFetch.
 - Do not attach Mihomo links to plugin-only websocket or connection-manager helper types.
-- Do not silently change public model shapes without updating nearby tests.
+- Do not silently change public model shapes without verifying tests still pass.
+- Do not use `i8` for Go `int` fields — use `i32` minimum.
+- Do not make fields required when upstream uses `omitempty`.
+- Do not skip `pnpm build:mihomo-api` after model changes.
