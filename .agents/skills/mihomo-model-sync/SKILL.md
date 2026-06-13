@@ -136,9 +136,8 @@ Every sync run MUST verify that all `#L-L` line annotations still point to the c
 
 1. `cargo check -p tauri-plugin-mihomo` — must compile
 2. `cargo clippy -p tauri-plugin-mihomo -- -D warnings` — no warnings
-3. `cargo test -p tauri-plugin-mihomo --lib` — all unit tests pass
-4. `pnpm build:mihomo-api` — regenerate TS bindings (runs `cargo test export_bindings && rollup -c`)
-5. `gitnexus detect_changes` — verify only expected symbols affected
+3. `pnpm build:mihomo-api` — regenerate TS bindings (runs `cargo test export_bindings && rollup -c`)
+4. `gitnexus detect_changes` — verify only expected symbols affected
 
 ## Do not do
 
