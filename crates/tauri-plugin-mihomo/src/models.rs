@@ -552,7 +552,9 @@ pub struct Proxy {
     #[serde(rename(serialize = "providerName", deserialize = "provider-name"))]
     pub provider_name: String,
 
-    // group type need (Selector/URLTest emptyFallback)
+    // group type need: fallback proxy name when the group has no available proxies
+    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/selector.go
+    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/urltest.go
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub empty_fallback: Option<String>,
