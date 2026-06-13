@@ -15,7 +15,8 @@ export const useTrafficData = () => {
       subscribeManagedMihomoWebSocketText({
         connect: ManagedMihomoWebSocket.connectTraffic,
         onText: (text) => next(null, JSON.parse(text) as Traffic),
-        onError: (err) => next(err, { up: 0, down: 0 }),
+        onError: (err) =>
+          next(err, { up: 0, down: 0, up_total: 0, down_total: 0 }),
       }),
     {
       fallbackData: { up: 0, down: 0 },
