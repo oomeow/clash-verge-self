@@ -94,6 +94,7 @@ Use WebFetch with these raw GitHub paths to get the authoritative Go source:
 - [ ] Response wrapper fields included when route MarshalJSON differs from core struct?
 - [ ] Unknown enum fallback preserved with `#[serde(other)]`?
 - [ ] New enum variants from upstream added?
+- [ ] Source annotations (`// https://github.com/...#L-L`) still point to correct lines?
 
 ## Annotation format
 
@@ -118,6 +119,18 @@ For local-only helpers:
 // Local plugin transport selector. No direct Mihomo model.
 pub enum Protocol { ... }
 ```
+
+## Annotation verification (MANDATORY)
+
+Every sync run MUST verify that all `#L-L` line annotations still point to the correct code location in upstream. Line numbers drift as upstream evolves.
+
+**How to verify:**
+1. For each struct/enum in `models.rs` that has a `// https://github.com/...#Lx-Ly` comment, fetch the upstream file via WebFetch.
+2. Locate the actual struct/enum/const block in the fetched source.
+3. If the line range in the annotation no longer matches the actual position, update the `#Lx-Ly` suffix to reflect the current lines.
+4. If the file path itself has changed (renamed/moved), update the full URL.
+
+**When to skip:** Only skip verification for annotations you just created in this sync run (they are already correct by definition).
 
 ## Validation steps
 
