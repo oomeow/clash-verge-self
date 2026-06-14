@@ -8,6 +8,7 @@
     ":automergeMinor",
     "docker:disable"
   ],
+  "baseBranchPatterns": ["dev"],
   "labels": ["dependencies"],
   "packageRules": [
     {
