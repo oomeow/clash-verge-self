@@ -24,9 +24,9 @@
     "bump": "tsx scripts/bump-version.ts"
   },
   "dependencies": {
-    "@dnd-kit/dom": "^0.4.1-beta-20260426004848",
-    "@dnd-kit/helpers": "^0.4.1-beta-20260426004848",
-    "@dnd-kit/react": "^0.4.1-beta-20260426004848",
+    "@dnd-kit/dom": "^0.5.0",
+    "@dnd-kit/helpers": "^0.5.0",
+    "@dnd-kit/react": "^0.5.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@juggle/resize-observer": "^3.4.0",
