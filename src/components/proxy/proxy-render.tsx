@@ -79,17 +79,21 @@ const ProxyGroupHeader = memo(function ProxyGroupHeader(
       <Card
         id={groupId(group.name)}
         className={cn(
-          "mx-2 flex h-17.5 cursor-pointer items-center rounded-xl px-4 shadow-sm transition-[background-color_0s,box-shadow_0.1s]",
+          "mx-2 flex h-17.5 cursor-pointer items-center rounded-xl px-4",
           stickyed && headState.open && "shadow-md",
         )}
         sx={(theme) => {
-          const tint = theme.palette.mode === "light" ? 0.08 : 0.18;
-          const hoverTint = theme.palette.mode === "light" ? 0.14 : 0.28;
+          const { primary, background } = theme.palette;
+          const isLight = theme.palette.mode === "light";
+          const tint = alpha(primary.main, isLight ? 0.12 : 0.22);
+          const elevation = isLight
+            ? "0 1px 2px rgba(0,0,0,0.06)"
+            : "0 1px 3px rgba(0,0,0,0.2)";
           return {
-            background: `linear-gradient(0deg, ${alpha(theme.palette.primary.main, tint)}, ${alpha(theme.palette.primary.main, tint)}), ${theme.palette.background.paper}`,
-            "&:hover": {
-              background: `linear-gradient(0deg, ${alpha(theme.palette.primary.main, hoverTint)}, ${alpha(theme.palette.primary.main, hoverTint)}), ${theme.palette.background.paper}`,
-            },
+            backgroundColor: background.paper,
+            backgroundImage: `linear-gradient(${tint}, ${tint})`,
+            boxShadow: elevation,
+            transition: "background-color 0s",
           };
         }}
         onClick={handleToggle}>
@@ -100,7 +104,7 @@ const ProxyGroupHeader = memo(function ProxyGroupHeader(
             {group.name}
           </span>
           <span className="mt-1 inline-block truncate">
-            <span className="bg-primary/15 text-primary mr-2 inline-block rounded-full px-2 py-0.5 text-[11px] leading-normal font-semibold">
+            <span className="bg-primary/12 text-primary mr-2 inline-block rounded-full px-2 py-0.5 text-[11px] leading-normal font-medium">
               {group.type}
             </span>
             <span className="text-text-secondary text-[13px]">{group.now}</span>

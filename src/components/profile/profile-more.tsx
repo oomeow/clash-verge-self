@@ -173,23 +173,28 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
 
   return (
     <Box
-      className={cn(selectMode ? "animate-shake" : undefined, "shadow-sm")}
-      sx={(theme) => ({
-        width: "100%",
-        bgcolor: theme.palette.background.default,
-        borderRadius: "12px",
-        transition: "opacity 0.15s, box-shadow 0.15s, filter 0.15s",
-        ...(selectMode && {
-          filter: "saturate(0.75)",
-          opacity: 0.85,
-        }),
-        ...(multiSelected && {
-          filter: "saturate(1)",
-          opacity: 1,
-          boxShadow: `0 0 0 2px ${theme.palette.primary.main}, 0 2px 8px ${theme.palette.primary.main}33`,
-        }),
-        ...{ sx },
-      })}>
+      className={cn(selectMode ? "animate-shake" : undefined)}
+      sx={(theme) => {
+        const isLight = theme.palette.mode === "light";
+        return {
+          width: "100%",
+          bgcolor: theme.palette.background.default,
+          borderRadius: "12px",
+          boxShadow: isLight
+            ? "0 1px 3px rgba(0,0,0,0.08)"
+            : "0 1px 4px rgba(0,0,0,0.24)",
+          ...(selectMode && {
+            filter: "saturate(0.75)",
+            opacity: 0.85,
+          }),
+          ...(multiSelected && {
+            filter: "saturate(1)",
+            opacity: 1,
+            boxShadow: `0 0 0 2px ${theme.palette.primary.main}, 0 2px 6px ${alpha(theme.palette.primary.main, 0.2)}`,
+          }),
+          ...{ sx },
+        };
+      }}>
       <ProfileDiv
         aria-label={isDragging ? "dragging" : "script"}
         aria-selected={selected || itemData.enable}
@@ -268,26 +273,22 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
                 edge="end"
                 color={hasError ? "error" : "primary"}
                 title={t("pages.profiles.runtime.scriptConsole")}
-                sx={(theme) => ({
-                  width: 30,
-                  height: 30,
-                  mr: -0.25,
-                  borderRadius: "8px",
-                  bgcolor: alpha(
-                    hasError
-                      ? theme.palette.error.main
-                      : theme.palette.primary.main,
-                    theme.palette.mode === "light" ? 0.1 : 0.18,
-                  ),
-                  "&:hover": {
-                    bgcolor: alpha(
-                      hasError
-                        ? theme.palette.error.main
-                        : theme.palette.primary.main,
-                      theme.palette.mode === "light" ? 0.16 : 0.26,
-                    ),
-                  },
-                })}
+                sx={(theme) => {
+                  const isLight = theme.palette.mode === "light";
+                  const color = hasError
+                    ? theme.palette.error.main
+                    : theme.palette.primary.main;
+                  return {
+                    width: 30,
+                    height: 30,
+                    mr: -0.25,
+                    borderRadius: "8px",
+                    bgcolor: alpha(color, isLight ? 0.12 : 0.22),
+                    "&:hover": {
+                      bgcolor: alpha(color, isLight ? 0.12 : 0.22),
+                    },
+                  };
+                }}
                 onClick={(event) => {
                   event.stopPropagation();
                   setLogOpen(true);

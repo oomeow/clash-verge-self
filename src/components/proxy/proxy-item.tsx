@@ -55,20 +55,25 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
       <ListItemButton
         id={proxyId(group.name, proxy.name)}
         dense
-        className="shadow-sm"
         data-delay-version={delayVersion}
         data-fixed={fixed}
         selected={selected}
         onClick={() => onClick?.(proxy.name)}
         sx={(theme) => {
           const showDelay = delay > 0;
-          const { mode, primary, warning } = theme.palette;
-          const selectColor = mode === "light" ? primary.main : primary.light;
-          const fixedColor = mode === "light" ? warning.main : warning.light;
+          const { primary, warning, background } = theme.palette;
+          const isLight = theme.palette.mode === "light";
+          const selectColor = isLight ? primary.main : primary.light;
+          const fixedColor = isLight ? warning.main : warning.light;
           return {
             borderRadius: 2,
+            backgroundColor: background.paper,
+            boxShadow: isLight
+              ? "0 1px 2px rgba(0,0,0,0.04)"
+              : "0 1px 2px rgba(0,0,0,0.15)",
+            transition: "background-color 0s",
             "&:hover": {
-              bgcolor: alpha(primary.main, mode === "light" ? 0.08 : 0.18),
+              bgcolor: alpha(primary.main, isLight ? 0.08 : 0.14),
             },
             "&:hover .the-check": { display: !showDelay ? "block" : "none" },
             "&:hover .the-delay": { display: showDelay ? "block" : "none" },
@@ -80,7 +85,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
               top: "-5px",
               right: "-5px",
               opacity: 0,
-              transition: "opacity 0s",
+              transition: "opacity 0.15s",
             },
             "& [data-pin][data-fixed='true']": { opacity: 1 },
             "& [data-pin][data-fixed='true'][data-selected='false']": {
@@ -89,22 +94,37 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
             },
             "&.Mui-selected": {
               borderLeft: `3px solid ${selectColor}`,
-              bgcolor:
-                mode === "light"
-                  ? alpha(primary.main, 0.25)
-                  : alpha(primary.main, 0.45),
+              bgcolor: alpha(primary.main, 0.12),
             },
+            "&.Mui-selected:hover": {
+              bgcolor: alpha(primary.main, 0.12),
+            },
+            ...theme.applyStyles("dark", {
+              "&.Mui-selected": {
+                bgcolor: alpha(primary.main, 0.22),
+              },
+              "&.Mui-selected:hover": {
+                bgcolor: alpha(primary.main, 0.22),
+              },
+            }),
             '&[data-fixed="true"]:not(.Mui-selected)': {
-              borderLeft: `2px solid ${alpha(fixedColor, 0.25)}`,
+              borderLeft: `2px solid ${alpha(fixedColor, 0.4)}`,
             },
             '&[data-fixed="true"].Mui-selected': {
               borderLeft: `3px solid ${fixedColor}`,
-              bgcolor:
-                mode === "light"
-                  ? alpha(warning.main, 0.18)
-                  : alpha(warning.main, 0.28),
+              bgcolor: alpha(warning.main, 0.12),
             },
-            backgroundColor: theme.palette.background.paper,
+            '&[data-fixed="true"].Mui-selected:hover': {
+              bgcolor: alpha(warning.main, 0.12),
+            },
+            ...theme.applyStyles("dark", {
+              '&[data-fixed="true"].Mui-selected': {
+                bgcolor: alpha(warning.main, 0.22),
+              },
+              '&[data-fixed="true"].Mui-selected:hover': {
+                bgcolor: alpha(warning.main, 0.22),
+              },
+            }),
             marginBottom: "2px",
           };
         }}>
@@ -124,26 +144,26 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
                   )}
                   {!!proxy.providerName && (
                     <span
-                      className="border-text-secondary/40 text-text-secondary data-proxy-provider:bg-text-secondary/15 mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep"
+                      className="bg-text-secondary/8 text-text-secondary data-proxy-provider:bg-text-secondary/12 mt-auto mr-1 inline-block rounded-full px-1.5 text-[10px] leading-normal break-keep"
                       data-proxy-provider>
                       {proxy.providerName}
                     </span>
                   )}
-                  <span className="border-text-secondary/40 text-text-secondary mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep">
+                  <span className="bg-text-secondary/8 text-text-secondary mt-auto mr-1 inline-block rounded-full px-1.5 text-[10px] leading-normal break-keep">
                     {proxy.type}
                   </span>
                   {proxy.udp && (
-                    <span className="border-text-secondary/40 text-text-secondary mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep">
+                    <span className="bg-text-secondary/8 text-text-secondary mt-auto mr-1 inline-block rounded-full px-1.5 text-[10px] leading-normal break-keep">
                       UDP
                     </span>
                   )}
                   {proxy.xudp && (
-                    <span className="border-text-secondary/40 text-text-secondary mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep">
+                    <span className="bg-text-secondary/8 text-text-secondary mt-auto mr-1 inline-block rounded-full px-1.5 text-[10px] leading-normal break-keep">
                       XUDP
                     </span>
                   )}
                   {proxy.tfo && (
-                    <span className="border-text-secondary/40 text-text-secondary mt-auto mr-1 inline-block rounded-full border px-1.5 text-[10px] leading-normal break-keep">
+                    <span className="bg-text-secondary/8 text-text-secondary mt-auto mr-1 inline-block rounded-full px-1.5 text-[10px] leading-normal break-keep">
                       TFO
                     </span>
                   )}

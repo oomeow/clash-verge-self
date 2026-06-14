@@ -32,11 +32,13 @@ export const ProfileDiv = ({
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
       className={cn(
-        "relative box-border block h-full w-full cursor-pointer overflow-hidden rounded-xl p-2 text-left shadow-sm",
+        "relative box-border block h-full w-full cursor-pointer overflow-hidden rounded-xl p-2 text-left",
         "text-text-secondary dark:text-text-secondary/65",
+        "transition-[background-color] duration-0",
+        "shadow-[0_1px_2px_rgba(0,0,0,0.06)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.2)]",
+        "hover:bg-primary/10 dark:hover:bg-primary/18",
         selected &&
-          "bg-primary/25 dark:bg-primary/35 border-primary w-full border-l-[3px]",
-
+          "bg-primary/16 dark:bg-primary/28 border-primary w-full border-l-[3px]",
         isDragging && "shadow-[0_0_10px_5px_rgba(0,0,0,0.12)]",
         "[&_h2]:text-text-primary",
         className,

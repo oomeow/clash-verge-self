@@ -17,15 +17,19 @@ const LogItem = (props: Props) => {
   msg = msg.replaceAll(" error: ", " ⇢ error ");
 
   return (
-    <div className="hover:bg-action-hover [&_.time]:text-text-secondary [&_.type[data-type=error]]:text-error [&_.type[data-type=err]]:text-error [&_.type[data-type=warning]]:text-warning [&_.type[data-type=warn]]:text-warning [&_.type[data-type=info]]:text-info [&_.type[data-type=inf]]:text-info [&_.data]:text-text-primary [&_.data]:break-anywhere px-3 py-2 text-sm leading-tight transition-colors duration-150 select-text [&_.time]:ml-2 [&_.type]:inline-block [&_.type]:rounded-full [&_.type]:px-1.5 [&_.type]:text-center [&_.type]:text-xs [&_.type]:font-semibold [&_.type]:uppercase">
-      <div>
-        <span className="type" data-type={value.type.toLowerCase()}>
+    <div className="hover:bg-primary/8 dark:hover:bg-primary/14 rounded-lg px-3 py-2 select-text">
+      <div className="flex items-center gap-2">
+        <span
+          className="data-[type=error]:bg-error/12 data-[type=error]:text-error data-[type=err]:bg-error/12 data-[type=err]:text-error data-[type=warning]:bg-warning/12 data-[type=warning]:text-warning data-[type=warn]:bg-warning/12 data-[type=warn]:text-warning data-[type=info]:bg-info/12 data-[type=info]:text-info data-[type=inf]:bg-info/12 data-[type=inf]:text-info data-[type=debug]:bg-text-secondary/10 data-[type=debug]:text-text-secondary inline-block rounded-full px-1.5 py-0.5 text-center text-[10px] leading-normal font-semibold uppercase"
+          data-type={value.type.toLowerCase()}>
           {value.type}
         </span>
-        <span className="time">{value.time}</span>
+        <span className="text-text-secondary text-xs">{value.time}</span>
       </div>
-      <div>
-        <span className="data">{msg}</span>
+      <div className="mt-1">
+        <span className="text-text-primary break-anywhere text-sm leading-snug">
+          {msg}
+        </span>
       </div>
     </div>
   );

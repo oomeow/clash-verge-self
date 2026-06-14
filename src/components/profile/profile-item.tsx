@@ -7,6 +7,7 @@ import Home from "@mui/icons-material/Home";
 import Refresh from "@mui/icons-material/Refresh";
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import {
+  alpha,
   Box,
   CircularProgress,
   IconButton,
@@ -254,23 +255,28 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
   return (
     <Box
-      className={cn(selectMode ? "animate-shake" : undefined, "shadow-sm")}
-      sx={(theme) => ({
-        width: "100%",
-        bgcolor: theme.palette.background.default,
-        borderRadius: "12px",
-        transition: "opacity 0.15s, box-shadow 0.15s, filter 0.15s",
-        ...(selectMode && {
-          filter: "saturate(0.75)",
-          opacity: 0.85,
-        }),
-        ...(multiSelected && {
-          filter: "saturate(1)",
-          opacity: 1,
-          boxShadow: `0 0 0 2px ${theme.palette.primary.main}, 0 2px 8px ${theme.palette.primary.main}33`,
-        }),
-        ...{ sx },
-      })}>
+      className={cn(selectMode ? "animate-shake" : undefined)}
+      sx={(theme) => {
+        const isLight = theme.palette.mode === "light";
+        return {
+          width: "100%",
+          bgcolor: theme.palette.background.default,
+          borderRadius: "12px",
+          boxShadow: isLight
+            ? "0 1px 3px rgba(0,0,0,0.08)"
+            : "0 1px 4px rgba(0,0,0,0.24)",
+          ...(selectMode && {
+            filter: "saturate(0.75)",
+            opacity: 0.85,
+          }),
+          ...(multiSelected && {
+            filter: "saturate(1)",
+            opacity: 1,
+            boxShadow: `0 0 0 2px ${theme.palette.primary.main}, 0 2px 6px ${alpha(theme.palette.primary.main, 0.2)}`,
+          }),
+          ...{ sx },
+        };
+      }}>
       <ProfileDiv
         aria-label={isDragging ? "dragging" : "profile"}
         aria-selected={selected}

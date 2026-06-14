@@ -28,9 +28,12 @@ const StyledChip = styled(Chip, {
   height: density === "compact" ? 18 : 20,
   borderRadius: "999px",
   fontSize: density === "compact" ? 10 : 11,
-  fontWeight: 700,
+  fontWeight: 600,
   color: theme.palette.primary.main,
-  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+  backgroundColor: alpha(
+    theme.palette.primary.main,
+    theme.palette.action.activatedOpacity,
+  ),
   "& .MuiChip-label": {
     px: density === "compact" ? 0.625 : 0.75,
   },
