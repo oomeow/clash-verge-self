@@ -2,7 +2,7 @@
 // according to UA
 export default function getSystem() {
   const ua = navigator.userAgent;
-  const platform = OS_PLATFORM;
+  const platform = __OS_PLATFORM__;
 
   if (ua.includes("Mac OS X") || platform === "darwin") return "macos";
 

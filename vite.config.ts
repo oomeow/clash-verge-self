@@ -69,6 +69,6 @@ export default defineConfig({
     conditions: ["mui-modern", "module", "browser", "development|production"],
   },
   define: {
-    OS_PLATFORM: `"${process.platform}"`,
+    __OS_PLATFORM__: JSON.stringify(process.platform),
   },
 });

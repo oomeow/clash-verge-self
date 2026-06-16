@@ -14,7 +14,7 @@ type Platform =
 /**
  * defines in `vite.config.ts`
  */
-declare const OS_PLATFORM: Platform;
+declare const __OS_PLATFORM__: Platform;
 
 /**
  * Some interface for clash api
