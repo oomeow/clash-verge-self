@@ -26,6 +26,7 @@ import {
 import {
   IProxyGroupItem,
   type IRenderItem,
+  RenderType,
   useRenderList,
 } from "./use-render-list";
 
@@ -54,7 +55,10 @@ export const ProxyGroups = (props: Props) => {
   >({});
 
   const groupNameList = useMemo(
-    () => renderList.filter((item) => item.type === 0).map((item) => item.key),
+    () =>
+      renderList
+        .filter((item) => item.type === RenderType.GROUP_HEADER)
+        .map((item) => item.key),
     [renderList],
   );
   const groupNamesForDelayCheck = useMemo(
@@ -136,7 +140,10 @@ export const ProxyGroups = (props: Props) => {
     async (groupName: string) => {
       const proxies = renderList
         .filter(
-          (e) => e.group?.name === groupName && (e.type === 2 || e.type === 4),
+          (e) =>
+            e.group?.name === groupName &&
+            (e.type === RenderType.PROXY_ITEM ||
+              e.type === RenderType.PROXY_COL),
         )
         .flatMap((e) => e.proxyCol || e.proxy!)
         .filter(Boolean);
@@ -155,7 +162,7 @@ export const ProxyGroups = (props: Props) => {
       if (!groupName) return;
 
       const index = renderList.findIndex(
-        (e) => e.type === 0 && e.key === groupName,
+        (e) => e.type === RenderType.GROUP_HEADER && e.key === groupName,
       );
 
       if (index >= 0) {
@@ -179,8 +186,9 @@ export const ProxyGroups = (props: Props) => {
       const index = renderList.findIndex(
         (e) =>
           e.group?.name === name &&
-          ((e.type === 2 && e.proxy?.name === now) ||
-            (e.type === 4 && e.proxyCol?.some((p) => p.name === now))),
+          ((e.type === RenderType.PROXY_ITEM && e.proxy?.name === now) ||
+            (e.type === RenderType.PROXY_COL &&
+              e.proxyCol?.some((p) => p.name === now))),
       );
 
       if (index >= 0) {
@@ -198,7 +206,9 @@ export const ProxyGroups = (props: Props) => {
   const handleGroupToggle = useCallback(
     async (group: IProxyGroupItem) => {
       const index = renderList.findIndex(
-        (item) => item.type === 0 && item.group.name === group.name,
+        (item) =>
+          item.type === RenderType.GROUP_HEADER &&
+          item.group.name === group.name,
       );
       if (index < 0) return;
 
@@ -275,7 +285,7 @@ export const ProxyGroups = (props: Props) => {
           ref={stickyListRef}
           className="h-full w-full"
           items={renderList}
-          isGroupItem={(item) => item.type === 0}
+          isGroupItem={(item) => item.type === RenderType.GROUP_HEADER}
           getItemKey={(item) => item.key}
           estimateGroupItemHeight={78}
           estimateItemHeight={64}

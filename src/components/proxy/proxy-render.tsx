@@ -18,7 +18,11 @@ import { ProxyGroupIcon } from "./proxy-group-icon";
 import { ProxyGroupTools } from "./proxy-group-tools";
 import { ProxyItem } from "./proxy-item";
 import { ProxyItemMini } from "./proxy-item-mini";
-import type { IProxyGroupItem, IRenderItem } from "./use-render-list";
+import {
+  type IProxyGroupItem,
+  type IRenderItem,
+  RenderType,
+} from "./use-render-list";
 
 interface RenderProps {
   item: IRenderItem;
@@ -177,7 +181,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
 
   switch (type) {
-    case 0:
+    case RenderType.GROUP_HEADER:
       return (
         <ProxyGroupHeader
           group={group}
@@ -188,9 +192,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           onGroupToggle={onGroupToggle}
         />
       );
-    case 1:
-      return null;
-    case 2:
+    case RenderType.PROXY_ITEM:
       return (
         <ProxyItem
           group={group!}
@@ -203,9 +205,9 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           onClick={() => onChangeProxy(group, proxy!)}
         />
       );
-    case 3:
+    case RenderType.EMPTY_MESSAGE:
       return <EmptyProxyMessage />;
-    case 4:
+    case RenderType.PROXY_COL:
       return (
         <ProxyItemMiniCol
           item={item}

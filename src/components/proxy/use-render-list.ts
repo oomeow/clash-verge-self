@@ -12,13 +12,20 @@ import {
 
 import { filterSort } from "./use-filter-sort";
 
+export enum RenderType {
+  GROUP_HEADER = 0,
+  PROXY_ITEM = 1,
+  EMPTY_MESSAGE = 2,
+  PROXY_COL = 3,
+}
+
 export type IProxyGroupItem = Omit<Proxy, "all"> & {
   all: Proxy[];
 };
 
 export interface IRenderItem {
-  // 组 ｜ head ｜ item ｜ empty | item col
-  type: 0 | 1 | 2 | 3 | 4;
+  // 组 ｜ item ｜ empty | item col
+  type: RenderType;
   key: string;
   group: IProxyGroupItem;
   proxy?: Proxy;
@@ -77,7 +84,7 @@ export const useRenderList = (mode: string) => {
     const retList = renderGroups.flatMap((group) => {
       const headState = headStates[group.name] || DEFAULT_STATE;
       const ret: IRenderItem[] = [
-        { type: 0, key: group.name, group, headState },
+        { type: RenderType.GROUP_HEADER, key: group.name, group, headState },
       ];
 
       if (headState?.open || !useRule) {
@@ -88,17 +95,20 @@ export const useRenderList = (mode: string) => {
           headState.sortType,
         );
 
-        // ret.push({ type: 1, key: `head-${group.name}`, group, headState });
-
         if (!proxies.length) {
-          ret.push({ type: 3, key: `empty-${group.name}`, group, headState });
+          ret.push({
+            type: RenderType.EMPTY_MESSAGE,
+            key: `empty-${group.name}`,
+            group,
+            headState,
+          });
         }
 
         // 支持多列布局
         if (col > 1) {
           return ret.concat(
             groupList(proxies, col).map((proxyCol) => ({
-              type: 4,
+              type: RenderType.PROXY_COL,
               key: `col-${group.name}-${proxyCol[0].name}`,
               group,
               headState,
@@ -110,7 +120,7 @@ export const useRenderList = (mode: string) => {
 
         return ret.concat(
           proxies.map((proxy) => ({
-            type: 2,
+            type: RenderType.PROXY_ITEM,
             key: `${group.name}-${proxy!.name}`,
             group,
             proxy,
