@@ -537,18 +537,21 @@ pub async fn activate_selected_nodes() -> Result<()> {
     let handle = tokio::spawn(async move {
         let mihomo = handle::Handle::mihomo().await;
         // check mihomo is running
-        for i in 0..10 {
-            if i < 0 {
-                tracing::error!(
-                    "check that the mihomo api reaches the maximum number of retries, maybe mihomo core is not running"
-                );
-                return;
-            }
+        let mut is_mihomo_ready = false;
+        for _ in 0..10 {
             if mihomo.get_version().await.is_ok() {
                 tracing::debug!("check mihomo api success");
+                is_mihomo_ready = true;
                 break;
             }
             tokio::time::sleep(Duration::from_secs(1)).await;
+        }
+
+        if !is_mihomo_ready {
+            tracing::error!(
+                "check that the mihomo api reaches the maximum number of retries, maybe mihomo core is not running"
+            );
+            return;
         }
 
         if let Some(selected) = profile.selected.as_ref() {
