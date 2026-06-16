@@ -2,7 +2,7 @@ import ExpandLessRounded from "@mui/icons-material/ExpandLessRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
 import InboxRounded from "@mui/icons-material/InboxRounded";
 import { alpha, Box, Card, Typography } from "@mui/material";
-import { memo, useCallback, useMemo, useRef } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Proxy } from "tauri-plugin-mihomo-api";
 
@@ -176,38 +176,6 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
   } = props;
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
 
-  // Store callbacks in refs so stable wrappers always call the latest versions
-  const onLocationRef = useRef(onLocation);
-  onLocationRef.current = onLocation;
-  const onCheckAllRef = useRef(onCheckAll);
-  onCheckAllRef.current = onCheckAll;
-  const onGroupToggleRef = useRef(onGroupToggle);
-  onGroupToggleRef.current = onGroupToggle;
-  const onChangeProxyRef = useRef(onChangeProxy);
-  onChangeProxyRef.current = onChangeProxy;
-
-  // Stable callback wrappers — references never change, but delegate to the latest ref
-  const handleLocation = useCallback(
-    (g: IProxyGroupItem) => onLocationRef.current(g),
-    [],
-  );
-  const handleCheckAll = useCallback(
-    (name: string) => onCheckAllRef.current(name),
-    [],
-  );
-  const handleGroupToggle = useCallback(
-    (g: IProxyGroupItem) => onGroupToggleRef.current?.(g),
-    [],
-  );
-  const handleChangeProxy = useCallback(
-    (g: IProxyGroupItem, p: Proxy) => onChangeProxyRef.current(g, p),
-    [],
-  );
-  const handleItemClick = useCallback(
-    () => onChangeProxyRef.current(group!, proxy!),
-    [group, proxy],
-  );
-
   switch (type) {
     case 0:
       return (
@@ -215,9 +183,9 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           group={group}
           headState={headState}
           stickyed={stickyed}
-          onLocation={handleLocation}
-          onCheckAll={handleCheckAll}
-          onGroupToggle={handleGroupToggle}
+          onLocation={onLocation}
+          onCheckAll={onCheckAll}
+          onGroupToggle={onGroupToggle}
         />
       );
     case 1:
@@ -232,7 +200,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           showType={headState.showType}
           delayVersion={delayVersion}
           sx={{ py: "4px", px: 2 }}
-          onClick={handleItemClick}
+          onClick={() => onChangeProxy(group, proxy!)}
         />
       );
     case 3:
@@ -242,7 +210,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
         <ProxyItemMiniCol
           item={item}
           delayVersion={delayVersion}
-          onChangeProxy={handleChangeProxy}
+          onChangeProxy={onChangeProxy}
         />
       );
     default:
