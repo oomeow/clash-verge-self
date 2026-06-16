@@ -1,6 +1,11 @@
 ---
 name: mihomo-model-sync
-description: Synchronize Rust Mihomo API model structs and enums with the MetaCubeX/mihomo Alpha branch, including field drift checks and upstream code-location annotations. Manual trigger only: use this skill only when the user explicitly asks to "同步mihomo结构体", "同步 mihomo 结构体", "同步 mihomo 模型", or explicitly names `mihomo-model-sync`. Do not auto-trigger for generic Rust model edits, comment refreshes, or routine `models.rs` maintenance.
+description: |
+  Synchronize Rust Mihomo API model structs and enums with the MetaCubeX/mihomo Alpha branch, including field drift checks and upstream code-location annotations.
+
+  Manual trigger only: use this skill only when the user explicitly asks to "同步mihomo结构体", "同步 mihomo 结构体", "同步 mihomo 模型", or explicitly names `mihomo-model-sync`.
+
+  Do not auto-trigger for generic Rust model edits, comment refreshes, or routine `models.rs` maintenance.
 ---
 
 # Mihomo Model Sync
