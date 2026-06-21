@@ -41,7 +41,7 @@ export const calcuProxies = async () => {
     if (each?.name !== "GLOBAL" && each?.all) {
       acc.push({
         ...each,
-        all: each.all!.map((item) => generateItem(item)),
+        all: each.all.map((item) => generateItem(item)),
       });
     }
 
@@ -55,7 +55,7 @@ export const calcuProxies = async () => {
       if (proxyRecord[name]?.all) {
         acc.push({
           ...proxyRecord[name],
-          all: proxyRecord[name].all!.map((item) => generateItem(item)),
+          all: proxyRecord[name].all.map((item) => generateItem(item)),
         });
       }
       return acc;
@@ -76,7 +76,7 @@ export const calcuProxies = async () => {
   );
 
   const _global: IProxyGroupItem = {
-    ...global!,
+    ...global,
     all: global?.all?.map((item) => generateItem(item)) || [],
   };
 

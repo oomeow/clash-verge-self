@@ -12,6 +12,8 @@ import {
 
 import { filterSort } from "./use-filter-sort";
 
+const EMPTY_HEAD_STATES: Record<string, HeadState> = {};
+
 export enum RenderType {
   GROUP_HEADER = 0,
   PROXY_ITEM = 1,
@@ -75,11 +77,12 @@ export const useRenderList = (mode: string) => {
   const renderList: IRenderItem[] = useMemo(() => {
     if (!proxiesData) return [];
 
-    // global 和 direct 使用展开的样式
-    const useRule = mode === "rule" || mode === "script";
+    // global 模式下将 GLOBAL 代理组置为首位
+    const isGlobalMode = mode === "global";
     const groups = proxiesData.groups.filter((group) => !group.hidden);
-    const renderGroups =
-      (useRule && groups.length ? groups : [proxiesData.global!]) || [];
+    const renderGroups = isGlobalMode
+      ? [proxiesData.global, ...groups]
+      : groups;
 
     const retList = renderGroups.flatMap((group) => {
       const headState = headStates[group.name] || DEFAULT_STATE;
@@ -87,7 +90,7 @@ export const useRenderList = (mode: string) => {
         { type: RenderType.GROUP_HEADER, key: group.name, group, headState },
       ];
 
-      if (headState?.open || !useRule) {
+      if (headState?.open) {
         const proxies = filterSort(
           group.all,
           group.name,
@@ -121,7 +124,7 @@ export const useRenderList = (mode: string) => {
         return ret.concat(
           proxies.map((proxy) => ({
             type: RenderType.PROXY_ITEM,
-            key: `${group.name}-${proxy!.name}`,
+            key: `${group.name}-${proxy.name}`,
             group,
             proxy,
             headState,
@@ -131,7 +134,6 @@ export const useRenderList = (mode: string) => {
       return ret;
     });
 
-    if (!useRule) return retList.slice(1);
     return retList;
   }, [headStates, proxiesData, mode, col]);
 
@@ -140,8 +142,6 @@ export const useRenderList = (mode: string) => {
     onProxies: mutateProxies,
   };
 };
-
-const EMPTY_HEAD_STATES: Record<string, HeadState> = {};
 
 function groupList<T = any>(list: T[], size: number): T[][] {
   return list.reduce((p, n) => {

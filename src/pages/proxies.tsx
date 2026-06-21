@@ -64,7 +64,7 @@ const ProxyPage = () => {
           </ButtonGroup>
         </Box>
       }>
-      <ProxyGroups mode={curMode!} />
+      <ProxyGroups mode={curMode} />
     </BasePage>
   );
 };
