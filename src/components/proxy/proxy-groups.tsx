@@ -15,7 +15,7 @@ import { ProxyRender } from "@/components/proxy/proxy-render";
 import LoadingPage from "@/pages/loading";
 import delayManager from "@/services/delay";
 import { useProfilesStore, useVergeStore } from "@/stores";
-import { cn, findAndHighlightElement } from "@/utils";
+import { findAndHighlightElement } from "@/utils";
 import { groupId, proxyId } from "@/utils/proxyId";
 
 import {
@@ -276,10 +276,7 @@ export const ProxyGroups = (props: Props) => {
 
   return (
     <Box className="relative flex h-full w-full">
-      <Box
-        className={cn("h-full w-full", {
-          "pr-8": true,
-        })}>
+      <Box className="h-full w-full pr-8">
         <StickyVirtualList
           ref={stickyListRef}
           className="h-full w-full"
