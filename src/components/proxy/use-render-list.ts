@@ -82,7 +82,9 @@ export const useRenderList = (mode: string) => {
     const groups = proxiesData.groups.filter((group) => !group.hidden);
     const renderGroups = isGlobalMode
       ? [proxiesData.global, ...groups]
-      : groups;
+      : groups.length > 0
+        ? groups
+        : [proxiesData.global];
 
     const retList = renderGroups.flatMap((group) => {
       const headState = headStates[group.name] || DEFAULT_STATE;
