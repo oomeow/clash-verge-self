@@ -18,6 +18,7 @@ export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
   const { groupNameList, onGroupNameClick, className } = props;
   const [open, setOpen] = useState(false);
   const groupNameListWithShortName: GroupName[] = useMemo(() => {
+    if (groupNameList.length === 0) return [];
     return groupNameList.map((name) => {
       let shortName = name.substring(0, 4);
       const regex = RegExp(/^.*[\u4e00-\u9fa5a-zA-Z0-9\s]+$/);

@@ -15,7 +15,7 @@ import { ProxyRender } from "@/components/proxy/proxy-render";
 import LoadingPage from "@/pages/loading";
 import delayManager from "@/services/delay";
 import { useProfilesStore, useVergeStore } from "@/stores";
-import { cn, findAndHighlightElement } from "@/utils";
+import { findAndHighlightElement } from "@/utils";
 import { groupId, proxyId } from "@/utils/proxyId";
 
 import {
@@ -38,7 +38,6 @@ export const ProxyGroups = (props: Props) => {
   const { mode } = props;
   const { t } = useTranslation();
   const isDirectMode = mode === "direct";
-  const isRuleMode = mode === "rule";
 
   const { renderList, onProxies } = useRenderList(mode);
   const timeout = useVergeStore((s) => s.verge.default_latency_timeout ?? 5000);
@@ -277,10 +276,7 @@ export const ProxyGroups = (props: Props) => {
 
   return (
     <Box className="relative flex h-full w-full">
-      <Box
-        className={cn("h-full w-full", {
-          "pr-8": isRuleMode,
-        })}>
+      <Box className="h-full w-full pr-8">
         <StickyVirtualList
           ref={stickyListRef}
           className="h-full w-full"
@@ -294,16 +290,14 @@ export const ProxyGroups = (props: Props) => {
         />
       </Box>
 
-      {isRuleMode && (
-        <div className="absolute top-0 right-0 bottom-0 z-10 mr-0 w-8 bg-transparent transition-all duration-100 hover:w-30">
-          <ProxyGroupSidebar
-            groupNameList={groupNameList}
-            onGroupNameClick={(groupName) => {
-              handleGroupLocation(groupName);
-            }}
-          />
-        </div>
-      )}
+      <div className="absolute top-0 right-0 bottom-0 z-10 mr-0 w-8 bg-transparent transition-all duration-100 hover:w-30">
+        <ProxyGroupSidebar
+          groupNameList={groupNameList}
+          onGroupNameClick={(groupName) => {
+            handleGroupLocation(groupName);
+          }}
+        />
+      </div>
     </Box>
   );
 };
