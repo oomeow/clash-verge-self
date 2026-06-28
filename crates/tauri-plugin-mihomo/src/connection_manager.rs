@@ -148,7 +148,7 @@ where
 ///
 /// 每个连接由一个后台读取任务（处理入站消息）和一个写入端（用于发送 Close 帧）组成。
 /// 使用 `open()` 创建连接，使用 `close()` / `close_all()` 清理。
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct ConnectionManager {
     connections: Arc<RwLock<HashMap<WebSocketConnectionId, ManagedWsConnection>>>,
 }

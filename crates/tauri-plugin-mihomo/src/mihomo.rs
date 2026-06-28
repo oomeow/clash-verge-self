@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
 use http::{
     HeaderMap, HeaderValue,
@@ -27,7 +27,7 @@ pub struct Mihomo {
     pub secret: Option<String>,
     pub socket_path: Option<String>,
     pub request_timeout: Duration,
-    pub connection_manager: Arc<ConnectionManager>,
+    pub connection_manager: ConnectionManager,
     pub client: reqwest::Client,
 }
 

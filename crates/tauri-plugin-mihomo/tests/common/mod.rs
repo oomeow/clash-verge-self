@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use tauri_plugin_mihomo::{Mihomo, models::Protocol};
 
@@ -38,7 +38,7 @@ pub fn mihomo() -> Mihomo {
             secret: None,
             socket_path,
             request_timeout,
-            connection_manager: Arc::new(Default::default()),
+            connection_manager: Default::default(),
             client,
         }
     } else {
@@ -51,7 +51,7 @@ pub fn mihomo() -> Mihomo {
             secret: Some("yPMJk9i7UaR1hv3-2BkPy".into()),
             socket_path,
             request_timeout,
-            connection_manager: Arc::new(Default::default()),
+            connection_manager: Default::default(),
             client,
         }
     }
