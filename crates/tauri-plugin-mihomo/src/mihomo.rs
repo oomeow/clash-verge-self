@@ -2,41 +2,23 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use http::{
-    HeaderMap, HeaderValue, Request,
-    header::{AUTHORIZATION, CONNECTION, CONTENT_TYPE, HOST, SEC_WEBSOCKET_KEY, SEC_WEBSOCKET_VERSION, UPGRADE},
+    HeaderMap, HeaderValue,
+    header::{AUTHORIZATION, CONTENT_TYPE, HOST},
 };
 use reqwest::{Method, RequestBuilder};
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::json;
-use tokio_tungstenite::{
-    client_async, connect_async,
-    tungstenite::{
-        Message, client::IntoClientRequest, handshake::client::generate_key, protocol::CloseFrame as ProtocolCloseFrame,
-    },
-};
 
 use crate::{
-    DOWNLOAD_FILE_TIMEOUT, Error, Result, failed_resp,
+    DOWNLOAD_FILE_TIMEOUT, Error, Result,
+    connection_manager::ConnectionManager,
+    failed_resp,
     models::{
-        BaseConfig, CloseFrame, ConnectionManager, Connections, CoreUpdaterChannel, ErrorResponse, Groups, LogLevel,
-        ManagedWsConnection, MihomoVersion, Protocol, Proxies, Proxy, ProxyDelay, ProxyProvider, ProxyProviders,
-        RuleProviders, Rules, WebSocketConnectionId, WebSocketMessage,
+        BaseConfig, Connections, CoreUpdaterChannel, ErrorResponse, Groups, LogLevel, MihomoVersion, Protocol, Proxies,
+        Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules, WebSocketConnectionId,
     },
     ret_failed_resp,
-    stream::{WsReadKind, WsStream, WsWriteKind},
 };
-
-fn schedule_abort_handle(abort_handle: tokio::task::AbortHandle, timeout: Option<u64>) {
-    match timeout {
-        Some(timeout) => {
-            tauri::async_runtime::spawn(async move {
-                tokio::time::sleep(Duration::from_millis(timeout)).await;
-                abort_handle.abort();
-            });
-        }
-        None => abort_handle.abort(),
-    }
-}
 
 pub struct Mihomo {
     pub protocol: Protocol,
@@ -49,102 +31,10 @@ pub struct Mihomo {
     pub client: reqwest::Client,
 }
 
+// ============================================================================
+// Configuration & Protocol
+// ============================================================================
 impl Mihomo {
-    fn websocket_close_message() -> Message {
-        Message::Close(Some(ProtocolCloseFrame {
-            code: 1000.into(),
-            reason: "Disconnected by client".into(),
-        }))
-    }
-
-    fn handle_websocket_message(message: Result<Message>) -> Result<serde_json::Value> {
-        let msg = match message {
-            Ok(Message::Text(text)) => serde_json::to_value(WebSocketMessage::Text(text.to_string()))?,
-            Ok(Message::Binary(data)) => serde_json::to_value(WebSocketMessage::Binary(data.to_vec()))?,
-            Ok(Message::Ping(data)) => serde_json::to_value(WebSocketMessage::Ping(data.to_vec()))?,
-            Ok(Message::Pong(data)) => serde_json::to_value(WebSocketMessage::Pong(data.to_vec()))?,
-            Ok(Message::Close(frame)) => {
-                serde_json::to_value(WebSocketMessage::Close(frame.map(|frame| CloseFrame {
-                    code: frame.code.into(),
-                    reason: frame.reason.to_string(),
-                })))?
-            }
-            Ok(Message::Frame(_)) => serde_json::Value::Null,
-            Err(error) => {
-                tracing::error!("websocket error: {error}");
-                serde_json::to_value(WebSocketMessage::Text(error.to_string()))?
-            }
-        };
-        Ok(msg)
-    }
-
-    fn spawn_read_task<F>(
-        id: WebSocketConnectionId,
-        mut reader: WsReadKind,
-        on_message: F,
-        manager: Arc<ConnectionManager>,
-    ) -> tokio::task::JoinHandle<()>
-    where
-        F: Fn(serde_json::Value) + Send + 'static,
-    {
-        tokio::spawn(async move {
-            while let Some(message) = reader.next().await {
-                if !manager.contains(id).await {
-                    tracing::debug!("connection [{id}] is removed from manager");
-                    break;
-                }
-
-                let is_close = matches!(&message, Ok(Message::Close(_)));
-                if let Ok(response) = Self::handle_websocket_message(message) {
-                    on_message(response);
-                }
-                if is_close {
-                    tracing::debug!("connection [{id}] is closed");
-                    break;
-                }
-            }
-
-            // TODO: it is necessary to remove it?
-            let _ = manager.remove(id).await;
-        })
-    }
-
-    async fn open_websocket_stream(&self, url: String) -> Result<(WsWriteKind, WsReadKind)> {
-        match self.protocol {
-            Protocol::Http => {
-                tracing::debug!("starting connect to websocket by using http");
-                let request = url.into_client_request()?;
-                let (ws_stream, _) = connect_async(request).await?;
-                Ok(WsStream::from(ws_stream).split())
-            }
-            Protocol::LocalSocket => {
-                let Some(socket_path) = self.socket_path.as_ref() else {
-                    tracing::error!("missing socket path parameter");
-                    return Err(Error::MissingPathParameter("socket_path".into()));
-                };
-
-                tracing::debug!("starting connect to websocket by using local socket: {socket_path}");
-                let stream = crate::stream::connect_to_socket(socket_path).await?;
-                let request = Request::builder()
-                    .uri(url)
-                    .header(HOST, "clash-verge-self")
-                    .header(SEC_WEBSOCKET_KEY, generate_key())
-                    .header(CONNECTION, "Upgrade")
-                    .header(UPGRADE, "websocket")
-                    .header(SEC_WEBSOCKET_VERSION, "13")
-                    .body(())?;
-                let (ws_stream, _) = client_async(request, stream).await?;
-                Ok(WsStream::from(ws_stream).split())
-            }
-        }
-    }
-
-    async fn close_managed_connection(connection: ManagedWsConnection, force_timeout: Option<u64>) {
-        let mut connection = connection;
-        let _ = connection.writer.send(Self::websocket_close_message()).await;
-        schedule_abort_handle(connection.read_task, force_timeout);
-    }
-
     pub fn update_protocol(&mut self, protocol: Protocol) -> Result<()> {
         self.protocol = protocol;
         self.client = Self::build_client(&self.protocol, self.socket_path.as_deref())?;
@@ -191,17 +81,7 @@ impl Mihomo {
         }
     }
 
-    pub fn start_ws_connections_watcher(&self) {
-        let manager = self.connection_manager.clone();
-        tauri::async_runtime::spawn(async move {
-            let mut interval = tokio::time::interval(Duration::from_millis(1000));
-            loop {
-                interval.tick().await;
-                let ids = manager.ids().await;
-                tracing::trace!("manager websocket connection ids: {ids:?}");
-            }
-        });
-    }
+    // --- HTTP request helpers ---
 
     fn generate_req_url(&self, suffix_url: &str) -> Result<String> {
         let suffix_url = suffix_url.trim_start_matches("/");
@@ -250,6 +130,8 @@ impl Mihomo {
         Ok(request.headers(headers).timeout(self.request_timeout))
     }
 
+    // --- WebSocket URL helper ---
+
     fn get_websocket_url(&self, suffix_url: &str) -> Result<String> {
         let suffix_url = suffix_url.trim_start_matches("/");
         match self.protocol {
@@ -267,88 +149,47 @@ impl Mihomo {
         }
     }
 
-    /// 连接 WebSocket
-    async fn connect<F>(&self, url: String, on_message: F) -> Result<WebSocketConnectionId>
-    where
-        F: Fn(serde_json::Value) + Send + 'static,
-    {
-        let id = rand::random();
-        tracing::info!("connecting to websocket: {url}, id: {id}");
+    pub fn start_ws_connections_watcher(&self) {
         let manager = self.connection_manager.clone();
-
-        let (writer, reader) = self.open_websocket_stream(url).await?;
-        let read_task = Self::spawn_read_task(id, reader, on_message, manager.clone());
-        manager
-            .insert(
-                id,
-                ManagedWsConnection {
-                    writer,
-                    read_task: read_task.abort_handle(),
-                },
-            )
-            .await;
-        Ok(id)
+        tauri::async_runtime::spawn(async move {
+            let mut interval = tokio::time::interval(Duration::from_millis(1000));
+            loop {
+                interval.tick().await;
+                let ids = manager.active_ids().await;
+                tracing::trace!("manager websocket connection ids: {ids:?}");
+            }
+        });
     }
+}
 
-    /// 向指定 WebSocket 连接发送消息 (暂无使用该方法的地方)
-    async fn send(&self, id: WebSocketConnectionId, message: WebSocketMessage) -> Result<()> {
-        let manager = self.connection_manager.clone();
-        let mut manager = manager.0.write().await;
-        if let Some(writer) = manager.get_mut(&id) {
-            let data = match message {
-                WebSocketMessage::Text(t) => Message::Text(t.into()),
-                WebSocketMessage::Binary(t) => Message::Binary(t.into()),
-                WebSocketMessage::Ping(t) => Message::Ping(t.into()),
-                WebSocketMessage::Pong(t) => Message::Pong(t.into()),
-                WebSocketMessage::Close(t) => Message::Close(t.map(|v| ProtocolCloseFrame {
-                    code: v.code.into(),
-                    reason: v.reason.into(),
-                })),
-            };
-            writer.writer.send(data).await?;
-            Ok(())
-        } else {
-            tracing::error!("connection not found: {id}");
-            Err(Error::WebSocketConnectionNotFound(id))
-        }
-    }
+// ============================================================================
+// WebSocket Connection Lifecycle
+// ============================================================================
+impl Mihomo {
+    // --- Public API ---
 
     /// 取消 WebSocket 连接
     pub async fn disconnect(&self, id: WebSocketConnectionId, force_timeout: Option<u64>) -> Result<()> {
-        tracing::debug!("disconnecting connection: {id}");
-        let connection = self.connection_manager.remove(id).await;
-        if let Some(connection) = connection {
-            Self::close_managed_connection(connection, force_timeout).await;
-            Ok(())
-        } else {
-            tracing::error!("connection not found: {id}");
-            Err(Error::WebSocketConnectionNotFound(id))
-        }
+        self.connection_manager.close(id, force_timeout).await
     }
 
+    /// 关闭所有 WebSocket 连接
     pub async fn clear_all_ws_connections(&self) -> Result<()> {
-        tracing::debug!("start to clear all websocket connections");
-        let ids = self.connection_manager.ids().await;
-        tracing::debug!("manage_ids: {ids:?}");
-        let connections = self.connection_manager.take_all().await;
-        for connection in connections {
-            Self::close_managed_connection(connection, Some(0)).await;
-        }
-        tracing::debug!("clear all done");
+        self.connection_manager.close_all().await;
         Ok(())
     }
 
-    // ------------------------------------------------------
-    // |                     Mihomo API                     |
-    // ------------------------------------------------------
+    // --- Entry points (each opens one WS data stream) ---
+
     /// WebSocket: Mihomo 流量数据
     pub async fn ws_traffic<F>(&self, on_message: F) -> Result<WebSocketConnectionId>
     where
         F: Fn(serde_json::Value) + Send + 'static,
     {
         let ws_url = self.get_websocket_url("/traffic")?;
-        let websocket_id = self.connect(ws_url, on_message).await?;
-        Ok(websocket_id)
+        self.connection_manager
+            .open(&self.protocol, self.socket_path.as_deref(), ws_url, on_message)
+            .await
     }
 
     /// WebSocket: Mihomo 内存使用数据
@@ -357,8 +198,9 @@ impl Mihomo {
         F: Fn(serde_json::Value) + Send + 'static,
     {
         let ws_url = self.get_websocket_url("/memory")?;
-        let websocket_id = self.connect(ws_url, on_message).await?;
-        Ok(websocket_id)
+        self.connection_manager
+            .open(&self.protocol, self.socket_path.as_deref(), ws_url, on_message)
+            .await
     }
 
     /// WebSocket: Mihomo 连接信息数据
@@ -367,8 +209,9 @@ impl Mihomo {
         F: Fn(serde_json::Value) + Send + 'static,
     {
         let ws_url = self.get_websocket_url("/connections")?;
-        let websocket_id = self.connect(ws_url, on_message).await?;
-        Ok(websocket_id)
+        self.connection_manager
+            .open(&self.protocol, self.socket_path.as_deref(), ws_url, on_message)
+            .await
     }
 
     /// WebSocket: Mihomo 日志数据
@@ -383,11 +226,16 @@ impl Mihomo {
             Protocol::Http => format!("{ws_url}&level={level}"),
             Protocol::LocalSocket => format!("{ws_url}?level={level}"),
         };
-        let websocket_id = self.connect(ws_url, on_message).await?;
-        Ok(websocket_id)
+        self.connection_manager
+            .open(&self.protocol, self.socket_path.as_deref(), ws_url, on_message)
+            .await
     }
+}
 
-    // clash api
+// ============================================================================
+// Mihomo REST API
+// ============================================================================
+impl Mihomo {
     /// 获取 Mihomo 版本信息
     pub async fn get_version(&self) -> Result<MihomoVersion> {
         let response = self.build_request(Method::GET, "/version")?.send().await?;
@@ -855,7 +703,7 @@ impl Mihomo {
 mod tests {
     use std::time::Duration;
 
-    use super::schedule_abort_handle;
+    use crate::connection_manager::schedule_abort_handle;
 
     #[tokio::test]
     async fn abort_handle_without_timeout_aborts_immediately() {

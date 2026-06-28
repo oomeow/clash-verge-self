@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+pub use connection_manager::ConnectionManager;
 pub use mihomo::Mihomo;
 use tauri::{
     Manager, Runtime,
@@ -8,6 +9,7 @@ use tauri::{
 };
 
 mod commands;
+pub(crate) mod connection_manager;
 mod error;
 mod mihomo;
 pub mod models;
