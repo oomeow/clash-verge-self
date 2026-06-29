@@ -130,7 +130,7 @@ importers:
         version: 0.17.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react-virtuoso:
         specifier: ^4.18.4
-        version: 4.18.8(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 4.18.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       swr:
         specifier: ^2.4.1
         version: 2.4.2(react@19.2.7)
@@ -3378,8 +3378,8 @@ packages:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
 
-  react-virtuoso@4.18.8:
-    resolution: {integrity: sha512-oQUXMdNiKEQ0BaVY9NJbX5do3teHuHwOJT0rSUHSXmLnBpIXPFR+3vEMuZ4Ce3MFYFkA5aGTuUstCA5i3S9/Vw==}
+  react-virtuoso@4.18.9:
+    resolution: {integrity: sha512-hnS+4ip23UfMOAbiEfkpUu9OHau9SAYWgu3fUcKKnCmngV4eorkPSMm7/4XzjLqj4EKwIXk6Jeyd1azIbVnMkQ==}
     peerDependencies:
       react: '>=16 || >=17 || >= 18 || >= 19'
       react-dom: '>=16 || >=17 || >= 18 || >=19'
@@ -7176,7 +7176,7 @@ snapshots:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
 
-  react-virtuoso@4.18.8(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
+  react-virtuoso@4.18.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7):
     dependencies:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
