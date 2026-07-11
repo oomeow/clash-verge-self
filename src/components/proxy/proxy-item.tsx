@@ -46,8 +46,13 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
   );
   const delay = delayManager.getDelayFix(proxy, group.name);
 
-  const onDelay = useLockFn(async () => {
-    await delayManager.checkDelay(proxy.name, group.name, timeout);
+  const onDelay = useLockFn(async (providerName?: string) => {
+    await delayManager.checkDelay(
+      proxy.name,
+      group.name,
+      timeout,
+      providerName,
+    );
   });
 
   return (
@@ -189,7 +194,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onDelay();
+                onDelay(proxy.providerName);
               }}>
               Check
             </Box>
@@ -202,7 +207,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onDelay();
+                onDelay(proxy.providerName);
               }}
               style={{ color: delayManager.formatDelayColor(delay, timeout) }}>
               {delayManager.formatDelay(delay, timeout)}

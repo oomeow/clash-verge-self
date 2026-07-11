@@ -12,3 +12,4 @@
 ### 🐛 Bug Fixes
 
 - 修复节点激活流程中的重试机制（activate_selected_nodes），提升稳定性
+- 修复 provider 节点延迟检测
