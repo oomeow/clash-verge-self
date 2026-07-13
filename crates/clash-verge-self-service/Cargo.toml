@@ -26,7 +26,7 @@ clap = { version = "4.5", features = ["derive"] }
 bytes = "1.10"
 chacha20poly1305 = "0.10"
 hkdf = "0.13"
-x25519-dalek = { version = "3.0", features = ["static_secrets"] }
+x25519-dalek = { version = "3.0", features = ["static_secrets", "getrandom"] }
 sha2 = "0.11"
 
 # [target.'cfg(target_os = "linux")'.dependencies]
