@@ -101,7 +101,7 @@
     "meta-json-schema": "1.19.27",
     "node-fetch": "3.3.2",
     "picocolors": "1.1.1",
-    "postcss": "8.5.17",
+    "postcss": "8.5.18",
     "prettier": "3.9.5",
     "prettier-plugin-tailwindcss": "0.8.0",
     "pretty-quick": "4.2.2",
