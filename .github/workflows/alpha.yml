@@ -59,7 +59,7 @@ jobs:
 
       - name: Install Rust
         if: steps.filter.outputs.service == 'true' && matrix.os != 'ubuntu-latest'
-        uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
 
       - name: Add Rust Target
         if: steps.filter.outputs.service == 'true' && matrix.os != 'ubuntu-latest'
@@ -124,7 +124,7 @@ jobs:
 
       - name: Install Rust Stable
         if: steps.filter.outputs.mihomo == 'true'
-        uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
 
       - name: Rust Cache
         if: steps.filter.outputs.mihomo == 'true'
@@ -219,7 +219,7 @@ jobs:
           ref: dev
 
       - name: Install Rust Stable
-        uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
 
       - name: Add Rust Target
         run: rustup target add ${{ matrix.target }}
@@ -291,7 +291,7 @@ jobs:
           ref: dev
 
       - name: Install Rust Stable
-        uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
+        uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
 
       - name: Add Rust Target
         run: rustup target add ${{ matrix.target }}
