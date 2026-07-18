@@ -103,7 +103,7 @@
     "picocolors": "1.1.1",
     "postcss": "8.5.19",
     "prettier": "3.9.5",
-    "prettier-plugin-tailwindcss": "0.8.0",
+    "prettier-plugin-tailwindcss": "0.8.1",
     "pretty-quick": "4.2.2",
     "tailwind-merge": "3.6.0",
     "tailwindcss": "4.3.2",
