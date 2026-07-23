@@ -146,10 +146,8 @@ export const ProxyGroups = (props: Props) => {
         )
         .flatMap((e) => e.proxyCol || e.proxy!)
         .filter(Boolean);
-      const names = proxies
-        .filter((p) => p.type !== "Direct")
-        .map((p) => p.name);
-      await delayManager.checkListDelay(names, groupName, timeout);
+      const delayProxies = proxies.filter((p) => p.type !== "Direct");
+      await delayManager.checkListDelay(delayProxies, groupName, timeout);
       onProxies();
     },
     { wait: 1000 },

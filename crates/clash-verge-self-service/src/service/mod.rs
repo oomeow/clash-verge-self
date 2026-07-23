@@ -14,10 +14,7 @@ use std::{
 use bytes::{BufMut, BytesMut};
 use chacha20poly1305::{
     XChaCha20Poly1305,
-    aead::{
-        Aead, KeyInit, OsRng,
-        rand_core::{self, RngCore},
-    },
+    aead::{Aead, KeyInit, OsRng, rand_core::RngCore},
 };
 use data::{JsonResponse, SocketCommand};
 use futures::StreamExt;
@@ -274,7 +271,7 @@ pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Resul
 
 impl SecureChannel {
     pub async fn handshake_server(mut stream: Connection, psk: Option<&[u8]>) -> Result<SecureChannel> {
-        let server_secret = StaticSecret::random_from_rng(rand_core::OsRng);
+        let server_secret = StaticSecret::random();
         let server_pub = PublicKey::from(&server_secret);
 
         let mut client_pub_bytes = [0u8; 32];
@@ -303,7 +300,7 @@ impl SecureChannel {
     }
 
     pub async fn handshake_client(mut stream: Connection, psk: Option<&[u8]>) -> Result<SecureChannel> {
-        let client_secret = StaticSecret::random_from_rng(rand_core::OsRng);
+        let client_secret = StaticSecret::random();
         let client_pub = PublicKey::from(&client_secret);
 
         stream.write_all(client_pub.as_bytes()).await?;

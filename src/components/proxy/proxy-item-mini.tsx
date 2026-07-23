@@ -36,8 +36,13 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
   );
   const delay = delayManager.getDelayFix(proxy, group.name);
 
-  const onDelay = async () => {
-    await delayManager.checkDelay(proxy.name, group.name, timeout);
+  const onDelay = async (providerName?: string) => {
+    await delayManager.checkDelay(
+      proxy.name,
+      group.name,
+      timeout,
+      providerName,
+    );
   };
 
   return (
@@ -190,7 +195,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onDelay();
+              onDelay(proxy.providerName);
             }}>
             Check
           </Box>
@@ -203,7 +208,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onDelay();
+              onDelay(proxy.providerName);
             }}
             style={{ color: delayManager.formatDelayColor(delay, timeout) }}>
             {delayManager.formatDelay(delay, timeout)}

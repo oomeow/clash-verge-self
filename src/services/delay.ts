@@ -1,4 +1,9 @@
-import { delayGroup, delayProxyByName, Proxy } from "tauri-plugin-mihomo-api";
+import {
+  delayGroup,
+  delayProxyByName,
+  healthcheckNodeInProvider,
+  Proxy,
+} from "tauri-plugin-mihomo-api";
 
 export const DEFAULT_TEST_URL = "https://www.gstatic.com/generate_204";
 export const DEFAULT_LATENCY_TIMEOUT = 5000;
@@ -81,13 +86,35 @@ class DelayManager {
     return -1;
   }
 
-  async checkDelay(name: string, group: string, timeout: number) {
+  // 统一延迟测试检测
+  async unifiedDelayCheck(
+    name: string,
+    url: string,
+    timeout: number,
+    providerName?: string,
+  ) {
+    if (providerName)
+      return healthcheckNodeInProvider(providerName, name, url, timeout);
+    return delayProxyByName(name, url, timeout);
+  }
+
+  async checkDelay(
+    name: string,
+    group: string,
+    timeout: number,
+    providerName?: string,
+  ) {
     let delay: number;
     this.setDelay(name, group, -2);
 
     try {
       const url = this.getUrl(group);
-      const result = await delayProxyByName(name, url, timeout);
+      const result = await this.unifiedDelayCheck(
+        name,
+        url,
+        timeout,
+        providerName,
+      );
       delay = result.delay;
     } catch {
       delay = 1e6; // error
@@ -98,12 +125,12 @@ class DelayManager {
   }
 
   async checkListDelay(
-    nameList: string[],
+    proxies: Proxy[],
     group: string,
     timeout: number,
     concurrency = 36,
   ) {
-    const names = nameList.filter(Boolean);
+    const names = proxies.map((o) => o.name).filter(Boolean);
     // 设置正在延迟测试中
     names.forEach((name) => this.setDelay(name, group, -2));
 
@@ -133,10 +160,15 @@ class DelayManager {
     return new Promise((resolve) => {
       const help = async (): Promise<void> => {
         if (current >= concurrency) return;
-        const task = names.shift();
-        if (!task) return;
+        const curProxy = proxies.shift();
+        if (!curProxy) return;
         current += 1;
-        await this.checkDelay(task, group, timeout);
+        await this.checkDelay(
+          curProxy.name,
+          group,
+          timeout,
+          curProxy.providerName,
+        );
         current -= 1;
         total -= 1;
         if (total <= 0) resolve(null);

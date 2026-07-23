@@ -12,3 +12,5 @@
 ### 🐛 Bug Fixes
 
 - 修复节点激活流程中的重试机制（activate_selected_nodes），提升稳定性
+- 修复 provider 节点延迟检测
+- 修复代理节点名称中的 emoji 无法正确渲染的问题

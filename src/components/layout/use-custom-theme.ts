@@ -41,6 +41,10 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
 
 function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
   const rootElement = document.getElementById("root");
+  const settingsFontFamily = setting.font_family?.split(",") ?? [];
+  const typographyFontFamily = [settingsFontFamily, "Twemoji Mozilla"]
+    .flat()
+    .join(",");
   return {
     cssVariables: true,
     shape: { borderRadius: 8 },
@@ -62,11 +66,9 @@ function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
       background: {
         default: setting.background_color!,
         paper: setting.paper_background_color!,
-        // paper: "#DDE8FD",
-        // paper: "#020511",
       },
     },
-    typography: { fontFamily: setting.font_family! },
+    typography: { fontFamily: typographyFontFamily },
     // All `Portal`-related components need to have the the main app wrapper element as a container
     // so that the are in the subtree under the element used in the `important` option of the Tailwind's config.
     components: {
