@@ -1,10 +1,9 @@
 use std::time::Duration;
 
 pub use connection_manager::ConnectionManager;
-pub use mihomo::Mihomo;
+pub use mihomo::{Mihomo, MihomoContext};
 use tauri::{
     Manager, Runtime,
-    async_runtime::RwLock,
     plugin::{Builder as PluginBuilder, TauriPlugin},
 };
 
@@ -21,12 +20,12 @@ use crate::models::Protocol;
 
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the mihomo APIs.
 pub trait MihomoExt<R: Runtime> {
-    fn mihomo(&self) -> &RwLock<Mihomo>;
+    fn mihomo(&self) -> &Mihomo;
 }
 
 impl<R: Runtime, T: Manager<R>> crate::MihomoExt<R> for T {
-    fn mihomo(&self) -> &RwLock<Mihomo> {
-        self.state::<RwLock<Mihomo>>().inner()
+    fn mihomo(&self) -> &Mihomo {
+        self.state::<Mihomo>().inner()
     }
 }
 
@@ -158,19 +157,20 @@ impl Builder {
                 // commands::ws_send,
             ])
             .setup(move |app, _api| {
-                let client = Mihomo::build_client(&protocol, socket_path.as_deref())?;
-                let mihomo = Mihomo {
+                let client = MihomoContext::build_client(&protocol, socket_path.as_deref())?;
+                let ctx = MihomoContext {
                     protocol,
                     external_host,
                     external_port,
                     secret,
                     socket_path,
                     request_timeout,
-                    connection_manager: Default::default(),
                     client,
                 };
+                let mihomo = Mihomo::new(ctx);
                 mihomo.start_ws_connections_watcher();
-                app.manage(RwLock::new(mihomo));
+
+                app.manage(mihomo);
 
                 Ok(())
             })

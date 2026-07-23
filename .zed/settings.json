@@ -9,5 +9,5 @@
     { "code_action": "source.fixAll.eslint" }
   ],
   // disable biome
-  "language_servers": ["!biome", "..."]
+  "language_servers": ["!biome", "!oxfmt", "..."]
 }

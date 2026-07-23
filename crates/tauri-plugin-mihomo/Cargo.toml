@@ -24,6 +24,7 @@ httparse = "1.10"
 urlencoding = "2.1"
 ts-rs = { version = "12.0", features = ["no-serde-warnings"] }
 pin-project = "1.1.10"
+arc-swap = "1.9"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = "0.61"

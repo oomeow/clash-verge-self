@@ -257,7 +257,7 @@ pub fn run() -> Result<()> {
             tauri::async_runtime::block_on(async move {
                 tracing::info!("exit requested, clear all ws connections");
                 CANCEL_MIHOMO_WS_RECONNECT.store(true, Ordering::SeqCst);
-                let _ = handle::Handle::mihomo().await.clear_all_ws_connections().await;
+                let _ = handle::Handle::mihomo().clear_all_ws_connections().await;
             });
             if code.is_none() {
                 api.prevent_exit();

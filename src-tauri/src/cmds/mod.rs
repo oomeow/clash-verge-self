@@ -28,7 +28,7 @@ pub async fn check_service_and_clash() -> Result<()> {
             }
         };
     }
-    let mihomo = handle::Handle::mihomo().await;
+    let mihomo = handle::Handle::mihomo();
     for i in 0..5 {
         if mihomo.get_version().await.is_err() {
             if i == 4 {

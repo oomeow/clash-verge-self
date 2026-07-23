@@ -250,7 +250,6 @@ async fn open_mihomo_ws_connection(
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
             let backend_id = handle::Handle::mihomo()
-                .await
                 .ws_traffic(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
                 .await?;
             Ok(OpenedMihomoWsConnection {
@@ -262,7 +261,6 @@ async fn open_mihomo_ws_connection(
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
             let backend_id = handle::Handle::mihomo()
-                .await
                 .ws_memory(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
                 .await?;
             Ok(OpenedMihomoWsConnection {
@@ -274,7 +272,6 @@ async fn open_mihomo_ws_connection(
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
             let backend_id = handle::Handle::mihomo()
-                .await
                 .ws_connections(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
                 .await?;
             Ok(OpenedMihomoWsConnection {
@@ -291,7 +288,6 @@ async fn open_mihomo_ws_connection(
             }));
             let callback_log_buffer = log_buffer.clone();
             let backend_id = handle::Handle::mihomo()
-                .await
                 .ws_logs(*level, move |data| {
                     buffer_or_forward_mihomo_log_ws_message(data, &on_message, &event_tx, &callback_log_buffer)
                 })
@@ -309,10 +305,7 @@ async fn disconnect_active_mihomo_ws(
     force_timeout: Option<u64>,
 ) {
     if let Some(active_id) = active_id.write().await.take() {
-        let _ = handle::Handle::mihomo()
-            .await
-            .disconnect(active_id, force_timeout)
-            .await;
+        let _ = handle::Handle::mihomo().disconnect(active_id, force_timeout).await;
     }
 }
 
@@ -321,7 +314,7 @@ async fn wait_mihomo_ws_disconnect(
     mut shutdown_rx: watch::Receiver<bool>,
     mut event_rx: mpsc::UnboundedReceiver<MihomoWsEvent>,
 ) -> bool {
-    let connection_manager = handle::Handle::mihomo().await.connection_manager.clone();
+    let connection_manager = handle::Handle::mihomo().connection_manager.clone();
     let mut check_interval = tokio::time::interval(WS_CONNECTION_CHECK_INTERVAL);
 
     loop {
@@ -468,7 +461,7 @@ async fn clear_mihomo_ws_connections() -> anyhow::Result<()> {
         connection.task.abort();
     }
 
-    let _ = handle::Handle::mihomo().await.clear_all_ws_connections().await;
+    let _ = handle::Handle::mihomo().clear_all_ws_connections().await;
     Ok(())
 }
 

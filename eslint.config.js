@@ -16,7 +16,12 @@ export default defineConfig(
     ],
   },
   {
-    files: ["scripts/*.ts", "src/**/*.{js,mjs,ts,tsx}", "vite.config.ts"],
+    files: [
+      "scripts/*.ts",
+      "src/**/*.{js,mjs,ts,tsx}",
+      "crates/tauri-plugin-mihomo/guest-js/**/*.ts",
+      "vite.config.ts",
+    ],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: "latest",

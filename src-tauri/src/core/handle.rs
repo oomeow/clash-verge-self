@@ -6,7 +6,6 @@ use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
 use tauri_plugin_mihomo::{Mihomo, MihomoExt};
 use tauri_plugin_notification::NotificationExt;
-use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 
 use super::tray::Tray;
 use crate::{APP_HANDLE, log_err};
@@ -37,12 +36,8 @@ impl Handle {
         APP_HANDLE.get().expect("failed to get app handle")
     }
 
-    pub async fn mihomo() -> RwLockReadGuard<'static, Mihomo> {
-        Self::app_handle().mihomo().read().await
-    }
-
-    pub async fn mihomo_mut() -> RwLockWriteGuard<'static, Mihomo> {
-        Self::app_handle().mihomo().write().await
+    pub fn mihomo() -> &'static Mihomo {
+        Self::app_handle().mihomo()
     }
 
     pub fn get_window() -> Option<WebviewWindow> {
