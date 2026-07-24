@@ -4,10 +4,11 @@
 // see the documentation: https://zed.dev/docs/configuring-zed#settings-files
 {
   "formatter": [
+    "language_server",
     "prettier",
     // Use ESLint's --fix:
     { "code_action": "source.fixAll.eslint" }
   ],
-  // disable biome
-  "language_servers": ["!biome", "!oxfmt", "..."]
+  // disable biome/oxfmt/oxlint
+  "language_servers": ["!biome", "!oxfmt", "!oxlint", "..."]
 }

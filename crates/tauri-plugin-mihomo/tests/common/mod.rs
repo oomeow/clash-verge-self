@@ -30,7 +30,7 @@ pub fn mihomo() -> Mihomo {
     let client = MihomoContext::build_client(&protocol, socket_path.as_deref()).unwrap();
     if use_local_socket {
         println!("connect to mihomo by local socket");
-        let runtime = MihomoContext {
+        let ctx = MihomoContext {
             protocol: Protocol::LocalSocket,
             external_host: None,
             external_port: None,
@@ -39,18 +39,18 @@ pub fn mihomo() -> Mihomo {
             request_timeout,
             client,
         };
-        Mihomo::new(runtime)
+        Mihomo::new(ctx)
     } else {
         println!("connect to mihomo by http");
-        let runtime = MihomoContext {
+        let ctx = MihomoContext {
             protocol: Protocol::Http,
             external_host: Some("127.0.0.1".into()),
             external_port: Some(9090),
-            secret: Some("yPMJk9i7UaR1hv3-2BkPy".into()),
+            secret: Some("0Zhf7izbK7IeXgpQeKzNQ".into()),
             socket_path,
             request_timeout,
             client,
         };
-        Mihomo::new(runtime)
+        Mihomo::new(ctx)
     }
 }

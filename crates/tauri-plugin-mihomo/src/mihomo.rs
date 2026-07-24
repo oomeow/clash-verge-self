@@ -59,19 +59,18 @@ impl MihomoContext {
         }
     }
 
-    fn generate_req_url(&self, suffix_url: &str) -> Result<String> {
-        let suffix_url = suffix_url.trim_start_matches("/");
+    fn get_base_url(&self) -> Result<String> {
         match self.protocol {
             Protocol::Http => {
                 if let Some(host) = self.external_host.as_ref() {
                     let port = self.external_port.unwrap_or(9090);
-                    Ok(format!("http://{host}:{port}/{suffix_url}"))
+                    Ok(format!("http://{host}:{port}"))
                 } else {
                     tracing::error!("missing external host parameter");
                     Err(Error::MissingPathParameter("external_host".into()))
                 }
             }
-            Protocol::LocalSocket => Ok(format!("http://localhost/{suffix_url}")),
+            Protocol::LocalSocket => Ok("http://localhost".to_string()),
         }
     }
 
@@ -88,8 +87,21 @@ impl MihomoContext {
         Ok(headers)
     }
 
-    fn build_request(&self, method: Method, suffix_url: &str) -> Result<RequestBuilder> {
-        let url = self.generate_req_url(suffix_url)?;
+    /// Build a request with the given method and path segments.
+    ///
+    /// Segments are joined with a `/` separator and appended to the base URL.
+    ///
+    /// For example, `["foo", "bar"]` becomes `"/foo/bar"`.
+    pub fn build_request<I>(&self, method: Method, suffix_path_segments: I) -> Result<RequestBuilder>
+    where
+        I: IntoIterator,
+        I::Item: AsRef<str>,
+    {
+        let url = self.get_base_url()?;
+        let mut url = reqwest::Url::parse(&url).map_err(|e| Error::UrlParseError(e.to_string()))?;
+        url.path_segments_mut()
+            .map_err(|_| Error::UrlParseError("path segments error".to_string()))?
+            .extend(suffix_path_segments);
         let headers = self.generate_req_headers()?;
         let request = match method {
             Method::POST => self.client.post(url),
@@ -138,7 +150,7 @@ impl Mihomo {
     }
 
     /// Load a consistent context snapshot (lock-free).
-    fn load_ctx(&self) -> Arc<MihomoContext> {
+    pub fn load_ctx(&self) -> Arc<MihomoContext> {
         self.ctx.load().clone()
     }
 
@@ -274,7 +286,7 @@ impl Mihomo {
 impl Mihomo {
     pub async fn get_version(&self) -> Result<MihomoVersion> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::GET, "/version")?.send().await?;
+        let response = ctx.build_request(Method::GET, ["version"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get mihomo version error, {}", response.text().await?);
         }
@@ -283,7 +295,10 @@ impl Mihomo {
 
     pub async fn flush_fakeip(&self) -> Result<()> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::POST, "/cache/fakeip/flush")?.send().await?;
+        let response = ctx
+            .build_request(Method::POST, ["cache", "fakeip", "flush"])?
+            .send()
+            .await?;
         if !response.status().is_success() {
             ret_failed_resp!("flush fakeip cache error, {}", response.text().await?);
         }
@@ -292,7 +307,10 @@ impl Mihomo {
 
     pub async fn flush_dns(&self) -> Result<()> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::POST, "/cache/dns/flush")?.send().await?;
+        let response = ctx
+            .build_request(Method::POST, ["cache", "dns", "flush"])?
+            .send()
+            .await?;
         if !response.status().is_success() {
             ret_failed_resp!("flush dns cache error, {}", response.text().await?);
         }
@@ -301,7 +319,7 @@ impl Mihomo {
 
     pub async fn get_connections(&self) -> Result<Connections> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::GET, "/connections")?.send().await?;
+        let response = ctx.build_request(Method::GET, ["connections"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get connections failed, {}", response.text().await?);
         }
@@ -310,7 +328,7 @@ impl Mihomo {
 
     pub async fn close_all_connections(&self) -> Result<()> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::DELETE, "/connections")?.send().await?;
+        let response = ctx.build_request(Method::DELETE, ["connections"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("close all connections failed, {}", response.text().await?);
         }
@@ -320,7 +338,7 @@ impl Mihomo {
     pub async fn close_connection(&self, connection_id: &str) -> Result<()> {
         let ctx = self.load_ctx();
         let response = ctx
-            .build_request(Method::DELETE, &format!("/connections/{connection_id}"))?
+            .build_request(Method::DELETE, ["connections", connection_id])?
             .send()
             .await?;
         if !response.status().is_success() {
@@ -331,7 +349,7 @@ impl Mihomo {
 
     pub async fn get_groups(&self) -> Result<Groups> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::GET, "/group")?.send().await?;
+        let response = ctx.build_request(Method::GET, ["group"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get group error, {}", response.text().await?);
         }
@@ -340,11 +358,7 @@ impl Mihomo {
 
     pub async fn get_group_by_name(&self, group_name: &str) -> Result<Proxy> {
         let ctx = self.load_ctx();
-        let group_name = urlencoding::encode(group_name);
-        let response = ctx
-            .build_request(Method::GET, &format!("/group/{group_name}"))?
-            .send()
-            .await?;
+        let response = ctx.build_request(Method::GET, ["group", group_name])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get group error, {}", response.text().await?);
         }
@@ -353,14 +367,10 @@ impl Mihomo {
 
     pub async fn delay_group(&self, group_name: &str, test_url: &str, timeout: u32) -> Result<HashMap<String, u32>> {
         let ctx = self.load_ctx();
-        let group_name = urlencoding::encode(group_name);
-        let test_url = urlencoding::encode(test_url);
         let request_timeout = ctx.request_timeout + Duration::from_millis(timeout as u64);
         let response = ctx
-            .build_request(
-                Method::GET,
-                &format!("/group/{group_name}/delay?url={test_url}&timeout={timeout}"),
-            )?
+            .build_request(Method::GET, ["group", group_name, "delay"])?
+            .query(&[("url", test_url), ("timeout", &timeout.to_string())])
             .timeout(request_timeout)
             .send()
             .await?;
@@ -372,7 +382,7 @@ impl Mihomo {
 
     pub async fn get_proxy_providers(&self) -> Result<ProxyProviders> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::GET, "/providers/proxies")?.send().await?;
+        let response = ctx.build_request(Method::GET, ["providers", "proxies"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get providers proxy failed, {}", response.text().await?);
         }
@@ -381,9 +391,8 @@ impl Mihomo {
 
     pub async fn get_proxy_provider_by_name(&self, provider_name: &str) -> Result<ProxyProvider> {
         let ctx = self.load_ctx();
-        let provider_name = urlencoding::encode(provider_name);
         let response = ctx
-            .build_request(Method::GET, &format!("/providers/proxies/{provider_name}"))?
+            .build_request(Method::GET, ["providers", "proxies", provider_name])?
             .send()
             .await?;
         if !response.status().is_success() {
@@ -394,9 +403,8 @@ impl Mihomo {
 
     pub async fn update_proxy_provider(&self, provider_name: &str) -> Result<()> {
         let ctx = self.load_ctx();
-        let provider_name = urlencoding::encode(provider_name);
         let response = ctx
-            .build_request(Method::PUT, &format!("/providers/proxies/{provider_name}"))?
+            .build_request(Method::PUT, ["providers", "proxies", provider_name])?
             .send()
             .await?;
         if !response.status().is_success() {
@@ -407,9 +415,10 @@ impl Mihomo {
 
     pub async fn healthcheck_proxy_provider(&self, provider_name: &str) -> Result<()> {
         let ctx = self.load_ctx();
-        let provider_name = urlencoding::encode(provider_name);
+        // 触发特定代理集合的健康检查，请求等待响应时间视代理合集节点数量, 数量越多，等待时间越久, 暂时设置 60 秒超时
         let response = ctx
-            .build_request(Method::GET, &format!("/providers/proxies/{provider_name}/healthcheck"))?
+            .build_request(Method::GET, ["providers", "proxies", provider_name, "healthcheck"])?
+            .timeout(Duration::from_secs(60))
             .send()
             .await?;
         if !response.status().is_success() {
@@ -426,13 +435,11 @@ impl Mihomo {
         timeout: u32,
     ) -> Result<ProxyDelay> {
         let ctx = self.load_ctx();
-        let provider_name = urlencoding::encode(provider_name);
-        let proxy_name = urlencoding::encode(proxy_name);
         let request_timeout = ctx.request_timeout + Duration::from_millis(timeout as u64);
         let response = ctx
             .build_request(
                 Method::GET,
-                &format!("/providers/proxies/{provider_name}/{proxy_name}/healthcheck"),
+                ["providers", "proxies", provider_name, proxy_name, "healthcheck"],
             )?
             .query(&[("url", test_url), ("timeout", &timeout.to_string())])
             .timeout(request_timeout)
@@ -454,7 +461,7 @@ impl Mihomo {
 
     pub async fn get_proxies(&self) -> Result<Proxies> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::GET, "/proxies")?.send().await?;
+        let response = ctx.build_request(Method::GET, ["proxies"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get proxies failed, {}", response.text().await?);
         }
@@ -463,11 +470,7 @@ impl Mihomo {
 
     pub async fn get_proxy_by_name(&self, proxy_name: &str) -> Result<Proxy> {
         let ctx = self.load_ctx();
-        let proxy_name = urlencoding::encode(proxy_name);
-        let response = ctx
-            .build_request(Method::GET, &format!("/proxies/{proxy_name}"))?
-            .send()
-            .await?;
+        let response = ctx.build_request(Method::GET, ["proxies", proxy_name])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get proxy by name failed, {}", response.text().await?);
         }
@@ -476,9 +479,8 @@ impl Mihomo {
 
     pub async fn select_node_for_group(&self, group_name: &str, node: &str) -> Result<()> {
         let ctx = self.load_ctx();
-        let group_name = urlencoding::encode(group_name);
         let response = ctx
-            .build_request(Method::PUT, &format!("/proxies/{group_name}"))?
+            .build_request(Method::PUT, ["proxies", group_name])?
             .json(&json!({ "name": node }))
             .send()
             .await?;
@@ -490,9 +492,8 @@ impl Mihomo {
 
     pub async fn unfixed_proxy(&self, group_name: &str) -> Result<()> {
         let ctx = self.load_ctx();
-        let group_name = urlencoding::encode(group_name);
         let response = ctx
-            .build_request(Method::DELETE, &format!("/proxies/{group_name}"))?
+            .build_request(Method::DELETE, ["proxies", group_name])?
             .send()
             .await?;
         if !response.status().is_success() {
@@ -503,11 +504,10 @@ impl Mihomo {
 
     pub async fn delay_proxy_by_name(&self, proxy_name: &str, test_url: &str, timeout: u32) -> Result<ProxyDelay> {
         let ctx = self.load_ctx();
-        let proxy_name = urlencoding::encode(proxy_name);
         let request_timeout = ctx.request_timeout + Duration::from_millis(timeout as u64);
         let response = ctx
-            .build_request(Method::GET, &format!("/proxies/{proxy_name}/delay"))?
-            .query(&[("timeout", &timeout.to_string()), ("url", &test_url.to_string())])
+            .build_request(Method::GET, ["proxies", proxy_name, "delay"])?
+            .query(&[("url", test_url), ("timeout", &timeout.to_string())])
             .timeout(request_timeout)
             .send()
             .await?;
@@ -527,7 +527,7 @@ impl Mihomo {
 
     pub async fn get_rules(&self) -> Result<Rules> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::GET, "/rules")?.send().await?;
+        let response = ctx.build_request(Method::GET, ["rules"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get rules failed, {}", response.text().await?);
         }
@@ -537,7 +537,7 @@ impl Mihomo {
     pub async fn update_rules_disable(&self, rules: HashMap<isize, bool>) -> Result<()> {
         let ctx = self.load_ctx();
         let response = ctx
-            .build_request(Method::PATCH, "/rules/disable")?
+            .build_request(Method::PATCH, ["rules", "disable"])?
             .json(&rules)
             .send()
             .await?;
@@ -549,7 +549,7 @@ impl Mihomo {
 
     pub async fn get_rule_providers(&self) -> Result<RuleProviders> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::GET, "/providers/rules")?.send().await?;
+        let response = ctx.build_request(Method::GET, ["providers", "rules"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get rules providers failed, {}", response.text().await?);
         }
@@ -558,9 +558,8 @@ impl Mihomo {
 
     pub async fn update_rule_provider(&self, provider_name: &str) -> Result<()> {
         let ctx = self.load_ctx();
-        let provider_name = urlencoding::encode(provider_name);
         let response = ctx
-            .build_request(Method::PUT, &format!("/providers/rules/{provider_name}"))?
+            .build_request(Method::PUT, ["providers", "rules", provider_name])?
             .send()
             .await?;
         if !response.status().is_success() {
@@ -571,7 +570,7 @@ impl Mihomo {
 
     pub async fn get_base_config(&self) -> Result<BaseConfig> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::GET, "/configs")?.send().await?;
+        let response = ctx.build_request(Method::GET, ["configs"])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get base config error, {}", response.text().await?);
         }
@@ -581,7 +580,7 @@ impl Mihomo {
     pub async fn reload_config(&self, force: bool, config_path: &str) -> Result<()> {
         let ctx = self.load_ctx();
         let response = ctx
-            .build_request(Method::PUT, "/configs")?
+            .build_request(Method::PUT, ["configs"])?
             .query(&[("force", force)])
             .json(&json!({ "path": config_path }))
             .send()
@@ -594,7 +593,11 @@ impl Mihomo {
 
     pub async fn patch_base_config<D: serde::Serialize + ?Sized>(&self, data: &D) -> Result<()> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::PATCH, "/configs")?.json(&data).send().await?;
+        let response = ctx
+            .build_request(Method::PATCH, ["configs"])?
+            .json(&data)
+            .send()
+            .await?;
         if !response.status().is_success() {
             ret_failed_resp!("patch base config error, {}", response.text().await?);
         }
@@ -604,7 +607,7 @@ impl Mihomo {
     pub async fn update_geo(&self) -> Result<()> {
         let ctx = self.load_ctx();
         let response = ctx
-            .build_request(Method::POST, "/configs/geo")?
+            .build_request(Method::POST, ["configs", "geo"])?
             .timeout(DOWNLOAD_FILE_TIMEOUT)
             .send()
             .await?;
@@ -616,7 +619,7 @@ impl Mihomo {
 
     pub async fn restart(&self) -> Result<()> {
         let ctx = self.load_ctx();
-        let response = ctx.build_request(Method::POST, "/restart")?.send().await?;
+        let response = ctx.build_request(Method::POST, ["restart"])?.send().await?;
         if !response.status().is_success() {
             failed_resp!("restart core failed, {}", response.text().await?);
         }
@@ -626,7 +629,7 @@ impl Mihomo {
     pub async fn upgrade_core(&self, channel: CoreUpdaterChannel, force: bool) -> Result<()> {
         let ctx = self.load_ctx();
         let response = ctx
-            .build_request(Method::POST, "/upgrade")?
+            .build_request(Method::POST, ["upgrade"])?
             .query(&[("channel", &channel.to_string()), ("force", &force.to_string())])
             .timeout(DOWNLOAD_FILE_TIMEOUT)
             .send()
@@ -656,7 +659,7 @@ impl Mihomo {
     pub async fn upgrade_ui(&self) -> Result<()> {
         let ctx = self.load_ctx();
         let response = ctx
-            .build_request(Method::POST, "/upgrade/ui")?
+            .build_request(Method::POST, ["upgrade", "ui"])?
             .timeout(DOWNLOAD_FILE_TIMEOUT)
             .send()
             .await?;
@@ -669,7 +672,7 @@ impl Mihomo {
     pub async fn upgrade_geo(&self) -> Result<()> {
         let ctx = self.load_ctx();
         let response = ctx
-            .build_request(Method::POST, "/upgrade/geo")?
+            .build_request(Method::POST, ["upgrade", "geo"])?
             .timeout(DOWNLOAD_FILE_TIMEOUT)
             .send()
             .await?;
@@ -684,10 +687,7 @@ impl Mihomo {
         T: DeserializeOwned,
     {
         let ctx = self.load_ctx();
-        let response = ctx
-            .build_request(Method::GET, &format!("/storage/{}", urlencoding::encode(key)))?
-            .send()
-            .await?;
+        let response = ctx.build_request(Method::GET, ["storage", key])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("get storage value error, {}", response.text().await?);
         }
@@ -700,7 +700,7 @@ impl Mihomo {
     {
         let ctx = self.load_ctx();
         let response = ctx
-            .build_request(Method::PUT, &format!("/storage/{}", urlencoding::encode(key)))?
+            .build_request(Method::PUT, ["storage", key])?
             .json(&value)
             .send()
             .await?;
@@ -712,10 +712,7 @@ impl Mihomo {
 
     pub async fn delete_storage_value(&self, key: &str) -> Result<()> {
         let ctx = self.load_ctx();
-        let response = ctx
-            .build_request(Method::DELETE, &format!("/storage/{}", urlencoding::encode(key)))?
-            .send()
-            .await?;
+        let response = ctx.build_request(Method::DELETE, ["storage", key])?.send().await?;
         if !response.status().is_success() {
             ret_failed_resp!("delete storage key and value error, {}", response.text().await?);
         }

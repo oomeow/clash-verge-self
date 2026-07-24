@@ -4,6 +4,23 @@ use tauri_plugin_mihomo::{Error, Result, models::ClashMode};
 mod common;
 
 #[tokio::test]
+async fn switch_protocol() -> Result<()> {
+    let mihomo = common::mihomo();
+    let version = mihomo.get_version().await?;
+    println!("{version:?}");
+    mihomo.update_protocol(tauri_plugin_mihomo::models::Protocol::Http)?;
+    mihomo.update_external_host(Some("127.0.0.1"));
+    mihomo.update_external_port(Some(9090));
+    mihomo.update_secret(Some("4xOkiQRSCTrhxKaUw3FCa"));
+    let version = mihomo.get_version().await?;
+    println!("{version:?}");
+    mihomo.update_protocol(tauri_plugin_mihomo::models::Protocol::LocalSocket)?;
+    let version = mihomo.get_version().await?;
+    println!("{version:?}");
+    Ok(())
+}
+
+#[tokio::test]
 async fn mihomo_common_get_version() -> Result<()> {
     let mihomo = common::mihomo();
     let version = mihomo.get_version().await?;

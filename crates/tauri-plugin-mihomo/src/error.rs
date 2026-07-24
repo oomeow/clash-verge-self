@@ -30,6 +30,8 @@ pub enum Error {
     FailedResponse(String),
     #[error(transparent)]
     HttpError(#[from] http::Error),
+    #[error("Url parse error: {0}")]
+    UrlParseError(String),
 }
 
 impl Serialize for Error {
