@@ -10,14 +10,13 @@ use serde::{Serialize, de::DeserializeOwned};
 use serde_json::json;
 
 use crate::{
-    DOWNLOAD_FILE_TIMEOUT, Error, Result,
-    connection_manager::ConnectionManager,
-    failed_resp,
+    DOWNLOAD_FILE_TIMEOUT, Error, Result, failed_resp,
     models::{
         BaseConfig, Connections, CoreUpdaterChannel, ErrorResponse, Groups, LogLevel, MihomoVersion, Protocol, Proxies,
         Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules, WebSocketConnectionId,
     },
     ret_failed_resp,
+    ws_connection_manager::ConnectionManager,
 };
 
 /// Runtime configuration snapshot.
@@ -724,7 +723,7 @@ impl Mihomo {
 mod tests {
     use std::time::Duration;
 
-    use crate::connection_manager::schedule_abort_handle;
+    use crate::ws_connection_manager::schedule_abort_handle;
 
     #[tokio::test]
     async fn abort_handle_without_timeout_aborts_immediately() {

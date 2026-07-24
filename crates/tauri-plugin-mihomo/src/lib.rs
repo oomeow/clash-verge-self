@@ -1,18 +1,18 @@
 use std::time::Duration;
 
-pub use connection_manager::ConnectionManager;
 pub use mihomo::{Mihomo, MihomoContext};
 use tauri::{
     Manager, Runtime,
     plugin::{Builder as PluginBuilder, TauriPlugin},
 };
+pub use ws_connection_manager::ConnectionManager;
 
 mod commands;
-pub(crate) mod connection_manager;
 mod error;
 mod mihomo;
 pub mod models;
 mod stream;
+pub(crate) mod ws_connection_manager;
 
 pub use error::{Error, Result};
 
