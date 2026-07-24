@@ -10,7 +10,7 @@ use serde::{Serialize, de::DeserializeOwned};
 use serde_json::json;
 
 use crate::{
-    DOWNLOAD_FILE_TIMEOUT, Error, Result, failed_resp,
+    DOWNLOAD_FILE_TIMEOUT, Error, Result,
     models::{
         BaseConfig, Connections, CoreUpdaterChannel, ErrorResponse, Groups, LogLevel, MihomoVersion, Protocol, Proxies,
         Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules, WebSocketConnectionId,
@@ -37,7 +37,7 @@ pub struct MihomoContext {
 
 impl MihomoContext {
     pub fn build_client(protocol: &Protocol, socket_path: Option<&str>) -> Result<reqwest::Client> {
-        let mut builder = reqwest::ClientBuilder::new();
+        let mut builder = reqwest::ClientBuilder::new().no_proxy();
         match protocol {
             Protocol::Http => Ok(builder.build()?),
             Protocol::LocalSocket => {
@@ -287,7 +287,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["version"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get mihomo version error, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("get mihomo version failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<MihomoVersion>().await?)
     }
@@ -299,7 +303,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("flush fakeip cache error, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("flush fakeip cache failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -311,7 +319,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("flush dns cache error, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("flush dns cache failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -320,7 +332,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["connections"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get connections failed, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("get connections failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<Connections>().await?)
     }
@@ -329,7 +345,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::DELETE, ["connections"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("close all connections failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("close all connections failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -341,7 +361,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("close connection failed, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("close connection failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -350,7 +374,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["group"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get group error, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("get group error, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<Groups>().await?)
     }
@@ -359,7 +387,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["group", group_name])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get group error, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("get group error, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<Proxy>().await?)
     }
@@ -374,7 +406,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get group error, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("get group error, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<HashMap<String, u32>>().await?)
     }
@@ -383,7 +419,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["providers", "proxies"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get providers proxy failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("get providers proxy failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<ProxyProviders>().await?)
     }
@@ -395,7 +435,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get providers proxy failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("get providers proxy failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<ProxyProvider>().await?)
     }
@@ -407,7 +451,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("update providers proxy failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("update providers proxy failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -421,7 +469,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("healthcheck providers failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("healthcheck providers failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -462,7 +514,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["proxies"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get proxies failed, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("get proxies failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<Proxies>().await?)
     }
@@ -471,7 +527,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["proxies", proxy_name])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get proxy by name failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("get proxy by name failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<Proxy>().await?)
     }
@@ -484,7 +544,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("select node for proxy failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("select node for proxy failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -496,7 +560,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("unfixed proxy failed, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("unfixed proxy failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -528,7 +596,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["rules"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get rules failed, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("get rules failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<Rules>().await?)
     }
@@ -541,7 +613,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("update rules disabled failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("update rules disabled failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -550,7 +626,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["providers", "rules"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get rules providers failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("get rules providers failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<RuleProviders>().await?)
     }
@@ -562,7 +642,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("update rule provider failed, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("update rule provider failed, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -571,7 +655,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["configs"])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get base config error, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("get base config error, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<BaseConfig>().await?)
     }
@@ -585,7 +673,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("reload base config error, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("reload base config error, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -598,7 +690,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("patch base config error, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("patch base config error, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -611,7 +707,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            failed_resp!("update geo database error, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("update geo database error, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -620,7 +720,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::POST, ["restart"])?.send().await?;
         if !response.status().is_success() {
-            failed_resp!("restart core failed, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("restart core failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -663,7 +767,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("upgrade ui failed, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("upgrade ui failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -676,7 +784,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("upgrade geo failed, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("upgrade geo failed, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -688,7 +800,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["storage", key])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("get storage value error, {}", response.text().await?);
+            let err_msg = response
+                .json::<ErrorResponse>()
+                .await
+                .map_or_else(|e| format!("get storage value error, {}", e), |err_res| err_res.message);
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(response.json::<Option<T>>().await?)
     }
@@ -704,7 +820,11 @@ impl Mihomo {
             .send()
             .await?;
         if !response.status().is_success() {
-            ret_failed_resp!("update storage value error, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("update storage value error, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
@@ -713,7 +833,11 @@ impl Mihomo {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::DELETE, ["storage", key])?.send().await?;
         if !response.status().is_success() {
-            ret_failed_resp!("delete storage key and value error, {}", response.text().await?);
+            let err_msg = response.json::<ErrorResponse>().await.map_or_else(
+                |e| format!("delete storage key and value error, {}", e),
+                |err_res| err_res.message,
+            );
+            ret_failed_resp!("{}", err_msg);
         }
         Ok(())
     }
