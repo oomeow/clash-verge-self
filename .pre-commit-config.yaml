@@ -32,6 +32,9 @@ repos:
           glob:
             - src/**/*.{js,mjs,ts,tsx}
             - vite.config.ts
+        exclude:
+          glob:
+            - src/routeTree.gen.ts
 
       - id: "pretty staged"
         name: "pretty staged"

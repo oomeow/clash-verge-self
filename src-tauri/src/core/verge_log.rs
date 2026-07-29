@@ -82,7 +82,13 @@ impl VergeLog {
 
         // 输出到日志文件
         let log_dir = dirs::app_logs_dir()?;
-        let file_appender = rolling::never(log_dir, log_filename);
+        // let file_appender = rolling::never(log_dir, log_filename);
+        let file_appender = rolling::max_size(log_dir, log_filename, 8 * 1024);
+        // let file_appender = RollingFileAppender::builder()
+        //     .rotation(Rotation::from(Rotation::NEVER))
+        //     .filename_prefix(log_filename)
+        //     .max_log_files(8)
+        //     .build(log_dir)?;
         let (non_blocking_appender, guard) = non_blocking(file_appender);
         let file_layer = tracing_subscriber::fmt::layer()
             .compact()
@@ -174,23 +180,27 @@ fn delete_old_logs(file: DirEntry, now: chrono::DateTime<Local>, retention_days:
                 .for_each(|file| delete_old_logs(file, now, retention_days));
         }
     } else if file_type.is_file() {
-        if !file_name.ends_with(".log") {
+        if !file_name.contains(".log") {
             tracing::debug!("skip non-log file: {}", file_name);
             return;
         }
-        if let Ok(created_time) = parse_time_str(file_name.trim_end_matches(".log")) {
+        let split: Vec<&str> = file_name.split(".log").collect();
+        let Some(current_file_name) = split.first() else {
+            return;
+        };
+        if let Ok(created_time) = parse_time_str(current_file_name) {
             if let Some(file_time) = Local.from_local_datetime(&created_time).earliest() {
                 if now.signed_duration_since(file_time).num_days() > retention_days {
                     match fs::remove_file(&file_path) {
-                        Ok(_) => tracing::info!("delete log file: {file_name}"),
+                        Ok(_) => tracing::info!("delete log file: {current_file_name}"),
                         Err(e) => tracing::warn!("Failed to delete log file {}: {}", file_path.display(), e),
                     }
                 }
             } else {
-                tracing::warn!("get local datetime failed, skip delete log file [{file_name}]");
+                tracing::warn!("get local datetime failed, skip delete log file [{current_file_name}]");
             }
         } else {
-            tracing::warn!("parse log file time failed, skip delete log file [{file_name}]");
+            tracing::warn!("parse log file time failed, skip delete log file [{current_file_name}]");
         }
     }
 }

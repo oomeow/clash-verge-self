@@ -36,8 +36,14 @@ parking_lot = "0.12"
 log = "0.4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["local-time"] }
-tracing-appender = "0.2"
+# must use 0.2.3 version for apply patch
+tracing-appender = "0.2.3"
 time = { version = "0.3", features = ["macros", "parsing"] }
+
+# Have to use a patch here. Depending directly on the fork breaks macros.
+[patch.crates-io.tracing-appender]
+git = "https://github.com/torkelrogstad/tokio-tracing"
+branch = "log-rotation-size"
 
 [profile.dev]
 incremental = true
