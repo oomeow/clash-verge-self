@@ -5,7 +5,7 @@ import {
   Proxy,
 } from "tauri-plugin-mihomo-api";
 
-import { IProxyGroupItem } from "@/components/proxy/use-render-list";
+import type { IProxyGroupItem } from "@/components/proxy/use-render-list";
 
 /// Get the Proxy information
 export const calcuProxies = async () => {
@@ -15,7 +15,7 @@ export const calcuProxies = async () => {
   // provider name map
   const providerMap = Object.fromEntries(
     Object.entries(providerRecord).flatMap(([_provider, item]) =>
-      item!.proxies.map((p) => [p.name, p]),
+      item.proxies.map((p) => [p.name, p]),
     ),
   );
 
@@ -98,7 +98,9 @@ export const calcuProxyProviders = async () => {
       .sort()
       .filter(
         ([_key, item]) =>
-          item?.vehicleType === "HTTP" || item?.vehicleType === "File",
+          item.vehicleType === "HTTP" ||
+          item.vehicleType === "File" ||
+          item.vehicleType === "Inline",
       ),
   );
 };
@@ -110,7 +112,9 @@ export const calcuRuleProviders = async () => {
       .sort()
       .filter(
         ([_key, item]) =>
-          item?.vehicleType === "HTTP" || item?.vehicleType === "File",
+          item.vehicleType === "HTTP" ||
+          item.vehicleType === "File" ||
+          item.vehicleType === "Inline",
       ),
   );
 };

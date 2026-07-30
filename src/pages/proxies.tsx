@@ -10,6 +10,8 @@ import { ProxyGroups } from "@/components/proxy/proxy-groups";
 import { useClashInfo } from "@/hooks/use-clash";
 import { useVergeStore } from "@/stores";
 
+const modeList = ["rule", "global", "direct"];
+
 const ProxyPage = () => {
   const { t } = useTranslation();
   const { clashInfo, patchInfo, mutateInfo } = useClashInfo();
@@ -17,7 +19,6 @@ const ProxyPage = () => {
     (s) => s.verge.auto_close_connection ?? true,
   );
 
-  const modeList = ["rule", "global", "direct"];
   const curMode = clashInfo?.mode?.toLowerCase() ?? "rule";
 
   const onChangeMode = useMemoizedFn(
@@ -35,7 +36,7 @@ const ProxyPage = () => {
     if (curMode && !modeList.includes(curMode)) {
       onChangeMode("rule");
     }
-  }, [curMode]);
+  }, [curMode, onChangeMode]);
 
   return (
     <BasePage

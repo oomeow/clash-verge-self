@@ -35,8 +35,8 @@ export const BasePage: React.FC<Props> = (props) => {
         <Paper className={"min-h-0 flex-1"} elevation={0}>
           <div
             className={cn(
-              "bg-background-default h-full min-h-0 w-full",
-              full ? "overflow-hidden p-0" : "overflow-auto px-2",
+              "bg-background-default h-full min-h-0 w-full overflow-auto",
+              full ? "p-0" : "px-2",
             )}
             style={contentStyle}>
             {children}

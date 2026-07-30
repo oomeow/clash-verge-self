@@ -17,7 +17,10 @@ export const ProviderButton = () => {
   const fetchRules = useRulesStateStore((s) => s.fetchRules);
   const loadPayload = useRulesStateStore((s) => s.loadPayload);
   const providers = rules.filter(
-    (i) => i.vehicleType === "HTTP" || i.vehicleType === "File",
+    (i) =>
+      i.vehicleType === "HTTP" ||
+      i.vehicleType === "File" ||
+      i.vehicleType === "Inline",
   );
 
   const names = providers.map((i) => i.payload);
