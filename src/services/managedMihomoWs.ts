@@ -70,12 +70,13 @@ export const subscribeManagedMihomoWebSocketText = ({
 };
 
 export class ManagedMihomoWebSocket {
-  id: number;
+  id: string;
   private closed = false;
   private readonly listeners: Set<Listener>;
+
   private static instances = new Set<ManagedMihomoWebSocket>();
 
-  private constructor(id: number, listeners: Set<Listener>) {
+  private constructor(id: string, listeners: Set<Listener>) {
     this.id = id;
     this.listeners = listeners;
   }
@@ -95,7 +96,7 @@ export class ManagedMihomoWebSocket {
       listeners.forEach((listener) => listener(message));
     };
 
-    const id = await invoke<number>(command, { ...args, onMessage });
+    const id = await invoke<string>(command, { ...args, onMessage });
     const instance = new ManagedMihomoWebSocket(id, listeners);
     ManagedMihomoWebSocket.instances.add(instance);
     return instance;
