@@ -431,6 +431,7 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
                     }
                 } else {
                     if handle::Handle::get_window().is_some() {
+                        tokio::time::sleep(Duration::from_secs(1)).await;
                         handle::Handle::notice_message(handle::NoticeStatus::Error, t!("notice.import.failed"));
                     } else {
                         handle::Handle::notify("Clash Verge", t!("notice.import.failed"));
