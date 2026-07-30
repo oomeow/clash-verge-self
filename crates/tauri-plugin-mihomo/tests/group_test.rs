@@ -129,7 +129,12 @@ async fn mihomo_group_get_provider_by_name() -> Result<()> {
     let (provider_name, _provider) = providers
         .providers
         .iter()
-        .find(|(_name, provider)| matches!(provider.vehicle_type, VehicleType::HTTP | VehicleType::File))
+        .find(|(_name, provider)| {
+            matches!(
+                provider.vehicle_type,
+                VehicleType::HTTP | VehicleType::File | VehicleType::Inline
+            )
+        })
         .ok_or(failed_resp!("not found provider"))?;
     let provider = mihomo.get_proxy_provider_by_name(provider_name).await?;
     println!("provider [{provider:?}]");
@@ -143,7 +148,12 @@ async fn mihomo_group_update_provider() -> Result<()> {
     let (provider_name, provider) = providers
         .providers
         .iter()
-        .find(|(_name, provider)| matches!(provider.vehicle_type, VehicleType::HTTP | VehicleType::File))
+        .find(|(_name, provider)| {
+            matches!(
+                provider.vehicle_type,
+                VehicleType::HTTP | VehicleType::File | VehicleType::Inline
+            )
+        })
         .ok_or(failed_resp!("not found provider"))?;
     println!(
         "provider [{}], update time: {}",
@@ -167,7 +177,12 @@ async fn mihomo_group_health_check_provider() -> Result<()> {
     let (provider_name, _provider) = providers
         .providers
         .iter()
-        .find(|(_name, provider)| matches!(provider.vehicle_type, VehicleType::HTTP | VehicleType::File))
+        .find(|(_name, provider)| {
+            matches!(
+                provider.vehicle_type,
+                VehicleType::HTTP | VehicleType::File | VehicleType::Inline
+            )
+        })
         .ok_or(failed_resp!("not found provider"))?;
     println!("health check provider [{}]", provider_name);
     mihomo.healthcheck_proxy_provider(provider_name).await?;
@@ -181,7 +196,12 @@ async fn mihomo_group_health_check_node_in_provider() -> Result<()> {
     let (provider_name, provider) = providers
         .providers
         .iter()
-        .find(|(_name, provider)| matches!(provider.vehicle_type, VehicleType::HTTP | VehicleType::File))
+        .find(|(_name, provider)| {
+            matches!(
+                provider.vehicle_type,
+                VehicleType::HTTP | VehicleType::File | VehicleType::Inline
+            )
+        })
         .ok_or(failed_resp!("not found provider"))?;
 
     let proxy = provider.proxies.first().ok_or(failed_resp!("provider proxies empty"))?;
