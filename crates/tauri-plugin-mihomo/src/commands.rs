@@ -222,39 +222,33 @@ pub(crate) async fn upgrade_geo(state: State<'_, Mihomo>) -> Result<()> {
 
 // mihomo websocket
 #[command]
-pub(crate) async fn ws_traffic(
-    state: State<'_, Mihomo>,
-    on_message: Channel<serde_json::Value>,
-) -> Result<WebSocketConnectionId> {
+pub(crate) async fn ws_traffic(state: State<'_, Mihomo>, on_message: Channel<serde_json::Value>) -> Result<String> {
     state
         .ws_traffic(move |data| {
             let _ = on_message.send(data);
         })
         .await
+        .map(|id| id.to_string())
 }
 
 #[command]
-pub(crate) async fn ws_memory(
-    state: State<'_, Mihomo>,
-    on_message: Channel<serde_json::Value>,
-) -> Result<WebSocketConnectionId> {
+pub(crate) async fn ws_memory(state: State<'_, Mihomo>, on_message: Channel<serde_json::Value>) -> Result<String> {
     state
         .ws_memory(move |data| {
             let _ = on_message.send(data);
         })
         .await
+        .map(|id| id.to_string())
 }
 
 #[command]
-pub(crate) async fn ws_connections(
-    state: State<'_, Mihomo>,
-    on_message: Channel<serde_json::Value>,
-) -> Result<WebSocketConnectionId> {
+pub(crate) async fn ws_connections(state: State<'_, Mihomo>, on_message: Channel<serde_json::Value>) -> Result<String> {
     state
         .ws_connections(move |data| {
             let _ = on_message.send(data);
         })
         .await
+        .map(|id| id.to_string())
 }
 
 #[command]
@@ -262,12 +256,13 @@ pub(crate) async fn ws_logs(
     state: State<'_, Mihomo>,
     level: LogLevel,
     on_message: Channel<serde_json::Value>,
-) -> Result<WebSocketConnectionId> {
+) -> Result<String> {
     state
         .ws_logs(level, move |data| {
             let _ = on_message.send(data);
         })
         .await
+        .map(|id| id.to_string())
 }
 
 // mihomo 的 websocket 应该只读取数据，没必要发送数据
@@ -281,11 +276,8 @@ pub(crate) async fn ws_logs(
 // }
 
 #[command]
-pub(crate) async fn ws_disconnect(
-    state: State<'_, Mihomo>,
-    id: WebSocketConnectionId,
-    force_timeout: Option<u64>,
-) -> Result<()> {
+pub(crate) async fn ws_disconnect(state: State<'_, Mihomo>, id: String, force_timeout: Option<u64>) -> Result<()> {
+    let id: WebSocketConnectionId = id.parse()?;
     state.disconnect(id, force_timeout).await
 }
 

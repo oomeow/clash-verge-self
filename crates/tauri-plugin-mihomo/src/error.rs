@@ -1,3 +1,5 @@
+use std::num::ParseIntError;
+
 use serde::{Serialize, ser::Serializer};
 
 use crate::models::WebSocketConnectionId;
@@ -32,6 +34,8 @@ pub enum Error {
     HttpError(#[from] http::Error),
     #[error("Url parse error: {0}")]
     UrlParseError(String),
+    #[error(transparent)]
+    ParseIntError(#[from] ParseIntError),
 }
 
 impl Serialize for Error {

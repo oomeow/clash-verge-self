@@ -215,10 +215,10 @@ export interface CloseFrame {
 }
 export type Message = MessageKind<"Text", string> | MessageKind<"Binary", number[]> | MessageKind<"Ping", number[]> | MessageKind<"Pong", number[]> | MessageKind<"Close", CloseFrame | null>;
 export declare class MihomoWebSocket {
-    id: number;
+    id: string;
     private readonly listeners;
     private static instances;
-    constructor(id: number, listeners: Set<(arg: Message) => void>);
+    constructor(id: string, listeners: Set<(arg: Message) => void>);
     /**
      * 监听 Mihomo 的流量信息
      * @returns WebSocket 实例

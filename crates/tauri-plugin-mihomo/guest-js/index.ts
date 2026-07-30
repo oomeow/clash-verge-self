@@ -1,4 +1,5 @@
 import { Channel, invoke } from "@tauri-apps/api/core";
+
 import {
   BaseConfig,
   Connections,
@@ -435,11 +436,11 @@ export type Message =
   | MessageKind<"Close", CloseFrame | null>;
 
 export class MihomoWebSocket {
-  id: number;
+  id: string;
   private readonly listeners: Set<(arg: Message) => void>;
   private static instances = new Set<MihomoWebSocket>();
 
-  constructor(id: number, listeners: Set<(arg: Message) => void>) {
+  constructor(id: string, listeners: Set<(arg: Message) => void>) {
     this.id = id;
     this.listeners = listeners;
   }
@@ -456,7 +457,7 @@ export class MihomoWebSocket {
         l(message);
       });
     };
-    const id = await invoke<number>("plugin:mihomo|ws_traffic", {
+    const id = await invoke<string>("plugin:mihomo|ws_traffic", {
       onMessage,
     });
     const instance = new MihomoWebSocket(id, listeners);
@@ -476,7 +477,7 @@ export class MihomoWebSocket {
         l(message);
       });
     };
-    const id = await invoke<number>("plugin:mihomo|ws_memory", {
+    const id = await invoke<string>("plugin:mihomo|ws_memory", {
       onMessage,
     });
     const instance = new MihomoWebSocket(id, listeners);
@@ -496,7 +497,7 @@ export class MihomoWebSocket {
         l(message);
       });
     };
-    const id = await invoke<number>("plugin:mihomo|ws_connections", {
+    const id = await invoke<string>("plugin:mihomo|ws_connections", {
       onMessage,
     });
     const instance = new MihomoWebSocket(id, listeners);
@@ -516,7 +517,7 @@ export class MihomoWebSocket {
         l(message);
       });
     };
-    const id = await invoke<number>("plugin:mihomo|ws_logs", {
+    const id = await invoke<string>("plugin:mihomo|ws_logs", {
       level,
       onMessage,
     });
@@ -581,7 +582,7 @@ export class MihomoWebSocket {
     await Promise.all(
       Array.from(MihomoWebSocket.instances).map((instance) => instance.close()),
     );
-    this.instances.clear();
+    MihomoWebSocket.instances.clear();
     await clearAllWsConnections();
   }
 }
