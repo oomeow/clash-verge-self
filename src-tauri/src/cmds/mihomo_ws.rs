@@ -2,13 +2,14 @@ use std::{
     collections::{HashMap, VecDeque},
     sync::{
         Arc, Mutex,
-        atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
     },
     time::Duration,
 };
 
 use chrono::{DateTime, Local};
 use clash_verge_self_utils::{RawMihomoLog, parse_raw_mihomo_log};
+use fast_uuid_v7::gen_id;
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use serde_json::Value;
@@ -91,7 +92,6 @@ struct OpenedMihomoWsConnection {
 
 pub static CANCEL_MIHOMO_WS_RECONNECT: AtomicBool = AtomicBool::new(false);
 
-static NEXT_WS_CONNECTION_ID: AtomicU32 = AtomicU32::new(1);
 static MIHOMO_WS_GENERATION: AtomicU64 = AtomicU64::new(0);
 static MIHOMO_WS_CONNECTIONS: Lazy<RwLock<HashMap<WebSocketConnectionId, MihomoWsConnection>>> =
     Lazy::new(|| RwLock::new(HashMap::new()));
@@ -100,15 +100,6 @@ const WS_RECONNECT_DELAY: Duration = Duration::from_millis(500);
 const WS_MAX_RECONNECT_DELAY: Duration = Duration::from_secs(5);
 const WS_CONNECTION_CHECK_INTERVAL: Duration = Duration::from_secs(1);
 const WS_LOG_BUFFER_LIMIT: usize = 500;
-
-fn next_ws_connection_id() -> WebSocketConnectionId {
-    loop {
-        let id = NEXT_WS_CONNECTION_ID.fetch_add(1, Ordering::Relaxed);
-        if id != 0 {
-            return id;
-        }
-    }
-}
 
 fn websocket_error_message(error: impl std::fmt::Display) -> Value {
     serde_json::to_value(WebSocketMessage::Text(format!("Websocket error: {error}"))).unwrap_or(Value::Null)
@@ -403,7 +394,7 @@ async fn connect_mihomo_ws(
     endpoint: MihomoWsEndpoint,
     on_message: Channel<Value>,
 ) -> anyhow::Result<WebSocketConnectionId> {
-    let connection_id = next_ws_connection_id();
+    let gen_uuid = gen_id();
     let generation = MIHOMO_WS_GENERATION.load(Ordering::Acquire);
     let active_id = Arc::new(RwLock::new(None));
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
@@ -413,7 +404,7 @@ async fn connect_mihomo_ws(
 
     let task = tokio::spawn(async move {
         let _ = start_rx.await;
-        run_mihomo_ws_connection(connection_id, endpoint, on_message, task_active_id, shutdown_rx).await;
+        run_mihomo_ws_connection(gen_uuid, endpoint, on_message, task_active_id, shutdown_rx).await;
     });
 
     let mut connections = MIHOMO_WS_CONNECTIONS.write().await;
@@ -424,7 +415,7 @@ async fn connect_mihomo_ws(
     }
 
     connections.insert(
-        connection_id,
+        gen_uuid,
         MihomoWsConnection {
             active_id,
             shutdown_tx,
@@ -433,7 +424,7 @@ async fn connect_mihomo_ws(
     );
     let _ = start_tx.send(());
 
-    Ok(connection_id)
+    Ok(gen_uuid)
 }
 
 async fn disconnect_mihomo_ws(id: WebSocketConnectionId, force_timeout: Option<u64>) -> anyhow::Result<()> {

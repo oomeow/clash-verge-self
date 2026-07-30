@@ -1041,4 +1041,4 @@ pub enum WebSocketMessage {
     Close(Option<CloseFrame>),
 }
 
-pub type WebSocketConnectionId = u32;
+pub type WebSocketConnectionId = u128;

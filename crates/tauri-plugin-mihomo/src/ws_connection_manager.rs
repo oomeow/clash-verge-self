@@ -1,5 +1,6 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
+use fast_uuid_v7::gen_id;
 use http::{
     Request,
     header::{CONNECTION, HOST, SEC_WEBSOCKET_KEY, SEC_WEBSOCKET_VERSION, UPGRADE},
@@ -174,7 +175,7 @@ impl ConnectionManager {
     where
         F: Fn(serde_json::Value) + Send + 'static,
     {
-        let id: WebSocketConnectionId = rand::random();
+        let id: WebSocketConnectionId = gen_id();
         tracing::info!("connecting to websocket: {url}, id: {id}");
 
         let (writer, reader) = open_websocket_stream(protocol, socket_path, url).await?;
