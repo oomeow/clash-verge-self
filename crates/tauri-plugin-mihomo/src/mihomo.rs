@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
-use arc_swap::ArcSwap;
+use arc_swap::{ArcSwap, Guard};
 use http::{
     HeaderMap, HeaderValue,
     header::{AUTHORIZATION, CONTENT_TYPE, HOST},
@@ -149,8 +149,8 @@ impl Mihomo {
     }
 
     /// Load a consistent context snapshot (lock-free).
-    pub fn load_ctx(&self) -> Arc<MihomoContext> {
-        self.ctx.load().clone()
+    pub fn load_ctx(&self) -> Guard<Arc<MihomoContext>> {
+        self.ctx.load()
     }
 
     /// Atomically replace the context snapshot.
@@ -236,9 +236,7 @@ impl Mihomo {
     {
         let ctx = self.load_ctx();
         let ws_url = ctx.get_websocket_url("/traffic")?;
-        self.connection_manager
-            .open(&ctx.protocol, ctx.socket_path.as_deref(), ws_url, on_message)
-            .await
+        self.connection_manager.open(&ctx, ws_url, on_message).await
     }
 
     pub async fn ws_memory<F>(&self, on_message: F) -> Result<WebSocketConnectionId>
@@ -247,9 +245,7 @@ impl Mihomo {
     {
         let ctx = self.load_ctx();
         let ws_url = ctx.get_websocket_url("/memory")?;
-        self.connection_manager
-            .open(&ctx.protocol, ctx.socket_path.as_deref(), ws_url, on_message)
-            .await
+        self.connection_manager.open(&ctx, ws_url, on_message).await
     }
 
     pub async fn ws_connections<F>(&self, on_message: F) -> Result<WebSocketConnectionId>
@@ -258,9 +254,7 @@ impl Mihomo {
     {
         let ctx = self.load_ctx();
         let ws_url = ctx.get_websocket_url("/connections")?;
-        self.connection_manager
-            .open(&ctx.protocol, ctx.socket_path.as_deref(), ws_url, on_message)
-            .await
+        self.connection_manager.open(&ctx, ws_url, on_message).await
     }
 
     pub async fn ws_logs<F>(&self, level: LogLevel, on_message: F) -> Result<WebSocketConnectionId>
@@ -273,9 +267,7 @@ impl Mihomo {
             Protocol::Http => format!("{ws_url}&level={level}"),
             Protocol::LocalSocket => format!("{ws_url}?level={level}"),
         };
-        self.connection_manager
-            .open(&ctx.protocol, ctx.socket_path.as_deref(), ws_url, on_message)
-            .await
+        self.connection_manager.open(&ctx, ws_url, on_message).await
     }
 }
 

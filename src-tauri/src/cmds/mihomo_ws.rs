@@ -367,7 +367,7 @@ async fn run_mihomo_ws_connection(
                 }
 
                 let should_shutdown = wait_mihomo_ws_disconnect(backend_id, shutdown_rx.clone(), event_rx).await;
-                disconnect_active_mihomo_ws(&active_id, Some(0)).await;
+                disconnect_active_mihomo_ws(&active_id, Some(1000)).await;
 
                 if should_shutdown || sleep_before_reconnect(&mut shutdown_rx, WS_RECONNECT_DELAY).await {
                     break;
@@ -386,7 +386,7 @@ async fn run_mihomo_ws_connection(
         }
     }
 
-    disconnect_active_mihomo_ws(&active_id, Some(0)).await;
+    disconnect_active_mihomo_ws(&active_id, Some(1000)).await;
     MIHOMO_WS_CONNECTIONS.write().await.remove(&connection_id);
 }
 
@@ -448,7 +448,7 @@ async fn clear_mihomo_ws_connections() -> anyhow::Result<()> {
 
     for connection in connections {
         let _ = connection.shutdown_tx.send(true);
-        disconnect_active_mihomo_ws(&connection.active_id, Some(0)).await;
+        disconnect_active_mihomo_ws(&connection.active_id, Some(1000)).await;
         connection.task.abort();
     }
 

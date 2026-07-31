@@ -23,6 +23,7 @@ ts-rs = { version = "12.0", features = ["no-serde-warnings"] }
 pin-project = "1.1.10"
 arc-swap = "1.9"
 fast-uuid-v7 = "0.1.8"
+clashmap = "1.3.0"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = "0.61"

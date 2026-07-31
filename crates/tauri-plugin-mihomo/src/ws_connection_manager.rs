@@ -1,11 +1,11 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{sync::Arc, time::Duration};
 
+use clashmap::ClashMap;
 use fast_uuid_v7::gen_id;
 use http::{
     Request,
     header::{CONNECTION, HOST, SEC_WEBSOCKET_KEY, SEC_WEBSOCKET_VERSION, UPGRADE},
 };
-use tokio::sync::RwLock;
 use tokio_tungstenite::{
     client_async, connect_async,
     tungstenite::{
@@ -14,7 +14,7 @@ use tokio_tungstenite::{
 };
 
 use crate::{
-    Error, Result,
+    Error, MihomoContext, Result,
     models::{CloseFrame, Protocol, WebSocketConnectionId, WebSocketMessage},
     stream::{WsReadKind, WsStream, WsWriteKind},
 };
@@ -71,7 +71,7 @@ async fn close_managed_connection(connection: ManagedWsConnection, force_timeout
 }
 
 async fn open_websocket_stream(
-    protocol: &Protocol,
+    protocol: Protocol,
     socket_path: Option<&str>,
     url: String,
 ) -> Result<(WsWriteKind, WsReadKind)> {
@@ -112,7 +112,7 @@ fn spawn_read_task<F>(
     id: WebSocketConnectionId,
     mut reader: WsReadKind,
     on_message: F,
-    manager: Arc<RwLock<HashMap<WebSocketConnectionId, ManagedWsConnection>>>,
+    connections: Arc<ClashMap<WebSocketConnectionId, ManagedWsConnection>>,
     start_signal: tokio::sync::oneshot::Receiver<()>,
 ) -> tokio::task::JoinHandle<()>
 where
@@ -124,7 +124,7 @@ where
         let _ = start_signal.await;
 
         while let Some(message) = reader.next().await {
-            if !manager.read().await.contains_key(&id) {
+            if !connections.contains_key(&id) {
                 tracing::debug!("connection [{id}] is removed from manager");
                 break;
             }
@@ -141,7 +141,7 @@ where
 
         // Clean up: remove the connection from the manager on exit.
         // This is safe even if close() already removed it (no-op).
-        manager.write().await.remove(&id);
+        connections.remove(&id);
     })
 }
 
@@ -151,30 +151,25 @@ where
 /// 使用 `open()` 创建连接，使用 `close()` / `close_all()` 清理。
 #[derive(Default, Clone)]
 pub struct ConnectionManager {
-    connections: Arc<RwLock<HashMap<WebSocketConnectionId, ManagedWsConnection>>>,
+    connections: Arc<ClashMap<WebSocketConnectionId, ManagedWsConnection>>,
 }
 
 impl ConnectionManager {
     pub fn new() -> Self {
         Self {
-            connections: Arc::new(RwLock::new(HashMap::new())),
+            connections: Arc::new(ClashMap::new()),
         }
     }
 
     /// 打开一个新的 WebSocket 连接。
     ///
-    /// `protocol` 和 `socket_path` 决定使用的传输层（HTTP 或 LocalSocket）。
     /// 返回的 `WebSocketConnectionId` 可用于后续关闭连接。
-    pub async fn open<F>(
-        &self,
-        protocol: &Protocol,
-        socket_path: Option<&str>,
-        url: String,
-        on_message: F,
-    ) -> Result<WebSocketConnectionId>
+    pub async fn open<F>(&self, ctx: &MihomoContext, url: String, on_message: F) -> Result<WebSocketConnectionId>
     where
         F: Fn(serde_json::Value) + Send + 'static,
     {
+        let protocol = ctx.protocol;
+        let socket_path = ctx.socket_path.as_deref();
         let id: WebSocketConnectionId = gen_id();
         tracing::info!("connecting to websocket: {url}, id: {id}");
 
@@ -184,7 +179,7 @@ impl ConnectionManager {
         // so the task will always find the connection when it checks contains_key().
         let (start_tx, start_rx) = tokio::sync::oneshot::channel();
         let read_task = spawn_read_task(id, reader, on_message, self.connections.clone(), start_rx);
-        self.connections.write().await.insert(
+        self.connections.insert(
             id,
             ManagedWsConnection {
                 writer,
@@ -199,12 +194,12 @@ impl ConnectionManager {
     /// 关闭指定 WebSocket 连接。
     pub async fn close(&self, id: WebSocketConnectionId, force_timeout: Option<u64>) -> Result<()> {
         tracing::debug!("disconnecting connection: {id}");
-        let connection = self.connections.write().await.remove(&id);
-        if let Some(connection) = connection {
+        let connection = self.connections.remove(&id);
+        if let Some((_, connection)) = connection {
             close_managed_connection(connection, force_timeout).await;
             Ok(())
         } else {
-            tracing::error!("connection not found: {id}");
+            tracing::warn!("connection not found: {id}");
             Err(Error::WebSocketConnectionNotFound(id))
         }
     }
@@ -212,21 +207,23 @@ impl ConnectionManager {
     /// 关闭所有 WebSocket 连接。
     pub async fn close_all(&self) {
         tracing::debug!("start to clear all websocket connections");
-        let connections: Vec<ManagedWsConnection> = self.connections.write().await.drain().map(|(_, c)| c).collect();
-        tracing::debug!("manage_ids cleared, count: {}", connections.len());
-        for connection in connections {
-            close_managed_connection(connection, Some(0)).await;
+        let keys: Vec<WebSocketConnectionId> = self.connections.iter().map(|entry| *entry.key()).collect();
+        for key in keys {
+            if let Some((_, connection)) = self.connections.remove(&key) {
+                tracing::debug!("connection removed: {key}");
+                close_managed_connection(connection, Some(1000)).await;
+            }
         }
         tracing::debug!("clear all done");
     }
 
     /// 检查指定 ID 的连接是否仍在活跃。
     pub async fn is_active(&self, id: WebSocketConnectionId) -> bool {
-        self.connections.read().await.contains_key(&id)
+        self.connections.contains_key(&id)
     }
 
     /// 获取所有活跃连接的 ID（主要用于调试）。
     pub async fn active_ids(&self) -> Vec<WebSocketConnectionId> {
-        self.connections.read().await.keys().copied().collect()
+        self.connections.iter().map(|entry| *entry.key()).collect()
     }
 }
