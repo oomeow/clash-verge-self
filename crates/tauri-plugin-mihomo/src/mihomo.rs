@@ -148,26 +148,34 @@ impl Mihomo {
         }
     }
 
-    /// Load a consistent context snapshot (lock-free).
     pub fn load_ctx(&self) -> Guard<Arc<MihomoContext>> {
         self.ctx.load()
     }
 
-    /// Atomically replace the context snapshot.
-    fn update_ctx(&self, f: impl FnOnce(&mut MihomoContext)) {
-        let current = self.ctx.load();
-        let mut new_ctx = (**current).clone();
-        f(&mut new_ctx);
-        self.ctx.store(Arc::new(new_ctx));
+    /// Atomically update the context snapshot via read-copy-update.
+    ///
+    /// Retries when a concurrent update lands in between, so no update is lost.
+    fn update_ctx(&self, mut f: impl FnMut(&mut MihomoContext)) {
+        self.ctx.rcu(|current| {
+            let mut new_ctx = (**current).clone();
+            f(&mut new_ctx);
+            Arc::new(new_ctx)
+        });
     }
 
-    /// Atomically replace the context snapshot (fallible variant).
-    fn try_update_ctx(&self, f: impl FnOnce(&mut MihomoContext) -> Result<()>) -> Result<()> {
-        let current = self.ctx.load();
-        let mut new_ctx = (**current).clone();
-        f(&mut new_ctx)?;
-        self.ctx.store(Arc::new(new_ctx));
-        Ok(())
+    /// Atomically update the context snapshot via read-copy-update (fallible variant).
+    ///
+    /// The callback error is propagated and only successful mutations are published.
+    fn try_update_ctx(&self, mut f: impl FnMut(&mut MihomoContext) -> Result<()>) -> Result<()> {
+        loop {
+            let current = self.ctx.load_full();
+            let mut new_ctx = (*current).clone();
+            f(&mut new_ctx)?;
+            let prev = self.ctx.compare_and_swap(&current, Arc::new(new_ctx));
+            if Arc::ptr_eq(&prev, &current) {
+                return Ok(());
+            }
+        }
     }
 }
 
@@ -198,7 +206,7 @@ impl Mihomo {
     pub fn update_socket_path<S: Into<String>>(&self, socket_path: S) -> Result<()> {
         let path = socket_path.into();
         self.try_update_ctx(|ctx| {
-            ctx.socket_path = Some(path);
+            ctx.socket_path = Some(path.clone());
             ctx.client = MihomoContext::build_client(&ctx.protocol, ctx.socket_path.as_deref())?;
             Ok(())
         })

@@ -11,7 +11,7 @@ async fn switch_protocol() -> Result<()> {
     mihomo.update_protocol(tauri_plugin_mihomo::models::Protocol::Http)?;
     mihomo.update_external_host(Some("127.0.0.1"));
     mihomo.update_external_port(Some(9090));
-    mihomo.update_secret(Some("4xOkiQRSCTrhxKaUw3FCa"));
+    mihomo.update_secret(Some("0Zhf7izbK7IeXgpQeKzNQ"));
     let version = mihomo.get_version().await?;
     println!("{version:?}");
     mihomo.update_protocol(tauri_plugin_mihomo::models::Protocol::LocalSocket)?;
