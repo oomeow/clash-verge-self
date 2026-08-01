@@ -11,7 +11,7 @@ use once_cell::sync::OnceCell;
 use parking_lot::Mutex;
 use time::macros::format_description;
 use tracing::{Level, level_filters::LevelFilter};
-use tracing_appender::{non_blocking, non_blocking::WorkerGuard, rolling};
+use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     Layer, Registry, filter,
     layer::SubscriberExt,
@@ -82,14 +82,13 @@ impl VergeLog {
 
         // 输出到日志文件
         let log_dir = dirs::app_logs_dir()?;
-        // let file_appender = rolling::never(log_dir, log_filename);
-        let file_appender = rolling::max_size(log_dir, log_filename, 8 * 1024);
-        // let file_appender = RollingFileAppender::builder()
-        //     .rotation(Rotation::from(Rotation::NEVER))
-        //     .filename_prefix(log_filename)
-        //     .max_log_files(8)
-        //     .build(log_dir)?;
-        let (non_blocking_appender, guard) = non_blocking(file_appender);
+        let file_appender = logroller::LogRollerBuilder::new(log_dir, PathBuf::from(log_filename))
+            .rotation(logroller::Rotation::SizeBased(logroller::RotationSize::MB(10)))
+            .max_keep_files(10)
+            .time_zone(logroller::TimeZone::Local)
+            .compression(logroller::Compression::Gzip) // Compress old logs
+            .build()?;
+        let (non_blocking_appender, guard) = tracing_appender::non_blocking(file_appender);
         let file_layer = tracing_subscriber::fmt::layer()
             .compact()
             .with_ansi(false)
@@ -185,22 +184,22 @@ fn delete_old_logs(file: DirEntry, now: chrono::DateTime<Local>, retention_days:
             return;
         }
         let split: Vec<&str> = file_name.split(".log").collect();
-        let Some(current_file_name) = split.first() else {
+        let Some(prefix_name) = split.first() else {
             return;
         };
-        if let Ok(created_time) = parse_time_str(current_file_name) {
+        if let Ok(created_time) = parse_time_str(prefix_name) {
             if let Some(file_time) = Local.from_local_datetime(&created_time).earliest() {
                 if now.signed_duration_since(file_time).num_days() > retention_days {
                     match fs::remove_file(&file_path) {
-                        Ok(_) => tracing::info!("delete log file: {current_file_name}"),
+                        Ok(_) => tracing::info!("delete log file: {file_name}"),
                         Err(e) => tracing::warn!("Failed to delete log file {}: {}", file_path.display(), e),
                     }
                 }
             } else {
-                tracing::warn!("get local datetime failed, skip delete log file [{current_file_name}]");
+                tracing::warn!("get local datetime failed, skip delete log file [{prefix_name}]");
             }
         } else {
-            tracing::warn!("parse log file time failed, skip delete log file [{current_file_name}]");
+            tracing::warn!("parse log file time failed, skip delete log file [{prefix_name}]");
         }
     }
 }
