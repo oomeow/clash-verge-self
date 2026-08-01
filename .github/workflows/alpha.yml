@@ -96,7 +96,7 @@ jobs:
           name: Clash Verge Self Service Alpha
           tag_name: service-alpha
           prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           files: |
             ./clash-verge-self-service-${{ matrix.target }}
             ./clash-verge-self-service-${{ matrix.target }}.exe
@@ -306,7 +306,7 @@ jobs:
 
       - name: Install Binstall
         if: matrix.target != 'x86_64-unknown-linux-gnu'
-        uses: cargo-bins/cargo-binstall@e00d2c94cc0067b77737821097a62d91c0301baa # main
+        uses: cargo-bins/cargo-binstall@f3284c9c2dd42d52f4437bf415a5712669699999 # main
 
       - name: Install Cross
         if: matrix.target != 'x86_64-unknown-linux-gnu'
@@ -375,7 +375,7 @@ jobs:
           tag_name: alpha
           name: "Clash Verge Self Alpha"
           prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           files: |
             target/${{ matrix.target }}/release/bundle/deb/*.deb
             target/${{ matrix.target }}/release/bundle/deb/*.deb.sig
@@ -415,7 +415,7 @@ jobs:
           tag_name: alpha
           name: "Clash Verge Self Alpha"
           prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           files: ${{ steps.makepkg.outputs.pkgfile0 }}
 
   update_tag:
@@ -447,5 +447,5 @@ jobs:
           name: "Clash Verge Self Alpha"
           body_path: ${{ github.workspace }}/CHANGELOG.md
           prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
           generate_release_notes: false
