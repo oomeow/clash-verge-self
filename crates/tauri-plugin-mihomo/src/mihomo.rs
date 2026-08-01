@@ -218,7 +218,7 @@ impl Mihomo {
             let mut interval = tokio::time::interval(Duration::from_millis(1000));
             loop {
                 interval.tick().await;
-                let ids = manager.active_ids().await;
+                let ids = manager.active_ids();
                 log::trace!("manager websocket connection ids: {ids:?}");
             }
         });

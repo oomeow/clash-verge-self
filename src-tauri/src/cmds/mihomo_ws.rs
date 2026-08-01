@@ -317,7 +317,7 @@ async fn wait_mihomo_ws_disconnect(
                 return matches!(event, Some(MihomoWsEvent::Shutdown));
             }
             _ = check_interval.tick() => {
-                if !connection_manager.is_active(backend_id).await {
+                if !connection_manager.is_active(backend_id) {
                     return false;
                 }
             }

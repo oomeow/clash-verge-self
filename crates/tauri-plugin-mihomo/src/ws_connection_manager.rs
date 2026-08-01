@@ -207,10 +207,9 @@ impl ConnectionManager {
     /// 关闭所有 WebSocket 连接。
     pub async fn close_all(&self) {
         log::debug!("start to clear all websocket connections");
-        let keys: Vec<WebSocketConnectionId> = self.connections.iter().map(|entry| *entry.key()).collect();
-        for key in keys {
-            if let Some((_, connection)) = self.connections.remove(&key) {
-                log::debug!("connection removed: {key}");
+        for id in self.active_ids() {
+            if let Some((_, connection)) = self.connections.remove(&id) {
+                log::debug!("connection removed: {id}");
                 close_managed_connection(connection, Some(1000)).await;
             }
         }
@@ -218,12 +217,12 @@ impl ConnectionManager {
     }
 
     /// 检查指定 ID 的连接是否仍在活跃。
-    pub async fn is_active(&self, id: WebSocketConnectionId) -> bool {
+    pub fn is_active(&self, id: WebSocketConnectionId) -> bool {
         self.connections.contains_key(&id)
     }
 
     /// 获取所有活跃连接的 ID（主要用于调试）。
-    pub async fn active_ids(&self) -> Vec<WebSocketConnectionId> {
+    pub fn active_ids(&self) -> Vec<WebSocketConnectionId> {
         self.connections.iter().map(|entry| *entry.key()).collect()
     }
 }
