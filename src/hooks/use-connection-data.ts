@@ -90,7 +90,7 @@ export const useConnectionData = () => {
             next(e, initConnData);
           }
         },
-        onError: (err) => next(err, initConnData),
+        onError: (err) => next(err, (old = initConnData) => old),
       }),
     {
       fallbackData: initConnData,
