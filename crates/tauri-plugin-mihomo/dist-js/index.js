@@ -459,7 +459,7 @@ class MihomoWebSocket {
      */
     static async cleanupAll() {
         await Promise.all(Array.from(MihomoWebSocket.instances).map((instance) => instance.close()));
-        this.instances.clear();
+        MihomoWebSocket.instances.clear();
         await clearAllWsConnections();
     }
 }

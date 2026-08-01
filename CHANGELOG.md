@@ -9,6 +9,7 @@
 - 重构 Proxy 渲染相关逻辑，引入 RenderType 枚举替代魔法数字，使代码结构更清晰
 - 优化 Proxy 模块内部实现，移除不必要的 ref 回调包装，简化逻辑
 - 支持 inline 代理/规则提供者数据渲染
+- 优化重构 Mihomo IPC 请求
 
 ### 🐛 Bug Fixes
 

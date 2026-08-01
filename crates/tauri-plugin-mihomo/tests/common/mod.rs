@@ -1,6 +1,6 @@
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
-use tauri_plugin_mihomo::{Mihomo, models::Protocol};
+use tauri_plugin_mihomo::{Mihomo, MihomoContext, models::Protocol};
 
 #[allow(dead_code)]
 pub const TEST_URL: &str = "http://www.gstatic.com/generate_204";
@@ -27,32 +27,30 @@ pub fn mihomo() -> Mihomo {
     } else {
         Protocol::Http
     };
-    let client = Mihomo::build_client(&protocol, socket_path.as_deref()).unwrap();
+    let client = MihomoContext::build_client(&protocol, socket_path.as_deref()).unwrap();
     if use_local_socket {
         println!("connect to mihomo by local socket");
-        // use local socket
-        Mihomo {
+        let ctx = MihomoContext {
             protocol: Protocol::LocalSocket,
             external_host: None,
             external_port: None,
             secret: None,
             socket_path,
             request_timeout,
-            connection_manager: Arc::new(Default::default()),
             client,
-        }
+        };
+        Mihomo::new(ctx)
     } else {
         println!("connect to mihomo by http");
-        // use http
-        Mihomo {
+        let ctx = MihomoContext {
             protocol: Protocol::Http,
             external_host: Some("127.0.0.1".into()),
             external_port: Some(9090),
-            secret: Some("yPMJk9i7UaR1hv3-2BkPy".into()),
+            secret: Some("0Zhf7izbK7IeXgpQeKzNQ".into()),
             socket_path,
             request_timeout,
-            connection_manager: Arc::new(Default::default()),
             client,
-        }
+        };
+        Mihomo::new(ctx)
     }
 }
