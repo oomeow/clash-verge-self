@@ -42,7 +42,7 @@ impl MihomoContext {
             Protocol::Http => Ok(builder.build()?),
             Protocol::LocalSocket => {
                 let Some(socket_path) = socket_path else {
-                    tracing::error!("missing socket path parameter");
+                    log::error!("missing socket path parameter");
                     return Err(Error::MissingPathParameter("socket_path".into()));
                 };
                 #[cfg(windows)]
@@ -65,7 +65,7 @@ impl MihomoContext {
                     let port = self.external_port.unwrap_or(9090);
                     Ok(format!("http://{host}:{port}"))
                 } else {
-                    tracing::error!("missing external host parameter");
+                    log::error!("missing external host parameter");
                     Err(Error::MissingPathParameter("external_host".into()))
                 }
             }
@@ -110,7 +110,7 @@ impl MihomoContext {
             Method::DELETE => self.client.delete(url),
             _ => {
                 let method_str = method.as_str().to_string();
-                tracing::error!("method not supported: {method_str}");
+                log::error!("method not supported: {method_str}");
                 return Err(Error::MethodNotSupported(method_str));
             }
         };
@@ -126,7 +126,7 @@ impl MihomoContext {
                     let secret = self.secret.as_deref().unwrap_or_default();
                     Ok(format!("ws://{host}:{port}/{suffix_url}?token={secret}"))
                 } else {
-                    tracing::error!("missing external host parameter");
+                    log::error!("missing external host parameter");
                     Err(Error::MissingPathParameter("external_host".into()))
                 }
             }
@@ -143,7 +143,7 @@ pub struct Mihomo {
 impl Mihomo {
     pub fn new(ctx: MihomoContext) -> Self {
         Self {
-            ctx: ArcSwap::new(Arc::new(ctx)),
+            ctx: ArcSwap::from_pointee(ctx),
             connection_manager: ConnectionManager::default(),
         }
     }
@@ -219,7 +219,7 @@ impl Mihomo {
             loop {
                 interval.tick().await;
                 let ids = manager.active_ids().await;
-                tracing::trace!("manager websocket connection ids: {ids:?}");
+                log::trace!("manager websocket connection ids: {ids:?}");
             }
         });
     }
@@ -499,7 +499,7 @@ impl Mihomo {
         if !response.status().is_success() {
             match response.json::<ErrorResponse>().await {
                 Ok(err_response) => {
-                    tracing::debug!("delay error: {}", err_response.message);
+                    log::debug!("delay error: {}", err_response.message);
                     return Ok(ProxyDelay { delay: 0 });
                 }
                 Err(e) => {
@@ -581,7 +581,7 @@ impl Mihomo {
         if !response.status().is_success() {
             match response.json::<ErrorResponse>().await {
                 Ok(err_response) => {
-                    tracing::debug!("delay error: {}", err_response.message);
+                    log::debug!("delay error: {}", err_response.message);
                     return Ok(ProxyDelay { delay: 0 });
                 }
                 Err(e) => {

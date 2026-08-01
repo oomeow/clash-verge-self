@@ -139,7 +139,7 @@ pub async fn connect_to_socket(socket_path: &str) -> Result<SocketStreamKind> {
     #[cfg(unix)]
     {
         if !std::path::Path::new(socket_path).exists() {
-            tracing::error!("socket path is not exists: {socket_path}");
+            log::error!("socket path is not exists: {socket_path}");
             return Err(Error::Io(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
                 format!("socket path: {socket_path} not found"),
@@ -155,7 +155,7 @@ pub async fn connect_to_socket(socket_path: &str) -> Result<SocketStreamKind> {
                 Ok(client) => break client,
                 Err(e) if e.raw_os_error() == Some(ERROR_PIPE_BUSY as i32) => (),
                 Err(e) => {
-                    tracing::error!("failed to connect to named pipe: {socket_path}, {e}");
+                    log::error!("failed to connect to named pipe: {socket_path}, {e}");
                     return Err(Error::FailedResponse(format!(
                         "Failed to connect to named pipe: {socket_path}, {e}"
                     )));

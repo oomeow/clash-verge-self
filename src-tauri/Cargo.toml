@@ -32,11 +32,6 @@ serde_yaml.workspace = true
 once_cell.workspace = true
 parking_lot.workspace = true
 anyhow.workspace = true
-# log
-tracing.workspace = true
-tracing-subscriber.workspace = true
-tracing-appender.workspace = true
-time.workspace = true
 
 # tauri
 tauri = { version = "2", features = [
@@ -54,19 +49,24 @@ tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-opener = "2"
 tauri-plugin-deep-link = "2"
-fast-uuid-v7 = "0.1.8"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
+# log
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["local-time"] }
+tracing-appender = "0.2"
+time = { version = "0.3", features = ["macros", "parsing"] }
+
+fast-uuid-v7 = "0.1.8"
 warp = { version = "0.4", features = ["server"] }
 dunce = "1.0"
 nanoid = "0.5"
 chrono = {version = "0.4", features = ["serde"] }
 sysinfo = "0.39"
-
 delay_timer = "0.11"
 auto-launch = "0.6"
 percent-encoding = "2.3"
@@ -91,7 +91,6 @@ windows-sys = { version = "0.61", features = [
 
 [target.'cfg(target_os = "linux")'.dependencies]
 users = "0.11"
-# openssl = { version = "0.10", features = ["vendored"] }
 
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
 signal-hook = "0.4"

@@ -1,4 +1,5 @@
-use tauri_plugin_mihomo::Protocol;
+use tauri::Manager;
+use tauri_plugin_mihomo::models::Protocol;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -14,6 +15,13 @@ async fn cmd_format_json(text: &str) -> Result<String, String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    env_logger::builder()
+        .write_style(env_logger::WriteStyle::Always)
+        .filter_level(log::LevelFilter::Trace)
+        .filter_module("tokio_tungstenite", log::LevelFilter::Info)
+        .filter_module("tungstenite", log::LevelFilter::Info)
+        .init();
+
     tauri::Builder::default()
         .plugin(
             tauri_plugin_mihomo::Builder::new()
@@ -22,6 +30,10 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![greet, cmd_format_json])
+        .setup(|app| {
+            app.handle().get_webview_window("main").unwrap().open_devtools();
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -57,7 +57,7 @@ fn handle_websocket_message(message: Result<Message>) -> Result<serde_json::Valu
         })))?,
         Ok(Message::Frame(_)) => serde_json::Value::Null,
         Err(error) => {
-            tracing::error!("websocket error: {error}");
+            log::error!("websocket error: {error}");
             serde_json::to_value(WebSocketMessage::Text(error.to_string()))?
         }
     };
@@ -77,18 +77,18 @@ async fn open_websocket_stream(
 ) -> Result<(WsWriteKind, WsReadKind)> {
     match protocol {
         Protocol::Http => {
-            tracing::debug!("starting connect to websocket by using http");
+            log::debug!("starting connect to websocket by using http");
             let request = url.into_client_request()?;
             let (ws_stream, _) = connect_async(request).await?;
             Ok(WsStream::from(ws_stream).split())
         }
         Protocol::LocalSocket => {
             let Some(socket_path) = socket_path else {
-                tracing::error!("missing socket path parameter");
+                log::error!("missing socket path parameter");
                 return Err(Error::MissingPathParameter("socket_path".into()));
             };
 
-            tracing::debug!("starting connect to websocket by using local socket: {socket_path}");
+            log::debug!("starting connect to websocket by using local socket: {socket_path}");
             let stream = crate::stream::connect_to_socket(socket_path).await?;
             let request = Request::builder()
                 .uri(url)
@@ -125,7 +125,7 @@ where
 
         while let Some(message) = reader.next().await {
             if !connections.contains_key(&id) {
-                tracing::debug!("connection [{id}] is removed from manager");
+                log::debug!("connection [{id}] is removed from manager");
                 break;
             }
 
@@ -134,7 +134,7 @@ where
                 on_message(response);
             }
             if is_close {
-                tracing::debug!("connection [{id}] is closed");
+                log::debug!("connection [{id}] is closed");
                 break;
             }
         }
@@ -171,7 +171,7 @@ impl ConnectionManager {
         let protocol = ctx.protocol;
         let socket_path = ctx.socket_path.as_deref();
         let id: WebSocketConnectionId = gen_id();
-        tracing::info!("connecting to websocket: {url}, id: {id}");
+        log::info!("connecting to websocket: {url}, id: {id}");
 
         let (writer, reader) = open_websocket_stream(protocol, socket_path, url).await?;
 
@@ -193,28 +193,28 @@ impl ConnectionManager {
 
     /// 关闭指定 WebSocket 连接。
     pub async fn close(&self, id: WebSocketConnectionId, force_timeout: Option<u64>) -> Result<()> {
-        tracing::debug!("disconnecting connection: {id}");
+        log::debug!("disconnecting connection: {id}");
         let connection = self.connections.remove(&id);
         if let Some((_, connection)) = connection {
             close_managed_connection(connection, force_timeout).await;
             Ok(())
         } else {
-            tracing::warn!("connection not found: {id}");
+            log::warn!("connection not found: {id}");
             Err(Error::WebSocketConnectionNotFound(id))
         }
     }
 
     /// 关闭所有 WebSocket 连接。
     pub async fn close_all(&self) {
-        tracing::debug!("start to clear all websocket connections");
+        log::debug!("start to clear all websocket connections");
         let keys: Vec<WebSocketConnectionId> = self.connections.iter().map(|entry| *entry.key()).collect();
         for key in keys {
             if let Some((_, connection)) = self.connections.remove(&key) {
-                tracing::debug!("connection removed: {key}");
+                log::debug!("connection removed: {key}");
                 close_managed_connection(connection, Some(1000)).await;
             }
         }
-        tracing::debug!("clear all done");
+        log::debug!("clear all done");
     }
 
     /// 检查指定 ID 的连接是否仍在活跃。

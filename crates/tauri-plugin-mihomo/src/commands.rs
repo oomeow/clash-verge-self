@@ -78,7 +78,7 @@ pub(crate) async fn delay_group(
     } else {
         None
     };
-    tracing::debug!("delay group, fixed: {fixed:?}");
+    log::debug!("delay group, fixed: {fixed:?}");
     let res = state.delay_group(&group_name, &test_url, timeout).await?;
     if keep_fixed
         && let Some(fixed) = fixed

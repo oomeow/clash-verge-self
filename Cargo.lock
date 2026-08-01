@@ -4753,11 +4753,11 @@ dependencies = [
 name = "process_supervisor"
 version = "0.1.0"
 dependencies = [
+ "log",
  "parking_lot",
  "sysinfo",
  "thiserror 2.0.19",
  "tokio",
- "tracing",
 ]
 
 [[package]]
@@ -6602,6 +6602,7 @@ dependencies = [
  "fast-uuid-v7",
  "futures-util",
  "http",
+ "log",
  "pin-project",
  "reqwest",
  "serde",
@@ -6611,7 +6612,6 @@ dependencies = [
  "thiserror 2.0.19",
  "tokio",
  "tokio-tungstenite",
- "tracing",
  "ts-rs",
  "windows-sys 0.61.2",
 ]
