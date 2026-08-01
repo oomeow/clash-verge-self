@@ -246,7 +246,6 @@ export declare class MihomoWebSocket {
     addListener(cb: (arg: Message) => void): () => void;
     /**
      * 关闭连接
-     * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认为 0
      */
     close(): Promise<void>;
     /**
