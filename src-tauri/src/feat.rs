@@ -304,9 +304,10 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
         let (host, port) = external_controller
             .split_once(':')
             .context("invalid external controller")?;
+        let port = port.parse()?;
         let mihomo = handle::Handle::mihomo();
         mihomo.update_external_host(Some(host));
-        mihomo.update_external_port(Some(port.parse()?));
+        mihomo.update_external_port(Some(port));
     }
     if let Some(secret) = patch.get("secret") {
         let secret = secret.as_str().unwrap();
