@@ -9,6 +9,6 @@ publish.workspace = true
 parking_lot.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
-tracing.workspace = true
+log.workspace = true
 
 sysinfo = "0.39"

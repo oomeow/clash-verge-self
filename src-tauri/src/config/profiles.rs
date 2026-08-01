@@ -535,7 +535,7 @@ pub async fn activate_selected_nodes() -> Result<()> {
         .clone();
 
     let handle = tokio::spawn(async move {
-        let mihomo = handle::Handle::mihomo().await;
+        let mihomo = handle::Handle::mihomo();
         // check mihomo is running
         let mut is_mihomo_ready = false;
         for _ in 0..10 {

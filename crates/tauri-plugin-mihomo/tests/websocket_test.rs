@@ -44,9 +44,7 @@ async fn mihomo_websocket_memory() -> Result<()> {
     mihomo.disconnect(websocket_id, Some(0)).await?;
     for i in 0..10 {
         println!("check connection exist {i}");
-        let manager = mihomo.connection_manager.clone();
-        let manager = manager.0.read().await;
-        if manager.get(&websocket_id).is_none() {
+        if !mihomo.connection_manager.is_active(websocket_id) {
             println!("connection exist");
             break;
         }
@@ -70,9 +68,7 @@ async fn mihomo_websocket_traffic() -> Result<()> {
     mihomo.disconnect(websocket_id, Some(0)).await?;
     for i in 0..10 {
         println!("check connection exist {i}");
-        let manager = mihomo.connection_manager.clone();
-        let manager = manager.0.read().await;
-        if manager.get(&websocket_id).is_none() {
+        if !mihomo.connection_manager.is_active(websocket_id) {
             println!("connection exist");
             break;
         }
@@ -96,9 +92,7 @@ async fn mihomo_websocket_log() -> Result<()> {
     mihomo.disconnect(websocket_id, Some(0)).await?;
     for i in 0..10 {
         println!("check connection exist {i}");
-        let manager = mihomo.connection_manager.clone();
-        let manager = manager.0.read().await;
-        if manager.get(&websocket_id).is_none() {
+        if !mihomo.connection_manager.is_active(websocket_id) {
             println!("connection exist");
             break;
         }
@@ -122,9 +116,7 @@ async fn mihomo_websocket_connections() -> Result<()> {
     mihomo.disconnect(websocket_id, Some(0)).await?;
     for i in 0..10 {
         println!("check connection exist {i}");
-        let manager = mihomo.connection_manager.clone();
-        let manager = manager.0.read().await;
-        if manager.get(&websocket_id).is_none() {
+        if !mihomo.connection_manager.is_active(websocket_id) {
             println!("connection exist");
             break;
         }

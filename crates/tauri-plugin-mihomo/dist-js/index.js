@@ -437,7 +437,6 @@ class MihomoWebSocket {
     // }
     /**
      * 关闭连接
-     * @param forceTimeout 强制关闭 WebSocket 连接等待的时间，单位: 毫秒, 默认为 0
      */
     async close() {
         try {
@@ -459,7 +458,7 @@ class MihomoWebSocket {
      */
     static async cleanupAll() {
         await Promise.all(Array.from(MihomoWebSocket.instances).map((instance) => instance.close()));
-        this.instances.clear();
+        MihomoWebSocket.instances.clear();
         await clearAllWsConnections();
     }
 }

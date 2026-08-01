@@ -260,7 +260,7 @@ impl CoreManager {
     async fn disable_tun(&self) {
         tracing::info!("disable tun mode");
         let disable_tun = Self::disable_tun_mapping();
-        let _ = handle::Handle::mihomo().await.patch_base_config(&disable_tun).await;
+        let _ = handle::Handle::mihomo().patch_base_config(&disable_tun).await;
     }
 
     async fn try_run_core_by_service(&self, config_path: &PathBuf, clash_log_file: &PathBuf) -> Result<bool> {

@@ -81,11 +81,16 @@ export const useConnectionData = () => {
     (_key, { next }) =>
       subscribeManagedMihomoWebSocketText({
         connect: ManagedMihomoWebSocket.connectConnections,
-        onText: (text) =>
-          next(null, (old = initConnData) =>
-            updateConnections(JSON.parse(text) as Connections, old),
-          ),
-        onError: next,
+        onText: (text) => {
+          try {
+            next(null, (old = initConnData) =>
+              updateConnections(JSON.parse(text) as Connections, old),
+            );
+          } catch (e) {
+            next(e, initConnData);
+          }
+        },
+        onError: (err) => next(err, (old = initConnData) => old),
       }),
     {
       fallbackData: initConnData,

@@ -99,7 +99,7 @@ export const useLogData = () => {
             flushTimer = setTimeout(flush, 50);
           }
         },
-        onError: next,
+        onError: (err) => next(err, (l) => l ?? []),
       });
 
       return () => {

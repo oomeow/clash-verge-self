@@ -415,8 +415,9 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
                 update_interval: None,
             };
 
+            let url = percent_encoding::percent_decode_str(url).decode_utf8()?;
             let restart_core = {
-                if let Ok(item) = PrfItem::from_url(url, None, None, Some(option)).await {
+                if let Ok(item) = PrfItem::from_url(&url, None, None, Some(option)).await {
                     if let Ok(restart_core_) = Config::profiles().latest_mut().append_item(item) {
                         if handle::Handle::get_window().is_some() {
                             handle::Handle::notice_message(handle::NoticeStatus::Success, t!("notice.import.success"));
@@ -430,6 +431,7 @@ pub fn resolve_deep_links(urls: impl IntoIterator<Item = String>) {
                     }
                 } else {
                     if handle::Handle::get_window().is_some() {
+                        tokio::time::sleep(Duration::from_secs(1)).await;
                         handle::Handle::notice_message(handle::NoticeStatus::Error, t!("notice.import.failed"));
                     } else {
                         handle::Handle::notify("Clash Verge", t!("notice.import.failed"));

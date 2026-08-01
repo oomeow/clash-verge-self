@@ -2,13 +2,14 @@ use std::{
     collections::{HashMap, VecDeque},
     sync::{
         Arc, Mutex,
-        atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering},
+        atomic::{AtomicBool, AtomicU64, Ordering},
     },
     time::Duration,
 };
 
 use chrono::{DateTime, Local};
 use clash_verge_self_utils::{RawMihomoLog, parse_raw_mihomo_log};
+use fast_uuid_v7::gen_id;
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use serde_json::Value;
@@ -91,7 +92,6 @@ struct OpenedMihomoWsConnection {
 
 pub static CANCEL_MIHOMO_WS_RECONNECT: AtomicBool = AtomicBool::new(false);
 
-static NEXT_WS_CONNECTION_ID: AtomicU32 = AtomicU32::new(1);
 static MIHOMO_WS_GENERATION: AtomicU64 = AtomicU64::new(0);
 static MIHOMO_WS_CONNECTIONS: Lazy<RwLock<HashMap<WebSocketConnectionId, MihomoWsConnection>>> =
     Lazy::new(|| RwLock::new(HashMap::new()));
@@ -100,15 +100,6 @@ const WS_RECONNECT_DELAY: Duration = Duration::from_millis(500);
 const WS_MAX_RECONNECT_DELAY: Duration = Duration::from_secs(5);
 const WS_CONNECTION_CHECK_INTERVAL: Duration = Duration::from_secs(1);
 const WS_LOG_BUFFER_LIMIT: usize = 500;
-
-fn next_ws_connection_id() -> WebSocketConnectionId {
-    loop {
-        let id = NEXT_WS_CONNECTION_ID.fetch_add(1, Ordering::Relaxed);
-        if id != 0 {
-            return id;
-        }
-    }
-}
 
 fn websocket_error_message(error: impl std::fmt::Display) -> Value {
     serde_json::to_value(WebSocketMessage::Text(format!("Websocket error: {error}"))).unwrap_or(Value::Null)
@@ -250,7 +241,6 @@ async fn open_mihomo_ws_connection(
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
             let backend_id = handle::Handle::mihomo()
-                .await
                 .ws_traffic(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
                 .await?;
             Ok(OpenedMihomoWsConnection {
@@ -262,7 +252,6 @@ async fn open_mihomo_ws_connection(
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
             let backend_id = handle::Handle::mihomo()
-                .await
                 .ws_memory(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
                 .await?;
             Ok(OpenedMihomoWsConnection {
@@ -274,7 +263,6 @@ async fn open_mihomo_ws_connection(
             let on_message = on_message.clone();
             let event_tx = event_tx.clone();
             let backend_id = handle::Handle::mihomo()
-                .await
                 .ws_connections(move |data| forward_mihomo_ws_message(data, &on_message, &event_tx))
                 .await?;
             Ok(OpenedMihomoWsConnection {
@@ -291,7 +279,6 @@ async fn open_mihomo_ws_connection(
             }));
             let callback_log_buffer = log_buffer.clone();
             let backend_id = handle::Handle::mihomo()
-                .await
                 .ws_logs(*level, move |data| {
                     buffer_or_forward_mihomo_log_ws_message(data, &on_message, &event_tx, &callback_log_buffer)
                 })
@@ -309,10 +296,7 @@ async fn disconnect_active_mihomo_ws(
     force_timeout: Option<u64>,
 ) {
     if let Some(active_id) = active_id.write().await.take() {
-        let _ = handle::Handle::mihomo()
-            .await
-            .disconnect(active_id, force_timeout)
-            .await;
+        let _ = handle::Handle::mihomo().disconnect(active_id, force_timeout).await;
     }
 }
 
@@ -321,7 +305,7 @@ async fn wait_mihomo_ws_disconnect(
     mut shutdown_rx: watch::Receiver<bool>,
     mut event_rx: mpsc::UnboundedReceiver<MihomoWsEvent>,
 ) -> bool {
-    let connection_manager = handle::Handle::mihomo().await.connection_manager.clone();
+    let connection_manager = handle::Handle::mihomo().connection_manager.clone();
     let mut check_interval = tokio::time::interval(WS_CONNECTION_CHECK_INTERVAL);
 
     loop {
@@ -333,7 +317,7 @@ async fn wait_mihomo_ws_disconnect(
                 return matches!(event, Some(MihomoWsEvent::Shutdown));
             }
             _ = check_interval.tick() => {
-                if !connection_manager.0.read().await.contains_key(&backend_id) {
+                if !connection_manager.is_active(backend_id) {
                     return false;
                 }
             }
@@ -383,7 +367,7 @@ async fn run_mihomo_ws_connection(
                 }
 
                 let should_shutdown = wait_mihomo_ws_disconnect(backend_id, shutdown_rx.clone(), event_rx).await;
-                disconnect_active_mihomo_ws(&active_id, Some(0)).await;
+                disconnect_active_mihomo_ws(&active_id, Some(1000)).await;
 
                 if should_shutdown || sleep_before_reconnect(&mut shutdown_rx, WS_RECONNECT_DELAY).await {
                     break;
@@ -402,7 +386,7 @@ async fn run_mihomo_ws_connection(
         }
     }
 
-    disconnect_active_mihomo_ws(&active_id, Some(0)).await;
+    disconnect_active_mihomo_ws(&active_id, Some(1000)).await;
     MIHOMO_WS_CONNECTIONS.write().await.remove(&connection_id);
 }
 
@@ -410,7 +394,7 @@ async fn connect_mihomo_ws(
     endpoint: MihomoWsEndpoint,
     on_message: Channel<Value>,
 ) -> anyhow::Result<WebSocketConnectionId> {
-    let connection_id = next_ws_connection_id();
+    let gen_uuid = gen_id();
     let generation = MIHOMO_WS_GENERATION.load(Ordering::Acquire);
     let active_id = Arc::new(RwLock::new(None));
     let (shutdown_tx, shutdown_rx) = watch::channel(false);
@@ -420,7 +404,7 @@ async fn connect_mihomo_ws(
 
     let task = tokio::spawn(async move {
         let _ = start_rx.await;
-        run_mihomo_ws_connection(connection_id, endpoint, on_message, task_active_id, shutdown_rx).await;
+        run_mihomo_ws_connection(gen_uuid, endpoint, on_message, task_active_id, shutdown_rx).await;
     });
 
     let mut connections = MIHOMO_WS_CONNECTIONS.write().await;
@@ -431,7 +415,7 @@ async fn connect_mihomo_ws(
     }
 
     connections.insert(
-        connection_id,
+        gen_uuid,
         MihomoWsConnection {
             active_id,
             shutdown_tx,
@@ -440,7 +424,7 @@ async fn connect_mihomo_ws(
     );
     let _ = start_tx.send(());
 
-    Ok(connection_id)
+    Ok(gen_uuid)
 }
 
 async fn disconnect_mihomo_ws(id: WebSocketConnectionId, force_timeout: Option<u64>) -> anyhow::Result<()> {
@@ -464,37 +448,59 @@ async fn clear_mihomo_ws_connections() -> anyhow::Result<()> {
 
     for connection in connections {
         let _ = connection.shutdown_tx.send(true);
-        disconnect_active_mihomo_ws(&connection.active_id, Some(0)).await;
+        disconnect_active_mihomo_ws(&connection.active_id, Some(1000)).await;
         connection.task.abort();
     }
 
-    let _ = handle::Handle::mihomo().await.clear_all_ws_connections().await;
+    let _ = handle::Handle::mihomo().clear_all_ws_connections().await;
     Ok(())
 }
 
 #[tauri::command]
-pub async fn ws_traffic(on_message: Channel<Value>) -> CommandResult<WebSocketConnectionId> {
-    into_command_result(connect_mihomo_ws(MihomoWsEndpoint::Traffic, on_message).await)
+pub async fn ws_traffic(on_message: Channel<Value>) -> CommandResult<String> {
+    into_command_result(
+        connect_mihomo_ws(MihomoWsEndpoint::Traffic, on_message)
+            .await
+            .map(|id| id.to_string()),
+    )
 }
 
 #[tauri::command]
-pub async fn ws_memory(on_message: Channel<Value>) -> CommandResult<WebSocketConnectionId> {
-    into_command_result(connect_mihomo_ws(MihomoWsEndpoint::Memory, on_message).await)
+pub async fn ws_memory(on_message: Channel<Value>) -> CommandResult<String> {
+    into_command_result(
+        connect_mihomo_ws(MihomoWsEndpoint::Memory, on_message)
+            .await
+            .map(|id| id.to_string()),
+    )
 }
 
 #[tauri::command]
-pub async fn ws_connections(on_message: Channel<Value>) -> CommandResult<WebSocketConnectionId> {
-    into_command_result(connect_mihomo_ws(MihomoWsEndpoint::Connections, on_message).await)
+pub async fn ws_connections(on_message: Channel<Value>) -> CommandResult<String> {
+    into_command_result(
+        connect_mihomo_ws(MihomoWsEndpoint::Connections, on_message)
+            .await
+            .map(|id| id.to_string()),
+    )
 }
 
 #[tauri::command]
-pub async fn ws_logs(level: LogLevel, on_message: Channel<Value>) -> CommandResult<WebSocketConnectionId> {
-    into_command_result(connect_mihomo_ws(MihomoWsEndpoint::Logs(level), on_message).await)
+pub async fn ws_logs(level: LogLevel, on_message: Channel<Value>) -> CommandResult<String> {
+    into_command_result(
+        connect_mihomo_ws(MihomoWsEndpoint::Logs(level), on_message)
+            .await
+            .map(|id| id.to_string()),
+    )
 }
 
 #[tauri::command]
-pub async fn ws_disconnect(id: WebSocketConnectionId, force_timeout: Option<u64>) -> CommandResult<()> {
-    into_command_result(disconnect_mihomo_ws(id, force_timeout).await)
+pub async fn ws_disconnect(id: String, force_timeout: Option<u64>) -> CommandResult<()> {
+    into_command_result(
+        async {
+            let id: WebSocketConnectionId = id.parse()?;
+            disconnect_mihomo_ws(id, force_timeout).await
+        }
+        .await,
+    )
 }
 
 #[tauri::command]

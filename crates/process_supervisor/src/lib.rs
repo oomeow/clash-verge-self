@@ -244,14 +244,14 @@ impl ProcessSupervisor {
             && let Ok(old_pid) = std::fs::read_to_string(pid_file)
         {
             let pid = old_pid.trim().parse::<u32>().unwrap_or(0);
-            tracing::info!("killing old process with pid {}", pid);
+            log::info!("killing old process with pid {}", pid);
             kill_pid(pid);
         }
     }
 
     /// Stops the current child if needed and starts supervising a new one.
     pub async fn start(&self, spec: ProcessSpec) -> Result<u32> {
-        tracing::info!("start requested for process `{}`", spec.label);
+        log::info!("start requested for process `{}`", spec.label);
         self.kill_old_process(spec.pid_file.as_ref());
         self.stop().await?;
 
@@ -288,23 +288,23 @@ impl ProcessSupervisor {
         self.inner.stop_requested.store(true, Ordering::SeqCst);
 
         if let Some(pid) = self.pid() {
-            tracing::info!("stop requested for pid {pid}");
+            log::info!("stop requested for pid {pid}");
             kill_pid(pid);
         } else {
-            tracing::debug!("stop requested but no managed pid is currently tracked");
+            log::debug!("stop requested but no managed pid is currently tracked");
         }
 
         let task = self.inner.task.lock().take();
         if let Some(task) = task {
-            tracing::debug!("waiting for process supervisor task to finish");
+            log::debug!("waiting for process supervisor task to finish");
             if let Err(err) = task.await {
-                tracing::error!("supervisor task failed: {err}");
+                log::error!("supervisor task failed: {err}");
             }
         }
 
         self.inner.pid.store(0, Ordering::SeqCst);
         self.inner.running.store(false, Ordering::SeqCst);
-        tracing::debug!("process supervisor stop completed");
+        log::debug!("process supervisor stop completed");
         Ok(())
     }
 
@@ -325,10 +325,10 @@ impl ProcessSupervisor {
         let mut attempts = 0usize;
         let mut first_spawn = true;
 
-        tracing::debug!("supervisor started for `{}` with generation {}", spec.label, generation);
+        log::debug!("supervisor started for `{}` with generation {}", spec.label, generation);
 
         if let Some(log_file) = &spec.log_config.log_file {
-            tracing::debug!("log file for `{}`: {}", spec.label, log_file.display());
+            log::debug!("log file for `{}`: {}", spec.label, log_file.display());
         }
 
         loop {
@@ -358,10 +358,10 @@ impl ProcessSupervisor {
 
             let status = child.wait().await;
             if let Err(err) = stdout_task.await {
-                tracing::error!("stdout pump task failed: {err}");
+                log::error!("stdout pump task failed: {err}");
             }
             if let Err(err) = stderr_task.await {
-                tracing::error!("stderr pump task failed: {err}");
+                log::error!("stderr pump task failed: {err}");
             }
             log_sink.shutdown().await;
             first_spawn = false;
@@ -398,7 +398,7 @@ impl ProcessSupervisor {
             }
         }
 
-        tracing::debug!(
+        log::debug!(
             "supervisor finished for `{}` with generation {}",
             spec.label,
             generation
@@ -413,7 +413,7 @@ impl ProcessSupervisor {
         status: std::io::Result<std::process::ExitStatus>,
     ) -> bool {
         if let Err(err) = &status {
-            tracing::error!("failed to wait on process `{label}`: {err}");
+            log::error!("failed to wait on process `{label}`: {err}");
         }
 
         let intentional = self.inner.stop_requested.load(Ordering::SeqCst)
@@ -456,7 +456,7 @@ impl ProcessSupervisor {
         if self.inner.stop_requested.load(Ordering::SeqCst)
             || self.inner.generation.load(Ordering::SeqCst) != generation
         {
-            tracing::debug!(
+            log::debug!(
                 "skip restarting process `{}` because supervisor is no longer active",
                 spec.label
             );
@@ -500,7 +500,7 @@ impl ProcessSupervisor {
             command.env(key, value);
         }
 
-        tracing::info!(
+        log::info!(
             "start process `{}` with program `{}`",
             spec.label,
             spec.program.display()
@@ -515,13 +515,13 @@ impl ProcessSupervisor {
     fn emit(&self, event: ProcessEvent) {
         match &event {
             ProcessEvent::Started { label, pid } => {
-                tracing::info!("process `{label}` started with pid {pid}");
+                log::info!("process `{label}` started with pid {pid}");
             }
             ProcessEvent::Stdout { label, line } => {
-                tracing::info!("[{label}]: {line}");
+                log::info!("[{label}]: {line}");
             }
             ProcessEvent::Stderr { label, line } => {
-                tracing::error!("[{label}]: {line}");
+                log::error!("[{label}]: {line}");
             }
             ProcessEvent::Exited {
                 label,
@@ -529,23 +529,23 @@ impl ProcessSupervisor {
                 code,
                 intentional,
             } => {
-                tracing::info!(
+                log::info!(
                     "process `{label}` exited, pid: {:?}, code: {:?}, intentional: {intentional}",
                     pid,
                     code
                 );
             }
             ProcessEvent::Restarting { label, attempt, delay } => {
-                tracing::warn!(
+                log::warn!(
                     "process `{label}` restarting, attempt {attempt}, delay {} ms",
                     delay.as_millis()
                 );
             }
             ProcessEvent::RestartLimitReached { label, attempts } => {
-                tracing::error!("process `{label}` reached restart limit after {attempts} retries");
+                log::error!("process `{label}` reached restart limit after {attempts} retries");
             }
             ProcessEvent::Error { label, message } => {
-                tracing::error!("process `{label}` error: {message}");
+                log::error!("process `{label}` error: {message}");
             }
         }
 
@@ -577,7 +577,7 @@ async fn pump_stream(
                 if let Some(log_sender) = &log_sender
                     && let Err(err) = log_sender.send(buffer.clone()).await
                 {
-                    tracing::error!("failed to queue process `{label}` output for log writing: {err}");
+                    log::error!("failed to queue process `{label}` output for log writing: {err}");
                     break;
                 }
 
@@ -586,9 +586,9 @@ async fn pump_stream(
                     .to_string();
 
                 // if is_stderr {
-                //     tracing::error!("[{label}]: {line}");
+                //     log::error!("[{label}]: {line}");
                 // } else {
-                //     tracing::info!("[{label}]: {line}");
+                //     log::info!("[{label}]: {line}");
                 // }
 
                 if let Some(handler) = &handler {
@@ -607,7 +607,7 @@ async fn pump_stream(
                 }
             }
             Err(err) => {
-                tracing::error!("failed to read process `{label}` output: {err}");
+                log::error!("failed to read process `{label}` output: {err}");
                 break;
             }
         }
@@ -628,7 +628,7 @@ impl LogSink {
             };
         };
 
-        tracing::debug!("open process log file for `{label}` at {}", path.display());
+        log::debug!("open process log file for `{label}` at {}", path.display());
 
         let mut options = OpenOptions::new();
         options.create(true).write(true);
@@ -641,7 +641,7 @@ impl LogSink {
         let file = match options.open(path).await {
             Ok(file) => file,
             Err(err) => {
-                tracing::error!(
+                log::error!(
                     "failed to open output log file for process `{label}` at {}: {err}",
                     path.display()
                 );
@@ -666,13 +666,13 @@ impl LogSink {
                 };
 
                 if let Err(err) = write_result {
-                    tracing::error!("failed to write process `{label}` output: {err}");
+                    log::error!("failed to write process `{label}` output: {err}");
                     break;
                 }
             }
 
             if let Err(err) = file.flush().await {
-                tracing::error!("failed to flush process `{label}` log file: {err}");
+                log::error!("failed to flush process `{label}` log file: {err}");
             }
         });
 
@@ -691,7 +691,7 @@ impl LogSink {
         if let Some(task) = self.task.take()
             && let Err(err) = task.await
         {
-            tracing::error!("log writer task failed: {err}");
+            log::error!("log writer task failed: {err}");
         }
     }
 }
@@ -700,7 +700,7 @@ impl LogSink {
 ///
 /// If sending the signal fails, the process is forcefully killed.
 fn kill_pid(pid: u32) {
-    tracing::debug!("send terminate signal to pid {pid}");
+    log::debug!("send terminate signal to pid {pid}");
     let mut system = System::new();
     let pid = Pid::from_u32(pid);
     system.refresh_processes(ProcessesToUpdate::Some(&[pid]), true);
@@ -711,6 +711,6 @@ fn kill_pid(pid: u32) {
             process.kill();
         }
     } else {
-        tracing::debug!("pid {pid} is no longer present when stop was requested");
+        log::debug!("pid {pid} is no longer present when stop was requested");
     }
 }

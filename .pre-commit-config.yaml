@@ -30,11 +30,15 @@ repos:
         language: "node"
         files:
           glob:
-            - src/**/*.{js,mjs,ts,tsx}
-            - vite.config.ts
+            - "scripts/*.ts"
+            - "src/**/*.{js,mjs,ts,tsx}"
+            - "crates/tauri-plugin-mihomo/guest-js/**/*.ts"
+            - "vite.config.ts"
         exclude:
           glob:
-            - src/routeTree.gen.ts
+            - "dist/**"
+            - "src-tauri/frontend/dist/**"
+            - "src/routeTree.gen.ts"
 
       - id: "pretty staged"
         name: "pretty staged"

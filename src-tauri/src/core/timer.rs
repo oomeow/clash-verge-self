@@ -115,7 +115,7 @@ impl Timer {
             let current = profiles.get_current();
             if let Some(current) = current {
                 let profiles = Config::profiles().latest().clone();
-                let mihomo = handle::Handle::mihomo().await;
+                let mihomo = handle::Handle::mihomo();
 
                 if mihomo.get_base_config().await.is_err() {
                     tracing::error!("failed to get base config");
