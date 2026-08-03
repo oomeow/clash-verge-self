@@ -434,7 +434,7 @@ jobs:
         shell: bash
 
       - name: Update Tag
-        uses: richardsimko/update-tag@d43d3236a342abd387f0ba5d6a7bc93b77e0e718 # v2
+        uses: richardsimko/update-tag@24fe62c216198eb57283429200e63a06f62afe5b # v3
         with:
           tag_name: alpha
         env:
