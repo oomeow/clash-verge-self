@@ -76,6 +76,9 @@ impl VergeLog {
             .compact()
             .with_ansi(true)
             .with_timer(timer.clone())
+            // .with_thread_ids(true)
+            // .with_thread_names(true)
+            .with_target(true)
             .with_line_number(true)
             .with_writer(std::io::stdout)
             .with_filter(exclude_filter.clone());
@@ -93,7 +96,8 @@ impl VergeLog {
             .compact()
             .with_ansi(false)
             .with_timer(timer)
-            .with_line_number(true)
+            .with_target(false)
+            .with_line_number(false)
             .with_writer(non_blocking_appender)
             .with_filter(exclude_filter);
 

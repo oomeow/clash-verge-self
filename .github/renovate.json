@@ -33,10 +33,6 @@
       "groupName": "crypto deps"
     },
     {
-      "matchPackageNames": ["tracing-appender"],
-      "enabled": false
-    },
-    {
       "matchManagers": ["rust-toolchain"],
       "matchDepTypes": ["toolchain"],
       "rangeStrategy": "pin"
