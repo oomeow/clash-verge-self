@@ -13,13 +13,13 @@ use parking_lot::Mutex;
 use sysinfo::{Pid, ProcessesToUpdate, Signal, System};
 use thiserror::Error;
 use tokio::{
-    fs::OpenOptions,
-    io::{AsyncBufReadExt, AsyncRead, AsyncWriteExt, BufReader},
+    io::{AsyncBufReadExt, AsyncRead, BufReader},
     process::{Child, Command},
     sync::mpsc,
     task::JoinHandle,
     time::sleep,
 };
+use tracing_subscriber::{Registry, layer::SubscriberExt};
 
 /// Errors returned by the process supervisor when spawning, supervising, or stopping a process fails.
 #[derive(Debug, Error)]
@@ -166,6 +166,7 @@ pub type EventHandler = Arc<dyn Fn(ProcessEvent) + Send + Sync + 'static>;
 struct LogSink {
     sender: Option<mpsc::Sender<Vec<u8>>>,
     task: Option<JoinHandle<()>>,
+    _guard: Option<tracing_appender::non_blocking::WorkerGuard>,
 }
 
 /// Supervises a single child process with optional restart and output handling.
@@ -618,67 +619,88 @@ impl LogSink {
     async fn new(
         label: &str,
         log_file: Option<&PathBuf>,
-        truncate: bool,
+        _truncate: bool,
         line_formatter: Option<LineFormatter>,
     ) -> Self {
         let Some(path) = log_file else {
             return Self {
                 sender: None,
                 task: None,
+                _guard: None,
             };
         };
 
-        log::debug!("open process log file for `{label}` at {}", path.display());
+        log::debug!("open rolling process log file for `{label}` at {}", path.display());
 
-        let mut options = OpenOptions::new();
-        options.create(true).write(true);
-        if truncate {
-            options.truncate(true);
-        } else {
-            options.append(true);
-        }
+        let file_name = match path.file_name().map(PathBuf::from) {
+            Some(name) => name,
+            None => {
+                log::error!("invalid output log file path for process `{label}`: {}", path.display());
+                return Self {
+                    sender: None,
+                    task: None,
+                    _guard: None,
+                };
+            }
+        };
+        let log_dir = path.parent().unwrap_or_else(|| std::path::Path::new(".")).to_path_buf();
 
-        let file = match options.open(path).await {
-            Ok(file) => file,
+        let appender = match logroller::LogRollerBuilder::new(log_dir, file_name)
+            .rotation(logroller::Rotation::SizeBased(logroller::RotationSize::MB(10)))
+            .max_keep_files(10)
+            .time_zone(logroller::TimeZone::Local)
+            .compression(logroller::Compression::Gzip)
+            .build()
+        {
+            Ok(appender) => appender,
             Err(err) => {
                 log::error!(
-                    "failed to open output log file for process `{label}` at {}: {err}",
+                    "failed to build rolling output log file for process `{label}` at {}: {err}",
                     path.display()
                 );
                 return Self {
                     sender: None,
                     task: None,
+                    _guard: None,
                 };
             }
         };
 
+        let (writer, guard) = tracing_appender::non_blocking(appender);
+
+        let file_layer = tracing_subscriber::fmt::layer()
+            .compact()
+            .with_ansi(false)
+            .without_time()
+            .with_level(false)
+            .with_target(false)
+            .with_line_number(false)
+            .with_writer(writer);
+        let subscriber = Registry::default().with(file_layer);
+        let dispatch = tracing::Dispatch::new(subscriber);
+
         let (sender, mut receiver) = mpsc::channel::<Vec<u8>>(256);
-        let label = label.to_string();
         let task = tokio::spawn(async move {
-            let mut file = file;
             while let Some(chunk) = receiver.recv().await {
-                let write_result = if let Some(line_formatter) = line_formatter.as_ref() {
-                    let line = String::from_utf8_lossy(&chunk);
-                    let new_line = line_formatter(&line);
-                    file.write_all(new_line.as_bytes()).await
+                let line = String::from_utf8_lossy(&chunk)
+                    .trim_end_matches(['\r', '\n'])
+                    .to_string();
+                let line = if let Some(line_formatter) = line_formatter.as_ref() {
+                    line_formatter(&line)
                 } else {
-                    file.write_all(&chunk).await
+                    line
                 };
 
-                if let Err(err) = write_result {
-                    log::error!("failed to write process `{label}` output: {err}");
-                    break;
-                }
-            }
-
-            if let Err(err) = file.flush().await {
-                log::error!("failed to flush process `{label}` log file: {err}");
+                tracing::dispatcher::with_default(&dispatch, || {
+                    tracing::info!("{line}");
+                });
             }
         });
 
         Self {
             sender: Some(sender),
             task: Some(task),
+            _guard: Some(guard),
         }
     }
 
@@ -693,6 +715,7 @@ impl LogSink {
         {
             log::error!("log writer task failed: {err}");
         }
+        self._guard.take();
     }
 }
 

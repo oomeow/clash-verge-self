@@ -55,7 +55,7 @@ tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
 # log
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter","local-time"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "local-time"] }
 tracing-appender = "0.2"
 time = { version = "0.3", features = ["macros", "parsing"] }
 
