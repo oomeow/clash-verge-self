@@ -29,12 +29,27 @@ async function main() {
     previous = {};
   }
 
-  const serviceDir = cratesPath("clash-verge-self-service");
-  const snapshot = snapshotFilesHashOnDir(serviceDir);
-
-  const changed = Object.keys(snapshot).some(
-    (rel) => previous[rel] !== snapshot[rel],
+  // The service binary depends on these crates, so include them in the change
+  // detection. Paths are prefixed with the crate name to avoid key collisions.
+  const watchDirs = [
+    "clash-verge-self-service",
+    "clash-verge-self-utils",
+    "process_supervisor",
+  ];
+  const snapshot = Object.fromEntries(
+    watchDirs.flatMap((name) => {
+      const dir = cratesPath(name);
+      return Object.entries(snapshotFilesHashOnDir(dir)).map(([rel, hash]) => [
+        `${name}/${rel}`,
+        hash,
+      ]);
+    }),
   );
+
+  // Detect added, modified, and deleted files: compare across the union of the
+  // previous and current keys, so a file removed from disk still triggers a rebuild.
+  const keys = new Set([...Object.keys(previous), ...Object.keys(snapshot)]);
+  const changed = [...keys].some((rel) => previous[rel] !== snapshot[rel]);
 
   if (!changed) {
     outro(pc.bgGreen(pc.white("service not modified, skipping build.")));
