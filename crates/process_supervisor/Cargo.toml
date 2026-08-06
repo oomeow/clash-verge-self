@@ -10,9 +10,9 @@ parking_lot.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 log.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-appender.workspace = true
+logroller.workspace = true
 
 sysinfo = "0.39"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "local-time"] }
-tracing-appender = "0.2"
-logroller = "0.1.12"

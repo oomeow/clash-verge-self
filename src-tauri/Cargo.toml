@@ -32,6 +32,10 @@ serde_yaml.workspace = true
 once_cell.workspace = true
 parking_lot.workspace = true
 anyhow.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-appender.workspace = true
+logroller.workspace = true
 
 # tauri
 tauri = { version = "2", features = [
@@ -53,12 +57,7 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
-# log
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "local-time"] }
-tracing-appender = "0.2"
 time = { version = "0.3", features = ["macros", "parsing"] }
-
 fast-uuid-v7 = "0.1.8"
 warp = { version = "0.4", features = ["server"] }
 dunce = "1.0"
@@ -78,7 +77,6 @@ rfd = { version = "0.17", default-features = false, features = [
 ] }
 network-interface = "2.0.1"
 rquickjs = { version = "0.12", features = ["bindgen"] }
-logroller = "0.1.12"
 
 [target.'cfg(windows)'.dependencies]
 runas = "=1.2"
