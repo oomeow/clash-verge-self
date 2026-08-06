@@ -943,8 +943,11 @@ dependencies = [
  "delay_timer",
  "dirs 6.0.0",
  "dunce",
+<<<<<<< HEAD
  "fast-uuid-v7",
  "logroller",
+=======
+>>>>>>> dev
  "mihomo-rule-parser",
  "nanoid",
  "network-interface",
@@ -984,6 +987,7 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "users",
+ "uuid",
  "warp",
  "windows-sys 0.61.2",
  "zip 8.6.0",
@@ -1902,15 +1906,6 @@ checksum = "8be9f3dfaaffdae2972880079a491a1a8bb7cbed0b8dd7a347f668b4150a3b93"
 dependencies = [
  "event-listener 5.3.0",
  "pin-project-lite",
-]
-
-[[package]]
-name = "fast-uuid-v7"
-version = "0.1.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65d7a30239eba18ae6a60dc3c3df98af18f00bba69d2b1d5f2816a831e83bff3"
-dependencies = [
- "rand 0.10.2",
 ]
 
 [[package]]
@@ -6634,7 +6629,6 @@ dependencies = [
  "arc-swap",
  "clashmap",
  "dotenvy",
- "fast-uuid-v7",
  "futures-util",
  "http",
  "log",
@@ -6648,6 +6642,7 @@ dependencies = [
  "tokio",
  "tokio-tungstenite",
  "ts-rs",
+ "uuid",
  "windows-sys 0.61.2",
 ]
 
