@@ -32,6 +32,7 @@ serde_yaml.workspace = true
 once_cell.workspace = true
 parking_lot.workspace = true
 anyhow.workspace = true
+uuid.workspace = true
 
 # tauri
 tauri = { version = "2", features = [
@@ -59,7 +60,6 @@ tracing-subscriber = { version = "0.3", features = ["local-time"] }
 tracing-appender = "0.2"
 time = { version = "0.3", features = ["macros", "parsing"] }
 
-fast-uuid-v7 = "0.1.8"
 warp = { version = "0.4", features = ["server"] }
 dunce = "1.0"
 nanoid = "0.5"

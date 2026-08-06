@@ -2,6 +2,7 @@ use std::{collections::HashMap, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
+use uuid::Uuid;
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -1041,4 +1042,4 @@ pub enum WebSocketMessage {
     Close(Option<CloseFrame>),
 }
 
-pub type WebSocketConnectionId = u128;
+pub type WebSocketConnectionId = Uuid;

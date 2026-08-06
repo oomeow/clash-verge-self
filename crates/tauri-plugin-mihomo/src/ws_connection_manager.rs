@@ -1,7 +1,6 @@
 use std::{sync::Arc, time::Duration};
 
 use clashmap::ClashMap;
-use fast_uuid_v7::gen_id;
 use http::{
     Request,
     header::{CONNECTION, HOST, SEC_WEBSOCKET_KEY, SEC_WEBSOCKET_VERSION, UPGRADE},
@@ -12,6 +11,7 @@ use tokio_tungstenite::{
         Message, client::IntoClientRequest, handshake::client::generate_key, protocol::CloseFrame as ProtocolCloseFrame,
     },
 };
+use uuid::Uuid;
 
 use crate::{
     Error, MihomoContext, Result,
@@ -170,7 +170,7 @@ impl ConnectionManager {
     {
         let protocol = ctx.protocol;
         let socket_path = ctx.socket_path.as_deref();
-        let id: WebSocketConnectionId = gen_id();
+        let id: WebSocketConnectionId = Uuid::new_v4();
         log::info!("connecting to websocket: {url}, id: {id}");
 
         let (writer, reader) = open_websocket_stream(protocol, socket_path, url).await?;
