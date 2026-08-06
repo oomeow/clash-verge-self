@@ -674,6 +674,7 @@ impl LogSink {
             .max_keep_files(max_keep_files)
             .time_zone(logroller::TimeZone::Local)
             .compression(logroller::Compression::Gzip)
+            .graceful_shutdown(true)
             .build()
         {
             Ok(appender) => appender,

@@ -88,8 +88,8 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
         default_latency_test: values.defaultLatencyTest,
         default_latency_timeout: values.defaultLatencyTimeout || 5000,
         auto_log_clean: values.autoLogClean as any,
-        log_roll_size_mb: values.logRollSizeMb || 10,
-        log_max_keep_files: values.logMaxKeepFiles || 10,
+        log_roll_size_mb: Math.max(1, values.logRollSizeMb || 1),
+        log_max_keep_files: Math.max(1, values.logMaxKeepFiles || 1),
       });
       setOpen(false);
     } catch (err: any) {
@@ -282,10 +282,11 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
             sx={{ width: 120 }}
             value={values.logRollSizeMb || ""}
             placeholder="10"
+            slotProps={{ htmlInput: { min: 1, step: 1 } }}
             onChange={(e) =>
               setValues((v) => ({
                 ...v,
-                logRollSizeMb: parseInt(e.target.value),
+                logRollSizeMb: Math.max(1, parseInt(e.target.value)),
               }))
             }
           />
@@ -319,10 +320,11 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
             sx={{ width: 120 }}
             value={values.logMaxKeepFiles || ""}
             placeholder="10"
+            slotProps={{ htmlInput: { min: 1, step: 1 } }}
             onChange={(e) =>
               setValues((v) => ({
                 ...v,
-                logMaxKeepFiles: parseInt(e.target.value),
+                logMaxKeepFiles: Math.max(1, parseInt(e.target.value)),
               }))
             }
           />
