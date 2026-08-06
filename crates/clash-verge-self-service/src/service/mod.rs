@@ -464,6 +464,15 @@ fn stop_service() -> Result<()> {
     Ok(())
 }
 
+#[cfg(target_os = "macos")]
+fn stop_service() -> Result<()> {
+    std::process::Command::new("launchctl")
+        .arg("stop")
+        .arg("io.github.clashvergeself.helper")
+        .output()?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use std::{sync::Arc, time::Duration};
@@ -487,13 +496,4 @@ mod tests {
         let second = try_acquire_connection_permit(&semaphore);
         assert!(second.is_none(), "connections over the limit should be rejected");
     }
-}
-
-#[cfg(target_os = "macos")]
-fn stop_service() -> Result<()> {
-    std::process::Command::new("launchctl")
-        .arg("stop")
-        .arg("io.github.clashvergeself.helper")
-        .output()?;
-    Ok(())
 }

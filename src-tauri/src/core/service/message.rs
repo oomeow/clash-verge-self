@@ -65,6 +65,8 @@ pub(in crate::core) async fn run_core_by_service(config_file: &PathBuf, log_path
         pid_file: pid_file.to_string(),
         config_file: config_file.to_string(),
         log_file: log_path.to_string(),
+        log_roll_size_mb: Some(Config::verge().latest().get_log_roll_size_mb()),
+        log_max_keep_files: Some(Config::verge().latest().get_log_max_keep_files()),
     };
     tracing::debug!("send start clash socket command, body: {:?}", body);
     let res = send_command::<()>(SocketCommand::StartClash(body)).await?;

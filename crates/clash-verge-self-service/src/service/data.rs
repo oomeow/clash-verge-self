@@ -27,6 +27,10 @@ pub struct StartBody {
     pub pid_file: String,
     pub config_file: String,
     pub log_file: String,
+    /// Max size (in MB) of a single core log file before rotation.
+    pub log_roll_size_mb: Option<u64>,
+    /// Maximum number of rotated core log files to keep.
+    pub log_max_keep_files: Option<u64>,
 }
 
 // #[derive(Debug, Deserialize, Serialize, Clone)]

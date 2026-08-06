@@ -10,5 +10,9 @@ parking_lot.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 log.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-appender.workspace = true
+logroller.workspace = true
 
 sysinfo = "0.39"

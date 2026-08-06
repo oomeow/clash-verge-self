@@ -85,6 +85,8 @@ async fn start_core(client: &mut clash_verge_self_service::Client) -> Result<()>
             .to_string(),
         config_file: curr_dir.join("examples/mihomo/test.yaml").to_str().unwrap().to_string(),
         log_file: curr_dir.join("examples/mihomo/test.log").to_str().unwrap().to_string(),
+        log_roll_size_mb: None,
+        log_max_keep_files: None,
     };
     let msg = client.send::<()>(SocketCommand::StartClash(start_core)).await?;
     println!("start clash: {:?}", msg);

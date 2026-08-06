@@ -224,6 +224,8 @@ impl CoreManager {
             log_file: Some(clash_log_file),
             truncate_on_start: false,
             line_formatter: Some(Arc::new(format_raw_mihomo_log_line)),
+            log_roll_size: Some(Config::verge().latest().get_log_roll_size_mb()),
+            log_max_keep_files: Some(Config::verge().latest().get_log_max_keep_files()),
         };
         Ok(spec)
     }

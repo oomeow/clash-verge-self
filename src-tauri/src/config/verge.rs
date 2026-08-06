@@ -159,6 +159,11 @@ pub struct IVerge {
     /// 0: 不清理; 1: 7天; 2: 30天; 3: 90天
     pub auto_log_clean: Option<i32>,
 
+    /// 滚动日志单文件大小上限 (MB), 默认 10
+    pub log_roll_size_mb: Option<u64>,
+    /// 滚动日志最大保留份数, 默认 10
+    pub log_max_keep_files: Option<u64>,
+
     /// window size and position
     #[serde(skip_serializing_if = "Option::is_none")]
     pub window_size_position: Option<Vec<f64>>,
@@ -335,6 +340,8 @@ impl IVerge {
             auto_close_connection: Some(true),
             auto_check_update: Some(true),
             auto_log_clean: Some(1),
+            log_roll_size_mb: Some(10),
+            log_max_keep_files: Some(10),
             enable_tray: Some(true),
             keep_in_dock: Some(true),
             enable_external_controller: Some(false),
@@ -409,6 +416,8 @@ impl IVerge {
         patch!(proxy_layout_column);
         patch!(test_list);
         patch!(auto_log_clean);
+        patch!(log_roll_size_mb);
+        patch!(log_max_keep_files);
         patch!(window_size_position);
         patch!(window_is_maximized);
         patch!(webdav_url);
@@ -435,5 +444,15 @@ impl IVerge {
         } else {
             LevelFilter::INFO
         }
+    }
+
+    /// 滚动日志单文件大小上限 (MB), 默认 10
+    pub fn get_log_roll_size_mb(&self) -> u64 {
+        self.log_roll_size_mb.map_or(10, |v| v.max(1))
+    }
+
+    /// 滚动日志最大保留份数, 默认 10
+    pub fn get_log_max_keep_files(&self) -> u64 {
+        self.log_max_keep_files.map_or(10, |v| v.max(1))
     }
 }

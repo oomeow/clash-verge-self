@@ -1,10 +1,14 @@
+import InfoRounded from "@mui/icons-material/InfoRounded";
 import {
+  Box,
+  IconButton,
   List,
   ListItem,
   ListItemText,
   MenuItem,
   Select,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
@@ -37,6 +41,10 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
   const defaultLatencyTimeout = useVergeStore(
     (s) => s.verge.default_latency_timeout ?? 5000,
   );
+  const logRollSizeMb = useVergeStore((s) => s.verge.log_roll_size_mb ?? 10);
+  const logMaxKeepFiles = useVergeStore(
+    (s) => s.verge.log_max_keep_files ?? 10,
+  );
   const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const [open, setOpen] = useState(false);
@@ -48,6 +56,8 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
     defaultLatencyTest: "",
     autoLogClean: 0,
     defaultLatencyTimeout: 5000,
+    logRollSizeMb: 10,
+    logMaxKeepFiles: 10,
   });
 
   useImperativeHandle(ref, () => ({
@@ -61,6 +71,8 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
         defaultLatencyTest,
         autoLogClean,
         defaultLatencyTimeout,
+        logRollSizeMb,
+        logMaxKeepFiles,
       });
     },
     close: () => setOpen(false),
@@ -76,6 +88,8 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
         default_latency_test: values.defaultLatencyTest,
         default_latency_timeout: values.defaultLatencyTimeout || 5000,
         auto_log_clean: values.autoLogClean as any,
+        log_roll_size_mb: Math.max(1, values.logRollSizeMb || 1),
+        log_max_keep_files: Math.max(1, values.logMaxKeepFiles || 1),
       });
       setOpen(false);
     } catch (err: any) {
@@ -228,13 +242,89 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck="false"
-            sx={{ width: 250 }}
+            sx={{ width: 120 }}
             value={values.defaultLatencyTimeout || ""}
             placeholder="5000"
             onChange={(e) =>
               setValues((v) => ({
                 ...v,
                 defaultLatencyTimeout: parseInt(e.target.value),
+              }))
+            }
+          />
+        </ListItem>
+
+        <ListItem sx={{ padding: "5px 2px" }}>
+          <ListItemText
+            primary={
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <span>{t("pages.settings.verge.misc.logRollSizeMb")}</span>
+                <Tooltip
+                  title={t("pages.settings.verge.misc.logRollSizeMbInfo")}
+                  placement="top">
+                  <IconButton color="inherit" size="small">
+                    <InfoRounded
+                      fontSize="inherit"
+                      style={{ cursor: "pointer", opacity: 0.75 }}
+                    />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            }
+          />
+          <TextField
+            size="small"
+            type="number"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+            sx={{ width: 120 }}
+            value={values.logRollSizeMb || ""}
+            placeholder="10"
+            slotProps={{ htmlInput: { min: 1, step: 1 } }}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                logRollSizeMb: Math.max(1, parseInt(e.target.value)),
+              }))
+            }
+          />
+        </ListItem>
+
+        <ListItem sx={{ padding: "5px 2px" }}>
+          <ListItemText
+            primary={
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <span>{t("pages.settings.verge.misc.logMaxKeepFiles")}</span>
+                <Tooltip
+                  title={t("pages.settings.verge.misc.logMaxKeepFilesInfo")}
+                  placement="top">
+                  <IconButton color="inherit" size="small">
+                    <InfoRounded
+                      fontSize="inherit"
+                      style={{ cursor: "pointer", opacity: 0.75 }}
+                    />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            }
+          />
+          <TextField
+            size="small"
+            type="number"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+            sx={{ width: 120 }}
+            value={values.logMaxKeepFiles || ""}
+            placeholder="10"
+            slotProps={{ htmlInput: { min: 1, step: 1 } }}
+            onChange={(e) =>
+              setValues((v) => ({
+                ...v,
+                logMaxKeepFiles: Math.max(1, parseInt(e.target.value)),
               }))
             }
           />
