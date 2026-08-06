@@ -71,6 +71,10 @@ pub struct ProcessLogConfig {
     pub truncate_on_start: bool,
     /// Optional line format function to apply to log lines before writing.
     pub line_formatter: Option<LineFormatter>,
+    /// Max size (in MB) of a single log file before it is rotated. `None` uses the default (10 MB).
+    pub log_roll_size: Option<u64>,
+    /// Maximum number of rotated log files to keep. `None` uses the default (10).
+    pub log_max_keep_files: Option<u64>,
 }
 
 impl std::fmt::Debug for ProcessLogConfig {
@@ -78,7 +82,21 @@ impl std::fmt::Debug for ProcessLogConfig {
         f.debug_struct("ProcessLogConfig")
             .field("log_file", &self.log_file)
             .field("truncate_on_start", &self.truncate_on_start)
+            .field("log_roll_size", &self.log_roll_size)
+            .field("log_max_keep_files", &self.log_max_keep_files)
             .finish()
+    }
+}
+
+impl ProcessLogConfig {
+    /// Effective rotation size in MB, falling back to the default of 10 MB.
+    pub fn roll_size(&self) -> u64 {
+        self.log_roll_size.unwrap_or(10)
+    }
+
+    /// Effective max number of rotated files to keep, falling back to the default of 10.
+    pub fn max_keep_files(&self) -> u64 {
+        self.log_max_keep_files.unwrap_or(10)
     }
 }
 
@@ -340,6 +358,8 @@ impl ProcessSupervisor {
                 spec.log_config.log_file.as_ref(),
                 spec.log_config.truncate_on_start && first_spawn,
                 spec.log_config.line_formatter.clone(),
+                spec.log_config.roll_size(),
+                spec.log_config.max_keep_files(),
             )
             .await;
             let stdout_task = tokio::spawn(pump_stream(
@@ -621,6 +641,8 @@ impl LogSink {
         log_file: Option<&PathBuf>,
         _truncate: bool,
         line_formatter: Option<LineFormatter>,
+        roll_size: u64,
+        max_keep_files: u64,
     ) -> Self {
         let Some(path) = log_file else {
             return Self {
@@ -646,8 +668,10 @@ impl LogSink {
         let log_dir = path.parent().unwrap_or_else(|| std::path::Path::new(".")).to_path_buf();
 
         let appender = match logroller::LogRollerBuilder::new(log_dir, file_name)
-            .rotation(logroller::Rotation::SizeBased(logroller::RotationSize::MB(10)))
-            .max_keep_files(10)
+            .rotation(logroller::Rotation::SizeBased(logroller::RotationSize::MB(
+                roll_size.max(1),
+            )))
+            .max_keep_files(max_keep_files)
             .time_zone(logroller::TimeZone::Local)
             .compression(logroller::Compression::Gzip)
             .build()

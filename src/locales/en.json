@@ -459,7 +459,11 @@
             }
           },
           "defaultLatencyTest": "Default Latency Test",
-          "defaultLatencyTimeout": "Default Latency Timeout"
+          "defaultLatencyTimeout": "Default Latency Timeout",
+          "logRollSizeMb": "Log Roll Size (MB)",
+          "logRollSizeMbInfo": "Max size of a single log file before it is rotated. Applies to the core log on the next core start, and to the app log on the next app restart.",
+          "logMaxKeepFiles": "Max Keep Log Files",
+          "logMaxKeepFilesInfo": "Max number of rotated log files to keep on disk. Applies to the core log on the next core start, and to the app log on the next app restart."
         },
         "hotkeys": {
           "title": "Hotkey Setting",

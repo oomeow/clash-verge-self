@@ -85,9 +85,13 @@ impl VergeLog {
 
         // 输出到日志文件
         let log_dir = dirs::app_logs_dir()?;
+        let roll_size_mb = Config::verge().latest().get_log_roll_size_mb();
+        let max_keep_files = Config::verge().latest().get_log_max_keep_files();
         let file_appender = logroller::LogRollerBuilder::new(log_dir, PathBuf::from(log_filename))
-            .rotation(logroller::Rotation::SizeBased(logroller::RotationSize::MB(10)))
-            .max_keep_files(10)
+            .rotation(logroller::Rotation::SizeBased(logroller::RotationSize::MB(
+                roll_size_mb,
+            )))
+            .max_keep_files(max_keep_files)
             .time_zone(logroller::TimeZone::Local)
             .compression(logroller::Compression::Gzip) // Compress old logs
             .build()?;

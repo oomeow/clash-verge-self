@@ -58,6 +58,8 @@ async fn run_core(body: StartBody) -> Result<()> {
         pid_file,
         config_file,
         log_file,
+        log_roll_size_mb,
+        log_max_keep_files,
     } = body;
     let mut spec = ProcessSpec::new("mihomo", bin_path).with_pid_file(pid_file);
     spec.args = vec![
@@ -83,6 +85,8 @@ async fn run_core(body: StartBody) -> Result<()> {
         log_file: Some(log_file.into()),
         truncate_on_start: false,
         line_formatter: Some(Arc::new(format_raw_mihomo_log_line)),
+        log_roll_size: log_roll_size_mb,
+        log_max_keep_files,
     };
     ClashStatus::global().sidecar.start(spec).await?;
 

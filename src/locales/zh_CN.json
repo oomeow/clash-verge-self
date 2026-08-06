@@ -459,7 +459,11 @@
             }
           },
           "defaultLatencyTest": "默认测试链接",
-          "defaultLatencyTimeout": "测试超时时间"
+          "defaultLatencyTimeout": "测试超时时间",
+          "logRollSizeMb": "滚动日志大小 (MB)",
+          "logRollSizeMbInfo": "单个日志文件在滚动前的大小上限。核心日志在下次启动核心时生效，应用日志在下次重启应用时生效。",
+          "logMaxKeepFiles": "日志最大保留份数",
+          "logMaxKeepFilesInfo": "磁盘上保留的滚动日志最大份数。核心日志在下次启动核心时生效，应用日志在下次重启应用时生效。"
         },
         "hotkeys": {
           "title": "热键设置",
