@@ -30,6 +30,7 @@ import {
 } from "@mui/material";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
+import dayjs from "dayjs";
 import {
   forwardRef,
   useEffect,
@@ -84,8 +85,8 @@ const formatBytes = (bytes: number) => {
 };
 
 // 更新时间显示到时分秒（如 2026/8/8 16:35:50）。
-const formatTime = (iso?: string) =>
-  iso ? new Date(iso).toLocaleString() : "";
+const formatTime = (date?: string) =>
+  date ? dayjs(date).format("YYYY/MM/DD HH:mm:ss") : "";
 
 const ellipsis = {
   overflow: "hidden",
@@ -191,7 +192,7 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
 
   const [open, setOpen] = useState(false);
   const [channel, setChannel] = useState<ChannelFilter>("all");
-  const [onlyDownloaded, setOnlyDownloaded] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<MihomoVersion | null>(
     null,
   );
@@ -262,7 +263,7 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
       (v) =>
         v.channel !== "nightly" &&
         (channel === "all" || v.channel === channel) &&
-        (!onlyDownloaded ||
+        (!downloaded ||
           v.assets.some((a) => downloadedSet.has(assetBaseName(a)))),
     );
     // 预发布版本置顶；其余保持后端给定的新→旧顺序（Array#sort 稳定）。
@@ -270,7 +271,7 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
       if (a.prerelease !== b.prerelease) return a.prerelease ? -1 : 1;
       return 0;
     });
-  }, [versions, channel, onlyDownloaded, downloadedSet]);
+  }, [versions, channel, downloaded, downloadedSet]);
 
   const onSelectVersion = (version: MihomoVersion) => {
     if (selectedVersion?.tag === version.tag) {
@@ -614,11 +615,11 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
             control={
               <Checkbox
                 size="small"
-                checked={onlyDownloaded}
-                onChange={(e) => setOnlyDownloaded(e.target.checked)}
+                checked={downloaded}
+                onChange={(e) => setDownloaded(e.target.checked)}
               />
             }
-            label={t("pages.settings.clash.versionManager.onlyDownloaded")}
+            label={t("pages.settings.clash.versionManager.downloaded")}
             sx={{ mr: 0 }}
           />
           <Tooltip title={t("common.actions.refresh")}>

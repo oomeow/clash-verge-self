@@ -374,7 +374,6 @@
           "currentVersion": "Текущая версия",
           "downloaded": "Скачано",
           "variants": "файлов",
-          "onlyDownloaded": "Скачанные",
           "unknownDate": "неизвестная дата",
           "updatedDate": "Обновлено",
           "activeCore": "Используется: ядро {{slot}} · {{version}}",

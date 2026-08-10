@@ -374,7 +374,6 @@
           "currentVersion": "Current",
           "downloaded": "Downloaded",
           "variants": "files",
-          "onlyDownloaded": "Downloaded",
           "unknownDate": "unknown date",
           "updatedDate": "Updated",
           "activeCore": "In use: {{slot}} core · {{version}}",

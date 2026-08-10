@@ -374,7 +374,6 @@
           "currentVersion": "نسخه فعلی",
           "downloaded": "دانلود شده",
           "variants": "فایل",
-          "onlyDownloaded": "دانلود شده‌ها",
           "unknownDate": "تاریخ نامشخص",
           "updatedDate": "به‌روزرسانی",
           "activeCore": "در حال استفاده: هسته {{slot}} · {{version}}",

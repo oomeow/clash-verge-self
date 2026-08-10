@@ -31,7 +31,7 @@ import {
 import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
-import { MihomoVersionManager } from "./mihomo-version-manager";
+import MihomoVersionManager from "./mihomo-version-manager";
 
 interface Props {
   serviceActive: boolean;
