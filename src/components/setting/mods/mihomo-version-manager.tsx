@@ -109,6 +109,7 @@ const DownloadProgress = ({ installing }: { installing: boolean }) => {
     if (!installing) return;
     // 新一次下载开始，清掉上一次的进度残留。
     setProgress(null);
+    let cancelled = false;
     let unlisten: UnlistenFn | undefined;
     listen<{ tag: string; downloaded: number; total: number }>(
       "mihomo-download-progress",
@@ -119,8 +120,18 @@ const DownloadProgress = ({ installing }: { installing: boolean }) => {
           total: event.payload.total,
         });
       },
-    ).then((fn) => (unlisten = fn));
-    return () => unlisten?.();
+    ).then((fn) => {
+      if (cancelled) {
+        fn();
+        return;
+      }
+      unlisten = fn;
+    });
+
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
   }, [installing]);
 
   if (!installing || !progress) return null;
