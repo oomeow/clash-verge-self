@@ -3706,6 +3706,7 @@ dependencies = [
 [[package]]
 name = "mihomo-versions"
 version = "0.1.0"
+source = "git+https://github.com/oomeow/mihomo-versions#7fdfa4d55686499ad87a9e4d046ced1871ba8984"
 dependencies = [
  "bytes",
  "clap",

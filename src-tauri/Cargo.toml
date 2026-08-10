@@ -75,7 +75,7 @@ rfd = { version = "0.17", default-features = false, features = [
   "gtk3",
   "common-controls-v6",
 ] }
-mihomo-versions = { path = "../../mihomo-versions" }
+mihomo-versions = { git = "https://github.com/oomeow/mihomo-versions" }
 network-interface = "2.0.1"
 rquickjs = { version = "0.12", features = ["bindgen"] }
 
