@@ -186,7 +186,7 @@ export async function getAutotemProxy() {
 }
 
 export async function changeClashCore(clashCore: string) {
-  return invoke<any>("change_clash_core", { clashCore });
+  return invoke<void>("change_clash_core", { clashCore });
 }
 
 export async function restartSidecar() {
@@ -329,4 +329,55 @@ export async function isWayland() {
   const OS = getSystem();
   if (OS !== "linux") return false;
   return invoke<boolean>("is_wayland");
+}
+
+// mihomo version 库对应类型
+export type MihomoVersion = {
+  semver?: string;
+  tag: string;
+  prerelease: boolean;
+  channel: string;
+  published_at?: string;
+  created_at?: string;
+  updated_at?: string;
+  assets: MihomoAsset[];
+};
+
+export type MihomoAsset = {
+  name: string;
+  platform: string;
+  format: string;
+  size?: number;
+  sha256?: string;
+  created_at?: string;
+  updated_at?: string;
+  url: string;
+};
+
+export async function getMihomoVersions() {
+  return invoke<MihomoVersion[]>("get_mihomo_versions");
+}
+
+export async function installMihomoVersion(tag: string, asset: string) {
+  return invoke<void>("install_mihomo_version", { tag, asset });
+}
+
+export async function installMihomoDownload(asset: string, slot: string) {
+  return invoke<void>("install_mihomo_download", { asset, slot });
+}
+
+export async function cancelMihomoDownload(asset: string) {
+  return invoke<void>("cancel_mihomo_download", { asset });
+}
+
+export async function listMihomoDownloads() {
+  return invoke<string[]>("list_mihomo_downloads");
+}
+
+export async function deleteMihomoDownload(asset: string) {
+  return invoke<void>("delete_mihomo_download", { asset });
+}
+
+export async function deleteMihomoIndexCache() {
+  return invoke<void>("delete_mihomo_index_cache");
 }

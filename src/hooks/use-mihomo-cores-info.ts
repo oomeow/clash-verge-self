@@ -14,7 +14,7 @@ import { useService } from "./use-service";
 
 type MihomoCoreInfo = {
   name: string;
-  core: string;
+  core: "self-mihomo" | "self-mihomo-alpha";
   version: string;
   permissionsGranted: boolean;
 };

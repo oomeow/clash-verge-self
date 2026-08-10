@@ -1,23 +1,24 @@
+import ManageSearchIcon from "@mui/icons-material/ManageSearch";
 import RestartAlt from "@mui/icons-material/RestartAlt";
-import SwitchAccessShortcut from "@mui/icons-material/SwitchAccessShortcut";
 import {
   Box,
   Button,
+  Chip,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Typography,
 } from "@mui/material";
-import { emit } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
 import { debounce } from "lodash-es";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PulseLoader } from "react-spinners";
-import { closeAllConnections, upgradeCore } from "tauri-plugin-mihomo-api";
+import { closeAllConnections } from "tauri-plugin-mihomo-api";
 
 import MetaIcon from "@/assets/image/Meta.svg?react";
-import { BaseDialog, DialogRef } from "@/components/base";
+import { BaseDialog, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
@@ -28,14 +29,16 @@ import {
   restartSidecar,
 } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
-import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
+
+import { MihomoVersionManager } from "./mihomo-version-manager";
 
 interface Props {
   serviceActive: boolean;
 }
 
 const OS = getSystem();
+const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 // const refreshMihomoWebSocketData = () => {
 //   useRefreshTrafficDateStore.getState().refresh();
@@ -52,8 +55,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   const { clash } = useClash();
   const { tun } = clash ?? {};
   const [open, setOpen] = useState(false);
-  const [upgrading, setUpgrading] = useState(false);
   const [changingCore, setChangingCore] = useState("");
+  const versionManagerRef = useRef<DialogRef>(null);
   const { mihomoCoresInfo, enableGrantPermissions, muteMihomoCoresInfo } =
     useMihomoCoresInfo();
 
@@ -129,25 +132,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
     }
   }, 500);
 
-  const onUpgrade = useLockFn(async () => {
-    try {
-      setUpgrading(true);
-      await upgradeCore();
-      setUpgrading(false);
-      notice("success", t(`messages.clash.core.versionUpdated`), 1000);
-      setTimeout(async () => {
-        await emit("verge://refresh-websocket");
-      }, 2000);
-    } catch (err: any) {
-      setUpgrading(false);
-      if (err.includes("already using latest version")) {
-        notice("info", t("messages.app.latestVersion"), 1000);
-      } else {
-        notice("error", err.message || err.toString());
-      }
-    } finally {
-      muteMihomoCoresInfo();
-    }
+  const onVersionManager = useLockFn(async () => {
+    versionManagerRef.current?.open();
   });
 
   return (
@@ -164,12 +150,10 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
             <Button
               variant="contained"
               size="small"
-              startIcon={<SwitchAccessShortcut />}
-              loadingPosition="start"
-              loading={upgrading}
+              startIcon={<ManageSearchIcon />}
               sx={{ marginRight: "8px" }}
-              onClick={onUpgrade}>
-              {t("common.actions.upgrade")}
+              onClick={onVersionManager}>
+              {t("common.actions.versionManager")}
             </Button>
             <Button
               variant="contained"
@@ -187,68 +171,99 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       fullWidth
       onClose={() => setOpen(false)}>
       <List component="nav">
-        {mihomoCoresInfo.map((each) => (
-          <ListItemButton
-            sx={{ pl: "2px" }}
-            key={each.core}
-            selected={each.core === clashCore}
-            onClick={async () => {
-              await onCoreChange(each.core);
-            }}>
-            <ListItemIcon>
-              <div className="mx-1 flex w-24 flex-col items-center">
+        {mihomoCoresInfo.map((each) => {
+          const active = each.core === clashCore;
+          return (
+            <ListItemButton
+              sx={{ borderRadius: 1 }}
+              key={each.core}
+              selected={active}
+              onClick={() => onCoreChange(each.core)}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
                 <MetaIcon className="h-8 w-8" />
-                <span className="text-text-primary text-xs">
-                  {each.version}
-                </span>
-              </div>
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <div className="inline-flex items-center">
-                  <span>{each.name}</span>
-                  {enableGrantPermissions && (
-                    <div
-                      className={cn(
-                        "bg-error/70 ml-2 inline-block rounded-full px-2 py-0.5 text-[10px] text-white",
-                        {
-                          "bg-success/70": each.permissionsGranted,
-                        },
-                      )}>
-                      {each.permissionsGranted
-                        ? t("common.status.granted")
-                        : t("common.status.notGranted")}
-                    </div>
-                  )}
-                </div>
-              }
-              secondary={`/${each.core}`}
-            />
-            {changingCore === each.core && (
-              <PulseLoader
-                className="mr-4"
-                size={6}
-                color="var(--mui-palette-primary-main)"
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Box
+                    component="span"
+                    sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {each.name}
+                    </Typography>
+                    {active && (
+                      <Chip
+                        size="small"
+                        color="primary"
+                        label={t("pages.settings.clash.core.inUse")}
+                        sx={{ height: 18, fontSize: 10, flexShrink: 0 }}
+                      />
+                    )}
+                    {enableGrantPermissions && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        color={each.permissionsGranted ? "success" : "error"}
+                        label={
+                          each.permissionsGranted
+                            ? t("common.status.granted")
+                            : t("common.status.notGranted")
+                        }
+                        sx={{ height: 18, fontSize: 10, flexShrink: 0 }}
+                      />
+                    )}
+                  </Box>
+                }
+                secondary={
+                  <Box
+                    component="span"
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      mt: 0.25,
+                    }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "text.secondary", fontFamily: MONO }}>
+                      {each.core}
+                    </Typography>
+                    {each.version && (
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary", fontFamily: MONO }}>
+                        {each.version}
+                      </Typography>
+                    )}
+                  </Box>
+                }
               />
-            )}
+              {changingCore === each.core && (
+                <PulseLoader
+                  className="mr-4"
+                  size={6}
+                  color="var(--mui-palette-primary-main)"
+                />
+              )}
 
-            {enableGrantPermissions && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onGrant(each.core);
-                }}>
-                {each.permissionsGranted
-                  ? t("common.actions.reGrant")
-                  : t("common.actions.grant")}
-              </Button>
-            )}
-          </ListItemButton>
-        ))}
+              {enableGrantPermissions && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onGrant(each.core);
+                  }}>
+                  {each.permissionsGranted
+                    ? t("common.actions.reGrant")
+                    : t("common.actions.grant")}
+                </Button>
+              )}
+            </ListItemButton>
+          );
+        })}
       </List>
+      <MihomoVersionManager ref={versionManagerRef} />
     </BaseDialog>
   );
 });

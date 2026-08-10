@@ -7,6 +7,7 @@ import {
   DialogTitle,
   IconButton,
   Stack,
+  SxProps,
 } from "@mui/material";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { t } from "i18next";
@@ -40,6 +41,7 @@ interface BaseDialogProps {
   hideCloseBtn?: boolean;
   hideFooter?: boolean;
   contentStyle?: CSSProperties;
+  contentSx?: SxProps;
   children?: ReactNode;
   loading?: boolean;
   onOk?: () => void;
@@ -67,6 +69,7 @@ export const BaseDialog = (props: BaseDialogProps) => {
     hideCloseBtn = true,
     hideFooter = false,
     contentStyle,
+    contentSx,
     children,
     loading,
     onOk,
@@ -139,7 +142,9 @@ export const BaseDialog = (props: BaseDialogProps) => {
           title
         )}
       </DialogTitle>
-      <DialogContent className="px-6">{children}</DialogContent>
+      <DialogContent className="px-6" sx={contentSx}>
+        {children}
+      </DialogContent>
       {!hideFooter && (!hideCancelBtn || !hideOkBtn) && (
         <DialogActions className="my-2 justify-end px-6">
           <Stack direction="row" spacing={1}>

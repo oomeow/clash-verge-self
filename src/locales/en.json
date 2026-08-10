@@ -23,8 +23,10 @@
       "updateAll": "Update All",
       "upgrade": "Upgrade",
       "restart": "Restart",
+      "versionManager": "Version Manager",
       "install": "Install",
       "uninstall": "Uninstall",
+      "use": "Use",
       "grant": "Grant",
       "reGrant": "Re-Grant",
       "select": "Select",
@@ -357,7 +359,37 @@
         },
         "core": {
           "label": "Clash Core",
-          "updateRequires": "Update core requires"
+          "updateRequires": "Update core requires",
+          "inUse": "In use"
+        },
+        "versionManager": {
+          "title": "Mihomo Version Manager",
+          "channel": {
+            "all": "All",
+            "stable": "Stable",
+            "alpha": "Alpha",
+            "nightly": "Nightly"
+          },
+          "prerelease": "Pre-release",
+          "currentVersion": "Current",
+          "downloaded": "Downloaded",
+          "variants": "files",
+          "onlyDownloaded": "Downloaded",
+          "unknownDate": "unknown date",
+          "updatedDate": "Updated",
+          "activeCore": "In use: {{slot}} core · {{version}}",
+          "behindLatest": "Installed version ({{version}}) does not match the latest; it may be behind. Select the latest to update.",
+          "replacesCurrent": "This will replace the {{slot}} core that is currently running.",
+          "switchSlot": "Installs to the {{slot}} slot (currently running: {{current}}). It will not overwrite the current core and switches to it after install.",
+          "empty": "No versions available",
+          "selectHint": "Select a version and variant to download and install",
+          "selected": "Selected {{tag}} · {{variant}}",
+          "downloadAndInstall": "Download & Install",
+          "installing": "Installing…",
+          "cannotDeleteCurrent": "The running version cannot be deleted",
+          "deleteConfirmTitle": "Delete downloaded file",
+          "deleteConfirmMessage": "Delete the downloaded file {{name}}?",
+          "downloadCancelled": "Download cancelled"
         },
         "openUwpTool": "Open UWP tool",
         "updateGeoData": "Update GeoData",
@@ -562,6 +594,8 @@
         "permissionsGranted": "Permissions Granted Successfully for {{core}} Core",
         "requireGrant": "Tun mode is currently enabled, please grant permission to {{core}} before switching",
         "versionUpdated": "Core Version Updated",
+        "versionInstalled": "{{tag}} installed and switched",
+        "versionDeleted": "Downloaded file deleted",
         "restarted": "Clash Core Restarted",
         "runFailed": "Failed to run mihomo core, please check mihomo log to find problem",
         "switched": "Switched to {{core}} Core"

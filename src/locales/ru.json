@@ -23,6 +23,8 @@
       "updateAll": "Обновить все",
       "upgrade": "Обновить",
       "restart": "Перезапустить",
+      "versionManager": "Диспетчер версий",
+      "use": "Использовать",
       "install": "Установить",
       "uninstall": "Удалить",
       "grant": "Выдать",
@@ -357,7 +359,37 @@
         },
         "core": {
           "label": "Ядра Clash",
-          "updateRequires": "требуется обновление ядра"
+          "updateRequires": "требуется обновление ядра",
+          "inUse": "Используется"
+        },
+        "versionManager": {
+          "title": "Диспетчер версий Mihomo",
+          "channel": {
+            "all": "Все",
+            "stable": "Стабильные",
+            "alpha": "Alpha",
+            "nightly": "Nightly"
+          },
+          "prerelease": "Пре-релиз",
+          "currentVersion": "Текущая версия",
+          "downloaded": "Скачано",
+          "variants": "файлов",
+          "onlyDownloaded": "Скачанные",
+          "unknownDate": "неизвестная дата",
+          "updatedDate": "Обновлено",
+          "activeCore": "Используется: ядро {{slot}} · {{version}}",
+          "behindLatest": "Установленная версия ({{version}}) не совпадает с последней; возможно, она устарела. Выберите последнюю для обновления.",
+          "replacesCurrent": "Эта версия заменит текущее ядро {{slot}}.",
+          "switchSlot": "Версия устанавливается в слот {{slot}} (сейчас: {{current}}). Текущее ядро не будет перезаписано; после установки произойдёт переключение.",
+          "empty": "Нет доступных версий",
+          "selectHint": "Выберите версию и вариант для скачивания и установки",
+          "selected": "Выбрано {{tag}} · {{variant}}",
+          "downloadAndInstall": "Скачать и установить",
+          "installing": "Установка…",
+          "cannotDeleteCurrent": "Текущую версию нельзя удалить",
+          "deleteConfirmTitle": "Удалить скачанный файл",
+          "deleteConfirmMessage": "Удалить скачанный файл {{name}}?",
+          "downloadCancelled": "Загрузка отменена"
         },
         "openUwpTool": "Открыть UWP инструмент",
         "updateGeoData": "Обновление GeoData",
@@ -562,6 +594,8 @@
         "permissionsGranted": "Разрешения успешно предоставлены для ядра {{core}}",
         "requireGrant": "Tun уже включён. Предоставьте права для ядра {{core}} перед переключением",
         "versionUpdated": "Обновлена версия ядра",
+        "versionInstalled": "{{tag}} установлена и переключена",
+        "versionDeleted": "Скачанный файл удалён",
         "restarted": "Clash ядра перезапущено",
         "runFailed": "Не удалось запустить ядро mihomo, проверьте журнал mihomo для поиска проблемы",
         "switched": "Переключено на ядра {{core}}"

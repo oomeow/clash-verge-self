@@ -23,6 +23,8 @@
       "updateAll": "به‌روزرسانی همه",
       "upgrade": "ارتقاء",
       "restart": "راه‌اندازی مجدد",
+      "versionManager": "مدیریت نسخه‌ها",
+      "use": "استفاده",
       "install": "نصب",
       "uninstall": "حذف نصب",
       "grant": "اعطا",
@@ -357,7 +359,37 @@
         },
         "core": {
           "label": "هسته Clash",
-          "updateRequires": "Update core نیاز دارد"
+          "updateRequires": "Update core نیاز دارد",
+          "inUse": "در حال استفاده"
+        },
+        "versionManager": {
+          "title": "مدیریت نسخه‌های Mihomo",
+          "channel": {
+            "all": "همه",
+            "stable": "پایدار",
+            "alpha": "آلفا",
+            "nightly": "شبانه"
+          },
+          "prerelease": "پیش‌انتشار",
+          "currentVersion": "نسخه فعلی",
+          "downloaded": "دانلود شده",
+          "variants": "فایل",
+          "onlyDownloaded": "دانلود شده‌ها",
+          "unknownDate": "تاریخ نامشخص",
+          "updatedDate": "به‌روزرسانی",
+          "activeCore": "در حال استفاده: هسته {{slot}} · {{version}}",
+          "behindLatest": "نسخه نصب‌شده ({{version}}) با آخرین نسخه مطابقت ندارد؛ ممکن است قدیمی باشد. برای به‌روزرسانی آخرین نسخه را انتخاب کنید.",
+          "replacesCurrent": "این نسخه جایگزین هسته فعلی {{slot}} خواهد شد.",
+          "switchSlot": "این نسخه در اسلات {{slot}} نصب می‌شود (فعلی: {{current}})؛ هسته فعلی بازنویسی نمی‌شود و پس از نصب به‌طور خودکار جابه‌جا می‌شود.",
+          "empty": "نسخه‌ای در دسترس نیست",
+          "selectHint": "برای دانلود و نصب، نسخه و گونه را انتخاب کنید",
+          "selected": "انتخاب شد {{tag}} · {{variant}}",
+          "downloadAndInstall": "دانلود و نصب",
+          "installing": "در حال نصب…",
+          "cannotDeleteCurrent": "نسخه در حال اجرا قابل حذف نیست",
+          "deleteConfirmTitle": "حذف فایل دانلود شده",
+          "deleteConfirmMessage": "فایل دانلود شده {{name}} حذف شود؟",
+          "downloadCancelled": "دانلود لغو شد"
         },
         "openUwpTool": "باز کردن ابزار UWP",
         "updateGeoData": "به‌روزرسانی GeoData",
@@ -562,6 +594,8 @@
         "permissionsGranted": "مجوزها با موفقیت برای هسته {{core}} اعطا شد",
         "requireGrant": "حالت Tun اکنون فعال است؛ پیش از تغییر، مجوز هسته {{core}} را اعطا کنید",
         "versionUpdated": "نسخه هسته به‌روزرسانی شد",
+        "versionInstalled": "{{tag}} نصب و جابه‌جا شد",
+        "versionDeleted": "فایل دانلود شده حذف شد",
         "restarted": "هسته Clash مجدداً راه‌اندازی شد",
         "runFailed": "اجرای هسته mihomo ناموفق بود؛ برای یافتن مشکل گزارش mihomo را بررسی کنید",
         "switched": "تغییر به هسته {{core}}"
