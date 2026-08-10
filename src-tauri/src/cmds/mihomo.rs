@@ -195,7 +195,10 @@ async fn install_binary(slot: &str, downloaded: &Path) -> Result<()> {
 
     if let Err(err) = swap() {
         // 替换失败：恢复旧二进制并尝试拉起 core。
-        if !target.exists() && bak.exists() {
+        if target.exists() {
+            let _ = std::fs::remove_file(&target);
+        }
+        if bak.exists() {
             let _ = std::fs::rename(&bak, &target);
         }
         let _ = CoreManager::global().run_core().await;
