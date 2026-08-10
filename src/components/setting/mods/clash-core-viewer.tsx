@@ -137,134 +137,136 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   });
 
   return (
-    <BaseDialog
-      open={open}
-      title={
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-          }}>
-          {t("pages.settings.clash.core.label")}
-          <Box>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<ManageSearchIcon />}
-              sx={{ marginRight: "8px" }}
-              onClick={onVersionManager}>
-              {t("common.actions.versionManager")}
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={onRestart}
-              startIcon={<RestartAlt />}>
-              {t("common.actions.restart")}
-            </Button>
+    <>
+      <BaseDialog
+        open={open}
+        title={
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+            }}>
+            {t("pages.settings.clash.core.label")}
+            <Box>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ManageSearchIcon />}
+                sx={{ marginRight: "8px" }}
+                onClick={onVersionManager}>
+                {t("common.actions.versionManager")}
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={onRestart}
+                startIcon={<RestartAlt />}>
+                {t("common.actions.restart")}
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      }
-      hideOkBtn
-      hideCancelBtn
-      maxWidth="xs"
-      fullWidth
-      onClose={() => setOpen(false)}>
-      <List component="nav">
-        {mihomoCoresInfo.map((each) => {
-          const active = each.core === clashCore;
-          return (
-            <ListItemButton
-              sx={{ borderRadius: 1 }}
-              key={each.core}
-              selected={active}
-              onClick={() => onCoreChange(each.core)}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <MetaIcon className="h-8 w-8" />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box
-                    component="span"
-                    sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {each.name}
-                    </Typography>
-                    {active && (
-                      <Chip
-                        size="small"
-                        color="primary"
-                        label={t("pages.settings.clash.core.inUse")}
-                        sx={{ height: 18, fontSize: 10, flexShrink: 0 }}
-                      />
-                    )}
-                    {enableGrantPermissions && (
-                      <Chip
-                        size="small"
-                        variant="outlined"
-                        color={each.permissionsGranted ? "success" : "error"}
-                        label={
-                          each.permissionsGranted
-                            ? t("common.status.granted")
-                            : t("common.status.notGranted")
-                        }
-                        sx={{ height: 18, fontSize: 10, flexShrink: 0 }}
-                      />
-                    )}
-                  </Box>
-                }
-                secondary={
-                  <Box
-                    component="span"
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mt: 0.25,
-                    }}>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "text.secondary", fontFamily: MONO }}>
-                      {each.core}
-                    </Typography>
-                    {each.version && (
+        }
+        hideOkBtn
+        hideCancelBtn
+        maxWidth="xs"
+        fullWidth
+        onClose={() => setOpen(false)}>
+        <List component="nav">
+          {mihomoCoresInfo.map((each) => {
+            const active = each.core === clashCore;
+            return (
+              <ListItemButton
+                sx={{ borderRadius: 1 }}
+                key={each.core}
+                selected={active}
+                onClick={() => onCoreChange(each.core)}>
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <MetaIcon className="h-8 w-8" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Box
+                      component="span"
+                      sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {each.name}
+                      </Typography>
+                      {active && (
+                        <Chip
+                          size="small"
+                          color="primary"
+                          label={t("pages.settings.clash.core.inUse")}
+                          sx={{ height: 18, fontSize: 10, flexShrink: 0 }}
+                        />
+                      )}
+                      {enableGrantPermissions && (
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          color={each.permissionsGranted ? "success" : "error"}
+                          label={
+                            each.permissionsGranted
+                              ? t("common.status.granted")
+                              : t("common.status.notGranted")
+                          }
+                          sx={{ height: 18, fontSize: 10, flexShrink: 0 }}
+                        />
+                      )}
+                    </Box>
+                  }
+                  secondary={
+                    <Box
+                      component="span"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        mt: 0.25,
+                      }}>
                       <Typography
                         variant="caption"
                         sx={{ color: "text.secondary", fontFamily: MONO }}>
-                        {each.version}
+                        {each.core}
                       </Typography>
-                    )}
-                  </Box>
-                }
-              />
-              {changingCore === each.core && (
-                <PulseLoader
-                  className="mr-4"
-                  size={6}
-                  color="var(--mui-palette-primary-main)"
+                      {each.version && (
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "text.secondary", fontFamily: MONO }}>
+                          {each.version}
+                        </Typography>
+                      )}
+                    </Box>
+                  }
                 />
-              )}
+                {changingCore === each.core && (
+                  <PulseLoader
+                    className="mr-4"
+                    size={6}
+                    color="var(--mui-palette-primary-main)"
+                  />
+                )}
 
-              {enableGrantPermissions && (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onGrant(each.core);
-                  }}>
-                  {each.permissionsGranted
-                    ? t("common.actions.reGrant")
-                    : t("common.actions.grant")}
-                </Button>
-              )}
-            </ListItemButton>
-          );
-        })}
-      </List>
+                {enableGrantPermissions && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onGrant(each.core);
+                    }}>
+                    {each.permissionsGranted
+                      ? t("common.actions.reGrant")
+                      : t("common.actions.grant")}
+                  </Button>
+                )}
+              </ListItemButton>
+            );
+          })}
+        </List>
+      </BaseDialog>
       <MihomoVersionManager ref={versionManagerRef} />
-    </BaseDialog>
+    </>
   );
 });
 
