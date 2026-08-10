@@ -33,6 +33,7 @@ jobs:
               - 'src-tauri/**'
               - '**/Cargo.toml'
               - '**/Cargo.lock'
+              - 'crates/**'
             bundle:
               - 'cross_dockerfile/**'
               - 'src-tauri/template/**'
@@ -75,8 +76,7 @@ jobs:
       - name: Rust clippy
         if: steps.changes.outputs.backend == 'true'
         run: |
-          cd src-tauri
-          cargo clippy
+          cargo clippy --all-targets --all-features --tests -- -D warnings
 
       - name: Build Tauri
         if: steps.changes.outputs.bundle == 'true'
