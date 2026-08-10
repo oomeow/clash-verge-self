@@ -359,7 +359,7 @@
         },
         "core": {
           "label": "هسته Clash",
-          "updateRequires": "Update core نیاز دارد",
+          "updateRequires": "بروزرسانی هستهای نیاز دارد",
           "inUse": "در حال استفاده"
         },
         "versionManager": {
