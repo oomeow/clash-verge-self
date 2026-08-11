@@ -1,12 +1,11 @@
 import { Command } from "@tauri-apps/plugin-shell";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 import {
   checkPermissionsGranted,
   refreshPermissionsGranted,
 } from "@/services/cmds";
 import { swrKeys, useSWR } from "@/services/swr";
-import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
 import { usePortable } from "./use-portable";
@@ -39,7 +38,6 @@ const OS = getSystem();
 
 export const useMihomoCoresInfo = () => {
   const { serviceStatus } = useService();
-  const clashCore = useVergeStore((s) => s.verge?.clash_core ?? "self-mihomo");
   const serviceUnavailable =
     serviceStatus === "uninstall" || serviceStatus === "unknown";
 
@@ -58,10 +56,6 @@ export const useMihomoCoresInfo = () => {
     },
     { fallbackData: defaultValue },
   );
-
-  useEffect(() => {
-    muteMihomoCoresInfo();
-  }, [enableGrantPermissions, clashCore, portable]);
 
   const refreshMihomoVersion = useCallback(
     async (coresInfo: MihomoCoreInfo[]) => {
