@@ -32,6 +32,7 @@ import {
   restartSidecar,
 } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 import MihomoVersionManager from "./mihomo-version-manager";
@@ -71,6 +72,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
     open: () => setOpen(true),
     close: () => setOpen(false),
   }));
+
   const onUpgradebyApi = useLockFn(async () => {
     try {
       setUpgrading(true);
@@ -80,12 +82,13 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       setTimeout(async () => {
         await emit("verge://refresh-websocket");
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
       setUpgrading(false);
-      if (err.includes("already using latest version")) {
+      if (message.includes("already using latest version")) {
         notice("info", t("messages.app.latestVersion"), 1000);
       } else {
-        notice("error", err.message || err.toString());
+        notice("error", message);
       }
     } finally {
       muteMihomoCoresInfo();
@@ -120,8 +123,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
         t("messages.clash.core.switched", { core: `${core}` }),
         1000,
       );
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       setChangingCore("");
     }
@@ -139,8 +142,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
         }),
         1000,
       );
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       muteMihomoCoresInfo();
       // await refreshMihomoPermissions();
@@ -151,8 +154,8 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
     try {
       await restartSidecar();
       notice("success", t(`messages.clash.core.restarted`), 1000);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   }, 500);
 
