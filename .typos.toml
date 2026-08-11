@@ -1,10 +1,5 @@
 [files]
 extend-exclude = [
-  ".agents/*",
-  ".claude/*",
-  ".codex/*",
-  ".opencode/*",
-  ".trellis/*",
   "src/assets/*",
   "crates/tauri-plugin-mihomo/permissions/*",
   "crates/tauri-plugin-mihomo/examples/*",
