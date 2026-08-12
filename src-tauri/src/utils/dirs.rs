@@ -7,15 +7,15 @@ use once_cell::sync::OnceCell;
 use crate::core::handle;
 
 #[cfg(not(feature = "verge-dev"))]
-pub static APP_ID: &str = "io.github.oomeow.clash-verge-self";
+pub const APP_ID: &str = "io.github.oomeow.clash-verge-self";
 #[cfg(feature = "verge-dev")]
-pub static APP_ID: &str = "io.github.oomeow.clash-verge-self.dev";
+pub const APP_ID: &str = "io.github.oomeow.clash-verge-self.dev";
 
 pub static PORTABLE_FLAG: OnceCell<bool> = OnceCell::new();
 
-pub static CLASH_CONFIG: &str = "config.yaml";
-pub static VERGE_CONFIG: &str = "verge.yaml";
-pub static PROFILE_YAML: &str = "profiles.yaml";
+pub const CLASH_CONFIG: &str = "config.yaml";
+pub const VERGE_CONFIG: &str = "verge.yaml";
+pub const PROFILE_YAML: &str = "profiles.yaml";
 
 pub fn is_portable_version() -> bool {
     *PORTABLE_FLAG.get().unwrap_or(&false)

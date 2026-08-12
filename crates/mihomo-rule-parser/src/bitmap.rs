@@ -1,13 +1,13 @@
 // refer: https://github.com/openacid/low/tree/master/bitmap
 pub(crate) struct Bitmap;
 
-// 全局静态常量
-static SELECT_8_LOOKUP: [u8; 256 * 8] = generate_select8_lookup();
-static MASK: [u64; 65] = generate_mask();
-static RMASK: [u64; 65] = generate_rmask();
-static MASK_UPTO: [u64; 64] = generate_mask_upto();
-static RMASK_UPTO: [u64; 64] = generate_rmask_upto();
-static BIT: [u64; 64] = generate_bit();
+// 全局常量
+const SELECT_8_LOOKUP: [u8; 256 * 8] = generate_select8_lookup();
+const MASK: [u64; 65] = generate_mask();
+const RMASK: [u64; 65] = generate_rmask();
+const MASK_UPTO: [u64; 64] = generate_mask_upto();
+const RMASK_UPTO: [u64; 64] = generate_rmask_upto();
+const BIT: [u64; 64] = generate_bit();
 
 const fn generate_select8_lookup() -> [u8; 256 * 8] {
     let mut arr = [0u8; 256 * 8];
