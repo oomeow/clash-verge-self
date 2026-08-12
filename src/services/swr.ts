@@ -3,7 +3,13 @@ import useBaseSWR, { mutate, SWRConfig, type SWRConfiguration } from "swr";
 import useBaseSWRSubscription from "swr/subscription";
 
 import { calcuProxies, calcuProxyProviders } from "@/services/api";
-import { checkService, getClashInfo, getRuntimeConfig } from "@/services/cmds";
+import {
+  checkService,
+  getClashInfo,
+  getMihomoVersions,
+  getRuntimeConfig,
+  listMihomoDownloads,
+} from "@/services/cmds";
 
 export { mutate, SWRConfig };
 export const useSWR = useBaseSWR;
@@ -17,6 +23,8 @@ export const swrKeys = {
   proxies: "getProxies",
   proxyProviders: "getProxyProviders",
   runtimeConfig: "getRuntimeConfig",
+  mihomoVersions: "getMihomoVersions",
+  mihomoDownloads: "listMihomoDownloads",
 } as const;
 
 export const appSWRConfig: SWRConfiguration = {
@@ -32,7 +40,8 @@ export const updateSWRConfig: SWRConfiguration = {
   focusThrottleInterval: 36e5, // 1 hour
 };
 
-export const swrSubscriptionKey = (key: string | null) => key ? "$sub$" + key : null;
+export const swrSubscriptionKey = (key: string | null) =>
+  key ? `$sub$${key}` : null;
 
 export const refreshClashSWR = () => {
   mutate(swrKeys.proxies);
@@ -66,3 +75,9 @@ export const useServiceStatusSWR = () =>
       fallbackData: "uninstall",
     },
   );
+
+export const useMihomoVersionsSWR = () =>
+  useSWR(swrKeys.mihomoVersions, getMihomoVersions, { fallbackData: [] });
+
+export const useMihomoDownloadsSWR = () =>
+  useSWR(swrKeys.mihomoDownloads, listMihomoDownloads, { fallbackData: [] });

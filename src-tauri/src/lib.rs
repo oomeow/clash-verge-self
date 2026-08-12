@@ -223,6 +223,14 @@ pub fn run() -> Result<()> {
             cmds::backup::update_webdav_info,
             cmds::backup::list_backup,
             cmds::backup::delete_backup,
+            // mihomo version manager
+            cmds::mihomo::get_mihomo_versions,
+            cmds::mihomo::install_mihomo_version,
+            cmds::mihomo::install_mihomo_download,
+            cmds::mihomo::cancel_mihomo_download,
+            cmds::mihomo::list_mihomo_downloads,
+            cmds::mihomo::delete_mihomo_download,
+            cmds::mihomo::delete_mihomo_index_cache,
         ]);
 
     let app = builder

@@ -25,3 +25,7 @@ export function findAndHighlightElement(elementId: string, retry = 10) {
     }, 1000);
   }
 }
+
+export function getErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}

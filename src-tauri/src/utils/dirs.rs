@@ -115,6 +115,14 @@ pub fn backup_archive_file() -> Result<PathBuf> {
     Ok(app_home_dir()?.join("archive.zip"))
 }
 
+pub fn mihomo_versions_file() -> Result<PathBuf> {
+    Ok(app_home_dir()?.join(".mihomo-releases.json"))
+}
+
+pub fn mihomo_download_dir() -> Result<PathBuf> {
+    Ok(app_home_dir()?.join("mihomo_downloads"))
+}
+
 pub fn generate_log_filename() -> String {
     let local_time = chrono::Local::now().format("%Y-%m-%d-%H%M").to_string();
     let log_filename = format!("{local_time}.log");

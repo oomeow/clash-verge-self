@@ -23,8 +23,10 @@
       "updateAll": "更新全部",
       "upgrade": "升级内核",
       "restart": "重启内核",
+      "versionManager": "版本管理",
       "install": "安装",
       "uninstall": "卸载",
+      "use": "使用",
       "grant": "授权",
       "reGrant": "重新授权",
       "select": "使用",
@@ -357,7 +359,36 @@
         },
         "core": {
           "label": "Clash 内核",
-          "updateRequires": "如需更新内核需要授权"
+          "updateRequires": "如需更新内核需要授权",
+          "inUse": "当前使用"
+        },
+        "versionManager": {
+          "title": "Mihomo 版本管理",
+          "channel": {
+            "all": "全部",
+            "stable": "稳定版",
+            "alpha": "Alpha",
+            "nightly": "Nightly"
+          },
+          "prerelease": "预发布",
+          "currentVersion": "当前版本",
+          "downloaded": "已下载",
+          "variants": "个文件",
+          "unknownDate": "未知日期",
+          "updatedDate": "更新于",
+          "activeCore": "当前使用：{{slot}} 内核 · {{version}}",
+          "behindLatest": "已装版本（{{version}}）与最新版本不一致，可能落后于最新版本。可选择最新版本更新。",
+          "replacesCurrent": "该版本将替换当前正在运行的 {{slot}} 内核。",
+          "switchSlot": "该版本安装到 {{slot}} 槽位（当前运行：{{current}}），不会覆盖当前内核，安装后自动切换到新槽位。",
+          "empty": "暂无可用版本",
+          "selectHint": "选择版本与编译变体后下载并安装",
+          "selected": "已选择 {{tag}} · {{variant}}",
+          "downloadAndInstall": "下载并安装",
+          "installing": "安装中…",
+          "cannotDeleteCurrent": "当前运行版本不可删除",
+          "deleteConfirmTitle": "删除已下载文件",
+          "deleteConfirmMessage": "确定删除已下载的文件 {{name}} 吗？",
+          "downloadCancelled": "下载已取消"
         },
         "openUwpTool": "UWP 工具",
         "updateGeoData": "更新 GeoData",
@@ -562,6 +593,8 @@
         "permissionsGranted": "{{core}} 内核授权成功",
         "requireGrant": "当前 Tun 模式已开启，请给 {{core}} 内核授权后再切换",
         "versionUpdated": "内核版本已更新",
+        "versionInstalled": "{{tag}} 已安装并切换",
+        "versionDeleted": "已删除下载文件",
         "restarted": "已重启 Clash 内核",
         "runFailed": "无法运行 mihomo 内核，请查看 mihomo 日志定位问题",
         "switched": "已切换至 {{core}} 内核"
