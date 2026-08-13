@@ -112,7 +112,7 @@
     "tsx": "4.23.12",
     "types-pac": "1.0.3",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.66.0",
+    "typescript-eslint": "8.67.0",
     "vite": "8.2.1",
     "vite-plugin-monaco-editor": "1.1.0",
     "vite-plugin-svgr": "5.2.0"
