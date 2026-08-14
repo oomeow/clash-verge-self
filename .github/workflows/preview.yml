@@ -41,31 +41,27 @@ jobs:
         run: |
           BASE=$(node -p "require('./src-tauri/tauri.conf.json').version")
           echo "base version: ${BASE}"
-          ESCAPED=$(printf '%s' "$BASE" | sed 's/\./\\./g')
-          RE="(?:^|[_-])${ESCAPED}-preview\\.([0-9]+)"
 
-          # count builds from the existing preview release assets
-          ASSETS=$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/preview")
-          MAX_ASSET=$(printf '%s' "$ASSETS" | jq -r --arg re "$RE" \
-            '[(.assets // [])[].name | match($re) | .captures[0].string | tonumber] | max // 0')
+          # 从 preview 发布资产与已提交的 preview-update.json 中统计该基础版本的构建次数
+          PATTERN='(?<v>[0-9]+\.[0-9]+\.[0-9]+)-preview\.(?<n>[0-9]+)'
 
-          # count builds from the committed preview-update.json on the updater release
-          MAX_JSON=0
-          PREVIEW_JSON_URL=$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+          ASSET_COUNT=$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/preview" | jq -r \
+            --arg base "$BASE" --arg re "$PATTERN" \
+            '[(.assets // [])[].name | capture($re) | select(.v == $base) | .n | tonumber] | max // 0')
+
+          JSON_COUNT=0
+          UPDATE_URL=$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/updater" | jq -r \
             '[(.assets // [])[] | select(.name == "preview-update.json") | .browser_download_url] | first // empty')
-          if [ -n "$PREVIEW_JSON_URL" ]; then
-            PRE_VER=$(curl -sS "$PREVIEW_JSON_URL" | jq -r '.name // empty')
-            case "$PRE_VER" in
-              "${BASE}-preview."*)
-                MAX_JSON=$(printf '%s' "$PRE_VER" | sed "s/^${ESCAPED}-preview\\.//" | sed 's/[^0-9].*//')
-                ;;
-            esac
+          if [ -n "$UPDATE_URL" ]; then
+            JSON_COUNT=$(curl -sS "$UPDATE_URL" | jq -r \
+              --arg base "$BASE" --arg re "$PATTERN" \
+              '[.name | capture($re)? | select(.v == $base) | .n | tonumber] | first // 0')
           fi
 
-          MAX=$((MAX_ASSET > MAX_JSON ? MAX_ASSET : MAX_JSON))
-          NEXT=$((MAX + 1))
+          MAX_COUNT=$((ASSET_COUNT > JSON_COUNT ? ASSET_COUNT : JSON_COUNT))
+          NEXT=$((MAX_COUNT + 1))
           echo "VERSION=${BASE}-preview.${NEXT}" >> "$GITHUB_OUTPUT"
           echo "next preview version: ${BASE}-preview.${NEXT}"
 
