@@ -254,8 +254,46 @@ jobs:
             target/${{ matrix.target }}/release/bundle/rpm/*.rpm
             target/${{ matrix.target }}/release/bundle/rpm/*.rpm.sig
 
+  pkgbuild:
+    name: PKGBUILD for ArchLinux
+    needs: [prepare, preview-for-linux]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Update PKGBUILD
+        run: |
+          VERSION=${{ needs.prepare.outputs.VERSION }}
+          PKGVER=$(printf '%s' "$VERSION" | sed 's/-preview\.\([0-9]*\)$/_preview_\1/')
+          echo "version: ${VERSION} (pkgver: ${PKGVER})"
+          wget https://github.com/oomeow/clash-verge-self/releases/download/preview/clash-verge-self_${VERSION}_amd64.deb -O amd64.deb
+          sed -i "s/pkgver=.*/pkgver=${PKGVER}/" archbuild/preview/PKGBUILD
+          sed -i "s/_pkgver=.*/_pkgver=${VERSION}/" archbuild/preview/PKGBUILD
+          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum ./amd64.deb | awk '{print $1}')\")/" archbuild/preview/PKGBUILD
+
+      - name: Makepkg Build and Check
+        id: makepkg
+        uses: CachyOS/pkgbuild-action@99a0608d129dae363a6174971400e018dd0f4577 # master
+        with:
+          pkgdir: archbuild/preview
+
+      - name: Print Package Files
+        run: |
+          echo "Successfully created the following package archive"
+          echo "Package: ${{ steps.makepkg.outputs.pkgfile0 }}"
+
+      - name: Upload Release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+        with:
+          tag_name: preview
+          name: "Clash Verge Self Preview"
+          prerelease: true
+          token: ${{ secrets.RELEASE_TOKEN }}
+          files: ${{ steps.makepkg.outputs.pkgfile0 }}
+
   release-update:
-    needs: [prepare, preview, preview-for-linux]
+    needs: [prepare, preview, preview-for-linux, pkgbuild]
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository

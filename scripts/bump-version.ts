@@ -20,6 +20,7 @@ const changeFile = [
   "./src-tauri/Cargo.toml",
   "./archbuild/alpha/PKGBUILD",
   "./archbuild/local_build/PKGBUILD",
+  "./archbuild/preview/PKGBUILD",
   "./archbuild/release/PKGBUILD",
   "./archbuild/test/PKGBUILD",
 ];
