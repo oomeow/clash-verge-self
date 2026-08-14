@@ -690,8 +690,12 @@ const SettingVerge = ({ onError }: Props) => {
             mutate(swrKeys.checkUpdate);
           }}>
           <Select size="small" sx={{ width: 110, "> div": { py: "7.5px" } }}>
-            <MenuItem value="stable">Stable</MenuItem>
-            <MenuItem value="preview">Preview</MenuItem>
+            <MenuItem value="stable">
+              {t("pages.settings.verge.updateChannel.options.stable")}
+            </MenuItem>
+            <MenuItem value="preview">
+              {t("pages.settings.verge.updateChannel.options.preview")}
+            </MenuItem>
           </Select>
         </GuardState>
       </SettingItem>

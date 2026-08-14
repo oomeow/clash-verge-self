@@ -401,7 +401,13 @@
       },
       "verge": {
         "title": "Verge 设置",
-        "updateChannel": "更新渠道",
+        "updateChannel": {
+          "label": "更新渠道",
+          "options": {
+            "stable": "稳定版",
+            "preview": "预览版"
+          }
+        },
         "themeMode": {
           "label": "主题模式",
           "options": {

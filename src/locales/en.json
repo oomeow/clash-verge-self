@@ -401,7 +401,13 @@
       },
       "verge": {
         "title": "Verge Setting",
-        "updateChannel": "Update Channel",
+        "updateChannel": {
+          "label": "Update Channel",
+          "options": {
+            "stable": "Stable",
+            "preview": "Preview"
+          }
+        },
         "themeMode": {
           "label": "Theme Mode",
           "options": {
