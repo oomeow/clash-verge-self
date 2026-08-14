@@ -19,9 +19,17 @@ export interface IUpdateMetadata {
   rawJson: Record<string, unknown>;
 }
 
+let lastUpdate: Update | null = null;
+
+/// 每次检查后释放上一次的 Update 资源，避免 resources_table 因重复检查持续增长
 export async function checkUpdate() {
   const metadata = await invoke<IUpdateMetadata | null>("check_update");
-  return metadata ? new Update(metadata) : null;
+  const update = metadata ? new Update(metadata) : null;
+  if (update !== lastUpdate) {
+    lastUpdate?.close().catch(() => {});
+    lastUpdate = update;
+  }
+  return update;
 }
 
 export async function getDefaultUpdateChannel() {

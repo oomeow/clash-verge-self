@@ -145,6 +145,9 @@ const SettingVerge = ({ onError }: Props) => {
   const onCheckUpdate = async () => {
     try {
       const info = await checkUpdate();
+      // 将本次检查结果同步到 SWR 缓存，供 UpdateViewer / 更新按钮使用，
+      // 避免该 Update 资源被直接丢弃后无法释放
+      mutate(swrKeys.checkUpdate, info, { revalidate: false });
       if (!info) {
         notice("success", t("messages.app.latestVersion"));
       } else {
@@ -680,7 +683,7 @@ const SettingVerge = ({ onError }: Props) => {
         label={t("pages.settings.verge.actions.openLogsDir")}
       />
 
-      <SettingItem label={t("pages.settings.verge.updateChannel")}>
+      <SettingItem label={t("pages.settings.verge.updateChannel.label")}>
         <GuardState
           value={updateChannel ?? defaultChannel}
           onCatch={onError}
