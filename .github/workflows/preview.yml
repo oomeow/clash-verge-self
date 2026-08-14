@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - feat/add-preview-release
     tags-ignore:
       - updater
       - alpha
