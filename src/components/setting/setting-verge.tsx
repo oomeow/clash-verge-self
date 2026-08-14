@@ -21,12 +21,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { getVersion } from "@tauri-apps/api/app";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { version } from "@/../package.json";
 import { DialogRef } from "@/components/base";
 import BackupFilesViewer, {
   BackupFilesViewerRef,
@@ -139,6 +139,13 @@ const SettingVerge = ({ onError }: Props) => {
   useEffect(() => {
     getDefaultUpdateChannel()
       .then(setDefaultChannel)
+      .catch(() => {});
+  }, []);
+
+  const [appVersion, setAppVersion] = useState("");
+  useEffect(() => {
+    getVersion()
+      .then(setAppVersion)
       .catch(() => {});
   }, []);
 
@@ -716,7 +723,7 @@ const SettingVerge = ({ onError }: Props) => {
       <SettingItem onClick={() => exitApp()} label={t("common.actions.exit")} />
 
       <SettingItem label={t("pages.settings.verge.version")}>
-        <Typography sx={{ py: "7px", pr: 1 }}>v{version}</Typography>
+        <Typography sx={{ py: "7px", pr: 1 }}>v{appVersion}</Typography>
       </SettingItem>
     </SettingList>
   );
