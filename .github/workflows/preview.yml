@@ -271,7 +271,7 @@ jobs:
         run: |
           gh release edit preview \
             --title "Clash Verge Self Preview ${{ needs.prepare.outputs.VERSION }}" \
-            --body "Preview build ${{ needs.prepare.outputs.VERSION }}"
+            --notes "Preview build ${{ needs.prepare.outputs.VERSION }}"
 
       - name: Install Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
