@@ -269,9 +269,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          {
+            echo "commit: \`${COMMIT_HASH}\`"
+            echo ""
+            # changelog 内容（去掉开头的 html 注释块模板占位）
+            if head -n 1 CHANGELOG.md | grep -q '^<!--'; then
+              sed '1,/^-->/d' CHANGELOG.md
+            else
+              cat CHANGELOG.md
+            fi
+          } > preview-body.md
           gh release edit preview \
             --title "Clash Verge Self Preview ${{ needs.prepare.outputs.VERSION }}" \
-            --notes "Preview build ${{ needs.prepare.outputs.VERSION }}"
+            --notes-file preview-body.md
 
       - name: Install Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
