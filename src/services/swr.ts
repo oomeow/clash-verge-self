@@ -1,10 +1,10 @@
-import { check } from "@tauri-apps/plugin-updater";
 import useBaseSWR, { mutate, SWRConfig, type SWRConfiguration } from "swr";
 import useBaseSWRSubscription from "swr/subscription";
 
 import { calcuProxies, calcuProxyProviders } from "@/services/api";
 import {
   checkService,
+  checkUpdate,
   getClashInfo,
   getMihomoVersions,
   getRuntimeConfig,
@@ -62,7 +62,7 @@ export const useProxyProvidersSWR = () =>
   useSWR(swrKeys.proxyProviders, calcuProxyProviders);
 
 export const useCheckUpdateSWR = (enabled = true) =>
-  useSWR(enabled ? swrKeys.checkUpdate : null, check, updateSWRConfig);
+  useSWR(enabled ? swrKeys.checkUpdate : null, checkUpdate, updateSWRConfig);
 
 export const useServiceStatusSWR = () =>
   useSWR<"active" | "installed" | "uninstall" | "unknown">(

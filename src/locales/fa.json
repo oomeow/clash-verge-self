@@ -401,6 +401,7 @@
       },
       "verge": {
         "title": "تنظیمات Verge",
+        "updateChannel": "کانال به‌روزرسانی",
         "themeMode": {
           "label": "حالت تم",
           "options": {

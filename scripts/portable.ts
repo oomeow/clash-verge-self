@@ -10,6 +10,9 @@ import { getTarget } from "./utils";
 const argv = process.argv;
 const target = getTarget(argv);
 const alpha = process.argv.includes("--alpha");
+const preview = process.argv.includes("--preview");
+const versionIdx = argv.indexOf("--version");
+const versionArg = versionIdx > 0 ? argv[versionIdx + 1] : undefined;
 
 const ARCH_MAP: Record<string, string> = {
   // Windows
@@ -42,7 +45,7 @@ async function resolvePortable() {
   const releaseDir = target ? `./target/${target}/release` : `./target/release`;
   const require = createRequire(import.meta.url);
   const packageJson = require("../package.json");
-  const { version } = packageJson;
+  const version = versionArg || packageJson.version;
   const zipFile = isLinux
     ? `clash-verge-self_${version}_${arch}_portable.tar.gz`
     : `Clash.Verge.Self_${version}_${arch}_portable.zip`;
@@ -62,7 +65,11 @@ async function resolvePortable() {
 
   const options = { owner: context.repo.owner, repo: context.repo.repo };
   const github = getOctokit(process.env.GITHUB_TOKEN);
-  const tag = alpha ? "alpha" : process.env.TAG_NAME || `v${version}`;
+  const tag = alpha
+    ? "alpha"
+    : preview
+      ? "preview"
+      : process.env.TAG_NAME || `v${version}`;
   console.log(`⬆️ Uploading ${zipFile}...`);
 
   const { data: release } = await github.rest.repos.getReleaseByTag({

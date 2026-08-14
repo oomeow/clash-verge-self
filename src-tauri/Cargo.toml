@@ -59,6 +59,7 @@ tauri-plugin-updater = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
 time = { version = "0.3", features = ["macros", "parsing"] }
+url = "2"
 warp = { version = "0.4", features = ["server"] }
 dunce = "1.0"
 nanoid = "0.5"

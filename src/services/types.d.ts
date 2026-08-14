@@ -182,6 +182,7 @@ interface IVergeConfig {
   dark_theme_setting?: IVergeThemeSettings;
   auto_close_connection?: boolean;
   auto_check_update?: boolean;
+  update_channel?: "stable" | "preview";
   default_latency_test?: string;
   default_latency_timeout?: number;
   enable_builtin_enhanced?: boolean;

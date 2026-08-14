@@ -11,6 +11,7 @@ pub mod mihomo;
 pub mod mihomo_ws;
 pub mod profile;
 pub mod service;
+pub mod update;
 pub mod verge;
 
 pub(crate) type CommandResult<T> = std::result::Result<T, String>;

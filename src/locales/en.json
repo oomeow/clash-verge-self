@@ -401,6 +401,7 @@
       },
       "verge": {
         "title": "Verge Setting",
+        "updateChannel": "Update Channel",
         "themeMode": {
           "label": "Theme Mode",
           "options": {

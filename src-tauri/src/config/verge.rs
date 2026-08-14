@@ -143,6 +143,10 @@ pub struct IVerge {
     /// 是否自动检查更新
     pub auto_check_update: Option<bool>,
 
+    /// 更新渠道
+    /// stable | preview
+    pub update_channel: Option<String>,
+
     /// 默认的延迟测试连接
     pub default_latency_test: Option<String>,
 
@@ -411,6 +415,7 @@ impl IVerge {
 
         patch!(auto_close_connection);
         patch!(auto_check_update);
+        patch!(update_channel);
         patch!(default_latency_test);
         patch!(default_latency_timeout);
         patch!(proxy_layout_column);

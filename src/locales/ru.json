@@ -401,6 +401,7 @@
       },
       "verge": {
         "title": "Настройки Verge",
+        "updateChannel": "Канал обновлений",
         "themeMode": {
           "label": "Режим темы",
           "options": {

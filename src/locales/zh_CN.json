@@ -401,6 +401,7 @@
       },
       "verge": {
         "title": "Verge 设置",
+        "updateChannel": "更新渠道",
         "themeMode": {
           "label": "主题模式",
           "options": {

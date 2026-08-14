@@ -12,6 +12,11 @@ const UPDATE_JSON_FILE = "update.json";
 const UPDATE_JSON_PROXY = "update-proxy.json";
 const GITHUB_PROXY_PREFIX = "https://gh-proxy.org/";
 
+// preview release version info file
+const PREVIEW_TAG_NAME = "preview";
+const PREVIEW_UPDATE_JSON_FILE = "preview-update.json";
+const PREVIEW_UPDATE_JSON_PROXY = "preview-update-proxy.json";
+
 // log file
 const CHANGE_LOG = "CHANGELOG.md";
 const UPDATE_LOG = "UPDATELOG.md";
@@ -311,17 +316,7 @@ async function resolveUpdater(repoInfo: RepoInfo) {
     platforms,
   };
 
-  const results = await Promise.allSettled(
-    latestRelease.assets.map((asset) =>
-      applyAssetToPlatforms(platforms, asset.name, asset.browser_download_url),
-    ),
-  );
-
-  for (const result of results) {
-    if (result.status === "rejected") {
-      console.error(result.reason);
-    }
-  }
+  await applyAssetsToPlatforms(platforms, latestRelease.assets);
 
   console.log(updateData);
 
@@ -332,6 +327,81 @@ async function resolveUpdater(repoInfo: RepoInfo) {
   // 生成一个代理github的更新文件
   const updateDataNew = createProxyUpdateData(updateData);
 
+  await uploadUpdaterFiles(
+    repoInfo,
+    updateData,
+    updateDataNew,
+    UPDATE_JSON_FILE,
+    UPDATE_JSON_PROXY,
+  );
+}
+
+/// generate preview-update.json from the preview release
+/// upload to update tag's release asset
+async function resolvePreviewUpdater(repoInfo: RepoInfo) {
+  const token = getGithubToken();
+  const github = getOctokit(token);
+  const { data: previewRelease } = await github.rest.repos.getReleaseByTag({
+    ...repoInfo,
+    tag: PREVIEW_TAG_NAME,
+  });
+  const platforms = createEmptyPlatforms();
+
+  const updateData: UpdateData = {
+    name: getPreviewVersion(previewRelease.assets),
+    notes: previewRelease.body ?? "",
+    pub_date: new Date().toISOString(),
+    platforms,
+  };
+
+  await applyAssetsToPlatforms(platforms, previewRelease.assets);
+
+  console.log(updateData);
+
+  removeMissingPlatforms(updateData);
+
+  const updateDataNew = createProxyUpdateData(updateData);
+
+  await uploadUpdaterFiles(
+    repoInfo,
+    updateData,
+    updateDataNew,
+    PREVIEW_UPDATE_JSON_FILE,
+    PREVIEW_UPDATE_JSON_PROXY,
+  );
+}
+
+type ReleaseAsset = {
+  name: string;
+  browser_download_url: string;
+};
+
+async function applyAssetsToPlatforms(
+  platforms: Record<UpdaterPlatforms, PlatformUpdate>,
+  assets: ReleaseAsset[],
+) {
+  const results = await Promise.allSettled(
+    assets.map((asset) =>
+      applyAssetToPlatforms(platforms, asset.name, asset.browser_download_url),
+    ),
+  );
+
+  for (const result of results) {
+    if (result.status === "rejected") {
+      console.error(result.reason);
+    }
+  }
+}
+
+async function uploadUpdaterFiles(
+  repoInfo: RepoInfo,
+  updateData: UpdateData,
+  updateDataNew: UpdateData,
+  jsonFile: string,
+  jsonProxyFile: string,
+) {
+  const github = getOctokit(getGithubToken());
+
   // update the update.json
   const { data: updateRelease } = await github.rest.repos.getReleaseByTag({
     ...repoInfo,
@@ -340,14 +410,14 @@ async function resolveUpdater(repoInfo: RepoInfo) {
 
   // delete the old assets
   for (const asset of updateRelease.assets) {
-    if (asset.name === UPDATE_JSON_FILE) {
+    if (asset.name === jsonFile) {
       await github.rest.repos.deleteReleaseAsset({
         ...repoInfo,
         asset_id: asset.id,
       });
     }
 
-    if (asset.name === UPDATE_JSON_PROXY) {
+    if (asset.name === jsonProxyFile) {
       await github.rest.repos
         .deleteReleaseAsset({ ...repoInfo, asset_id: asset.id })
         .catch(console.error); // do not break the pipeline
@@ -358,16 +428,28 @@ async function resolveUpdater(repoInfo: RepoInfo) {
   await github.rest.repos.uploadReleaseAsset({
     ...repoInfo,
     release_id: updateRelease.id,
-    name: UPDATE_JSON_FILE,
+    name: jsonFile,
     data: JSON.stringify(updateData, null, 2),
   });
 
   await github.rest.repos.uploadReleaseAsset({
     ...repoInfo,
     release_id: updateRelease.id,
-    name: UPDATE_JSON_PROXY,
+    name: jsonProxyFile,
     data: JSON.stringify(updateDataNew, null, 2),
   });
+}
+
+/// extract the preview version (e.g. 2.3.2-pre.1) from the release asset names
+function getPreviewVersion(assets: ReleaseAsset[]): string {
+  const re = /(\d+\.\d+\.\d+-pre\.\d+)/;
+  for (const asset of assets) {
+    const match = asset.name.match(re);
+    if (match) {
+      return match[1];
+    }
+  }
+  throw new Error("could not find preview version in release assets");
 }
 
 // get the signature file content
@@ -458,6 +540,8 @@ const repoInfo: RepoInfo = {
 };
 if (arg === "--changelog") {
   updateUpdateLog(repoInfo).catch(console.error);
+} else if (arg === "--preview") {
+  resolvePreviewUpdater(repoInfo).catch(console.error);
 } else {
   resolveUpdater(repoInfo).catch(console.error);
 }
