@@ -268,10 +268,12 @@ jobs:
       - name: Update release name and body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.VERSION }}
         run: |
           COMMIT_HASH=$(git rev-parse --short HEAD)
           {
             echo "commit: \`${COMMIT_HASH}\`"
+            echo "version: v${VERSION}"
             echo ""
             # changelog 内容（去掉开头的 html 注释块模板占位）
             if head -n 1 CHANGELOG.md | grep -q '^<!--'; then
@@ -281,7 +283,7 @@ jobs:
             fi
           } > preview-body.md
           gh release edit preview \
-            --title "Clash Verge Self Preview ${{ needs.prepare.outputs.VERSION }}" \
+            --title "Clash Verge Self Preview" \
             --notes-file preview-body.md
 
       - name: Install Node
