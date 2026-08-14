@@ -42,7 +42,7 @@ jobs:
           BASE=$(node -p "require('./src-tauri/tauri.conf.json').version")
           echo "base version: ${BASE}"
           ESCAPED=$(printf '%s' "$BASE" | sed 's/\./\\./g')
-          RE="(?:^|[_-])${ESCAPED}-pre\\.([0-9]+)"
+          RE="(?:^|[_-])${ESCAPED}-preview\\.([0-9]+)"
 
           # count builds from the existing preview release assets
           ASSETS=$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
@@ -58,16 +58,16 @@ jobs:
           if [ -n "$PREVIEW_JSON_URL" ]; then
             PRE_VER=$(curl -sS "$PREVIEW_JSON_URL" | jq -r '.name // empty')
             case "$PRE_VER" in
-              "${BASE}-pre."*)
-                MAX_JSON=$(printf '%s' "$PRE_VER" | sed "s/^${ESCAPED}-pre\\.//" | sed 's/[^0-9].*//')
+              "${BASE}-preview."*)
+                MAX_JSON=$(printf '%s' "$PRE_VER" | sed "s/^${ESCAPED}-preview\\.//" | sed 's/[^0-9].*//')
                 ;;
             esac
           fi
 
           MAX=$((MAX_ASSET > MAX_JSON ? MAX_ASSET : MAX_JSON))
           NEXT=$((MAX + 1))
-          echo "VERSION=${BASE}-pre.${NEXT}" >> "$GITHUB_OUTPUT"
-          echo "next preview version: ${BASE}-pre.${NEXT}"
+          echo "VERSION=${BASE}-preview.${NEXT}" >> "$GITHUB_OUTPUT"
+          echo "next preview version: ${BASE}-preview.${NEXT}"
 
   delete-release-assets:
     needs: [prepare]

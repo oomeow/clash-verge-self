@@ -440,9 +440,9 @@ async function uploadUpdaterFiles(
   });
 }
 
-/// extract the preview version (e.g. 2.3.2-pre.1) from the release asset names
+/// extract the preview version (e.g. 2.3.2-preview.1) from the release asset names
 function getPreviewVersion(assets: ReleaseAsset[]): string {
-  const re = /(\d+\.\d+\.\d+-pre\.\d+)/;
+  const re = /(\d+\.\d+\.\d+-preview\.\d+)/;
   for (const asset of assets) {
     const match = asset.name.match(re);
     if (match) {

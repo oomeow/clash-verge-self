@@ -97,7 +97,7 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
               size="small"
               onClick={() => {
                 openUrl(
-                  updateInfo?.version.includes("-pre.")
+                  updateInfo?.version.includes("-preview.")
                     ? "https://github.com/oomeow/clash-verge-self/releases/tag/preview"
                     : `https://github.com/oomeow/clash-verge-self/releases/tag/v${updateInfo?.version}`,
                 );
