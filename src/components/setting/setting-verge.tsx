@@ -46,7 +46,7 @@ import {
   openLogsDir,
   updateWebDavInfo,
 } from "@/services/cmds";
-import { mutate, swrKeys } from "@/services/swr";
+import { mutate, swrKeys, syncCheckUpdateCache } from "@/services/swr";
 import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
@@ -153,8 +153,8 @@ const SettingVerge = ({ onError }: Props) => {
     try {
       const info = await checkUpdate();
       // 将本次检查结果同步到 SWR 缓存，供 UpdateViewer / 更新按钮使用，
-      // 避免该 Update 资源被直接丢弃后无法释放
-      mutate(swrKeys.checkUpdate, info, { revalidate: false });
+      // 并交由 syncCheckUpdateCache 接管其资源生命周期
+      await syncCheckUpdateCache(info);
       if (!info) {
         notice("success", t("messages.app.latestVersion"));
       } else {

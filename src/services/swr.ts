@@ -1,3 +1,4 @@
+import { Update } from "@tauri-apps/plugin-updater";
 import useBaseSWR, { mutate, SWRConfig, type SWRConfiguration } from "swr";
 import useBaseSWRSubscription from "swr/subscription";
 
@@ -61,8 +62,55 @@ export const useProxiesSWR = () =>
 export const useProxyProvidersSWR = () =>
   useSWR(swrKeys.proxyProviders, calcuProxyProviders);
 
+let requestSeq = 0;
+let committedUpdate: Update | null = null;
+
+/// 关闭 Update 资源，失败时记录日志（模块内无 notice 上下文）
+const closeUpdate = (update: Update) => {
+  update.close().catch((err: unknown) => {
+    console.error("[updater] failed to close update", err);
+  });
+};
+
+/// 检查更新并管理资源生命周期：
+/// - 过期响应只释放自己的实例，返回当前已提交的实例，不覆盖缓存
+/// - 新结果通过 SWR onSuccess（缓存提交后）才释放上一个实例，
+///   此时 viewer / 更新按钮已切换到新数据，旧实例不再被引用
+const checkUpdateWithLifecycle = async () => {
+  const seq = ++requestSeq;
+  const update = await checkUpdate();
+  if (seq !== requestSeq) {
+    if (update) {
+      closeUpdate(update);
+    }
+    return committedUpdate;
+  }
+  return update;
+};
+
+/// 将手动检查的结果同步进 SWR 缓存并接管其资源生命周期
+export const syncCheckUpdateCache = async (update: Update | null) => {
+  if (update !== committedUpdate) {
+    if (committedUpdate) {
+      closeUpdate(committedUpdate);
+    }
+    committedUpdate = update;
+  }
+  await mutate(swrKeys.checkUpdate, update, { revalidate: false });
+};
+
 export const useCheckUpdateSWR = (enabled = true) =>
-  useSWR(enabled ? swrKeys.checkUpdate : null, checkUpdate, updateSWRConfig);
+  useSWR(enabled ? swrKeys.checkUpdate : null, checkUpdateWithLifecycle, {
+    ...updateSWRConfig,
+    onSuccess: (data: Update | null) => {
+      if (data !== committedUpdate) {
+        if (committedUpdate) {
+          closeUpdate(committedUpdate);
+        }
+        committedUpdate = data ?? null;
+      }
+    },
+  });
 
 export const useServiceStatusSWR = () =>
   useSWR<"active" | "installed" | "uninstall" | "unknown">(
