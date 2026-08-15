@@ -45,19 +45,36 @@ jobs:
           # 从 preview 发布资产与已提交的 preview-update.json 中统计该基础版本的构建次数
           PATTERN='(?<v>[0-9]+\.[0-9]+\.[0-9]+)-preview\.(?<n>[0-9]+)'
 
-          ASSET_COUNT=$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/preview" | jq -r \
-            --arg base "$BASE" --arg re "$PATTERN" \
-            '[(.assets // [])[].name | capture($re) | select(.v == $base) | .n | tonumber] | max // 0')
+          # 请求 GitHub API：404 视为尚无发布（初始状态），其他非成功状态码直接失败，
+          # 避免统计在 API 失败时被降为 0 导致版本号重置
+          fetch_release() {
+            local status
+            status=$(curl -sSL -o "$2" -w '%{http_code}' \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" "$1")
+            case "$status" in
+              200 | 404) ;;
+              *)
+                echo "::error::GitHub API 请求失败 (HTTP ${status}): $1" >&2
+                exit 1
+                ;;
+            esac
+          }
+
+          fetch_release "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/preview" preview-release.json
+          ASSET_COUNT=$(jq -r --arg base "$BASE" --arg re "$PATTERN" \
+            '[(.assets // [])[].name | capture($re) | select(.v == $base) | .n | tonumber] | max // 0' \
+            preview-release.json)
 
           JSON_COUNT=0
-          UPDATE_URL=$(curl -sS -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/updater" | jq -r \
-            '[(.assets // [])[] | select(.name == "preview-update.json") | .browser_download_url] | first // empty')
+          fetch_release "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/updater" updater-release.json
+          UPDATE_URL=$(jq -r \
+            '[(.assets // [])[] | select(.name == "preview-update.json") | .browser_download_url] | first // empty' \
+            updater-release.json)
           if [ -n "$UPDATE_URL" ]; then
-            JSON_COUNT=$(curl -sS "$UPDATE_URL" | jq -r \
-              --arg base "$BASE" --arg re "$PATTERN" \
-              '[.name | capture($re)? | select(.v == $base) | .n | tonumber] | first // 0')
+            fetch_release "$UPDATE_URL" preview-update.json
+            JSON_COUNT=$(jq -r --arg base "$BASE" --arg re "$PATTERN" \
+              '[.name | capture($re)? | select(.v == $base) | .n | tonumber] | first // 0' \
+              preview-update.json)
           fi
 
           MAX_COUNT=$((ASSET_COUNT > JSON_COUNT ? ASSET_COUNT : JSON_COUNT))
