@@ -34,7 +34,6 @@ import BackupFilesViewer, {
 } from "@/components/setting/mods/backup-files-viewer";
 import { routes } from "@/routes/__root";
 import {
-  checkUpdate,
   copyClashEnv,
   createBackup,
   exitApp,
@@ -46,7 +45,7 @@ import {
   openLogsDir,
   updateWebDavInfo,
 } from "@/services/cmds";
-import { mutate, swrKeys, syncCheckUpdateCache } from "@/services/swr";
+import { checkUpdateNow, mutate, swrKeys } from "@/services/swr";
 import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
@@ -151,10 +150,7 @@ const SettingVerge = ({ onError }: Props) => {
 
   const onCheckUpdate = async () => {
     try {
-      const info = await checkUpdate();
-      // 将本次检查结果同步到 SWR 缓存，供 UpdateViewer / 更新按钮使用，
-      // 并交由 syncCheckUpdateCache 接管其资源生命周期
-      await syncCheckUpdateCache(info);
+      const info = await checkUpdateNow();
       if (!info) {
         notice("success", t("messages.app.latestVersion"));
       } else {

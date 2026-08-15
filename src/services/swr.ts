@@ -72,14 +72,27 @@ const closeUpdate = (update: Update) => {
   });
 };
 
-/// 检查更新并管理资源生命周期：
-/// - 过期响应只释放自己的实例，返回当前已提交的实例，不覆盖缓存
-/// - 新结果通过 SWR onSuccess（缓存提交后）才释放上一个实例，
-///   此时 viewer / 更新按钮已切换到新数据，旧实例不再被引用
+/// 开始一次更新检查（SWR 自动检查与手动检查共用同一请求序列）
+const beginCheck = () => ++requestSeq;
+
+/// 请求是否仍是最新；过期响应只能释放自己的实例，不能覆盖已提交结果
+const isLatestCheck = (seq: number) => seq === requestSeq;
+
+/// 替换当前已提交的 Update 资源（先关闭旧的，避免 resources_table 持续增长）
+const replaceCommittedUpdate = (update: Update | null) => {
+  if (update !== committedUpdate) {
+    if (committedUpdate) {
+      closeUpdate(committedUpdate);
+    }
+    committedUpdate = update;
+  }
+};
+
+/// SWR 检查：校验序列后返回结果，由 SWR 提交缓存，onSuccess 中做提交登记
 const checkUpdateWithLifecycle = async () => {
-  const seq = ++requestSeq;
+  const seq = beginCheck();
   const update = await checkUpdate();
-  if (seq !== requestSeq) {
+  if (!isLatestCheck(seq)) {
     if (update) {
       closeUpdate(update);
     }
@@ -88,27 +101,26 @@ const checkUpdateWithLifecycle = async () => {
   return update;
 };
 
-/// 将手动检查的结果同步进 SWR 缓存并接管其资源生命周期
-export const syncCheckUpdateCache = async (update: Update | null) => {
-  if (update !== committedUpdate) {
-    if (committedUpdate) {
-      closeUpdate(committedUpdate);
+/// 手动检查：与 SWR 检查共用请求序列，校验通过后提交到 SWR 缓存
+export const checkUpdateNow = async () => {
+  const seq = beginCheck();
+  const update = await checkUpdate();
+  if (!isLatestCheck(seq)) {
+    if (update) {
+      closeUpdate(update);
     }
-    committedUpdate = update;
+    return committedUpdate;
   }
+  replaceCommittedUpdate(update);
   await mutate(swrKeys.checkUpdate, update, { revalidate: false });
+  return update;
 };
 
 export const useCheckUpdateSWR = (enabled = true) =>
   useSWR(enabled ? swrKeys.checkUpdate : null, checkUpdateWithLifecycle, {
     ...updateSWRConfig,
     onSuccess: (data: Update | null) => {
-      if (data !== committedUpdate) {
-        if (committedUpdate) {
-          closeUpdate(committedUpdate);
-        }
-        committedUpdate = data ?? null;
-      }
+      replaceCommittedUpdate(data);
     },
   });
 
