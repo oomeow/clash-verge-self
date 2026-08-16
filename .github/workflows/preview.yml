@@ -239,10 +239,12 @@ jobs:
             echo "::error::amd64 deb not found in artifact" >&2
             exit 1
           fi
-          sha256sum "$DEB" | awk '{print $1}' > /tmp/deb.sha256
+          # 统一上传前 release 上还没有本次 deb，source 改为 pkgdir 内的本地文件
+          cp "$DEB" "archbuild/preview/clash-verge-self_${VERSION}_amd64.deb"
+          sed -i 's|source_x86_64=.*|source_x86_64=("${_pkgname}-${_pkgver}-x86_64.deb::clash-verge-self_${_pkgver}_amd64.deb")|' archbuild/preview/PKGBUILD
           sed -i "s/pkgver=.*/pkgver=${PKGVER}/" archbuild/preview/PKGBUILD
           sed -i "s/_pkgver=.*/_pkgver=${VERSION}/" archbuild/preview/PKGBUILD
-          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(cat /tmp/deb.sha256)\")/" archbuild/preview/PKGBUILD
+          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum "$DEB" | awk '{print $1}')\")/" archbuild/preview/PKGBUILD
 
       - name: Makepkg Build and Check
         id: makepkg
