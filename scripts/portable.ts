@@ -11,6 +11,7 @@ const argv = process.argv;
 const target = getTarget(argv);
 const alpha = process.argv.includes("--alpha");
 const preview = process.argv.includes("--preview");
+const noUpload = process.argv.includes("--no-upload");
 const versionIdx = argv.indexOf("--version");
 const versionArg = versionIdx > 0 ? argv[versionIdx + 1] : undefined;
 
@@ -56,7 +57,12 @@ async function resolvePortable() {
     await bundlePortableForLinux(releaseDir, zipFile);
   }
 
-  console.log("[INFO]: create portable zip successfully");
+  console.log(`[INFO]: create portable zip successfully --> ${zipFile}`);
+
+  // 跳过上传，由工作流通过 upload-artifact 收集产物后统一发布
+  if (noUpload) {
+    return;
+  }
 
   // push release assets
   if (process.env.GITHUB_TOKEN === undefined) {
