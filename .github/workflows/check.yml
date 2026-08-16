@@ -128,7 +128,7 @@ jobs:
           cross clippy --all-targets --all-features --tests --target ${{ matrix.target }} -- -D warnings
 
       # 仅当修改了 bundle 相关文件时才构建应用
-      - name: Build Tauri (linux x86_64)
+      - name: Build Tauri (Linux x86_64)
         if: steps.changes.outputs.bundle == 'true' && matrix.target == 'x86_64-unknown-linux-gnu'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -136,7 +136,7 @@ jobs:
         run: |
           pnpm build --target ${{ matrix.target }} -c ./src-tauri/tauri.conf-check.json
 
-      - name: Build Tauri (linux cross)
+      - name: Build Tauri (Linux cross)
         if: steps.changes.outputs.bundle == 'true' && matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -144,7 +144,7 @@ jobs:
         run: |
           pnpm build -r cross --target ${{ matrix.target }} -b deb,rpm -c ./src-tauri/tauri.conf-check.json
 
-      - name: Build Tauri (windows/macos)
+      - name: Build Tauri (Windows/macOS)
         if: steps.changes.outputs.bundle == 'true' && matrix.os != 'ubuntu-22.04'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
