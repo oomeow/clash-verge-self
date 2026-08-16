@@ -269,6 +269,9 @@ jobs:
     needs: [prepare, build, pkgbuild]
     runs-on: ubuntu-22.04
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
       - name: Download artifacts
         uses: actions/download-artifact@v7
         with:
@@ -292,9 +295,6 @@ jobs:
             echo "upload: ${file}"
             gh release upload preview "${file}" --clobber
           done
-
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Update release name and body
         env:
