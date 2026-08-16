@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: preview-${{ github.ref }}
+  group: preview
   cancel-in-progress: true
 
 permissions: write-all
