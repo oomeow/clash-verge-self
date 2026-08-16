@@ -1,21 +1,13 @@
 name: Preview Build
 
 on:
-  push:
-    branches:
-      - dev
-      - feat/add-preview-release
-    tags-ignore:
-      - updater
-      - alpha
-      - preview
-      - "v*"
-      - "service-*"
+  # 每天凌晨 0 点 (UTC) 触发；仅当自上次构建以来存在非 bot 提交时构建
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 concurrency:
-  # bot 提交的 run 会被跳过，但若与人工构建共用同一组会取消进行中的人工构建
-  group: preview-${{ github.ref }}-${{ endsWith(github.actor, '[bot]') && 'bot' || 'human' }}
+  group: preview-${{ github.ref }}
   cancel-in-progress: true
 
 permissions: write-all
@@ -24,9 +16,51 @@ env:
   RUST_BACKTRACE: short
 
 jobs:
-  # only build for non-bot commits (e.g. skip commits pushed by github-actions[bot])
+  # 自上次成功构建以来存在非 bot 提交时才构建（workflow_dispatch 始终构建）
+  check-updates:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - name: Check non-bot commits since last build
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "manual dispatch: build"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LAST_SHA=$(gh run list --workflow preview.yml --branch "${GITHUB_REF_NAME}" --status success \
+            --limit 1 --json headSha --jq '.[0].headSha // empty')
+          if [ -z "$LAST_SHA" ]; then
+            echo "no previous successful build, build"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          NON_BOT=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${LAST_SHA}...${GITHUB_SHA}" \
+            --jq '[.commits[] | select((.author.login // "") | endswith("[bot]") | not)] | length' \
+            2>/dev/null || true)
+          if [ -z "$NON_BOT" ]; then
+            echo "cannot compare with last build commit, build"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "last build commit: ${LAST_SHA}, non-bot commits since: ${NON_BOT}"
+          if [ "$NON_BOT" -gt 0 ]; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "no non-bot commits since last build, skip"
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+          fi
+
   prepare:
-    if: ${{ !endsWith(github.actor, '[bot]') }}
+    needs: [check-updates]
+    if: needs.check-updates.outputs.should_build == 'true'
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.version.outputs.VERSION }}
@@ -36,51 +70,15 @@ jobs:
 
       - name: Compute Preview Version
         id: version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BASE=$(node -p "require('./src-tauri/tauri.conf.json').version")
           echo "base version: ${BASE}"
 
-          # 从 preview 发布资产与已提交的 preview-update.json 中统计该基础版本的构建次数
-          PATTERN='(?<v>[0-9]+\.[0-9]+\.[0-9]+)-preview\.(?<n>[0-9]+)'
-
-          # 请求 GitHub API：404 视为尚无发布（初始状态），其他非成功状态码直接失败，
-          # 避免统计在 API 失败时被降为 0 导致版本号重置
-          fetch_release() {
-            local status
-            status=$(curl -sSL -o "$2" -w '%{http_code}' \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" "$1")
-            case "$status" in
-              200 | 404) ;;
-              *)
-                echo "::error::GitHub API 请求失败 (HTTP ${status}): $1" >&2
-                exit 1
-                ;;
-            esac
-          }
-
-          fetch_release "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/preview" preview-release.json
-          ASSET_COUNT=$(jq -r --arg base "$BASE" --arg re "$PATTERN" \
-            '[(.assets // [])[].name | capture($re) | select(.v == $base) | .n | tonumber] | max // 0' \
-            preview-release.json)
-
-          JSON_COUNT=0
-          fetch_release "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/tags/updater" updater-release.json
-          UPDATE_URL=$(jq -r \
-            '[(.assets // [])[] | select(.name == "preview-update.json") | .browser_download_url] | first // empty' \
-            updater-release.json)
-          if [ -n "$UPDATE_URL" ]; then
-            fetch_release "$UPDATE_URL" preview-update.json
-            JSON_COUNT=$(jq -r --arg base "$BASE" --arg re "$PATTERN" \
-              '[.name | capture($re)? | select(.v == $base) | .n | tonumber] | first // 0' \
-              preview-update.json)
-          fi
-
-          MAX_COUNT=$((ASSET_COUNT > JSON_COUNT ? ASSET_COUNT : JSON_COUNT))
-          NEXT=$((MAX_COUNT + 1))
-          echo "VERSION=${BASE}-preview.${NEXT}" >> "$GITHUB_OUTPUT"
-          echo "next preview version: ${BASE}-preview.${NEXT}"
+          # 构建时间（UTC，2 位年份 + 月日时分）作为 preview 序号，符合 semver 且随时间递增
+          STAMP=$(date -u +%y%m%d%H%M)
+          VERSION="${BASE}-preview.${STAMP}"
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "next preview version: ${VERSION}"
 
   delete-release-assets:
     needs: [prepare]
@@ -324,8 +322,8 @@ jobs:
           COMMIT_HASH=$(git rev-parse --short HEAD)
           COMMIT_URL="https://github.com/${GITHUB_REPOSITORY}/commit/${COMMIT_HASH}"
           {
-            echo "commit: [\`${COMMIT_HASH}\`](${COMMIT_URL})"
-            echo "version: v${VERSION}"
+            echo "Commit: [\`${COMMIT_HASH}\`](${COMMIT_URL})"
+            echo "Version: v${VERSION}"
             echo ""
             # changelog 内容（去掉开头的 html 注释块模板占位）
             if head -n 1 CHANGELOG.md | grep -q '^<!--'; then

@@ -446,7 +446,7 @@ async function uploadUpdaterFiles(
   });
 }
 
-/// extract the preview version (e.g. 2.3.2-preview.1) from the release asset names
+/// extract the preview version (e.g. 2.3.2-preview.2608161200, 2 位年份 + 构建时间作为 preview 序号) from the release asset names
 function getPreviewVersion(assets: ReleaseAsset[]): string {
   const re = /(\d+\.\d+\.\d+-preview\.\d+)/;
   for (const asset of assets) {
