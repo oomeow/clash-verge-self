@@ -117,7 +117,9 @@ jobs:
       - name: Rust clippy
         if: steps.changes.outputs.backend == 'true'
         run: |
-          cargo clippy --all-targets --all-features --tests -- -D warnings
+          # 指定 --target 与 pnpm check 下载 sidecar 的目标一致，否则 tauri-build 按宿主机目标
+          # 校验 externalBin，交叉目标下会因 sidecar 缺失而失败
+          cargo clippy --all-targets --all-features --tests --target ${{ matrix.target }} -- -D warnings
 
       # 仅当修改了 bundle 相关文件时才构建应用
       - name: Build Tauri (linux x86_64)
