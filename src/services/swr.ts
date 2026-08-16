@@ -116,6 +116,14 @@ export const checkUpdateNow = async () => {
   return update;
 };
 
+/// 取消更新检查缓存（切换更新渠道时调用）：使进行中的检查过期、
+/// 释放已提交的 Update 资源，并清空 SWR 缓存，避免旧渠道的检查结果残留
+export const clearUpdateCache = () => {
+  beginCheck();
+  replaceCommittedUpdate(null);
+  mutate(swrKeys.checkUpdate, undefined, { revalidate: false });
+};
+
 export const useCheckUpdateSWR = (enabled = true) =>
   useSWR(enabled ? swrKeys.checkUpdate : null, checkUpdateWithLifecycle, {
     ...updateSWRConfig,

@@ -45,7 +45,12 @@ import {
   openLogsDir,
   updateWebDavInfo,
 } from "@/services/cmds";
-import { checkUpdateNow, mutate, swrKeys } from "@/services/swr";
+import {
+  checkUpdateNow,
+  clearUpdateCache,
+  mutate,
+  swrKeys,
+} from "@/services/swr";
 import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
@@ -693,6 +698,7 @@ const SettingVerge = ({ onError }: Props) => {
           onFormat={(e: any) => e.target.value}
           onGuard={async (value) => {
             await patchVerge({ update_channel: value });
+            clearUpdateCache();
             mutate(swrKeys.checkUpdate);
           }}>
           <Select size="small" sx={{ width: 110, "> div": { py: "7.5px" } }}>
