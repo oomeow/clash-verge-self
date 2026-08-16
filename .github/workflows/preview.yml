@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - feat/add-preview-release
-  # 每天凌晨 0 点 (UTC) 触发；仅当自上次构建以来存在非 bot 提交时构建
+  # 每天凌晨 0 点 (上海时间 UTC+8) 触发；仅当自上次构建以来存在非 bot 提交时构建
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 16 * * *"
   workflow_dispatch:
 
 concurrency:
