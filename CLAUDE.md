@@ -109,7 +109,7 @@ Vite serves from `root: "src"` on port 3000 and builds into `src-tauri/frontend/
 
 ## Notes & Gotchas
 
-- Multiple Tauri configs exist: `tauri.conf.json` (base), `tauri.conf-dev.json` (dev), `tauri.conf-local.json`, `tauri.conf-pr.json`. `pnpm dev` selects the dev config explicitly.
+- Multiple Tauri configs exist: `tauri.conf.json` (base), `tauri.conf-dev.json` (dev), `tauri.conf-local.json`, `tauri.conf-check.json`. `pnpm dev` selects the dev config explicitly.
 - `pnpm dev` / `pnpm dev:diff` run `scripts/check_build_service.ts` first to ensure the sidecar binary exists before launching.
 - The app handles the `clash://` deep-link protocol (single-instance aware) — see the `single_instance` and `deep_link` setup in `lib.rs`.
 - Sidecar binaries are bundled as `sidecar/self-mihomo` and `sidecar/self-mihomo-alpha` (see `bundle.externalBin` in `tauri.conf.json`).

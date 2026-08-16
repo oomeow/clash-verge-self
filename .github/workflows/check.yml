@@ -126,7 +126,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          pnpm build --target ${{ matrix.target }} -c ./src-tauri/tauri.conf-pr.json
+          pnpm build --target ${{ matrix.target }} -c ./src-tauri/tauri.conf-check.json
 
       - name: Build Tauri (linux cross)
         if: steps.changes.outputs.bundle == 'true' && matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu'
@@ -134,7 +134,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          pnpm build -r cross --target ${{ matrix.target }} -b deb,rpm -c ./src-tauri/tauri.conf-pr.json
+          pnpm build -r cross --target ${{ matrix.target }} -b deb,rpm -c ./src-tauri/tauri.conf-check.json
 
       - name: Build Tauri (windows/macos)
         if: steps.changes.outputs.bundle == 'true' && matrix.os != 'ubuntu-22.04'
@@ -142,4 +142,4 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
-          pnpm build --target ${{ matrix.target }} -c ./src-tauri/tauri.conf-pr.json
+          pnpm build --target ${{ matrix.target }} -c ./src-tauri/tauri.conf-check.json
