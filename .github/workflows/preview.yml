@@ -29,6 +29,8 @@ jobs:
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # check-updates 未 checkout，gh 无法从 git remotes 推断仓库，需显式指定
+          GH_REPO: ${{ github.repository }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "manual dispatch: build"
