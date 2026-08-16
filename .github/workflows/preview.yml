@@ -17,7 +17,6 @@ permissions: write-all
 env:
   CARGO_INCREMENTAL: 0
   RUST_BACKTRACE: short
-  TZ: Asia/Shanghai
 
 jobs:
   # 自上次成功构建以来存在非 bot 提交时才构建（workflow_dispatch 始终构建）
