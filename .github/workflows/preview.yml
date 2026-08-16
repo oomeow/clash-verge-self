@@ -204,7 +204,6 @@ jobs:
             *_portable.zip
             # macos
             target/${{ matrix.target }}/release/bundle/**/*.dmg
-            target/${{ matrix.target }}/release/bundle/**/*.app
             target/${{ matrix.target }}/release/bundle/**/*.app.tar.gz
             target/${{ matrix.target }}/release/bundle/**/*.app.tar.gz.sig
             # linux
