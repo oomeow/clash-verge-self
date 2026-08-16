@@ -178,6 +178,8 @@ jobs:
 
       - name: Tauri build (windows/macos)
         if: matrix.os != 'ubuntu-22.04'
+        # Windows 默认 PowerShell 会剥掉内层双引号导致 JSON 参数损坏，统一用 bash
+        shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
