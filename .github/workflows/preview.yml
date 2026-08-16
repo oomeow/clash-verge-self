@@ -178,16 +178,14 @@ jobs:
 
       - name: Tauri build (windows/macos)
         if: matrix.os != 'ubuntu-22.04'
-        # 仅构建不发布（省略 tagName），产物由 upload-artifact 收集，最后由 release-update 统一上传
-        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1
+        # Windows 默认 PowerShell 会剥掉内层双引号导致 JSON 参数损坏，统一用 bash
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
-        with:
-          tauriScript: pnpm
-          args: --target ${{ matrix.target }} --config src-tauri/tauri.conf-preview.json --config '{"version":"${{ needs.prepare.outputs.VERSION }}"}'
+        run: |
+          pnpm build --target ${{ matrix.target }} --config src-tauri/tauri.conf-preview.json --config '{"version":"${{ needs.prepare.outputs.VERSION }}"}'
 
       - name: Portable Bundle
         if: matrix.os != 'macos-latest'
