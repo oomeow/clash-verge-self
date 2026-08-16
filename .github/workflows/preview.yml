@@ -166,8 +166,7 @@ jobs:
           CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
         with:
           tagName: preview
-          releaseName: "Clash Verge Self Preview ${{ needs.prepare.outputs.VERSION }}"
-          releaseBody: "Preview build ${{ needs.prepare.outputs.VERSION }}"
+          releaseName: "Clash Verge Self Preview"
           releaseDraft: false
           prerelease: true
           tauriScript: pnpm
