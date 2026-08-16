@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - feat/add-preview-release
   pull_request:
   workflow_dispatch:
 
