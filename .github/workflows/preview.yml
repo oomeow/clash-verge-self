@@ -79,8 +79,8 @@ jobs:
           BASE=$(node -p "require('./src-tauri/tauri.conf.json').version")
           echo "base version: ${BASE}"
 
-          # 构建时间（UTC，2 位年份 + 月日时分）作为 preview 序号，符合 semver 且随时间递增
-          STAMP=$(date -u +%y%m%d%H%M)
+          # 构建时间（上海时间 UTC+8，2 位年份 + 月日时分）作为 preview 序号，符合 semver 且随时间递增
+          STAMP=$(TZ='Asia/Shanghai' date +%y%m%d%H%M)
           VERSION="${BASE}-preview.${STAMP}"
           echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "next preview version: ${VERSION}"
