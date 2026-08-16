@@ -115,11 +115,17 @@ jobs:
 
       # rust clippy
       - name: Rust clippy
-        if: steps.changes.outputs.backend == 'true'
+        if: steps.changes.outputs.backend == 'true' && !(matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu')
         run: |
           # 指定 --target 与 pnpm check 下载 sidecar 的目标一致，否则 tauri-build 按宿主机目标
           # 校验 externalBin，交叉目标下会因 sidecar 缺失而失败
           cargo clippy --all-targets --all-features --tests --target ${{ matrix.target }} -- -D warnings
+
+      # Linux 非 x86_64 使用 cross 在 docker 内交叉检查（宿主机缺少目标依赖）
+      - name: Rust clippy (Linux cross)
+        if: steps.changes.outputs.backend == 'true' && matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu'
+        run: |
+          cross clippy --all-targets --all-features --tests --target ${{ matrix.target }} -- -D warnings
 
       # 仅当修改了 bundle 相关文件时才构建应用
       - name: Build Tauri (linux x86_64)
