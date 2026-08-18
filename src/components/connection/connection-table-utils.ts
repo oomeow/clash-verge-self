@@ -1,4 +1,4 @@
-import { type Cell, type ColumnDef, type Table } from "@tanstack/react-table";
+import { type Cell, type Table } from "@tanstack/react-table";
 import dayjs from "dayjs";
 import { TFunction } from "i18next";
 
@@ -8,7 +8,9 @@ import { truncateStr } from "@/utils/truncate-str";
 
 import {
   type ColumnOption,
+  type ConnectionColumnDef,
   ConnectionRow,
+  connectionTableFeatures,
   DEFAULT_COLUMN_ORDER,
 } from "./connection-table.types";
 
@@ -45,7 +47,7 @@ export const mapConnectionsToRows = (
 };
 
 export const getConnectionCellTooltipText = (
-  cell: Cell<ConnectionRow, unknown>,
+  cell: Cell<typeof connectionTableFeatures, ConnectionRow, unknown>,
   t: TFunction,
 ) => {
   const { connectionData } = cell.row.original;
@@ -91,7 +93,7 @@ export const getNormalizedConnectionColumnOrder = (columnOrder: string[]) => {
   ];
 };
 
-export const getConnectionColumnId = (column: ColumnDef<ConnectionRow>) => {
+export const getConnectionColumnId = (column: ConnectionColumnDef) => {
   if ("accessorKey" in column && column.accessorKey) {
     return String(column.accessorKey);
   }
@@ -100,7 +102,7 @@ export const getConnectionColumnId = (column: ColumnDef<ConnectionRow>) => {
 };
 
 export const getOrderedConnectionColumns = (
-  columns: ColumnDef<ConnectionRow>[],
+  columns: ConnectionColumnDef[],
   columnOrder: string[],
 ) => {
   const columnMap = new Map(
@@ -117,8 +119,8 @@ export const getOrderedConnectionColumns = (
 };
 
 export const getConnectionSelectorColumns = (
-  columns: ColumnDef<ConnectionRow>[],
-  table: Table<ConnectionRow>,
+  columns: ConnectionColumnDef[],
+  table: Table<typeof connectionTableFeatures, ConnectionRow>,
 ): ColumnOption[] => {
   return columns
     .map((column) => {

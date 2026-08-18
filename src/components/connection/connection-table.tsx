@@ -6,14 +6,11 @@ import ViewColumnRounded from "@mui/icons-material/ViewColumnRounded";
 import { Box, IconButton, Tooltip } from "@mui/material";
 import {
   type Cell,
-  type ColumnDef,
+  type ColumnVisibilityState,
   flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
   type Row,
   type SortingState,
-  useReactTable,
-  type VisibilityState,
+  useTable,
 } from "@tanstack/react-table";
 import { useVirtualizer, type VirtualItem } from "@tanstack/react-virtual";
 import {
@@ -32,7 +29,12 @@ import { useTranslation } from "react-i18next";
 import { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import { useConnectionsStore } from "@/stores";
 
-import { type ColumnMeta, type ConnectionRow } from "./connection-table.types";
+import {
+  type ColumnMeta,
+  type ConnectionColumnDef,
+  type ConnectionRow,
+  connectionTableFeatures,
+} from "./connection-table.types";
 import { ConnectionTableColumnSelector } from "./connection-table-column-selector";
 import { createConnectionColumns } from "./connection-table-columns";
 import {
@@ -50,19 +52,23 @@ interface Props {
 }
 
 interface ConnectionTableBodyProps {
-  rows: Row<ConnectionRow>[];
+  rows: Row<typeof connectionTableFeatures, ConnectionRow>[];
   tableContainerElement: HTMLDivElement | null;
   columnLayoutKey: string;
   onShowDetail: (data: IClosedConnectionItem) => void;
-  getCellTooltipText: (cell: Cell<ConnectionRow, unknown>) => string;
+  getCellTooltipText: (
+    cell: Cell<typeof connectionTableFeatures, ConnectionRow, unknown>,
+  ) => string;
 }
 
 interface ConnectionTableBodyRowProps {
-  row: Row<ConnectionRow>;
+  row: Row<typeof connectionTableFeatures, ConnectionRow>;
   virtualRow: VirtualItem;
   columnLayoutKey: string;
   onShowDetail: (data: IClosedConnectionItem) => void;
-  getCellTooltipText: (cell: Cell<ConnectionRow, unknown>) => string;
+  getCellTooltipText: (
+    cell: Cell<typeof connectionTableFeatures, ConnectionRow, unknown>,
+  ) => string;
 }
 
 const ROW_HEIGHT = 37;
@@ -100,7 +106,7 @@ const ConnectionTableBodyRow = memo(
           willChange: "transform",
         }}>
         {row.getVisibleCells().map((cell) => {
-          const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
+          const meta = cell.column.columnDef.meta;
           const justifyContent = getColumnJustifyContent(meta?.align);
           const renderedCell = flexRender(
             cell.column.columnDef.cell,
@@ -220,7 +226,7 @@ export const ConnectionTable = (props: Props) => {
     (state) => state.setTabColumnOrder,
   );
 
-  const [columnVisible, setColumnVisible] = useState<VisibilityState>({});
+  const [columnVisible, setColumnVisible] = useState<ColumnVisibilityState>({});
   const [isColumnSelectorOpen, setIsColumnSelectorOpen] = useState(false);
   const [tableContainerElement, setTableContainerElement] =
     useState<HTMLDivElement | null>(null);
@@ -265,7 +271,7 @@ export const ConnectionTable = (props: Props) => {
     [tabColumnsWidths],
   );
 
-  const columns = useMemo<ColumnDef<ConnectionRow>[]>(
+  const columns = useMemo<ConnectionColumnDef[]>(
     () =>
       createConnectionColumns({
         isActive,
@@ -289,23 +295,28 @@ export const ConnectionTable = (props: Props) => {
     [connections],
   );
 
-  const table = useReactTable({
-    data: connRows,
-    columns,
-    state: {
-      sorting,
-      columnVisibility: columnVisible,
+  const table = useTable(
+    {
+      features: connectionTableFeatures,
+      data: connRows,
+      columns,
+      state: {
+        sorting,
+        columnVisibility: columnVisible,
+      },
+      enableMultiSort: false,
+      onSortingChange: (updater) => {
+        const nextSorting =
+          typeof updater === "function" ? updater(sorting) : updater;
+        setTabSortModel(nextSorting.map((item) => ({ ...item })));
+      },
+      onColumnVisibilityChange: setColumnVisible,
     },
-    enableMultiSort: false,
-    onSortingChange: (updater) => {
-      const nextSorting =
-        typeof updater === "function" ? updater(sorting) : updater;
-      setTabSortModel(nextSorting.map((item) => ({ ...item })));
-    },
-    onColumnVisibilityChange: setColumnVisible,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
+    (state) => ({
+      sorting: state.sorting,
+      columnVisibility: state.columnVisibility,
+    }),
+  );
 
   const getResolvedColumnWidth = useCallback(
     (column: ReturnType<typeof table.getAllLeafColumns>[number]) =>
@@ -355,7 +366,7 @@ export const ConnectionTable = (props: Props) => {
   }, [columns, getResolvedColumnWidth, syncTableWidthStyles, table]);
 
   const getCellTooltipText = useCallback(
-    (cell: Cell<ConnectionRow, unknown>) =>
+    (cell: Cell<typeof connectionTableFeatures, ConnectionRow, unknown>) =>
       getConnectionCellTooltipText(cell, t),
     [t],
   );
@@ -473,7 +484,7 @@ export const ConnectionTable = (props: Props) => {
       table.getHeaderGroups().map((headerGroup) => (
         <tr key={headerGroup.id} className="flex w-full">
           {headerGroup.headers.map((header) => {
-            const meta = header.column.columnDef.meta as ColumnMeta | undefined;
+            const meta = header.column.columnDef.meta;
             const sorted = header.column.getIsSorted();
             const justifyContent = getColumnJustifyContent(meta?.align);
 
