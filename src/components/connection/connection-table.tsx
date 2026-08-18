@@ -6,8 +6,7 @@ import ViewColumnRounded from "@mui/icons-material/ViewColumnRounded";
 import { Box, IconButton, Tooltip } from "@mui/material";
 import {
   type Cell,
-  type ColumnVisibilityState,
-  flexRender,
+  FlexRender,
   type Row,
   type SortingState,
   useTable,
@@ -108,10 +107,6 @@ const ConnectionTableBodyRow = memo(
         {row.getVisibleCells().map((cell) => {
           const meta = cell.column.columnDef.meta;
           const justifyContent = getColumnJustifyContent(meta?.align);
-          const renderedCell = flexRender(
-            cell.column.columnDef.cell,
-            cell.getContext(),
-          );
 
           return (
             <td
@@ -141,7 +136,7 @@ const ConnectionTableBodyRow = memo(
                 <span
                   className="min-w-0 overflow-hidden leading-tight text-ellipsis whitespace-nowrap"
                   data-column-content="true">
-                  {renderedCell}
+                  <FlexRender cell={cell} />
                 </span>
               </span>
             </td>
@@ -226,7 +221,6 @@ export const ConnectionTable = (props: Props) => {
     (state) => state.setTabColumnOrder,
   );
 
-  const [columnVisible, setColumnVisible] = useState<ColumnVisibilityState>({});
   const [isColumnSelectorOpen, setIsColumnSelectorOpen] = useState(false);
   const [tableContainerElement, setTableContainerElement] =
     useState<HTMLDivElement | null>(null);
@@ -300,23 +294,20 @@ export const ConnectionTable = (props: Props) => {
       features: connectionTableFeatures,
       data: connRows,
       columns,
-      state: {
-        sorting,
-        columnVisibility: columnVisible,
-      },
+      initialState: { sorting },
       enableMultiSort: false,
-      onSortingChange: (updater) => {
-        const nextSorting =
-          typeof updater === "function" ? updater(sorting) : updater;
-        setTabSortModel(nextSorting.map((item) => ({ ...item })));
-      },
-      onColumnVisibilityChange: setColumnVisible,
     },
-    (state) => ({
-      sorting: state.sorting,
-      columnVisibility: state.columnVisibility,
-    }),
+    (state) => state.columnVisibility,
   );
+
+  useEffect(() => {
+    const subscription = table.atoms.sorting.subscribe({
+      next: (nextSorting) => {
+        setTabSortModel(nextSorting.map(({ id, desc }) => ({ id, desc })));
+      },
+    });
+    return () => subscription.unsubscribe();
+  }, [setTabSortModel, table]);
 
   const getResolvedColumnWidth = useCallback(
     (column: ReturnType<typeof table.getAllLeafColumns>[number]) =>
@@ -521,12 +512,9 @@ export const ConnectionTable = (props: Props) => {
                       <span
                         className="inline-block max-w-none"
                         data-column-content="true">
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                        {header.isPlaceholder ? null : (
+                          <table.FlexRender header={header} />
+                        )}
                       </span>
                     </span>
                     {sorted === "asc" ? (
