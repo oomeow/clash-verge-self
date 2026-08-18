@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { Update } from "@tauri-apps/plugin-updater";
 import { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
 
 import { LogMessage } from "@/components/profile/profile-more";
@@ -7,6 +8,24 @@ import getSystem from "@/utils/get-system";
 export interface MergeResult {
   config: string;
   logs: Record<string, LogMessage[]>;
+}
+
+export interface IUpdateMetadata {
+  rid: number;
+  currentVersion: string;
+  version: string;
+  date?: string;
+  body?: string;
+  rawJson: Record<string, unknown>;
+}
+
+export async function checkUpdate() {
+  const metadata = await invoke<IUpdateMetadata | null>("check_update");
+  return metadata ? new Update(metadata) : null;
+}
+
+export async function getDefaultUpdateChannel() {
+  return invoke<string>("get_default_update_channel");
 }
 
 export async function getProfiles() {

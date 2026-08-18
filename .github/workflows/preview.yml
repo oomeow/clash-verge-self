@@ -1,0 +1,352 @@
+name: Preview Build
+
+on:
+  # 每天凌晨 0 点 (上海时间 UTC+8) 触发；仅当自上次构建以来存在非 bot 提交时构建
+  schedule:
+    - cron: "0 16 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: preview
+  cancel-in-progress: true
+
+permissions: write-all
+env:
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: short
+
+jobs:
+  # 自上次成功构建以来存在非 bot 提交时才构建（workflow_dispatch 始终构建）
+  check-updates:
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+    steps:
+      - name: Check non-bot commits since last build
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # check-updates 未 checkout，gh 无法从 git remotes 推断仓库，需显式指定
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "manual dispatch: build"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          LAST_SHA=$(gh run list --workflow preview.yml --branch "${GITHUB_REF_NAME}" --status success \
+            --limit 1 --json headSha --jq '.[0].headSha // empty')
+          if [ -z "$LAST_SHA" ]; then
+            echo "no previous successful build, build"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          NON_BOT=$(gh api "repos/${GITHUB_REPOSITORY}/compare/${LAST_SHA}...${GITHUB_SHA}" \
+            --jq '[.commits[] | select((.author.login // "") | endswith("[bot]") | not)] | length' \
+            2>/dev/null || true)
+          if [ -z "$NON_BOT" ]; then
+            echo "cannot compare with last build commit, build"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "last build commit: ${LAST_SHA}, non-bot commits since: ${NON_BOT}"
+          if [ "$NON_BOT" -gt 0 ]; then
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "no non-bot commits since last build, skip"
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  prepare:
+    needs: [check-updates]
+    if: needs.check-updates.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Compute Preview Version
+        id: version
+        run: |
+          BASE=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "base version: ${BASE}"
+
+          # 构建时间（上海时间 UTC+8，2 位年份 + 月日时分）作为 preview 序号，符合 semver 且随时间递增
+          STAMP=$(TZ='Asia/Shanghai' date +%y%m%d%H%M)
+          VERSION="${BASE}-preview.${STAMP}"
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "next preview version: ${VERSION}"
+
+  # 所有平台在同一个矩阵 job 中构建，产物由 upload-artifact 统一收集，
+  # 最后由 release-update 统一上传到 preview release
+  build:
+    needs: [prepare]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-22.04
+            target: i686-unknown-linux-gnu
+          - os: ubuntu-22.04
+            target: aarch64-unknown-linux-gnu
+          - os: ubuntu-22.04
+            target: armv7-unknown-linux-gnueabihf
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Install Rust Stable
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+
+      - name: Add Rust Target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+
+      - name: Install Packages
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install Binstall
+        if: matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu'
+        uses: cargo-bins/cargo-binstall@b5723a5790b379eeac6713950acef86189492996 # main
+
+      - name: Install Cross
+        if: matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu'
+        run: cargo binstall -y cross
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Pnpm install and check
+        run: |
+          pnpm i
+          pnpm check --target ${{ matrix.target }} --no-confirm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
+
+      - name: Tauri build (linux x86_64)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
+        run: |
+          pnpm build --target ${{ matrix.target }} --config src-tauri/tauri.conf-preview.json --config '{"version":"${{ needs.prepare.outputs.VERSION }}"}'
+
+      - name: Tauri build (linux cross)
+        if: matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu'
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
+        run: |
+          pnpm build -r cross --target ${{ matrix.target }} -b deb,rpm --config src-tauri/tauri.conf-preview.json --config '{"version":"${{ needs.prepare.outputs.VERSION }}"}'
+
+      - name: Tauri build (windows/macos)
+        if: matrix.os != 'ubuntu-22.04'
+        # Windows 默认 PowerShell 会剥掉内层双引号导致 JSON 参数损坏，统一用 bash
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
+        run: |
+          pnpm build --target ${{ matrix.target }} --config src-tauri/tauri.conf-preview.json --config '{"version":"${{ needs.prepare.outputs.VERSION }}"}'
+
+      # macOS 两个架构的 .app.tar.gz/.sig 文件名相同，重命名为带架构后缀，避免上传时相互覆盖
+      - name: Rename macOS bundles with arch
+        if: matrix.os == 'macos-latest'
+        run: |
+          ARCH=${{ matrix.target == 'aarch64-apple-darwin' && 'aarch64' || 'x64' }}
+          VERSION=${{ needs.prepare.outputs.VERSION }}
+          cd "target/${{ matrix.target }}/release/bundle/macos" || exit 0
+          for f in *.app.tar.gz*; do
+            [ -f "$f" ] || continue
+            case "$f" in
+              *.sig) dest="Clash Verge Self_${VERSION}_${ARCH}.app.tar.gz.sig" ;;
+              *)     dest="Clash Verge Self_${VERSION}_${ARCH}.app.tar.gz" ;;
+            esac
+            echo "rename: ${f} -> ${dest}"
+            mv "$f" "$dest"
+          done
+
+      - name: Portable Bundle
+        if: matrix.os != 'macos-latest'
+        run: pnpm portable --target ${{ matrix.target }} --preview --version ${{ needs.prepare.outputs.VERSION }} --no-upload
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: preview-${{ matrix.target }}
+          path: |
+            # windows
+            target/${{ matrix.target }}/release/bundle/**/*.exe
+            target/${{ matrix.target }}/release/bundle/**/*.exe.sig
+            *_portable.zip
+            # macos
+            target/${{ matrix.target }}/release/bundle/**/*.dmg
+            target/${{ matrix.target }}/release/bundle/**/*.app.tar.gz
+            target/${{ matrix.target }}/release/bundle/**/*.app.tar.gz.sig
+            # linux
+            target/${{ matrix.target }}/release/bundle/**/*.deb
+            target/${{ matrix.target }}/release/bundle/**/*.deb.sig
+            target/${{ matrix.target }}/release/bundle/**/*.rpm
+            target/${{ matrix.target }}/release/bundle/**/*.rpm.sig
+            *_portable.tar.gz
+          if-no-files-found: ignore
+
+  pkgbuild:
+    name: PKGBUILD for ArchLinux
+    needs: [prepare, build]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Download amd64 deb artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: preview-x86_64-unknown-linux-gnu
+          path: amd64-deb
+
+      - name: Update PKGBUILD
+        run: |
+          VERSION=${{ needs.prepare.outputs.VERSION }}
+          PKGVER=$(printf '%s' "$VERSION" | sed 's/-preview\.\([0-9]*\)$/_preview_\1/')
+          echo "version: ${VERSION} (pkgver: ${PKGVER})"
+          DEB=$(find amd64-deb -name '*.deb' | head -n 1)
+          if [ -z "$DEB" ]; then
+            echo "::error::amd64 deb not found in artifact" >&2
+            exit 1
+          fi
+          # 统一上传前 release 上还没有本次 deb，source 改为 pkgdir 内的本地文件
+          # （makepkg 本地 source 使用 dest 文件名在构建目录中查找）
+          cp "$DEB" "archbuild/preview/clash-verge-self-${VERSION}-x86_64.deb"
+          sed -i 's|source_x86_64=.*|source_x86_64=("${_pkgname}-${_pkgver}-x86_64.deb")|' archbuild/preview/PKGBUILD
+          sed -i "s/pkgver=.*/pkgver=${PKGVER}/" archbuild/preview/PKGBUILD
+          sed -i "s/_pkgver=.*/_pkgver=${VERSION}/" archbuild/preview/PKGBUILD
+          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum "$DEB" | awk '{print $1}')\")/" archbuild/preview/PKGBUILD
+
+      - name: Makepkg Build and Check
+        id: makepkg
+        uses: CachyOS/pkgbuild-action@99a0608d129dae363a6174971400e018dd0f4577 # master
+        with:
+          pkgdir: archbuild/preview
+
+      - name: Print Package Files
+        run: |
+          echo "Successfully created the following package archive"
+          echo "Package: ${{ steps.makepkg.outputs.pkgfile0 }}"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: preview-archlinux
+          path: ${{ steps.makepkg.outputs.pkgfile0 }}
+          if-no-files-found: error
+
+  release-update:
+    needs: [prepare, build, pkgbuild]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+
+      # 删除上一次构建的产物，再统一上传本次构建的产物
+      - name: Publish build assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/preview" --jq '.assets[].id' 2>/dev/null \
+            | while read -r id; do
+                [ -n "$id" ] && gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${id}"
+              done || true
+
+          # 首次构建时 preview release 尚不存在，先创建
+          gh release create preview --prerelease --title "Clash Verge Self Preview" --notes "" \
+            2>/dev/null || true
+
+          find artifacts -type f -print0 | while IFS= read -r -d '' file; do
+            echo "upload: ${file}"
+            gh release upload preview "${file}" --clobber
+          done
+
+      - name: Update release name and body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.VERSION }}
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          COMMIT_URL="https://github.com/${GITHUB_REPOSITORY}/commit/${COMMIT_HASH}"
+          {
+            echo "Commit: [\`${COMMIT_HASH}\`](${COMMIT_URL})"
+            echo "Version: v${VERSION}"
+            echo ""
+            # changelog 内容（去掉开头的 html 注释块模板占位）
+            if head -n 1 CHANGELOG.md | grep -q '^<!--'; then
+              sed '1,/^-->/d' CHANGELOG.md
+            else
+              cat CHANGELOG.md
+            fi
+          } > preview-body.md
+          gh release edit preview \
+            --title "Clash Verge Self Preview" \
+            --notes-file preview-body.md
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Pnpm install
+        run: pnpm i
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release preview updater file
+        run: pnpm updater --preview
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

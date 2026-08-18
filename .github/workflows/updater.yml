@@ -28,3 +28,9 @@ jobs:
         run: pnpm updater
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release preview updater file
+        run: pnpm updater --preview
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

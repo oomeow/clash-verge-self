@@ -14,12 +14,13 @@ const changeJsonFile = [
   "./src-tauri/tauri.conf.json",
   "./src-tauri/tauri.conf-dev.json",
   "./src-tauri/tauri.conf-local.json",
-  "./src-tauri/tauri.conf-pr.json",
+  "./src-tauri/tauri.conf-check.json",
 ];
 const changeFile = [
   "./src-tauri/Cargo.toml",
   "./archbuild/alpha/PKGBUILD",
   "./archbuild/local_build/PKGBUILD",
+  "./archbuild/preview/PKGBUILD",
   "./archbuild/release/PKGBUILD",
   "./archbuild/test/PKGBUILD",
 ];

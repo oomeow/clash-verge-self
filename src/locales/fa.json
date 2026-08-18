@@ -401,6 +401,13 @@
       },
       "verge": {
         "title": "تنظیمات Verge",
+        "updateChannel": {
+          "label": "کانال به‌روزرسانی",
+          "options": {
+            "stable": "پایدار",
+            "preview": "پیش‌نمایش"
+          }
+        },
         "themeMode": {
           "label": "حالت تم",
           "options": {

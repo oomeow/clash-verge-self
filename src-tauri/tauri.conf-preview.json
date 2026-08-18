@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/refs/heads/dev/crates/tauri-schema-generator/schemas/config.schema.json",
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://gh-proxy.org/https://github.com/oomeow/clash-verge-self/releases/download/updater/preview-update-proxy.json",
+        "https://github.com/oomeow/clash-verge-self/releases/download/updater/preview-update.json"
+      ]
+    }
+  }
+}

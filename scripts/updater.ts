@@ -12,6 +12,11 @@ const UPDATE_JSON_FILE = "update.json";
 const UPDATE_JSON_PROXY = "update-proxy.json";
 const GITHUB_PROXY_PREFIX = "https://gh-proxy.org/";
 
+// preview release version info file
+const PREVIEW_TAG_NAME = "preview";
+const PREVIEW_UPDATE_JSON_FILE = "preview-update.json";
+const PREVIEW_UPDATE_JSON_PROXY = "preview-update-proxy.json";
+
 // log file
 const CHANGE_LOG = "CHANGELOG.md";
 const UPDATE_LOG = "UPDATELOG.md";
@@ -219,7 +224,7 @@ function findAssetPlatformRule(
 }
 
 async function applyAssetToPlatforms(
-  platforms: Record<UpdaterPlatforms, PlatformUpdate>,
+  platforms: Partial<Record<UpdaterPlatforms, PlatformUpdate>>,
   assetName: string,
   assetUrl: string,
 ) {
@@ -233,6 +238,9 @@ async function applyAssetToPlatforms(
 
   for (const platform of rule.platforms) {
     const update = platforms[platform];
+    if (!update) {
+      continue;
+    }
 
     if (isSignature) {
       update.signature = signature ?? "";
@@ -292,36 +300,20 @@ export async function getLatestTag(
   return tag;
 }
 
-/// generate update.json
-/// upload to update tag's release asset
-async function resolveUpdater(repoInfo: RepoInfo) {
-  const tag = await getLatestTag(repoInfo);
-  const token = getGithubToken();
-  const github = getOctokit(token);
-  const { data: latestRelease } = await github.rest.repos.getReleaseByTag({
-    ...repoInfo,
-    tag: tag.name,
-  });
-  const platforms = createEmptyPlatforms();
+type ReleaseAsset = {
+  name: string;
+  browser_download_url: string;
+};
 
-  const updateData: UpdateData = {
-    name: tag.name,
-    notes: await resolveUpdateLog(tag.name), // use updatelog.md
-    pub_date: new Date().toISOString(),
-    platforms,
-  };
-
-  const results = await Promise.allSettled(
-    latestRelease.assets.map((asset) =>
-      applyAssetToPlatforms(platforms, asset.name, asset.browser_download_url),
-    ),
-  );
-
-  for (const result of results) {
-    if (result.status === "rejected") {
-      console.error(result.reason);
-    }
-  }
+/// 生成 update JSON 并上传到 updater release
+async function publishUpdateJson(
+  repoInfo: RepoInfo,
+  release: { assets: ReleaseAsset[] },
+  updateData: UpdateData,
+  jsonFile: string,
+  jsonProxyFile: string,
+) {
+  await applyAssetsToPlatforms(updateData.platforms, release.assets);
 
   console.log(updateData);
 
@@ -332,6 +324,90 @@ async function resolveUpdater(repoInfo: RepoInfo) {
   // 生成一个代理github的更新文件
   const updateDataNew = createProxyUpdateData(updateData);
 
+  await uploadUpdaterFiles(
+    repoInfo,
+    updateData,
+    updateDataNew,
+    jsonFile,
+    jsonProxyFile,
+  );
+}
+
+/// 生成 update.json 并上传（stable 渠道）
+async function publishStableUpdate(repoInfo: RepoInfo) {
+  const tag = await getLatestTag(repoInfo);
+  const github = getOctokit(getGithubToken());
+  const { data: release } = await github.rest.repos.getReleaseByTag({
+    ...repoInfo,
+    tag: tag.name,
+  });
+
+  const updateData: UpdateData = {
+    name: tag.name,
+    notes: await readUpdateLog(tag.name), // use updatelog.md
+    pub_date: new Date().toISOString(),
+    platforms: createEmptyPlatforms(),
+  };
+
+  await publishUpdateJson(
+    repoInfo,
+    release,
+    updateData,
+    UPDATE_JSON_FILE,
+    UPDATE_JSON_PROXY,
+  );
+}
+
+/// 生成 preview-update.json 并上传（preview 渠道）
+async function publishPreviewUpdate(repoInfo: RepoInfo) {
+  const github = getOctokit(getGithubToken());
+  const { data: release } = await github.rest.repos.getReleaseByTag({
+    ...repoInfo,
+    tag: PREVIEW_TAG_NAME,
+  });
+
+  const updateData: UpdateData = {
+    name: getPreviewVersion(release.assets),
+    notes: await readChangelog(), // use changelog.md
+    pub_date: new Date().toISOString(),
+    platforms: createEmptyPlatforms(),
+  };
+
+  await publishUpdateJson(
+    repoInfo,
+    release,
+    updateData,
+    PREVIEW_UPDATE_JSON_FILE,
+    PREVIEW_UPDATE_JSON_PROXY,
+  );
+}
+
+async function applyAssetsToPlatforms(
+  platforms: Partial<Record<UpdaterPlatforms, PlatformUpdate>>,
+  assets: ReleaseAsset[],
+) {
+  const results = await Promise.allSettled(
+    assets.map((asset) =>
+      applyAssetToPlatforms(platforms, asset.name, asset.browser_download_url),
+    ),
+  );
+
+  for (const result of results) {
+    if (result.status === "rejected") {
+      console.error(result.reason);
+    }
+  }
+}
+
+async function uploadUpdaterFiles(
+  repoInfo: RepoInfo,
+  updateData: UpdateData,
+  updateDataNew: UpdateData,
+  jsonFile: string,
+  jsonProxyFile: string,
+) {
+  const github = getOctokit(getGithubToken());
+
   // update the update.json
   const { data: updateRelease } = await github.rest.repos.getReleaseByTag({
     ...repoInfo,
@@ -340,14 +416,14 @@ async function resolveUpdater(repoInfo: RepoInfo) {
 
   // delete the old assets
   for (const asset of updateRelease.assets) {
-    if (asset.name === UPDATE_JSON_FILE) {
+    if (asset.name === jsonFile) {
       await github.rest.repos.deleteReleaseAsset({
         ...repoInfo,
         asset_id: asset.id,
       });
     }
 
-    if (asset.name === UPDATE_JSON_PROXY) {
+    if (asset.name === jsonProxyFile) {
       await github.rest.repos
         .deleteReleaseAsset({ ...repoInfo, asset_id: asset.id })
         .catch(console.error); // do not break the pipeline
@@ -358,16 +434,28 @@ async function resolveUpdater(repoInfo: RepoInfo) {
   await github.rest.repos.uploadReleaseAsset({
     ...repoInfo,
     release_id: updateRelease.id,
-    name: UPDATE_JSON_FILE,
+    name: jsonFile,
     data: JSON.stringify(updateData, null, 2),
   });
 
   await github.rest.repos.uploadReleaseAsset({
     ...repoInfo,
     release_id: updateRelease.id,
-    name: UPDATE_JSON_PROXY,
+    name: jsonProxyFile,
     data: JSON.stringify(updateDataNew, null, 2),
   });
+}
+
+/// extract the preview version (e.g. 2.3.2-preview.2608161200, 2 位年份 + 构建时间作为 preview 序号) from the release asset names
+function getPreviewVersion(assets: ReleaseAsset[]): string {
+  const re = /(\d+\.\d+\.\d+-preview\.\d+)/;
+  for (const asset of assets) {
+    const match = asset.name.match(re);
+    if (match) {
+      return match[1];
+    }
+  }
+  throw new Error("could not find preview version in release assets");
 }
 
 // get the signature file content
@@ -380,8 +468,24 @@ async function getSignature(url: string): Promise<string> {
   return response.text();
 }
 
+/// read the CHANGELOG.md content (strip the leading comment block)
+export async function readChangelog(): Promise<string> {
+  if (!(await fs.pathExists(change_log_file))) {
+    throw new Error("could not found CHANGELOG.md");
+  }
+
+  const data = await fs
+    .readFile(change_log_file)
+    .then((d) => d.toString("utf8"));
+
+  // 去掉开头的 html 注释块（模板占位）
+  const stripped = data.replace(/^<!--[\s\S]*?-->\s*/, "");
+
+  return stripped.trim();
+}
+
 // parse the UPDATELOG.md
-export async function resolveUpdateLog(tag: string): Promise<string> {
+export async function readUpdateLog(tag: string): Promise<string> {
   const reTitle = /^## v[\d.]+/;
   const reEnd = /^---/;
 
@@ -422,9 +526,7 @@ export async function updateUpdateLog(repoInfo: RepoInfo) {
   const tag = await getLatestTag(repoInfo);
   const tagTitle = `## ${tag.name}`;
   // write all change log content to update log file
-  const changeLogContent = await fs
-    .readFile(change_log_file)
-    .then((d) => d.toString("utf8"));
+  const changeLogContent = await readChangelog();
   const updateLogContent = await fs
     .readFile(update_log_file)
     .then((d) => d.toString("utf8"));
@@ -458,6 +560,8 @@ const repoInfo: RepoInfo = {
 };
 if (arg === "--changelog") {
   updateUpdateLog(repoInfo).catch(console.error);
+} else if (arg === "--preview") {
+  publishPreviewUpdate(repoInfo).catch(console.error);
 } else {
-  resolveUpdater(repoInfo).catch(console.error);
+  publishStableUpdate(repoInfo).catch(console.error);
 }

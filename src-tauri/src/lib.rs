@@ -195,6 +195,9 @@ pub fn run() -> Result<()> {
             cmds::verge::patch_verge_config,
             cmds::verge::dispatch_hotkey_action,
             cmds::verge::test_delay,
+            // update
+            cmds::update::check_update,
+            cmds::update::get_default_update_channel,
             // profile
             cmds::profile::get_profiles,
             cmds::profile::get_profile,

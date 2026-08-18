@@ -21,13 +21,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { getVersion } from "@tauri-apps/api/app";
 import { open } from "@tauri-apps/plugin-dialog";
-import { check } from "@tauri-apps/plugin-updater";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { version } from "@/../package.json";
 import { DialogRef } from "@/components/base";
 import BackupFilesViewer, {
   BackupFilesViewerRef,
@@ -39,12 +38,19 @@ import {
   createBackup,
   exitApp,
   getDefaultBackupDir,
+  getDefaultUpdateChannel,
   openAppDir,
   openCoreDir,
   openDevTools,
   openLogsDir,
   updateWebDavInfo,
 } from "@/services/cmds";
+import {
+  checkUpdateNow,
+  clearUpdateCache,
+  mutate,
+  swrKeys,
+} from "@/services/swr";
 import { useVergeStore } from "@/stores";
 import getSystem from "@/utils/get-system";
 
@@ -66,12 +72,7 @@ interface Props {
 const OS = getSystem();
 
 type VergeViewerKey =
-  | "theme"
-  | "config"
-  | "hotkey"
-  | "misc"
-  | "layout"
-  | "update";
+  "theme" | "config" | "hotkey" | "misc" | "layout" | "update";
 
 const SettingVerge = ({ onError }: Props) => {
   const { t } = useTranslation();
@@ -84,6 +85,7 @@ const SettingVerge = ({ onError }: Props) => {
   const envType = useVergeStore((s) => s.verge.env_type);
   const startupScript = useVergeStore((s) => s.verge.startup_script);
   const startPage = useVergeStore((s) => s.verge.start_page);
+  const updateChannel = useVergeStore((s) => s.verge.update_channel);
   const webdavUrl = useVergeStore((s) => s.verge.webdav_url);
   const webdavUsername = useVergeStore((s) => s.verge.webdav_username);
   const webdavPassword = useVergeStore((s) => s.verge.webdav_password);
@@ -137,9 +139,23 @@ const SettingVerge = ({ onError }: Props) => {
     pendingViewerRef.current = null;
   }, [mountedViewers, viewerRefs]);
 
+  const [defaultChannel, setDefaultChannel] = useState("stable");
+  useEffect(() => {
+    getDefaultUpdateChannel()
+      .then(setDefaultChannel)
+      .catch(() => {});
+  }, []);
+
+  const [appVersion, setAppVersion] = useState("");
+  useEffect(() => {
+    getVersion()
+      .then(setAppVersion)
+      .catch(() => {});
+  }, []);
+
   const onCheckUpdate = async () => {
     try {
-      const info = await check();
+      const info = await checkUpdateNow();
       if (!info) {
         notice("success", t("messages.app.latestVersion"));
       } else {
@@ -675,6 +691,27 @@ const SettingVerge = ({ onError }: Props) => {
         label={t("pages.settings.verge.actions.openLogsDir")}
       />
 
+      <SettingItem label={t("pages.settings.verge.updateChannel.label")}>
+        <GuardState
+          value={updateChannel ?? defaultChannel}
+          onCatch={onError}
+          onFormat={(e: any) => e.target.value}
+          onGuard={async (value) => {
+            await patchVerge({ update_channel: value });
+            clearUpdateCache();
+            mutate(swrKeys.checkUpdate);
+          }}>
+          <Select size="small" sx={{ width: 110, "> div": { py: "7.5px" } }}>
+            <MenuItem value="stable">
+              {t("pages.settings.verge.updateChannel.options.stable")}
+            </MenuItem>
+            <MenuItem value="preview">
+              {t("pages.settings.verge.updateChannel.options.preview")}
+            </MenuItem>
+          </Select>
+        </GuardState>
+      </SettingItem>
+
       <SettingItem
         onClick={onCheckUpdate}
         label={t("pages.settings.verge.actions.checkForUpdates")}
@@ -688,7 +725,7 @@ const SettingVerge = ({ onError }: Props) => {
       <SettingItem onClick={() => exitApp()} label={t("common.actions.exit")} />
 
       <SettingItem label={t("pages.settings.verge.version")}>
-        <Typography sx={{ py: "7px", pr: 1 }}>v{version}</Typography>
+        <Typography sx={{ py: "7px", pr: 1 }}>v{appVersion}</Typography>
       </SettingItem>
     </SettingList>
   );

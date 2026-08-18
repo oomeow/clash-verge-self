@@ -401,6 +401,13 @@
       },
       "verge": {
         "title": "Настройки Verge",
+        "updateChannel": {
+          "label": "Канал обновлений",
+          "options": {
+            "stable": "Стабильный",
+            "preview": "Превью"
+          }
+        },
         "themeMode": {
           "label": "Режим темы",
           "options": {
