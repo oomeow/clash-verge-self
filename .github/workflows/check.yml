@@ -72,6 +72,19 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
 
+      - name: Configure Fast APT Mirror
+        if: matrix.os == 'ubuntu-22.04'
+        uses: vegardit/fast-apt-mirror.sh@v1
+        with: # the following parameters are listed with their action default values and are optional
+          healthchecks: 20 # Number of mirrors from the mirrors list to check for availability and up-to-dateness
+          speedtests: 10 # Maximum number of healthy mirrors to test for speed
+          parallel: 2 # Number of parallel speed tests
+          sample-size: 1024 # Number of kilobytes to download during the speed from each mirror
+          sample-time: 3 # Maximum number of seconds within the sample download from a mirror must finish
+          country: "" # The country code for selecting Ubuntu mirrors. If not set, defaults to http://mirrors.ubuntu.com/mirrors.txt
+          exclude-current: false # If set to "true", don't include the current APT mirror in the speed tests
+          configure-mirror: auto # Whether to configure the APT mirror: auto, true, or false
+
       - name: Install Packages
         if: matrix.os == 'ubuntu-22.04'
         run: |
