@@ -6,6 +6,8 @@ on:
       - dev
     paths:
       - "crates/clash-verge-self-service/**"
+      - "crates/process_supervisor/**"
+      - "crates/clash-verge-self-utils/**"
   workflow_dispatch:
 
 concurrency:
