@@ -1,4 +1,14 @@
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import {
+  type ColumnDef,
+  columnResizingFeature,
+  columnSizingFeature,
+  columnVisibilityFeature,
+  createSortedRowModel,
+  rowSortingFeature,
+  tableFeatures,
+} from "@tanstack/react-table";
+
+import type { IClosedConnectionItem } from "@/hooks/use-connection-data";
 
 export type ConnectionRow = {
   id: string;
@@ -21,6 +31,20 @@ export type ConnectionRow = {
 export type ColumnMeta = {
   align?: "left" | "center" | "right";
 };
+
+export const connectionTableFeatures = tableFeatures({
+  columnVisibilityFeature,
+  columnSizingFeature,
+  columnResizingFeature,
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  columnMeta: {} as ColumnMeta,
+});
+
+export type ConnectionColumnDef = ColumnDef<
+  typeof connectionTableFeatures,
+  ConnectionRow
+>;
 
 export type ColumnOption = {
   id: string;

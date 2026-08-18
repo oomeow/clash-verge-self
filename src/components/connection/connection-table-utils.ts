@@ -1,14 +1,16 @@
-import { type Cell, type ColumnDef, type Table } from "@tanstack/react-table";
+import type { Cell, Table } from "@tanstack/react-table";
 import dayjs from "dayjs";
-import { TFunction } from "i18next";
+import type { TFunction } from "i18next";
 
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import type { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import parseTraffic from "@/utils/parse-traffic";
 import { truncateStr } from "@/utils/truncate-str";
 
 import {
   type ColumnOption,
-  ConnectionRow,
+  type ConnectionColumnDef,
+  type ConnectionRow,
+  type connectionTableFeatures,
   DEFAULT_COLUMN_ORDER,
 } from "./connection-table.types";
 
@@ -45,7 +47,7 @@ export const mapConnectionsToRows = (
 };
 
 export const getConnectionCellTooltipText = (
-  cell: Cell<ConnectionRow, unknown>,
+  cell: Cell<typeof connectionTableFeatures, ConnectionRow, unknown>,
   t: TFunction,
 ) => {
   const { connectionData } = cell.row.original;
@@ -91,7 +93,7 @@ export const getNormalizedConnectionColumnOrder = (columnOrder: string[]) => {
   ];
 };
 
-export const getConnectionColumnId = (column: ColumnDef<ConnectionRow>) => {
+export const getConnectionColumnId = (column: ConnectionColumnDef) => {
   if ("accessorKey" in column && column.accessorKey) {
     return String(column.accessorKey);
   }
@@ -100,7 +102,7 @@ export const getConnectionColumnId = (column: ColumnDef<ConnectionRow>) => {
 };
 
 export const getOrderedConnectionColumns = (
-  columns: ColumnDef<ConnectionRow>[],
+  columns: ConnectionColumnDef[],
   columnOrder: string[],
 ) => {
   const columnMap = new Map(
@@ -117,14 +119,14 @@ export const getOrderedConnectionColumns = (
 };
 
 export const getConnectionSelectorColumns = (
-  columns: ColumnDef<ConnectionRow>[],
-  table: Table<ConnectionRow>,
+  columns: ConnectionColumnDef[],
+  table: Table<typeof connectionTableFeatures, ConnectionRow>,
 ): ColumnOption[] => {
   return columns
     .map((column) => {
       const columnId = getConnectionColumnId(column);
       const tableColumn = table.getColumn(columnId);
-      if (!tableColumn || !tableColumn.getCanHide()) return null;
+      if (!tableColumn?.getCanHide()) return null;
 
       return {
         id: columnId,

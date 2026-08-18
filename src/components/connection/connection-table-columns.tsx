@@ -1,12 +1,11 @@
 import CancelIcon from "@mui/icons-material/Close";
-import { type ColumnDef } from "@tanstack/react-table";
 import dayjs from "dayjs";
-import { type TFunction } from "i18next";
+import type { TFunction } from "i18next";
 import { closeConnection } from "tauri-plugin-mihomo-api";
 
 import parseTraffic from "@/utils/parse-traffic";
 
-import { type ColumnMeta, type ConnectionRow } from "./connection-table.types";
+import type { ColumnMeta, ConnectionColumnDef } from "./connection-table.types";
 import { getOrderedConnectionColumns } from "./connection-table-utils";
 
 interface CreateConnectionColumnsOptions {
@@ -21,7 +20,7 @@ export const createConnectionColumns = ({
   t,
   columnOrder,
   getColumnWidth,
-}: CreateConnectionColumnsOptions): ColumnDef<ConnectionRow>[] => {
+}: CreateConnectionColumnsOptions): ConnectionColumnDef[] => {
   const leadingColumns = isActive
     ? [
         {
@@ -43,20 +42,20 @@ export const createConnectionColumns = ({
           size: 50,
           minSize: 50,
           meta: { align: "center" } satisfies ColumnMeta,
-        } satisfies ColumnDef<ConnectionRow>,
+        } satisfies ConnectionColumnDef,
       ]
     : [
         {
           accessorKey: "closedTime",
           header: t("pages.connections.columns.closedTime"),
           cell: ({ getValue }) => dayjs(getValue<number>()).fromNow(),
-          sortingFn: (rowA, rowB, columnId) =>
+          sortFn: (rowA, rowB, columnId) =>
             rowA.getValue<number>(columnId) - rowB.getValue<number>(columnId),
           enableHiding: false,
           size: getColumnWidth("closedTime", 110),
           minSize: 110,
           meta: {} satisfies ColumnMeta,
-        } satisfies ColumnDef<ConnectionRow>,
+        } satisfies ConnectionColumnDef,
       ];
 
   const sharedColumns = [
@@ -145,7 +144,7 @@ export const createConnectionColumns = ({
       accessorKey: "time",
       header: t("common.fields.time"),
       cell: ({ getValue }) => dayjs(getValue<string>()).fromNow(),
-      sortingFn: (rowA, rowB, columnId) =>
+      sortFn: (rowA, rowB, columnId) =>
         dayjs(rowA.getValue<string>(columnId)).valueOf() -
         dayjs(rowB.getValue<string>(columnId)).valueOf(),
       size: getColumnWidth("time", 120),
@@ -154,7 +153,7 @@ export const createConnectionColumns = ({
         align: "center",
       } satisfies ColumnMeta,
     },
-  ] satisfies ColumnDef<ConnectionRow>[];
+  ] satisfies ConnectionColumnDef[];
 
   return [
     ...leadingColumns,
