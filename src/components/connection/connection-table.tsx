@@ -26,7 +26,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import type { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import { useConnectionsStore } from "@/stores";
 
 import {
@@ -331,7 +331,7 @@ export const ConnectionTable = (props: Props) => {
       table
         .getVisibleLeafColumns()
         .reduce((total, column) => total + getResolvedColumnWidth(column), 0),
-    [columnVisible, getResolvedColumnWidth, table],
+    [getResolvedColumnWidth, table],
   );
 
   const syncTableWidthStyles = useCallback(() => {
@@ -363,7 +363,7 @@ export const ConnectionTable = (props: Props) => {
       columnWidthsRef.current[column.id] = getResolvedColumnWidth(column);
     });
     syncTableWidthStyles();
-  }, [columns, getResolvedColumnWidth, syncTableWidthStyles, table]);
+  }, [getResolvedColumnWidth, syncTableWidthStyles, table]);
 
   const getCellTooltipText = useCallback(
     (cell: Cell<typeof connectionTableFeatures, ConnectionRow, unknown>) =>
@@ -476,7 +476,7 @@ export const ConnectionTable = (props: Props) => {
         .getVisibleLeafColumns()
         .map((column) => column.id)
         .join("|"),
-    [columnVisible, columns, table],
+    [table],
   );
 
   const headerContent = useMemo(
@@ -564,21 +564,13 @@ export const ConnectionTable = (props: Props) => {
           })}
         </tr>
       )),
-    [
-      autoResizeColumn,
-      columnVisible,
-      columns,
-      getResolvedColumnWidth,
-      sorting,
-      startResize,
-      table,
-    ],
+    [autoResizeColumn, getResolvedColumnWidth, startResize, table],
   );
 
   const selectorColumns = useMemo(
     () =>
       isColumnSelectorOpen ? getConnectionSelectorColumns(columns, table) : [],
-    [columnVisible, columns, isColumnSelectorOpen, table],
+    [columns, isColumnSelectorOpen, table],
   );
 
   const handleToggleColumnVisible = useCallback(

@@ -1,16 +1,16 @@
-import { type Cell, type Table } from "@tanstack/react-table";
+import type { Cell, Table } from "@tanstack/react-table";
 import dayjs from "dayjs";
-import { TFunction } from "i18next";
+import type { TFunction } from "i18next";
 
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import type { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import parseTraffic from "@/utils/parse-traffic";
 import { truncateStr } from "@/utils/truncate-str";
 
 import {
   type ColumnOption,
   type ConnectionColumnDef,
-  ConnectionRow,
-  connectionTableFeatures,
+  type ConnectionRow,
+  type connectionTableFeatures,
   DEFAULT_COLUMN_ORDER,
 } from "./connection-table.types";
 
@@ -126,7 +126,7 @@ export const getConnectionSelectorColumns = (
     .map((column) => {
       const columnId = getConnectionColumnId(column);
       const tableColumn = table.getColumn(columnId);
-      if (!tableColumn || !tableColumn.getCanHide()) return null;
+      if (!tableColumn?.getCanHide()) return null;
 
       return {
         id: columnId,

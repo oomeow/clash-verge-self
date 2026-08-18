@@ -1,14 +1,11 @@
 import CancelIcon from "@mui/icons-material/Close";
 import dayjs from "dayjs";
-import { type TFunction } from "i18next";
+import type { TFunction } from "i18next";
 import { closeConnection } from "tauri-plugin-mihomo-api";
 
 import parseTraffic from "@/utils/parse-traffic";
 
-import {
-  type ColumnMeta,
-  type ConnectionColumnDef,
-} from "./connection-table.types";
+import type { ColumnMeta, ConnectionColumnDef } from "./connection-table.types";
 import { getOrderedConnectionColumns } from "./connection-table-utils";
 
 interface CreateConnectionColumnsOptions {

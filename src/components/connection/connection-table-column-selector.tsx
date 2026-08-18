@@ -8,7 +8,7 @@ import { useRef, useState } from "react";
 
 import { cn } from "@/utils";
 
-import { ColumnOption } from "./connection-table.types";
+import type { ColumnOption } from "./connection-table.types";
 
 const SortableColumnOption = ({
   option,

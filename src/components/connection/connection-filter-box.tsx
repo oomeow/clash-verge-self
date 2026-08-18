@@ -13,13 +13,14 @@ import {
   ListItemText,
   Paper,
   Popper,
+  type Theme,
   Tooltip,
   Typography,
 } from "@mui/material";
 import {
-  ChangeEvent,
-  KeyboardEvent,
-  MouseEvent,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type MouseEvent,
   useCallback,
   useMemo,
   useRef,
@@ -27,7 +28,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import type { IClosedConnectionItem } from "@/hooks/use-connection-data";
 
 export type ConnectionFilterField =
   | "host"
@@ -236,7 +237,9 @@ export const ConnectionFilterBox = ({
         }
         if (!matchesOtherFields(connection)) return;
 
-        getValues(connection).forEach((value) => values.add(value));
+        getValues(connection).forEach((value) => {
+          values.add(value);
+        });
       });
 
       nextMap.set(
@@ -364,7 +367,7 @@ export const ConnectionFilterBox = ({
             overflow: "hidden",
             "&:focus-within": {
               borderColor: "primary.main",
-              boxShadow: (theme: any) =>
+              boxShadow: (theme: Theme) =>
                 `0 0 0 1px ${theme.palette.primary.main}`,
             },
           }}>

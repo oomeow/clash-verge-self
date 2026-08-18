@@ -8,7 +8,7 @@ import {
   tableFeatures,
 } from "@tanstack/react-table";
 
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import type { IClosedConnectionItem } from "@/hooks/use-connection-data";
 
 export type ConnectionRow = {
   id: string;

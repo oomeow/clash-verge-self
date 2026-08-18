@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import { closeConnection } from "tauri-plugin-mihomo-api";
 
-import { IClosedConnectionItem } from "@/hooks/use-connection-data";
+import type { IClosedConnectionItem } from "@/hooks/use-connection-data";
 import parseTraffic from "@/utils/parse-traffic";
 
 interface Props {
