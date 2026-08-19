@@ -220,6 +220,12 @@ export const ConnectionTable = (props: Props) => {
   const setTabColumnOrder = useConnectionsStore(
     (state) => state.setTabColumnOrder,
   );
+  const tabColumnsVisibility = useConnectionsStore(
+    (state) => state.tabColumnsVisibility,
+  );
+  const setTabColumnsVisibility = useConnectionsStore(
+    (state) => state.setTabColumnsVisibility,
+  );
 
   const [isColumnSelectorOpen, setIsColumnSelectorOpen] = useState(false);
   const [tableContainerElement, setTableContainerElement] =
@@ -294,7 +300,10 @@ export const ConnectionTable = (props: Props) => {
       features: connectionTableFeatures,
       data: connRows,
       columns,
-      initialState: { sorting },
+      initialState: {
+        sorting,
+        columnVisibility: tabColumnsVisibility,
+      },
       enableMultiSort: false,
     },
     (state) => state.columnVisibility,
@@ -308,6 +317,15 @@ export const ConnectionTable = (props: Props) => {
     });
     return () => subscription.unsubscribe();
   }, [setTabSortModel, table]);
+
+  useEffect(() => {
+    const subscription = table.atoms.columnVisibility.subscribe({
+      next: (nextVisibility) => {
+        setTabColumnsVisibility(nextVisibility);
+      },
+    });
+    return () => subscription.unsubscribe();
+  }, [setTabColumnsVisibility, table]);
 
   const getResolvedColumnWidth = useCallback(
     (column: ReturnType<typeof table.getAllLeafColumns>[number]) =>
