@@ -111,7 +111,7 @@ pub fn priority_initialization() {
     #[cfg(target_os = "linux")]
     {
         tracing::trace!("watch linux theme changed");
-        tauri::async_runtime::spawn(watch_linux_theme_changed());
+        tauri::async_runtime::spawn_blocking(watch_linux_theme_changed);
     }
 
     let exists_archive_file = dirs::backup_archive_file().is_ok_and(|file| file.exists());
@@ -126,7 +126,7 @@ pub fn priority_initialization() {
 }
 
 #[cfg(target_os = "linux")]
-async fn watch_linux_theme_changed() {
+fn watch_linux_theme_changed() {
     match dark_light::subscribe() {
         Ok(watcher) => {
             for mode in watcher.iter() {
