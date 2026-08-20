@@ -265,19 +265,22 @@ jobs:
             echo "::error::amd64 deb not found in artifact" >&2
             exit 1
           fi
+
           # 统一上传前 release 上还没有本次 deb，source 改为 pkgdir 内的本地文件
           # （makepkg 本地 source 使用 dest 文件名在构建目录中查找）
-          cp "$DEB" "archbuild/preview/clash-verge-self-${VERSION}-x86_64.deb"
-          sed -i 's|source_x86_64=.*|source_x86_64=("${_pkgname}-${_pkgver}-x86_64.deb")|' archbuild/preview/PKGBUILD
-          sed -i "s/pkgver=.*/pkgver=${PKGVER}/" archbuild/preview/PKGBUILD
-          sed -i "s/_pkgver=.*/_pkgver=${VERSION}/" archbuild/preview/PKGBUILD
-          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum "$DEB" | awk '{print $1}')\")/" archbuild/preview/PKGBUILD
+          # 直接在统一模板中就地注入 preview 渠道字段
+          cp "$DEB" "archbuild/common/amd64.deb"
+          sed -i "s/^pkgname=.*/pkgname=clash-verge-self-preview-bin/" archbuild/common/PKGBUILD
+          sed -i 's|source_x86_64=.*|source_x86_64=("amd64.deb")|' archbuild/common/PKGBUILD
+          sed -i "s/pkgver=.*/pkgver=${PKGVER}/" archbuild/common/PKGBUILD
+          sed -i "s/_pkgver=.*/_pkgver=${VERSION}/" archbuild/common/PKGBUILD
+          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum "$DEB" | awk '{print $1}')\")/" archbuild/common/PKGBUILD
 
       - name: Makepkg Build and Check
         id: makepkg
         uses: CachyOS/pkgbuild-action@99a0608d129dae363a6174971400e018dd0f4577 # master
         with:
-          pkgdir: archbuild/preview
+          pkgdir: archbuild/common
 
       - name: Print Package Files
         run: |

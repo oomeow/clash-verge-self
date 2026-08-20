@@ -121,15 +121,19 @@ jobs:
         if: matrix.os == 'ubuntu-22.04'
         run: |
           echo "version: ${{ steps.get_version.outputs.VERSION }}"
-          cp target/${{ matrix.target }}/release/bundle/deb/clash-verge-self_${{ steps.get_version.outputs.VERSION }}_amd64.deb archbuild/test/amd64.deb
-          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum archbuild/test/amd64.deb | awk '{print $1}')\")/" archbuild/test/PKGBUILD
+          cp target/${{ matrix.target }}/release/bundle/deb/clash-verge-self_${{ steps.get_version.outputs.VERSION }}_amd64.deb archbuild/common/amd64.deb
+
+          # 直接在统一模板中就地注入 test 渠道字段
+          sed -i "s/^pkgname=.*/pkgname=clash-verge-self-alpha-bin/" archbuild/common/PKGBUILD
+          sed -i 's|source_x86_64=.*|source_x86_64=("amd64.deb")|' archbuild/common/PKGBUILD
+          sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum archbuild/common/amd64.deb | awk '{print $1}')\")/" archbuild/common/PKGBUILD
 
       - name: Makepkg Build and Check (Arch Linux PKG)
         if: matrix.os == 'ubuntu-22.04'
         id: makepkg
         uses: CachyOS/pkgbuild-action@99a0608d129dae363a6174971400e018dd0f4577 # master
         with:
-          pkgdir: archbuild/test
+          pkgdir: archbuild/common
 
       - name: Upload artifact
         if: matrix.os == 'windows-latest'

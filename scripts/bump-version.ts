@@ -18,11 +18,8 @@ const changeJsonFile = [
 ];
 const changeFile = [
   "./src-tauri/Cargo.toml",
-  "./archbuild/alpha/PKGBUILD",
+  "./archbuild/common/PKGBUILD",
   "./archbuild/local_build/PKGBUILD",
-  "./archbuild/preview/PKGBUILD",
-  "./archbuild/release/PKGBUILD",
-  "./archbuild/test/PKGBUILD",
 ];
 
 const version = process_argvs[2];
