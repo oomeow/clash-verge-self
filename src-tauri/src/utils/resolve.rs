@@ -95,14 +95,24 @@ async fn wait_current_frontend_ready(app_handle: AppHandle) {
 pub fn priority_initialization() {
     tracing::trace!("init system tray");
     log_err!(tray::Tray::init());
+
     tracing::trace!("init resources");
     log_err!(init::init_resources());
+
     tracing::trace!("init config");
     log_err!(Config::init_config());
+
     tracing::trace!("launch core");
     log_err!(CoreManager::global().init());
+
     tracing::trace!("register os shutdown handler");
     shutdown::register();
+
+    #[cfg(target_os = "linux")]
+    {
+        tracing::trace!("watch linux theme changed");
+        tauri::async_runtime::spawn_blocking(watch_linux_theme_changed);
+    }
 
     let exists_archive_file = dirs::backup_archive_file().is_ok_and(|file| file.exists());
     if exists_archive_file {
@@ -115,24 +125,51 @@ pub fn priority_initialization() {
     }
 }
 
+#[cfg(target_os = "linux")]
+fn watch_linux_theme_changed() {
+    match dark_light::subscribe() {
+        Ok(watcher) => {
+            for mode in watcher.iter() {
+                let theme = match mode {
+                    dark_light::Mode::Dark => tauri::Theme::Dark,
+                    dark_light::Mode::Light => tauri::Theme::Light,
+                    dark_light::Mode::Unspecified => tauri::Theme::Light, // fallback to light
+                };
+                let _ = handle::Handle::app_handle().emit("tauri://theme-changed", theme);
+            }
+        }
+        Err(err) => {
+            tracing::error!("watch linux theme changed: {}", err);
+        }
+    }
+}
+
 pub fn async_initialization() {
     tauri::async_runtime::spawn(async {
         tracing::trace!("init startup script");
         log_err!(init::startup_script().await);
+
         tracing::trace!("delete old log files");
         log_err!(VergeLog::delete_logs());
+
         tracing::trace!("launch embed server");
         server::embed_server().await;
+
         tracing::trace!("init autolaunch");
         log_err!(sysopt::Sysopt::global().init_launch());
+
         tracing::trace!("init system proxy");
         log_err!(sysopt::Sysopt::global().init_sysproxy());
+
         tracing::trace!("update system tray");
         log_err!(handle::Handle::update_systray_part());
+
         tracing::trace!("init hotkey");
         log_err!(hotkey::Hotkey::global().init());
+
         tracing::trace!("init timer");
         log_err!(timer::Timer::global().init());
+
         tracing::trace!("init webdav config");
         log_err!(backup::WebDav::global().init().await);
     });

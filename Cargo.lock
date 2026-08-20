@@ -939,6 +939,7 @@ dependencies = [
  "chrono",
  "clash-verge-self-service",
  "clash-verge-self-utils",
+ "dark-light",
  "deelevate",
  "delay_timer",
  "dirs 6.0.0",
@@ -1386,6 +1387,23 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
+]
+
+[[package]]
+name = "dark-light"
+version = "3.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0f66b71ac6b73812b0bf51cda8dd646a268fbb38623f45b2b7907593c323f745"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "objc2",
+ "objc2-foundation",
+ "wasm-bindgen",
+ "web-sys",
+ "windows-sys 0.61.2",
+ "winreg 0.56.0",
+ "zbus",
 ]
 
 [[package]]
@@ -8928,6 +8946,16 @@ checksum = "cb5a765337c50e9ec252c2069be9bf91c7df47afb103b642ba3a53bf8101be97"
 dependencies = [
  "cfg-if",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "winreg"
+version = "0.56.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d6f32a0ff4a9f6f01231eb2059cc85479330739333e0e58cadf03b6af2cca10"
+dependencies = [
+ "cfg-if",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
