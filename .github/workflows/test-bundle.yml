@@ -49,6 +49,7 @@ jobs:
             ENTRIES="${ENTRIES:+$ENTRIES,}"'{"os":"ubuntu-22.04","target":"x86_64-unknown-linux-gnu"}'
           fi
           echo "matrix={\"include\":[$ENTRIES]}" >> "$GITHUB_OUTPUT"
+          echo "Generated matrix: $ENTRIES"
 
   build:
     needs: prepare-matrix
