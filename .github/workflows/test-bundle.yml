@@ -1,10 +1,23 @@
-name: Test Build
+name: Test Bundle
 
 on:
-  # push:
-  #   branches-ignore: [renovate/**, dev, up-dev]
-  #   tags-ignore: [updater, alpha]
   workflow_dispatch:
+    inputs:
+      windows:
+        description: Build for Windows (x86_64)
+        type: boolean
+        default: true
+        required: false
+      macos:
+        description: Build for macOS (aarch64)
+        type: boolean
+        default: true
+        required: false
+      ubuntu:
+        description: Build for Ubuntu-22.04 (x86_64)
+        type: boolean
+        default: true
+        required: false
 
 concurrency:
   group: test-${{ github.ref }}
@@ -16,17 +29,32 @@ env:
   RUST_BACKTRACE: short
 
 jobs:
+  prepare-matrix:
+    name: Prepare Matrix
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set Matrix
+        id: set-matrix
+        run: |
+          ENTRIES=""
+          if [ "${{ inputs.windows }}" == "true" ]; then
+            ENTRIES="${ENTRIES:+$ENTRIES,}"'{"os":"windows-latest","target":"x86_64-pc-windows-msvc"}'
+          fi
+          if [ "${{ inputs.macos }}" == "true" ]; then
+            ENTRIES="${ENTRIES:+$ENTRIES,}"'{"os":"macos-latest","target":"aarch64-apple-darwin"}'
+          fi
+          if [ "${{ inputs.ubuntu }}" == "true" ]; then
+            ENTRIES="${ENTRIES:+$ENTRIES,}"'{"os":"ubuntu-22.04","target":"x86_64-unknown-linux-gnu"}'
+          fi
+          echo "matrix=[$ENTRIES]" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: prepare-matrix
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-          - os: macos-latest
-            target: aarch64-apple-darwin
-          - os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -52,14 +80,27 @@ jobs:
         with:
           run_install: false
 
+      - name: Configure Fast APT Mirror
+        if: matrix.os == 'ubuntu-22.04' && inputs.ubuntu
+        uses: vegardit/fast-apt-mirror.sh@v1
+        with: # the following parameters are listed with their action default values and are optional
+          healthchecks: 20 # Number of mirrors from the mirrors list to check for availability and up-to-dateness
+          speedtests: 10 # Maximum number of healthy mirrors to test for speed
+          parallel: 2 # Number of parallel speed tests
+          sample-size: 1024 # Number of kilobytes to download during the speed from each mirror
+          sample-time: 3 # Maximum number of seconds within the sample download from a mirror must finish
+          country: "" # The country code for selecting Ubuntu mirrors. If not set, defaults to http://mirrors.ubuntu.com/mirrors.txt
+          exclude-current: false # If set to "true", don't include the current APT mirror in the speed tests
+          configure-mirror: auto # Whether to configure the APT mirror: auto, true, or false
+
       - name: Install Packages (Linux)
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y jq libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
       - name: Get Version (Linux)
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        if: matrix.os == 'ubuntu-22.04'
         id: get_version
         run: |
           echo "VERSION=$(cat package.json | jq '.version' | tr -d '"')" >> "$GITHUB_OUTPUT"
@@ -76,14 +117,14 @@ jobs:
           pnpm build --target ${{ matrix.target }}
 
       - name: Update Checksums (Arch Linux PKG)
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           echo "version: ${{ steps.get_version.outputs.VERSION }}"
           cp target/${{ matrix.target }}/release/bundle/deb/clash-verge-self_${{ steps.get_version.outputs.VERSION }}_amd64.deb archbuild/test/amd64.deb
           sed -i "s/sha256sums_x86_64=.*/sha256sums_x86_64=(\"$(sha256sum archbuild/test/amd64.deb | awk '{print $1}')\")/" archbuild/test/PKGBUILD
 
       - name: Makepkg Build and Check (Arch Linux PKG)
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        if: matrix.os == 'ubuntu-22.04'
         id: makepkg
         uses: CachyOS/pkgbuild-action@99a0608d129dae363a6174971400e018dd0f4577 # master
         with:
