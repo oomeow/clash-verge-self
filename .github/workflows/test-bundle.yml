@@ -6,12 +6,12 @@ on:
       windows:
         description: Build for Windows (x86_64)
         type: boolean
-        default: false
+        default: true
         required: false
       macos:
         description: Build for macOS (aarch64)
         type: boolean
-        default: false
+        default: true
         required: false
       ubuntu:
         description: Build for Ubuntu-22.04 (x86_64)
