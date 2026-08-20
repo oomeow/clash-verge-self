@@ -1,10 +1,23 @@
-name: Test Build
+name: Test Bundle
 
 on:
-  # push:
-  #   branches-ignore: [renovate/**, dev, up-dev]
-  #   tags-ignore: [updater, alpha]
   workflow_dispatch:
+    inputs:
+      windows:
+        description: Build for Windows (x86_64)
+        type: boolean
+        default: false
+        required: false
+      macos:
+        description: Build for macOS (aarch64)
+        type: boolean
+        default: false
+        required: false
+      ubuntu:
+        description: Build for Ubuntu-22.04 (x86_64)
+        type: boolean
+        default: true
+        required: false
 
 concurrency:
   group: test-${{ github.ref }}
@@ -16,17 +29,32 @@ env:
   RUST_BACKTRACE: short
 
 jobs:
+  prepare-matrix:
+    name: Prepare Matrix
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Set Matrix
+        id: set-matrix
+        run: |
+          ENTRIES=""
+          if [ "${{ inputs.windows }}" == "true" ]; then
+            ENTRIES="${ENTRIES:+$ENTRIES,}"'{"os":"windows-latest","target":"x86_64-pc-windows-msvc"}'
+          fi
+          if [ "${{ inputs.macos }}" == "true" ]; then
+            ENTRIES="${ENTRIES:+$ENTRIES,}"'{"os":"macos-latest","target":"aarch64-apple-darwin"}'
+          fi
+          if [ "${{ inputs.ubuntu }}" == "true" ]; then
+            ENTRIES="${ENTRIES:+$ENTRIES,}"'{"os":"ubuntu-22.04","target":"x86_64-unknown-linux-gnu"}'
+          fi
+          echo "matrix=[$ENTRIES]" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: prepare-matrix
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-          - os: macos-latest
-            target: aarch64-apple-darwin
-          - os: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -53,7 +81,7 @@ jobs:
           run_install: false
 
       - name: Configure Fast APT Mirror
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-22.04' && inputs.ubuntu
         uses: vegardit/fast-apt-mirror.sh@v1
         with: # the following parameters are listed with their action default values and are optional
           healthchecks: 20 # Number of mirrors from the mirrors list to check for availability and up-to-dateness
