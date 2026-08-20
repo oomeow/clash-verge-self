@@ -48,7 +48,7 @@ jobs:
           if [ "${{ inputs.ubuntu }}" == "true" ]; then
             ENTRIES="${ENTRIES:+$ENTRIES,}"'{"os":"ubuntu-22.04","target":"x86_64-unknown-linux-gnu"}'
           fi
-          echo "matrix=[$ENTRIES]" >> "$GITHUB_OUTPUT"
+          echo "matrix={\"include\":[$ENTRIES]}" >> "$GITHUB_OUTPUT"
 
   build:
     needs: prepare-matrix
