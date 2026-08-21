@@ -55,6 +55,7 @@ import {
 } from "@/services/cmds";
 import { useMihomoDownloadsSWR, useMihomoVersionsSWR } from "@/services/swr";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 type ChannelFilter = "all" | "stable" | "alpha" | "nightly";
 
@@ -145,8 +146,8 @@ const DownloadProgress = ({ installing }: { installing: boolean }) => {
     if (!progress) return;
     try {
       await cancelMihomoDownload(progress.tag);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   };
 
@@ -270,13 +271,20 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
 
   const filtered = useMemo(() => {
     if (!versions) return [];
-    const list = versions.filter(
-      (v) =>
-        v.channel !== "nightly" &&
-        (channel === "all" || v.channel === channel) &&
-        (!downloaded ||
-          v.assets.some((a) => downloadedSet.has(assetBaseName(a)))),
-    );
+    const list = versions
+      .map((i) => {
+        const updated_at = formatTime(i.updated_at);
+        const published_at = formatTime(i.published_at);
+        const created_at = formatTime(i.created_at);
+        return { ...i, updated_at, created_at, published_at };
+      })
+      .filter(
+        (v) =>
+          v.channel !== "nightly" &&
+          (channel === "all" || v.channel === channel) &&
+          (!downloaded ||
+            v.assets.some((a) => downloadedSet.has(assetBaseName(a)))),
+      );
     // 预发布版本置顶；其余保持后端给定的新→旧顺序（Array#sort 稳定）。
     return list.sort((a, b) => {
       if (a.prerelease !== b.prerelease) return a.prerelease ? -1 : 1;
@@ -322,8 +330,8 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
         t("messages.clash.core.versionInstalled", { tag: selectedVersion.tag }),
         1500,
       );
-    } catch (err: any) {
-      const msg = err.message || err.toString();
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
       if (msg.toLowerCase().includes("cancelled")) {
         notice(
           "info",
@@ -343,8 +351,8 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
       await deleteMihomoDownload(asset.name);
       await mutateDownloads();
       notice("success", t("messages.clash.core.versionDeleted"), 1000);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       setDeleteTarget(null);
     }
@@ -414,21 +422,11 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
                 }}>
                 <Typography variant="caption">
                   {version.published_at
-                    ? new Date(version.published_at).toLocaleDateString()
+                    ? t("pages.settings.clash.versionManager.publishDate", {
+                        date: version.published_at,
+                      })
                     : t("pages.settings.clash.versionManager.unknownDate")}
                 </Typography>
-                {version.updated_at &&
-                  version.updated_at !== version.published_at && (
-                    <>
-                      <Typography variant="caption" sx={{ opacity: 0.5 }}>
-                        ·
-                      </Typography>
-                      <Typography variant="caption">
-                        {t("pages.settings.clash.versionManager.updatedDate")}{" "}
-                        {formatTime(version.updated_at)}
-                      </Typography>
-                    </>
-                  )}
                 <Typography variant="caption" sx={{ opacity: 0.7 }}>
                   {version.assets.length}{" "}
                   {t("pages.settings.clash.versionManager.variants")}
@@ -508,8 +506,8 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
                           <Typography variant="caption" sx={{ ...ellipsis }}>
                             {t(
                               "pages.settings.clash.versionManager.updatedDate",
-                            )}{" "}
-                            {formatTime(asset.updated_at)}
+                              { date: asset.updated_at },
+                            )}
                           </Typography>
                         )}
                       </Box>
