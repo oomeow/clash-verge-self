@@ -74,11 +74,8 @@ jobs:
         id: version
         run: |
           # 尾数 +1（如 2.3.2 → 2.3.3）：-preview 低于正式版，避免被误判为已发布版本的预览
-          BASE_NEXT=$(node -p "
-            const v = require('./src-tauri/tauri.conf.json').version.split('.');
-            v[v.length - 1] = String(Number(v[v.length - 1]) + 1);
-            v.join('.');
-          ")
+          BASE=$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' src-tauri/tauri.conf.json | head -n 1)
+          BASE_NEXT=$(echo "$BASE" | awk -F. '{ $NF = $NF + 1; print $0 }' OFS=.)
           echo "base version (next): ${BASE_NEXT}"
 
           # 构建时间（上海时间 UTC+8，2 位年份 + 月日时分）作为 preview 序号，符合 semver 且随时间递增
