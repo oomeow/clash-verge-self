@@ -91,7 +91,7 @@ jobs:
 
       - name: Install Binstall
         if: matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu'
-        uses: cargo-bins/cargo-binstall@8f137732cada3c067cb574fe3537fedfe2a6451d # main
+        uses: cargo-bins/cargo-binstall@e192da8de838bd9f11899b4078279e9a359f612e # main
 
       - name: Install Cross
         if: matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu'
