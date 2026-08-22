@@ -13,12 +13,12 @@ import { ProviderButton } from "@/components/rule/provider-button";
 import { RuleItem } from "@/components/rule/rule-item";
 import { RuleSearchBox } from "@/components/rule/rule-search-box";
 import { useRulesStateStore } from "@/stores";
-import { CustomRule } from "@/stores/rulesStateStore";
+import type { CustomRule } from "@/stores/rulesStateStore";
 import {
   createRuleSearchMatcher,
   EMPTY_RULE_SEARCH,
   normalizeDomain,
-  RuleSearchState,
+  type RuleSearchState,
 } from "@/utils/rule-search";
 
 type CustomRuleWithMatch = CustomRule & {
@@ -109,7 +109,7 @@ const RulesPage = () => {
     <BasePage
       full
       title={t("pages.rules.title")}
-      contentStyle={{ height: "100%" }}
+      contentStyle={{ display: "flex", flexDirection: "column" }}
       header={
         <Box
           sx={{
@@ -148,6 +148,7 @@ const RulesPage = () => {
           alignItems: "center",
           gap: 1,
           boxSizing: "border-box",
+          flexShrink: 0,
         }}>
         <RuleSearchBox onSearch={handleSearch} />
         <Typography
@@ -166,7 +167,8 @@ const RulesPage = () => {
       </Box>
       <Box
         sx={{
-          height: "calc(100% - 50px)",
+          flex: 1,
+          minHeight: 0,
           position: "relative",
           boxSizing: "border-box",
           mb: "4px",

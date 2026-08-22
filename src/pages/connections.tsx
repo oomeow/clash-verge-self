@@ -24,17 +24,17 @@ import { closeAllConnections, closeConnection } from "tauri-plugin-mihomo-api";
 import { BaseEmpty, BasePage, BaseStyledSelect } from "@/components/base";
 import {
   ConnectionDetail,
-  ConnectionDetailRef,
+  type ConnectionDetailRef,
 } from "@/components/connection/connection-detail";
 import {
-  ConnectionFilter,
+  type ConnectionFilter,
   ConnectionFilterBox,
   createConnectionFilterMatcher,
 } from "@/components/connection/connection-filter-box";
 import { ConnectionItem } from "@/components/connection/connection-item";
 import { ConnectionTable } from "@/components/connection/connection-table";
 import {
-  IClosedConnectionItem,
+  type IClosedConnectionItem,
   initConnData,
   useConnectionData,
 } from "@/hooks/use-connection-data";
@@ -101,7 +101,7 @@ const ConnectionsPage = () => {
     clearClosedConnections,
   } = useConnectionData();
 
-  const detailRef = useRef<ConnectionDetailRef>(null!);
+  const detailRef = useRef<ConnectionDetailRef>(null);
   const totalUpload = parseTraffic(connData.uploadTotal);
   const totalDownload = parseTraffic(connData.downloadTotal);
   const activeConns = connData.activeConnections;
@@ -190,7 +190,7 @@ const ConnectionsPage = () => {
     return () => {
       scroller.removeEventListener("scroll", updateScrollTopVisible);
     };
-  }, [filteredConnections.length, isTableLayout, tabName]);
+  }, [filteredConnections.length, isTableLayout]);
 
   return (
     <BasePage
@@ -200,7 +200,6 @@ const ConnectionsPage = () => {
           {t("pages.connections.title")}
         </span>
       }
-      contentStyle={{ height: "100%" }}
       header={
         <Stack
           direction="row"

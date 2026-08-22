@@ -41,7 +41,6 @@ const ProxyPage = () => {
   return (
     <BasePage
       full
-      contentStyle={{ height: "100%" }}
       title={t("pages.proxies.groups")}
       header={
         <Box

@@ -14,7 +14,7 @@ import {
 import LogItem from "@/components/log/log-item";
 import { useLogData } from "@/hooks/use-log-data";
 import { useClashLogStore } from "@/stores";
-import { LogFilter } from "@/stores/clashLogStore";
+import type { LogFilter } from "@/stores/clashLogStore";
 
 const LogPage = () => {
   const { t } = useTranslation();
@@ -39,7 +39,7 @@ const LogPage = () => {
     <BasePage
       full
       title={t("pages.logs.title")}
-      contentStyle={{ height: "100%" }}
+      contentStyle={{ display: "flex", flexDirection: "column" }}
       header={
         <Stack direction="row" className="items-center" spacing={2}>
           <IconButton
@@ -66,7 +66,7 @@ const LogPage = () => {
       <Stack
         direction="row"
         spacing={1}
-        className="mx-2.5 my-2 box-border h-9 items-center">
+        className="mx-2.5 my-2 box-border h-9 shrink-0 items-center">
         <BaseStyledSelect
           value={logState}
           onChange={(e) => setLogFilter(e.target.value as LogFilter)}>
@@ -79,7 +79,7 @@ const LogPage = () => {
       </Stack>
       <Paper
         elevation={0}
-        className="bg-background-paper mx-2.5 mb-1 box-border h-[calc(100%-50px)] rounded-xl">
+        className="bg-background-paper mx-2.5 mb-1 box-border min-h-0 flex-1 rounded-xl">
         {filterLogs.length > 0 ? (
           <Virtuoso
             initialTopMostItemIndex={999}

@@ -15,7 +15,7 @@ import google from "@/assets/image/test/google.svg?raw";
 import youtube from "@/assets/image/test/youtube.svg?raw";
 import { BasePage, SortableItem } from "@/components/base";
 import { TestItem } from "@/components/test/test-item";
-import { TestViewer, TestViewerRef } from "@/components/test/test-viewer";
+import { TestViewer, type TestViewerRef } from "@/components/test/test-viewer";
 import { useVergeStore } from "@/stores";
 
 const DEFAULT_TEST_LIST = [
@@ -87,7 +87,7 @@ const TestPage = () => {
       id: item.uid,
     }));
     setSortableTestList(sortable);
-  }, [testList]);
+  }, [patchVerge, testList]);
 
   const viewerRef = useRef<TestViewerRef>(null);
 
@@ -95,7 +95,6 @@ const TestPage = () => {
     <BasePage
       full
       title={t("pages.test.title")}
-      contentStyle={{ height: "100%", overflow: "auto" }}
       header={
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Button
