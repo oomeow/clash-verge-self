@@ -92,7 +92,8 @@ if (import.meta.main) {
     const snapshot = snapshotFilesHashOnDir(serviceDir);
     try {
       fs.writeJsonSync(SERVICE_CACHE_FILE, snapshot, { spaces: 2 });
-    } catch (_err) {
+    } catch (err) {
+      console.error(err);
       // cache write failure should not hide successful build, but notify user
       process.exit(1);
     }

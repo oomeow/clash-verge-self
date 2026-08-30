@@ -601,6 +601,7 @@
         "permissionsGranted": "{{core}} 内核授权成功",
         "requireGrant": "当前 Tun 模式已开启，请给 {{core}} 内核授权后再切换",
         "versionUpdated": "内核版本已更新",
+        "noVersionInfo": "无法获取 mihomo 版本信息",
         "versionInstalled": "{{tag}} 已安装并切换",
         "versionDeleted": "已删除下载文件",
         "restarted": "已重启 Clash 内核",

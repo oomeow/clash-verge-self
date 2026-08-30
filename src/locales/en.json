@@ -601,6 +601,7 @@
         "permissionsGranted": "Permissions Granted Successfully for {{core}} Core",
         "requireGrant": "Tun mode is currently enabled, please grant permission to {{core}} before switching",
         "versionUpdated": "Core Version Updated",
+        "noVersionInfo": "Unable to fetch mihomo release information",
         "versionInstalled": "{{tag}} installed and switched",
         "versionDeleted": "Downloaded file deleted",
         "restarted": "Clash Core Restarted",

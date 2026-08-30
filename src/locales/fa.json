@@ -601,6 +601,7 @@
         "permissionsGranted": "مجوزها با موفقیت برای هسته {{core}} اعطا شد",
         "requireGrant": "حالت Tun اکنون فعال است؛ پیش از تغییر، مجوز هسته {{core}} را اعطا کنید",
         "versionUpdated": "نسخه هسته به‌روزرسانی شد",
+        "noVersionInfo": "دریافت اطلاعات انتشار mihomo ممکن نشد",
         "versionInstalled": "{{tag}} نصب و جابه‌جا شد",
         "versionDeleted": "فایل دانلود شده حذف شد",
         "restarted": "هسته Clash مجدداً راه‌اندازی شد",

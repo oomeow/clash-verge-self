@@ -12,13 +12,12 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import { emit } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
 import { debounce } from "lodash-es";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PulseLoader } from "react-spinners";
-import { closeAllConnections, upgradeCore } from "tauri-plugin-mihomo-api";
+import { closeAllConnections } from "tauri-plugin-mihomo-api";
 
 import MetaIcon from "@/assets/image/Meta.svg?react";
 import { BaseDialog, type DialogRef } from "@/components/base";
@@ -28,7 +27,9 @@ import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";
 import {
   changeClashCore,
+  getMihomoVersions,
   grantPermissions,
+  installMihomoVersion,
   restartSidecar,
 } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
@@ -73,24 +74,40 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
     close: () => setOpen(false),
   }));
 
-  const onUpgradebyApi = useLockFn(async () => {
+  const onUpgrade = useLockFn(async () => {
     try {
       setUpgrading(true);
-      await upgradeCore();
-      setUpgrading(false);
-      notice("success", t(`messages.clash.core.versionUpdated`), 1000);
-      setTimeout(async () => {
-        await emit("verge://refresh-websocket");
-      }, 2000);
-    } catch (err: unknown) {
-      const message = getErrorMessage(err);
-      setUpgrading(false);
-      if (message.includes("already using latest version")) {
-        notice("info", t("messages.app.latestVersion"), 1000);
-      } else {
-        notice("error", message);
+      const versions = await getMihomoVersions();
+      // 当前槽位对应频道的最新版本（后端已按平台过滤、新→旧排序，
+      // 并把标准编译变体排在资产列表首位）。
+      const channel = clashCore === "self-mihomo-alpha" ? "alpha" : "stable";
+      const target = versions.find((v) => v.channel === channel);
+      if (!target || target.assets.length === 0) {
+        notice("error", t("messages.clash.core.noVersionInfo"), 1500);
+        return;
       }
+      // 已是最新则跳过下载。
+      const installed = mihomoCoresInfo.find(
+        (info) => info.core === clashCore,
+      )?.version;
+      if (installed) {
+        const isLatest =
+          installed === target.tag ||
+          installed.replace(/^v/i, "") === target.semver ||
+          // alpha 槽位只报短哈希（如 alpha-8d71008），tag 对不上，
+          // 直接比对资产名内嵌的同一哈希。
+          target.assets.some((a) => a.name.includes(installed));
+        if (isLatest) {
+          notice("info", t("messages.app.latestVersion"), 1000);
+          return;
+        }
+      }
+      await installMihomoVersion(target.tag, target.assets[0].name);
+      notice("success", t(`messages.clash.core.versionUpdated`), 1000);
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
+      setUpgrading(false);
       muteMihomoCoresInfo();
     }
   });
@@ -288,7 +305,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
                       loadingPosition="start"
                       loading={upgrading}
                       sx={{ marginRight: "8px" }}
-                      onClick={onUpgradebyApi}>
+                      onClick={onUpgrade}>
                       {t("common.actions.upgrade")}
                     </Button>
                   )}

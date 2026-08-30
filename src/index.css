@@ -35,11 +35,16 @@
   --letter-spacing-body2: 0.01071em;
 
   /* Material UI breakpoints */
-  --breakpoint-sm: 37.5rem; /* 600px */
-  --breakpoint-md: 56.25rem; /* 900px */
-  --breakpoint-lg: 75rem; /* 1200px */
-  --breakpoint-xl: 96rem; /* 1536px */
-  --breakpoint-2xl: 120rem; /* 1920px */
+  --breakpoint-sm: 37.5rem;
+  /* 600px */
+  --breakpoint-md: 56.25rem;
+  /* 900px */
+  --breakpoint-lg: 75rem;
+  /* 1200px */
+  --breakpoint-xl: 96rem;
+  /* 1536px */
+  --breakpoint-2xl: 120rem;
+  /* 1920px */
 
   /* Material UI theme colors */
   --color-primary: var(--mui-palette-primary-main);
@@ -288,6 +293,7 @@
     from {
       transform: translateX(0);
     }
+
     to {
       transform: translateX(calc(-100% - var(--gap)));
     }
@@ -299,10 +305,12 @@
       /*background-color: var(--background-color-alpha);*/
       box-shadow: 0 0 0 0 var(--background-color-alpha);
     }
+
     50% {
       /*background-color: var(--background-color-alpha);*/
       box-shadow: 0 0 6px 1px var(--mui-palette-primary-main);
     }
+
     100% {
       /*background-color: var(--background-color-alpha);*/
       box-shadow: 0 0 0 0 var(--background-color-alpha);
@@ -313,6 +321,7 @@
     from {
       transform: translateY(0);
     }
+
     to {
       transform: translateY(calc(-100% - var(--gap)));
     }
@@ -323,12 +332,15 @@
     100% {
       transform: rotate(0deg);
     }
+
     25% {
       transform: rotate(0.5deg);
     }
+
     50% {
       transform: rotate(-0.5deg);
     }
+
     75% {
       transform: rotate(0.3deg);
     }
@@ -378,13 +390,16 @@
   ::-webkit-scrollbar {
     @apply h-[5px] w-[5px];
   }
+
   ::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
+
   ::-webkit-scrollbar-thumb {
     @apply rounded-[5px];
     background-color: var(--scroller-color);
   }
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-primary;
   }
@@ -392,6 +407,7 @@
   .no-scrollbar::-webkit-scrollbar {
     @apply hidden;
   }
+
   .scrollbar::-webkit-scrollbar {
     @apply block;
   }
@@ -458,11 +474,15 @@
 .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline legend,
 .MuiOutlinedInput-notchedOutline legend {
   padding: 0;
-  height: 11px; /* match MUI's expected legend height for correct notch rendering */
-  display: block; /* MUI expects legend to be block for measurement and overflow handling */
-  overflow: hidden; /* clip excess so only the intended notch is visible */
+  height: 11px;
+  /* match MUI's expected legend height for correct notch rendering */
+  display: block;
+  /* MUI expects legend to be block for measurement and overflow handling */
+  overflow: hidden;
+  /* clip excess so only the intended notch is visible */
   line-height: normal;
-  white-space: nowrap; /* ensure measured width equals label width */
+  white-space: nowrap;
+  /* ensure measured width equals label width */
 }
 
 .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline legend span,

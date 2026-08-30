@@ -601,6 +601,7 @@
         "permissionsGranted": "Разрешения успешно предоставлены для ядра {{core}}",
         "requireGrant": "Tun уже включён. Предоставьте права для ядра {{core}} перед переключением",
         "versionUpdated": "Обновлена версия ядра",
+        "noVersionInfo": "Не удалось получить информацию о релизах mihomo",
         "versionInstalled": "{{tag}} установлена и переключена",
         "versionDeleted": "Скачанный файл удалён",
         "restarted": "Clash ядра перезапущено",
