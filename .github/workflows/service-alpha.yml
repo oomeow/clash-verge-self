@@ -82,7 +82,7 @@ jobs:
             "./clash-verge-self-service-${{ matrix.target }}${EXT}"
 
       - name: Create Pre-Release
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           name: Clash Verge Self Service Alpha
           tag_name: service-alpha
