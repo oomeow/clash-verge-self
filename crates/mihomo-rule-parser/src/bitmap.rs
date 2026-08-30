@@ -4,10 +4,7 @@ pub(crate) struct Bitmap;
 // 全局常量
 const SELECT_8_LOOKUP: [u8; 256 * 8] = generate_select8_lookup();
 const MASK: [u64; 65] = generate_mask();
-const RMASK: [u64; 65] = generate_rmask();
-const MASK_UPTO: [u64; 64] = generate_mask_upto();
 const RMASK_UPTO: [u64; 64] = generate_rmask_upto();
-const BIT: [u64; 64] = generate_bit();
 
 const fn generate_select8_lookup() -> [u8; 256 * 8] {
     let mut arr = [0u8; 256 * 8];
@@ -38,16 +35,6 @@ const fn generate_mask() -> [u64; 65] {
     arr
 }
 
-const fn generate_rmask() -> [u64; 65] {
-    let mut arr = [0u64; 65];
-    let mut i = 0;
-    while i < 65 {
-        arr[i] = !generate_mask()[i];
-        i += 1;
-    }
-    arr
-}
-
 const fn generate_mask_upto() -> [u64; 64] {
     let mut arr = [0u64; 64];
     let mut i = 0;
@@ -64,16 +51,6 @@ const fn generate_rmask_upto() -> [u64; 64] {
     let mut i = 0;
     while i < 64 {
         arr[i] = !generate_mask_upto()[i];
-        i += 1;
-    }
-    arr
-}
-
-const fn generate_bit() -> [u64; 64] {
-    let mut arr = [0u64; 64];
-    let mut i = 0;
-    while i < 64 {
-        arr[i] = 1 << i;
         i += 1;
     }
     arr
@@ -181,5 +158,103 @@ impl Bitmap {
         let c1 = n + (w & MASK[j as usize]).count_ones() as i32;
 
         (c1, (w >> (j as usize)) as i32 & 1)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn naive_rank(words: &[u64], i: usize) -> usize {
+        let full = words
+            .iter()
+            .take(i / 64)
+            .map(|w| w.count_ones() as usize)
+            .sum::<usize>();
+        let rem = i % 64;
+        if rem == 0 {
+            full
+        } else {
+            full + (words[i / 64] & MASK[rem]).count_ones() as usize
+        }
+    }
+
+    fn naive_select(words: &[u64], ith: usize) -> Option<usize> {
+        let mut seen = 0;
+        for b in 0..words.len() * 64 {
+            if (words[b >> 6] & (1 << (b & 63))) != 0 {
+                if seen == ith {
+                    return Some(b);
+                }
+                seen += 1;
+            }
+        }
+        None
+    }
+
+    fn lcg(seed: &mut u64) -> u64 {
+        *seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *seed
+    }
+
+    #[test]
+    fn test_rank_select_match_naive_random() {
+        let mut seed = 0x1234_5678_u64;
+        let mut words = vec![0u64; 37];
+        for w in &mut words {
+            *w = lcg(&mut seed);
+        }
+
+        let (selects, ranks) = Bitmap::index_select_32_r64(&words);
+
+        let total_bits = words.len() * 64;
+        for i in 0..total_bits {
+            let (rank, bit) = Bitmap::rank_64(&words, &ranks, i as i32);
+            assert_eq!(rank as usize, naive_rank(&words, i), "rank mismatch at {i}");
+            let expect_bit = (words[i >> 6] >> (i & 63)) & 1;
+            assert_eq!(bit as u64, expect_bit, "bit mismatch at {i}");
+        }
+
+        let total_ones = naive_rank(&words, total_bits);
+        for ith in 0..total_ones {
+            let (pos, _) = Bitmap::select_32_r64(&words, &selects, &ranks, ith as i32);
+            assert_eq!(
+                pos as usize,
+                naive_select(&words, ith).unwrap(),
+                "select mismatch for ith {ith}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_rank_select_edge_cases() {
+        // 全 0
+        let words = vec![0u64; 3];
+        let (selects, ranks) = Bitmap::index_select_32_r64(&words);
+        assert!(selects.is_empty());
+        for i in 0..words.len() * 64 {
+            let (rank, bit) = Bitmap::rank_64(&words, &ranks, i as i32);
+            assert_eq!(rank, 0);
+            assert_eq!(bit, 0);
+        }
+
+        // 全 1
+        let words = vec![u64::MAX; 2];
+        let (selects, ranks) = Bitmap::index_select_32_r64(&words);
+        for ith in 0..128 {
+            let (pos, _) = Bitmap::select_32_r64(&words, &selects, &ranks, ith as i32);
+            assert_eq!(pos as usize, ith, "all-ones select mismatch at {ith}");
+        }
+        for i in 0..128 {
+            let (rank, bit) = Bitmap::rank_64(&words, &ranks, i as i32);
+            assert_eq!(rank as usize, i, "all-ones rank mismatch at {i}");
+            assert_eq!(bit, 1);
+        }
+
+        // 单个 1 位在边界处（第 63 位）
+        let words = vec![1u64 << 63, 0];
+        let (selects, ranks) = Bitmap::index_select_32_r64(&words);
+        let (pos, _) = Bitmap::select_32_r64(&words, &selects, &ranks, 0);
+        assert_eq!(pos, 63);
     }
 }

@@ -1,5 +1,5 @@
 use std::{
-    io::{BufRead, BufReader, Read, Write},
+    io::{BufRead, BufReader, Cursor, Read, Write},
     path::Path,
 };
 
@@ -9,6 +9,30 @@ use crate::{
     MRS_MAGIC, RuleBehavior, RulePayload, YamlPayload,
     error::{Result, RuleParseError},
 };
+
+/// Decompression budget for MRS payloads: at most `MAX_DECOMPRESSION_RATIO` times
+/// the compressed input size, with an absolute ceiling, so a tiny malicious file
+/// cannot expand into a decompression bomb.
+const MAX_DECOMPRESSION_RATIO: usize = 256;
+const MIN_DECOMPRESSION_BUDGET: usize = 1 << 20; // 1 MiB
+const MAX_DECOMPRESSION_BUDGET: usize = 1 << 29; // 512 MiB
+
+/// Decompress an MRS payload into memory, capping the output size to guard
+/// against decompression bombs. All length fields are then validated against
+/// the real decompressed size before any allocation happens.
+pub(crate) fn read_mrs_payload(buf: &[u8]) -> Result<Vec<u8>> {
+    let reader = zstd::Decoder::new(Cursor::new(buf))?;
+    let budget = buf
+        .len()
+        .saturating_mul(MAX_DECOMPRESSION_RATIO)
+        .clamp(MIN_DECOMPRESSION_BUDGET, MAX_DECOMPRESSION_BUDGET);
+    let mut decompressed = Vec::new();
+    reader.take((budget + 1) as u64).read_to_end(&mut decompressed)?;
+    if decompressed.len() > budget {
+        return Err(RuleParseError::MrsPayloadTooLarge);
+    }
+    Ok(decompressed)
+}
 
 /// Validate MRS format and return the count of rules.
 pub(crate) fn read_mrs_header<R: Read>(reader: &mut R) -> Result<(RuleBehavior, i64)> {
@@ -32,23 +56,28 @@ pub(crate) fn read_mrs_header<R: Read>(reader: &mut R) -> Result<(RuleBehavior, 
 
     // 读取 Count
     let count = reader.read_i64::<BigEndian>()?;
+    if count < 0 {
+        return Err(RuleParseError::InvalidMRSLength(count));
+    }
 
-    // 读取 Extra 数据
+    // 读取 Extra 数据（for future use），按块跳过以避免基于不可信长度预分配
     let extra_length = reader.read_i64::<BigEndian>()?;
     if extra_length < 0 {
         return Err(RuleParseError::InvalidMRSLength(extra_length));
     }
-
-    // for future use
-    let _extra_data = if extra_length > 0 {
-        let mut data = [0u8, extra_length as u8];
-        reader.read_exact(&mut data)?;
-        Some(data)
-    } else {
-        None
-    };
+    skip_bytes(reader, extra_length as usize)?;
 
     Ok((behavior, count))
+}
+
+fn skip_bytes<R: Read>(reader: &mut R, mut n: usize) -> Result<()> {
+    let mut chunk = [0u8; 4096];
+    while n > 0 {
+        let to_read = n.min(chunk.len());
+        reader.read_exact(&mut chunk[..to_read])?;
+        n -= to_read;
+    }
+    Ok(())
 }
 
 pub(crate) fn write_mrs_header<W: Write>(writer: &mut W, behavior: RuleBehavior, count: i64) -> Result<()> {
@@ -76,8 +105,14 @@ pub(crate) fn parse_from_text(buf: &[u8]) -> Result<RulePayload> {
     let mut count = 0;
     let mut rules: Vec<String> = vec![];
     for rule in reader.lines() {
+        let rule = rule?;
+        let rule = rule.trim();
+        // 与 mihomo 对齐：跳过空行、`#` 注释和 `//` 注释
+        if rule.is_empty() || rule.starts_with('#') || rule.starts_with("//") {
+            continue;
+        }
         count += 1;
-        rules.push(rule?.trim().to_string());
+        rules.push(rule.to_string());
     }
     Ok(RulePayload { count, rules })
 }

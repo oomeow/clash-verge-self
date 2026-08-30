@@ -15,3 +15,7 @@ thiserror.workspace = true
 
 byteorder = "1.5"
 zstd = "0.13"
+
+[dev-dependencies]
+byteorder = "1.5"
+zstd = "0.13"

@@ -253,7 +253,7 @@ fn check_all_mihomo_mrs() -> Result<(), Box<dyn Error>> {
     let check_behaviors = ["domain", "ipcidr"];
     let mrs_dir_paths = [rules_dir.join("geo/geosite"), rules_dir.join("geo/geoip")];
 
-    for (check_behavior, mrs_dir_path) in check_behaviors.into_iter().zip(mrs_dir_paths.into_iter()) {
+    for (check_behavior, mrs_dir_path) in check_behaviors.into_iter().zip(mrs_dir_paths) {
         let mrs_dir = std::fs::read_dir(&mrs_dir_path)?;
         let mut mrs_files = Vec::new();
         mrs_dir
@@ -357,10 +357,7 @@ fn check_all_mihomo_mrs() -> Result<(), Box<dyn Error>> {
             println!("\n------------------- ❌ [{check_behavior}] check diff error files -----------------------");
             println!("{:?}", check_diff_error_file.lock().unwrap());
             println!("----------------------------------------------------------------------");
-            return Err(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "check diff error",
-            )));
+            return Err(Box::new(std::io::Error::other("check diff error")));
         }
     }
 

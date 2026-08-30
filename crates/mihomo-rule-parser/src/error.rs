@@ -17,6 +17,10 @@ pub enum RuleParseError {
     InvalidMRSVersion,
     #[error("invalid mrs length: {0}")]
     InvalidMRSLength(i64),
+    #[error("mrs payload too large")]
+    MrsPayloadTooLarge,
+    #[error("invalid mrs domain set")]
+    InvalidDomainSet,
     #[error("invalid rule behavior: {0}")]
     InvalidBehavior(String),
     #[error("invalid rule format: {0}")]
