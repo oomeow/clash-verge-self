@@ -24,7 +24,14 @@ export async function buildService(logger?: (message: string) => void) {
   // const command = useCrossBuild ? "cross" : "cargo";
 
   const command = "cargo";
-  const args = ["build", "--release", "--package", packageName];
+  const args = [
+    "build",
+    "--release",
+    "--package",
+    packageName,
+    "--color",
+    "always",
+  ];
   if (target) {
     args.push("--target", target);
   }
