@@ -111,55 +111,57 @@ const TestPage = () => {
           </Button>
         </Box>
       }>
-      <DragDropProvider
-        sensors={(defaults) => [
-          ...defaults,
-          PointerSensor.configure({
-            activationConstraints: [
-              new PointerActivationConstraints.Distance({ value: 5 }),
-            ],
-          }),
-        ]}
-        onDragEnd={async (event) => {
-          const newTestList = move(sortableTestList, event);
-          setSortableTestList(newTestList);
-          await patchVerge({
-            test_list: newTestList.map(({ id, ...item }) => item),
-          });
-        }}>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 px-2.5">
-          {sortableTestList.map((item, index) => (
-            <SortableItem key={item.uid} id={item.uid} index={index}>
-              <TestItem
-                id={item.uid}
-                itemData={item}
-                onEdit={() => viewerRef.current?.edit(item)}
-                onDelete={async (uid) => await onDeleteTestListItem(uid)}
-              />
-            </SortableItem>
-          ))}
-        </div>
-        <DragOverlay>
-          {(source) => {
-            const draggingItem = sortableTestList.find(
-              (x) => x.id === source.id,
-            );
-            if (!draggingItem) return null;
-            return (
-              <TestItem
-                id={draggingItem.uid}
-                itemData={draggingItem}
-                style={{
-                  borderRadius: "8px",
-                  boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
-                }}
-                onEdit={() => {}}
-                onDelete={() => {}}
-              />
-            );
-          }}
-        </DragOverlay>
-      </DragDropProvider>
+      <Box sx={{ overflow: "hidden" }}>
+        <DragDropProvider
+          sensors={(defaults) => [
+            ...defaults,
+            PointerSensor.configure({
+              activationConstraints: [
+                new PointerActivationConstraints.Distance({ value: 5 }),
+              ],
+            }),
+          ]}
+          onDragEnd={async (event) => {
+            const newTestList = move(sortableTestList, event);
+            setSortableTestList(newTestList);
+            await patchVerge({
+              test_list: newTestList,
+            });
+          }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 px-2.5">
+            {sortableTestList.map((item, index) => (
+              <SortableItem key={item.uid} id={item.uid} index={index}>
+                <TestItem
+                  id={item.uid}
+                  itemData={item}
+                  onEdit={() => viewerRef.current?.edit(item)}
+                  onDelete={async (uid) => await onDeleteTestListItem(uid)}
+                />
+              </SortableItem>
+            ))}
+          </div>
+          <DragOverlay>
+            {(source) => {
+              const draggingItem = sortableTestList.find(
+                (x) => x.id === source.id,
+              );
+              if (!draggingItem) return null;
+              return (
+                <TestItem
+                  id={draggingItem.uid}
+                  itemData={draggingItem}
+                  style={{
+                    borderRadius: "8px",
+                    boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
+                  }}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
+                />
+              );
+            }}
+          </DragOverlay>
+        </DragDropProvider>
+      </Box>
       <TestViewer
         ref={viewerRef}
         onChange={async (uid, value) => await onTestListItemChange(uid, value)}

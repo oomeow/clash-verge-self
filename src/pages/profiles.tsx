@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next";
 import {
   BasePage,
   BaseStyledTextField,
-  DialogRef,
+  type DialogRef,
   SortableItem,
 } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
@@ -28,10 +28,11 @@ import { ProfileItem } from "@/components/profile/profile-item";
 import { ProfileMore } from "@/components/profile/profile-more";
 import {
   ProfileViewer,
-  ProfileViewerRef,
+  type ProfileViewerRef,
 } from "@/components/profile/profile-viewer";
 import { ConfigViewer } from "@/components/setting/mods/config-viewer";
 import { useLoadingCacheStore, useProfilesStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 const compactUids = (uids: (string | undefined)[]) =>
   Array.from(new Set(uids.filter((uid): uid is string => !!uid)));
@@ -168,8 +169,8 @@ const ProfilePage = () => {
       startActivation(nextActivatingItemUids);
       await enhanceProfiles();
       notice("success", t("messages.profiles.reactivated"), 1000);
-    } catch (err: any) {
-      notice("error", err.message || err.toString(), 3000);
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err), 3000);
     } finally {
       clearActivationUids(nextActivatingItemUids);
     }
@@ -188,8 +189,8 @@ const ProfilePage = () => {
       if (!newProfiles.current && remoteItem) {
         await patchConfig({ current: remoteItem.uid });
       }
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       setImportLoading(false);
     }
@@ -206,8 +207,8 @@ const ProfilePage = () => {
       startActivation(nextActivatingItemUids);
       await patchConfig({ current });
       notice("success", t("messages.profiles.switched"), 1000);
-    } catch (err: any) {
-      notice("error", err.message || err.toString(), 4000);
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err), 4000);
     } finally {
       clearActivationUids(nextActivatingItemUids);
     }
@@ -222,8 +223,8 @@ const ProfilePage = () => {
         startActivation(nextActivatingItemUids);
       }
       await deleteProfile(uid);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       if (isEnable) {
         clearActivationUids(nextActivatingItemUids);
@@ -241,8 +242,8 @@ const ProfilePage = () => {
         startActivation(nextActivatingItemUids);
         await patchProfile(chainUid, { enable });
         notice("success", t("messages.profiles.reactivated"), 1000);
-      } catch (error) {
-        console.error(error);
+      } catch (err: unknown) {
+        console.error(err);
       } finally {
         clearActivationUids(nextActivatingItemUids, 500);
       }
@@ -262,8 +263,8 @@ const ProfilePage = () => {
       if (item.enable) {
         await onEnhance();
       }
-    } catch (error: any) {
-      notice("error", error.message || error.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       if (item.enable) {
         clearActivationUids(nextActivatingItemUids);
@@ -289,7 +290,9 @@ const ProfilePage = () => {
       );
 
       // Set loading state for each item
-      items.forEach((e) => setLoading(e.uid, true));
+      items.forEach((e) => {
+        setLoading(e.uid, true);
+      });
 
       Promise.allSettled(items.map((e) => updateOne(e.uid))).then(resolve);
     });
@@ -328,8 +331,8 @@ const ProfilePage = () => {
           }),
         );
       }
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       clearActivatingItemUids(activatingUids);
       exitSelectMode();
@@ -355,8 +358,8 @@ const ProfilePage = () => {
           count: deletingUids.length,
         }),
       );
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       if (anyEnabled) clearActivatingItemUids(activatingUids);
       exitSelectMode();
@@ -476,6 +479,7 @@ const ProfilePage = () => {
       <div className="px-2">
         <Box
           sx={{
+            overflow: "hidden",
             transition: "opacity 0.2s",
             ...(selectMode &&
               selectionCategory === "chain" && {
@@ -592,6 +596,7 @@ const ProfilePage = () => {
             </Divider>
             <Box
               sx={{
+                overflow: "hidden",
                 transition: "opacity 0.2s",
                 ...(selectMode &&
                   selectionCategory === "profile" && {
