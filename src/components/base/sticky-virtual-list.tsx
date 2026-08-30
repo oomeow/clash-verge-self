@@ -97,8 +97,7 @@ function StickyVirtualListInner<TItem>(
   );
 
   const estimatedOffsets = useMemo(() => {
-    const offsets = new Array<number>(items.length + 1);
-    offsets[0] = 0;
+    const offsets = Array.from({ length: items.length + 1 }, () => 0);
 
     for (let i = 0; i < items.length; i++) {
       offsets[i + 1] = offsets[i] + getEstimatedItemHeight(i);
@@ -188,7 +187,7 @@ function StickyVirtualListInner<TItem>(
         });
       },
     }),
-    [getVirtualOffset, rowVirtualizer],
+    [isGroupSticky, rowVirtualizer],
   );
 
   return (
@@ -263,10 +262,7 @@ function StickyVirtualListInner<TItem>(
                 transform: `translateY(${virtualRow.start}px)`,
                 width: "100%",
                 zIndex: 1,
-                ...(isGroup && {
-                  opacity: 0,
-                  zIndex: -10,
-                }),
+                ...(isGroup && { visibility: "hidden" }),
               }}>
               {isGroup
                 ? renderGroupItem(item, virtualRow.index, false) // 渲染组，以便动态计算组高度
