@@ -13,6 +13,8 @@ mod classical;
 mod domain;
 mod error;
 mod ipcidr;
+#[cfg(test)]
+mod test_utils;
 mod utils;
 
 /// MRSv1
@@ -86,6 +88,10 @@ impl TryFrom<String> for RuleFormat {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RulePayload {
+    /// 规则计数，语义随来源不同而不同：
+    /// - 解析侧：MRS 头部声明的 count（原始插入次数，与 `rules.len()` 可能不同）；
+    /// - 文本/YAML：有效行数（跳过空行与注释）；
+    /// - 导出侧：domain 为去重后未被通配符覆盖的规则数，ipcidr 为源规则条数。
     pub count: i64,
     pub rules: Vec<String>,
 }
@@ -126,12 +132,20 @@ pub fn export<P: AsRef<Path>>(
     behavior: RuleBehavior,
     format: RuleFormat,
 ) -> Result<()> {
+    // 先分发 behavior：classical 无论格式如何都不支持导出
+    match behavior {
+        RuleBehavior::Classical => {
+            return ClassicalCodecStrategy::export(rules, file_path, format);
+        }
+        RuleBehavior::Domain | RuleBehavior::IpCidr => {}
+    }
+
     if rules.is_empty() {
         return Err(RuleParseError::EmptyRule);
     }
     match behavior {
         RuleBehavior::Domain => DomainCodecStrategy::export(rules, file_path, format),
         RuleBehavior::IpCidr => IpCidrCodecStrategy::export(rules, file_path, format),
-        RuleBehavior::Classical => ClassicalCodecStrategy::export(rules, file_path, format),
+        RuleBehavior::Classical => unreachable!("handled above"),
     }
 }

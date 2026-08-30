@@ -30,3 +30,7 @@
 - 修复订阅界面元素溢出时无法滚动的问题
 - 修复了 scheme 导入链接中 URL 参数值被编码后导致导入失败的问题
 - 修复 grid 列表拖动排序时出现横向滚动条并闪烁的问题
+- 加固 `mihomo-rule-parser` 对恶意/畸形 MRS 输入的解析：有界解压防解压炸弹、长度字段精确校验防 OOM、trie 结构一致性校验与越界保护，消除解析 panic 风险
+- 修复 `mihomo-rule-parser` 在 MRS extra 数据非空时的读取流错位
+- 修复 `mihomo-rule-parser` 中非 ASCII 域名（含多字节 UTF-8）导出/导入往返损坏问题
+- `mihomo-rule-parser` 文本规则解析跳过空行与 `#`/`//` 注释；导出改为原子写；域名规则校验与 Mihomo 对齐（支持 `.x` 通配符等）

@@ -16,24 +16,20 @@ pub fn init_meta_rules() -> Result<PathBuf, Box<dyn std::error::Error>> {
     let rules_dir = tmp_dir.join("meta-rules-dat");
     let exists = std::fs::exists(&rules_dir)?;
     if exists {
-        let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-        commands.iter().for_each(|args| {
-            Command::new("git")
-                .args(args)
-                .current_dir(&rules_dir)
-                .spawn()
-                .expect("failed to spawn command")
-                .wait()
-                .expect("command not running");
-        });
+        for args in [&["restore", "."][..], &["clean", "-fd"][..], &["pull"][..]] {
+            let status = Command::new("git").args(args).current_dir(&rules_dir).status()?;
+            if !status.success() {
+                return Err(format!("git {args:?} failed").into());
+            }
+        }
     } else {
-        Command::new("git")
+        let status = Command::new("git")
             .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])
             .current_dir(&tmp_dir)
-            .spawn()
-            .expect("failed to clone rules")
-            .wait()
-            .expect("command not running");
+            .status()?;
+        if !status.success() {
+            return Err("git clone failed".into());
+        }
     }
     Ok(rules_dir)
 }

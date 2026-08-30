@@ -270,13 +270,13 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
 
 fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
     let (count, ranges) = prepare_ranges(rules)?;
-    let file = std::fs::File::create(file_path)?;
-    let buffered = std::io::BufWriter::new(file);
-    let mut writer = zstd::Encoder::new(buffered, 0)?;
-    utils::write_mrs_header(&mut writer, RuleBehavior::IpCidr, count)?;
-    write_ranges(&mut writer, &ranges)?;
-    writer.finish()?;
-    Ok(())
+    utils::atomic_write(file_path, |writer| {
+        let mut encoder = zstd::Encoder::new(writer, 0)?;
+        utils::write_mrs_header(&mut encoder, RuleBehavior::IpCidr, count)?;
+        write_ranges(&mut encoder, &ranges)?;
+        encoder.finish()?;
+        Ok(())
+    })
 }
 
 fn prepare_ranges(rules: &[String]) -> Result<(i64, Vec<IpRange>)> {
@@ -368,37 +368,8 @@ fn ip_addr_to_mrs_bytes(addr: IpAddr) -> [u8; 16] {
 #[allow(deprecated)]
 mod tests {
 
-    use std::{path::PathBuf, process::Command};
-
     use super::*;
     use crate::error::Result;
-
-    fn init_meta_rules() -> Result<PathBuf> {
-        let tmp_dir = std::env::temp_dir();
-        let rules_dir = tmp_dir.join("meta-rules-dat");
-        let exists = std::fs::exists(&rules_dir)?;
-        if exists {
-            let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-            commands.iter().for_each(|args| {
-                Command::new("git")
-                    .args(args)
-                    .current_dir(&rules_dir)
-                    .spawn()
-                    .expect("failed to spawn command")
-                    .wait()
-                    .expect("command not running");
-            });
-        } else {
-            Command::new("git")
-                .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])
-                .current_dir(&tmp_dir)
-                .spawn()
-                .expect("failed to clone rules")
-                .wait()
-                .expect("command not running");
-        }
-        Ok(rules_dir)
-    }
 
     #[test]
     fn test_ip_range_prefix() -> Result<()> {
@@ -481,7 +452,7 @@ mod tests {
 
     #[test]
     fn test_ipcidr_parse_from_mrs() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.mrs"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -492,7 +463,7 @@ mod tests {
 
     #[test]
     fn test_ipcidr_parse_from_yaml() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.yaml"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -503,7 +474,7 @@ mod tests {
 
     #[test]
     fn test_ipcidr_parse_from_text() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.list"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;

@@ -30,40 +30,13 @@ impl Codec for ClassicalCodecStrategy {
 #[allow(deprecated)]
 mod tests {
 
-    use std::{io::Read, path::PathBuf, process::Command};
+    use std::io::Read;
 
     use super::*;
 
-    fn init_meta_rules() -> Result<PathBuf> {
-        let tmp_dir = std::env::temp_dir();
-        let rules_dir = tmp_dir.join("meta-rules-dat");
-        let exists = std::fs::exists(&rules_dir)?;
-        if exists {
-            let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-            commands.iter().for_each(|args| {
-                Command::new("git")
-                    .args(args)
-                    .current_dir(&rules_dir)
-                    .spawn()
-                    .expect("failed to spawn command")
-                    .wait()
-                    .expect("command not running");
-            });
-        } else {
-            Command::new("git")
-                .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])
-                .current_dir(&tmp_dir)
-                .spawn()
-                .expect("failed to clone rules")
-                .wait()
-                .expect("command not running");
-        }
-        Ok(rules_dir)
-    }
-
     #[test]
     fn test_classical_parse_from_mrs() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.mrs"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -80,7 +53,7 @@ mod tests {
 
     #[test]
     fn test_classical_parse_from_yaml() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/classical/ad.yaml"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -91,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_classical_parse_from_text() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/classical/ad.list"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;

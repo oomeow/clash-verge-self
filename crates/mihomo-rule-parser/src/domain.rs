@@ -272,13 +272,13 @@ struct QueueItem {
 
 fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
     let (count, domain_set) = prepare_domain_set(rules)?;
-    let file = std::fs::File::create(file_path)?;
-    let buffered = std::io::BufWriter::new(file);
-    let mut writer = zstd::Encoder::new(buffered, 0)?;
-    utils::write_mrs_header(&mut writer, RuleBehavior::Domain, count)?;
-    write_domain_set(&mut writer, &domain_set)?;
-    writer.finish()?;
-    Ok(())
+    utils::atomic_write(file_path, |writer| {
+        let mut encoder = zstd::Encoder::new(writer, 0)?;
+        utils::write_mrs_header(&mut encoder, RuleBehavior::Domain, count)?;
+        write_domain_set(&mut encoder, &domain_set)?;
+        encoder.finish()?;
+        Ok(())
+    })
 }
 
 fn prepare_domain_set(rules: &[String]) -> Result<(i64, DomainSet)> {
@@ -317,28 +317,42 @@ fn prepare_domain_set(rules: &[String]) -> Result<(i64, DomainSet)> {
 }
 
 fn expand_rule(rule: &str) -> Result<Vec<String>> {
-    if rule.ends_with('.') || rule.trim() != rule || rule.is_empty() || rule.contains('/') {
+    if rule.trim() != rule || rule.is_empty() || rule.contains('/') || rule.ends_with('.') {
         return Err(RuleParseError::InvalidRule(rule.to_string()));
     }
 
     let normalized = rule.to_lowercase();
-    let parts: Vec<&str> = normalized.split('.').collect();
 
-    if parts.iter().any(|part| part.is_empty()) {
-        return Err(RuleParseError::InvalidRule(rule.to_string()));
+    // 与 mihomo 对齐：`+.x` 或 `.x` 均视为通配符（前者存 x，后者也存 +.x）
+    let (plain, wildcard) = if let Some(rest) = normalized.strip_prefix("+.") {
+        (rest.to_string(), true)
+    } else if let Some(rest) = normalized.strip_prefix('.') {
+        (rest.to_string(), true)
+    } else {
+        (normalized, false)
+    };
+
+    validate_domain_labels(&plain)?;
+
+    if wildcard {
+        Ok(vec![plain.clone(), format!("+.{plain}")])
+    } else {
+        Ok(vec![plain])
     }
+}
 
-    if parts[0] == "+" {
-        if parts.len() < 2 {
-            return Err(RuleParseError::InvalidRule(rule.to_string()));
+/// 对齐 mihomo 的域名校验：拒绝空标签、`..`、任何位置的 `+`（除首标签通配符外）、
+/// 以及含 `*` 但非整标签 `*` 的标签；其余标签字符（含空格）保持宽松接受。
+fn validate_domain_labels(domain: &str) -> Result<()> {
+    if domain.is_empty() || domain.contains("..") {
+        return Err(RuleParseError::InvalidRule(domain.to_string()));
+    }
+    for label in domain.split('.') {
+        if label.is_empty() || label.contains('+') || (label.contains('*') && label != "*") {
+            return Err(RuleParseError::InvalidRule(domain.to_string()));
         }
-
-        let plain = parts[1..].join(".");
-        let wildcard = format!("+.{}", plain);
-        return Ok(vec![plain, wildcard]);
     }
-
-    Ok(vec![normalized])
+    Ok(())
 }
 
 fn reverse_string(value: &str) -> Vec<u8> {
@@ -411,41 +425,64 @@ fn write_domain_set<W: Write>(writer: &mut W, domain_set: &DomainSet) -> Result<
 #[allow(deprecated)]
 mod tests {
 
-    use std::{path::PathBuf, process::Command};
+    use std::io::Read;
 
     use super::*;
     use crate::error::Result;
 
-    fn init_meta_rules() -> Result<PathBuf> {
-        let tmp_dir = std::env::temp_dir();
-        let rules_dir = tmp_dir.join("meta-rules-dat");
-        let exists = std::fs::exists(&rules_dir)?;
-        if exists {
-            let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-            commands.iter().for_each(|args| {
-                Command::new("git")
-                    .args(args)
-                    .current_dir(&rules_dir)
-                    .spawn()
-                    .expect("failed to spawn command")
-                    .wait()
-                    .expect("command not running");
-            });
-        } else {
-            Command::new("git")
-                .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])
-                .current_dir(&tmp_dir)
-                .spawn()
-                .expect("failed to clone rules")
-                .wait()
-                .expect("command not running");
+    #[test]
+    fn test_expand_rule_matrix() -> Result<()> {
+        // 通配符（与 mihomo 一致：`.x` 视同 `+.x`）
+        for (input, expected) in [
+            ("+.example.com", vec!["example.com", "+.example.com"]),
+            (".example.com", vec!["example.com", "+.example.com"]),
+            ("+.gh.io", vec!["gh.io", "+.gh.io"]),
+        ] {
+            assert_eq!(expand_rule(input)?, expected, "input: {input}");
         }
-        Ok(rules_dir)
+
+        // 字面规则
+        for (input, expected) in [
+            ("a.b.c", vec!["a.b.c"]),
+            ("UPPER.COM", vec!["upper.com"]),
+            ("a.*", vec!["a.*"]),
+            ("*.example.com", vec!["*.example.com"]),
+            ("with space.com", vec!["with space.com"]),
+            ("xn--bcher-kva.de", vec!["xn--bcher-kva.de"]),
+            ("1a.com", vec!["1a.com"]),
+            ("-a.com", vec!["-a.com"]),
+        ] {
+            assert_eq!(expand_rule(input)?, expected, "input: {input}");
+        }
+
+        // 拒绝（与 mihomo 对齐）
+        for input in [
+            "example.com.",
+            "a..b",
+            ".a..b",
+            "..a",
+            "foo.+.com",
+            "a+.com",
+            "a+b.com",
+            "+*",
+            "+.a.+",
+            "*a.com",
+            "+",
+            ".",
+            "example.com/24",
+            " empty",
+            "empty ",
+            "",
+        ] {
+            assert!(expand_rule(input).is_err(), "expected {input:?} to be rejected");
+        }
+
+        Ok(())
     }
 
     #[test]
     fn test_domain_parse_from_mrs() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geosite/aliyun.mrs"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -456,7 +493,7 @@ mod tests {
 
     #[test]
     fn test_domain_parse_from_yaml() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geosite/aliyun.yaml"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -467,7 +504,7 @@ mod tests {
 
     #[test]
     fn test_domain_parse_from_text() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geosite/aliyun.list"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
