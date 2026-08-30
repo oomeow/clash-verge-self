@@ -60,6 +60,55 @@ fn resolve_asset<'a>(version: &'a MihomoVersion, asset: &str) -> Result<&'a Miho
         .context("mihomo asset not found")
 }
 
+/// 各平台的标准编译变体基名（与 scripts/utils.ts 的 `MIHOMO_MAP` 对齐）。
+///
+/// mihomo 每个平台会发布多个 CPU 指令集 / 工具链变体（`-v1`/`-v2`/`-v3`、
+/// `-go1xx` 重建、`-compatible`、`-softfloat` 等），这里指定应用默认捆绑的
+/// 那个变体作为「标准变体」，其余变体仅供高级用户在版本管理器中手动选择。
+fn canonical_asset_base(platform: Platform) -> &'static str {
+    match platform {
+        Platform::DarwinX86_64 => "mihomo-darwin-amd64-v3",
+        Platform::DarwinAarch64 => "mihomo-darwin-arm64",
+        Platform::WindowsX86_64 => "mihomo-windows-amd64-v3",
+        Platform::WindowsAarch64 => "mihomo-windows-arm64",
+        Platform::WindowsX86 => "mihomo-windows-386",
+        Platform::WindowsArm => "mihomo-windows-armv7",
+        Platform::LinuxX86_64 => "mihomo-linux-amd64-v3",
+        Platform::LinuxAarch64 => "mihomo-linux-arm64",
+        Platform::LinuxX86 => "mihomo-linux-386",
+        Platform::LinuxArm => "mihomo-linux-armv7",
+    }
+}
+
+/// 资产基名是否为该平台的标准变体。
+///
+/// 基名以 `canonical` 开头，且去掉前缀后的剩余部分不含非标准标记
+/// （`-go1xx` 工具链重建、`-softfloat`、`-compatible`），也不是包管理器格式
+/// （`.pkg.tar` / `.pkg.tar.zst`，如 Arch Linux 包）。
+fn is_canonical_asset(name: &str, canonical: &str) -> bool {
+    let base = base_name(name);
+    base.strip_prefix(canonical).is_some_and(|rest| {
+        !rest.starts_with("-go")
+            && !rest.starts_with("-softfloat")
+            && !rest.starts_with("-compatible")
+            && !base.contains(".pkg.tar")
+    })
+}
+
+/// 把标准变体提到版本资产列表首位；找不到则保持原顺序（退化为第一个）。
+fn prefer_canonical_asset(platform: Platform, mut version: MihomoVersion) -> MihomoVersion {
+    let canonical = canonical_asset_base(platform);
+    if let Some(pos) = version
+        .assets
+        .iter()
+        .position(|a| is_canonical_asset(&a.name, canonical))
+    {
+        let asset = version.assets.remove(pos);
+        version.assets.insert(0, asset);
+    }
+    version
+}
+
 /// 名字去掉压缩扩展名（.tar.gz / .gz / .zip / .zst）。
 fn base_name(name: &str) -> &str {
     for ext in [".tar.gz", ".gz", ".zip", ".zst"] {
@@ -245,8 +294,12 @@ pub async fn get_mihomo_versions() -> CommandResult<Vec<mihomo_versions::MihomoV
         async {
             let index =
                 mihomo_versions::fetch_index_cached(&HttpClient::new()?, &[MIHOMO_RELEASE_URL], &INDEX_CACHE).await?;
-            let mihomo_versionss = mihomo_versions::assets_for_platform(&index, Platform::current()?, None);
-            Ok(mihomo_versionss)
+            let platform = Platform::current()?;
+            let versions = mihomo_versions::assets_for_platform(&index, platform, None)
+                .into_iter()
+                .map(|version| prefer_canonical_asset(platform, version))
+                .collect();
+            Ok(versions)
         }
         .await,
     )
@@ -304,4 +357,137 @@ pub async fn list_mihomo_downloads() -> CommandResult<Vec<String>> {
 #[tauri::command]
 pub async fn delete_mihomo_index_cache() -> CommandResult<()> {
     into_command_result(INDEX_CACHE.clear().await.map_err(|err| anyhow::anyhow!("{err}")))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn asset(name: &str) -> MihomoAsset {
+        MihomoAsset {
+            name: name.to_string(),
+            platform: String::new(),
+            format: "gz".to_string(),
+            size: None,
+            sha256: None,
+            created_at: None,
+            updated_at: None,
+            url: String::new(),
+        }
+    }
+
+    fn asset_names(version: &MihomoVersion) -> Vec<&str> {
+        version.assets.iter().map(|a| a.name.as_str()).collect()
+    }
+
+    #[test]
+    fn canonical_asset_ranks_v3_over_compatible_and_go_rebuilds() {
+        let names = [
+            "mihomo-darwin-amd64-compatible-v1.19.29.gz",
+            "mihomo-darwin-amd64-v3-go120-v1.19.29.gz",
+            "mihomo-darwin-amd64-v3-v1.19.29.gz",
+            "mihomo-darwin-amd64-v1.19.29.gz",
+        ];
+        let mut version = MihomoVersion {
+            semver: Some("1.19.29".into()),
+            tag: "v1.19.29".into(),
+            prerelease: false,
+            channel: "stable".into(),
+            published_at: None,
+            created_at: None,
+            updated_at: None,
+            assets: names.map(asset).to_vec(),
+        };
+        version = prefer_canonical_asset(Platform::DarwinX86_64, version);
+        assert_eq!(
+            asset_names(&version),
+            [
+                "mihomo-darwin-amd64-v3-v1.19.29.gz",
+                "mihomo-darwin-amd64-compatible-v1.19.29.gz",
+                "mihomo-darwin-amd64-v3-go120-v1.19.29.gz",
+                "mihomo-darwin-amd64-v1.19.29.gz"
+            ]
+        );
+    }
+
+    #[test]
+    fn canonical_asset_excludes_softfloat_and_package_builds() {
+        let names = [
+            "mihomo-linux-386-softfloat-v1.19.29.gz",
+            "mihomo-linux-amd64-v3-v1.19.29.pkg.tar.zst",
+            "mihomo-linux-386-v1.19.29.gz",
+            "mihomo-linux-386-go123-v1.19.29.gz",
+        ];
+        let mut version = MihomoVersion {
+            semver: Some("1.19.29".into()),
+            tag: "v1.19.29".into(),
+            prerelease: false,
+            channel: "stable".into(),
+            published_at: None,
+            created_at: None,
+            updated_at: None,
+            assets: names.map(asset).to_vec(),
+        };
+        version = prefer_canonical_asset(Platform::LinuxX86, version);
+        assert_eq!(asset_names(&version)[0], "mihomo-linux-386-v1.19.29.gz");
+    }
+
+    #[test]
+    fn canonical_asset_prefers_armv7_for_linux_arm() {
+        let names = [
+            "mihomo-linux-armv5-v1.19.29.gz",
+            "mihomo-linux-armv8-v1.19.29.gz",
+            "mihomo-linux-armv7-v1.19.29.gz",
+        ];
+        let mut version = MihomoVersion {
+            semver: Some("1.19.29".into()),
+            tag: "v1.19.29".into(),
+            prerelease: false,
+            channel: "stable".into(),
+            published_at: None,
+            created_at: None,
+            updated_at: None,
+            assets: names.map(asset).to_vec(),
+        };
+        version = prefer_canonical_asset(Platform::LinuxArm, version);
+        assert_eq!(asset_names(&version)[0], "mihomo-linux-armv7-v1.19.29.gz");
+    }
+
+    #[test]
+    fn canonical_asset_keeps_original_order_when_not_found() {
+        let names = ["mihomo-freebsd-amd64-v1.19.29.gz", "mihomo-freebsd-amd64-v1.19.29.gz"];
+        let mut version = MihomoVersion {
+            semver: Some("1.19.29".into()),
+            tag: "v1.19.29".into(),
+            prerelease: false,
+            channel: "stable".into(),
+            published_at: None,
+            created_at: None,
+            updated_at: None,
+            assets: names.map(asset).to_vec(),
+        };
+        version = prefer_canonical_asset(Platform::DarwinAarch64, version);
+        assert_eq!(asset_names(&version), names);
+    }
+
+    #[test]
+    fn canonical_asset_alpha_hash_build() {
+        let names = [
+            "mihomo-darwin-amd64-alpha-8d71008.gz",
+            "mihomo-darwin-amd64-v3-go120-alpha-8d71008.gz",
+            "mihomo-darwin-amd64-v3-alpha-8d71008.gz",
+        ];
+        let mut version = MihomoVersion {
+            semver: None,
+            tag: "Prerelease-Alpha".into(),
+            prerelease: true,
+            channel: "alpha".into(),
+            published_at: None,
+            created_at: None,
+            updated_at: None,
+            assets: names.map(asset).to_vec(),
+        };
+        version = prefer_canonical_asset(Platform::DarwinX86_64, version);
+        assert_eq!(asset_names(&version)[0], "mihomo-darwin-amd64-v3-alpha-8d71008.gz");
+    }
 }

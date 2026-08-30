@@ -6,9 +6,22 @@
   "formatter": [
     "language_server",
     "prettier",
-    // Use ESLint's --fix:
-    { "code_action": "source.fixAll.eslint" }
+    {
+      "code_action": "source.fixAll.eslint"
+    }
   ],
   // disable biome/oxfmt/oxlint
-  "language_servers": ["!biome", "!oxfmt", "!oxlint", "..."]
+  "language_servers": ["!biome", "!oxfmt", "!oxlint", "..."],
+  "languages": {
+    "CSS": {
+      "language_servers": [
+        "!biome",
+        "!oxfmt",
+        "!oxlint",
+        "tailwindcss-intellisense-css",
+        "!vscode-css-language-server",
+        "..."
+      ]
+    }
+  }
 }
