@@ -132,20 +132,12 @@ pub fn export<P: AsRef<Path>>(
     behavior: RuleBehavior,
     format: RuleFormat,
 ) -> Result<()> {
-    // 先分发 behavior：classical 无论格式如何都不支持导出
-    match behavior {
-        RuleBehavior::Classical => {
-            return ClassicalCodecStrategy::export(rules, file_path, format);
-        }
-        RuleBehavior::Domain | RuleBehavior::IpCidr => {}
-    }
-
     if rules.is_empty() {
         return Err(RuleParseError::EmptyRule);
     }
     match behavior {
         RuleBehavior::Domain => DomainCodecStrategy::export(rules, file_path, format),
         RuleBehavior::IpCidr => IpCidrCodecStrategy::export(rules, file_path, format),
-        RuleBehavior::Classical => unreachable!("handled above"),
+        RuleBehavior::Classical => ClassicalCodecStrategy::export(rules, file_path, format),
     }
 }
