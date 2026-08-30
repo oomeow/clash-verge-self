@@ -5,7 +5,7 @@ use std::{
     path::Path,
 };
 
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, WriteBytesExt};
 
 use crate::{
     Codec, MRS_VERSION, RuleBehavior, RuleFormat, RulePayload,
@@ -239,12 +239,9 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     }
 
     // length
-    let length = reader.read_i64::<BigEndian>()?;
-    if length < 1 {
-        return Err(RuleParseError::InvalidMRSLength(length));
-    }
+    let length = utils::read_length(&mut reader)?;
     let range_count = length as usize;
-    if range_count > (reader.get_ref().len().saturating_sub(reader.position() as usize)) / 32 {
+    if range_count > utils::cursor_remaining(&reader) / 32 {
         return Err(RuleParseError::InvalidMRSLength(length));
     }
 

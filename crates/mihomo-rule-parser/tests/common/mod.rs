@@ -2,6 +2,7 @@ use std::{
     io::Read,
     path::{Path, PathBuf},
     process::Command,
+    sync::OnceLock,
 };
 
 pub fn test_export_path(name: &str, ext: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
@@ -11,27 +12,46 @@ pub fn test_export_path(name: &str, ext: &str) -> Result<PathBuf, Box<dyn std::e
     Ok(dir.join(format!("{name}.{ext}")))
 }
 
-pub fn init_meta_rules() -> Result<PathBuf, Box<dyn std::error::Error>> {
+/// 保持本地 meta-rules-dat 仓库最新的命令序列。
+const UPDATE_COMMANDS: [&[&str]; 3] = [&["restore", "."], &["clean", "-fd"], &["pull"]];
+
+/// 拉取 meta-rules-dat 测试数据集（branch `meta`），供 `init_meta_rules` 复用。
+/// 用 `OnceLock` 保证整个测试进程只初始化一次，避免并行测试对同一仓库的 git 命令竞争。
+fn setup_meta_rules() -> Result<PathBuf, String> {
     let tmp_dir = std::env::temp_dir();
     let rules_dir = tmp_dir.join("meta-rules-dat");
-    let exists = std::fs::exists(&rules_dir)?;
-    if exists {
-        for args in [&["restore", "."][..], &["clean", "-fd"][..], &["pull"][..]] {
-            let status = Command::new("git").args(args).current_dir(&rules_dir).status()?;
+    if std::fs::exists(&rules_dir).map_err(|e| e.to_string())? {
+        for args in UPDATE_COMMANDS {
+            let status = Command::new("git")
+                .args(args)
+                .current_dir(&rules_dir)
+                .status()
+                .map_err(|e| e.to_string())?;
             if !status.success() {
-                return Err(format!("git {args:?} failed").into());
+                // 网络/仓库临时故障时保留本地副本继续测试，仅当数据真正缺失时才报错
+                eprintln!("warning: git {args:?} failed ({status}); using existing local copy");
+                break;
             }
         }
     } else {
         let status = Command::new("git")
             .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])
             .current_dir(&tmp_dir)
-            .status()?;
+            .status()
+            .map_err(|e| e.to_string())?;
         if !status.success() {
-            return Err("git clone failed".into());
+            return Err(format!("git clone failed ({status})"));
         }
     }
+    if !rules_dir.join("geo").exists() {
+        return Err(format!("meta-rules-dat missing geo/ data at {}", rules_dir.display()));
+    }
     Ok(rules_dir)
+}
+
+pub fn init_meta_rules() -> Result<PathBuf, Box<dyn std::error::Error>> {
+    static INIT: OnceLock<Result<PathBuf, String>> = OnceLock::new();
+    INIT.get_or_init(setup_meta_rules).clone().map_err(|e| e.into())
 }
 
 /// Check if the contents of the src file are different from the contents of the target file

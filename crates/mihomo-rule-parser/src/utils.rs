@@ -101,14 +101,29 @@ pub(crate) fn read_mrs_header<R: Read>(reader: &mut R) -> Result<(RuleBehavior, 
     Ok((behavior, count))
 }
 
-fn skip_bytes<R: Read>(reader: &mut R, mut n: usize) -> Result<()> {
-    let mut chunk = [0u8; 4096];
-    while n > 0 {
-        let to_read = n.min(chunk.len());
-        reader.read_exact(&mut chunk[..to_read])?;
-        n -= to_read;
+fn skip_bytes<R: Read>(reader: &mut R, n: usize) -> Result<()> {
+    let mut limited = reader.by_ref().take(n as u64);
+    let skipped = std::io::copy(&mut limited, &mut std::io::sink())?;
+    if skipped != n as u64 {
+        return Err(RuleParseError::Io(std::io::Error::from(
+            std::io::ErrorKind::UnexpectedEof,
+        )));
     }
     Ok(())
+}
+
+/// 读取一个必须为正数的 i64 长度字段。
+pub(crate) fn read_length<R: Read>(reader: &mut R) -> Result<i64> {
+    let length = reader.read_i64::<BigEndian>()?;
+    if length < 1 {
+        return Err(RuleParseError::InvalidMRSLength(length));
+    }
+    Ok(length)
+}
+
+/// 返回 Cursor 中剩余可读字节数。
+pub(crate) fn cursor_remaining(reader: &Cursor<&[u8]>) -> usize {
+    reader.get_ref().len().saturating_sub(reader.position() as usize)
 }
 
 pub(crate) fn write_mrs_header<W: Write>(writer: &mut W, behavior: RuleBehavior, count: i64) -> Result<()> {
@@ -171,4 +186,67 @@ pub(crate) fn export_as_text<P: AsRef<Path>>(rules: &[String], file_path: P) -> 
         }
         Ok(())
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_skip_bytes_exact() {
+        let mut c = Cursor::new(vec![1u8, 2, 3]);
+        skip_bytes(&mut c, 3).unwrap();
+        assert_eq!(c.position(), 3);
+    }
+
+    #[test]
+    fn test_skip_bytes_short_stream() {
+        let mut c = Cursor::new(vec![1u8, 2, 3]);
+        let err = skip_bytes(&mut c, 5).unwrap_err();
+        assert!(matches!(
+            err,
+            RuleParseError::Io(e) if e.kind() == std::io::ErrorKind::UnexpectedEof
+        ));
+    }
+
+    #[test]
+    fn test_skip_bytes_long_stream() {
+        let mut c = Cursor::new(vec![1u8, 2, 3, 4, 5]);
+        skip_bytes(&mut c, 3).unwrap();
+        assert_eq!(c.position(), 3);
+        let mut rest = Vec::new();
+        c.read_to_end(&mut rest).unwrap();
+        assert_eq!(rest, vec![4, 5]);
+    }
+
+    #[test]
+    fn test_skip_bytes_zero() {
+        let mut c = Cursor::new(vec![1u8, 2]);
+        skip_bytes(&mut c, 0).unwrap();
+        assert_eq!(c.position(), 0);
+    }
+
+    #[test]
+    fn test_read_length_valid() {
+        let mut c = Cursor::new(3i64.to_be_bytes());
+        assert_eq!(read_length(&mut c).unwrap(), 3);
+    }
+
+    #[test]
+    fn test_read_length_zero_rejected() {
+        let mut c = Cursor::new(0i64.to_be_bytes());
+        assert!(matches!(read_length(&mut c), Err(RuleParseError::InvalidMRSLength(0))));
+    }
+
+    #[test]
+    fn test_read_length_negative_rejected() {
+        let mut c = Cursor::new((-5i64).to_be_bytes());
+        assert!(matches!(read_length(&mut c), Err(RuleParseError::InvalidMRSLength(-5))));
+    }
+
+    #[test]
+    fn test_read_length_truncated() {
+        let mut c = Cursor::new(vec![0u8; 4]);
+        assert!(matches!(read_length(&mut c), Err(RuleParseError::Io(_))));
+    }
 }

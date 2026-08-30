@@ -109,9 +109,9 @@ impl DomainSet {
     fn foreach<F: FnMut(String) -> bool>(&mut self, mut f: F) {
         self.keys(|key| {
             // key 是标签逆序的字节序列，反转还原原始域名
-            let original = key.iter().rev().copied().collect::<Vec<u8>>();
-            let original = String::from_utf8_lossy(&original).into_owned();
-            f(original)
+            let mut original = key.clone();
+            original.reverse();
+            f(String::from_utf8_lossy(&original).into_owned())
         });
     }
 }
@@ -120,11 +120,7 @@ fn get_bit(bm: &[u64], i: isize) -> u64 {
     if i < 0 {
         return 0;
     }
-    let idx = (i >> 6) as usize;
-    if idx >= bm.len() {
-        return 0;
-    }
-    bm[idx] & (1 << (i & 63))
+    bm.get((i >> 6) as usize).copied().unwrap_or(0) & (1 << (i & 63))
 }
 
 fn count_zeros(bm: &[u64], ranks: &[i32], i: isize) -> isize {
@@ -170,8 +166,6 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
         });
     }
 
-    let mut domain_set = DomainSet::new();
-
     // version
     let mut version = [0u8; 1];
     reader.read_exact(&mut version)?;
@@ -180,9 +174,12 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     }
 
     // 先读齐三个数组，再统一校验，避免越界索引和超量预分配
-    domain_set.leaves = read_u64_words(&mut reader)?;
-    domain_set.label_bit_map = read_u64_words(&mut reader)?;
-    domain_set.labels = read_label_bytes(&mut reader)?;
+    let mut domain_set = DomainSet {
+        leaves: read_u64_words(&mut reader)?,
+        label_bit_map: read_u64_words(&mut reader)?,
+        labels: read_label_bytes(&mut reader)?,
+        ..DomainSet::default()
+    };
     validate_domain_set(&domain_set)?;
     domain_set.init();
 
@@ -209,12 +206,9 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
 
 /// 读取一段 u64 数组；长度必须为正，且不得超过剩余解压数据能容纳的量。
 fn read_u64_words(reader: &mut Cursor<&[u8]>) -> Result<Vec<u64>> {
-    let length = reader.read_i64::<BigEndian>()?;
-    if length < 1 {
-        return Err(RuleParseError::InvalidMRSLength(length));
-    }
+    let length = utils::read_length(reader)?;
     let count = length as usize;
-    if count > remaining(reader) / 8 {
+    if count > utils::cursor_remaining(reader) / 8 {
         return Err(RuleParseError::InvalidMRSLength(length));
     }
     let mut words = vec![0u64; count];
@@ -226,21 +220,14 @@ fn read_u64_words(reader: &mut Cursor<&[u8]>) -> Result<Vec<u64>> {
 
 /// 读取 label 字节数组；长度必须为正，且不得超过剩余解压数据。
 fn read_label_bytes(reader: &mut Cursor<&[u8]>) -> Result<Vec<u8>> {
-    let length = reader.read_i64::<BigEndian>()?;
-    if length < 1 {
-        return Err(RuleParseError::InvalidMRSLength(length));
-    }
+    let length = utils::read_length(reader)?;
     let count = length as usize;
-    if count > remaining(reader) {
+    if count > utils::cursor_remaining(reader) {
         return Err(RuleParseError::InvalidMRSLength(length));
     }
     let mut bytes = vec![0u8; count];
     reader.read_exact(&mut bytes)?;
     Ok(bytes)
-}
-
-fn remaining(reader: &Cursor<&[u8]>) -> usize {
-    reader.get_ref().len().saturating_sub(reader.position() as usize)
 }
 
 /// 校验 DomainSet 内部一致性，保证后续 `get_bit`/`labels[index]`/select/rank 索引不会越界：

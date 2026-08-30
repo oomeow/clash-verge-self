@@ -69,9 +69,28 @@ fn compress(buf: &[u8]) -> Vec<u8> {
     zstd::stream::encode_all(Cursor::new(buf), 3).unwrap()
 }
 
-// 单个域名 "a" 的合法 domain set：leaves=bit1，label_bit_map=bits[0:0, 1:1, 2:1]，labels=[a]
+// 单个域名 "a" 的合法 body（version + 三段长度前缀数据），可复用于不同 header 的用例：
+// leaves=bit1，label_bit_map=bits[0:0, 1:1, 2:1]，labels=[a]
+fn valid_domain_body() -> Vec<u8> {
+    let mut out = Vec::new();
+    out.push(1); // version
+    out.write_i64::<BigEndian>(1).unwrap();
+    out.write_u64::<BigEndian>(2).unwrap(); // leaves
+    out.write_i64::<BigEndian>(1).unwrap();
+    out.write_u64::<BigEndian>(6).unwrap(); // label_bit_map
+    out.write_i64::<BigEndian>(1).unwrap();
+    out.push(b'a'); // labels
+    out
+}
+
+fn domain_mrs_with_header(count: i64, extra: &[u8], body: &[u8]) -> Vec<u8> {
+    let mut out = mrs_header(0, count, extra);
+    out.extend_from_slice(body);
+    out
+}
+
 fn valid_domain_raw() -> Vec<u8> {
-    domain_mrs(1, 1, &[2], 1, &[6], 1, b"a")
+    domain_mrs_with_header(1, &[], &valid_domain_body())
 }
 
 #[test]
@@ -156,14 +175,7 @@ fn test_domain_behavior_mismatch_rejected() {
 fn test_domain_extra_data_parsed_correctly() {
     // extra_length > 0 时不得造成流错位，应正确跳过并解析出规则
     let extra = [0xAA, 0xBB, 0xCC, 0xDD];
-    let mut raw = mrs_header(0, 1, &extra);
-    raw.push(1); // version
-    raw.write_i64::<BigEndian>(1).unwrap();
-    raw.write_u64::<BigEndian>(2).unwrap(); // leaves
-    raw.write_i64::<BigEndian>(1).unwrap();
-    raw.write_u64::<BigEndian>(6).unwrap(); // label_bit_map
-    raw.write_i64::<BigEndian>(1).unwrap();
-    raw.push(b'a'); // labels
+    let raw = domain_mrs_with_header(1, &extra, &valid_domain_body());
     let path = temp_file("mrs");
     std::fs::write(&path, compress(&raw)).unwrap();
     let payload = parse(&path, RuleBehavior::Domain, RuleFormat::Mrs).unwrap();
@@ -173,19 +185,8 @@ fn test_domain_extra_data_parsed_correctly() {
 
 #[test]
 fn test_domain_negative_count_rejected() {
-    // 手工构造负 count 的 header（magic + behavior 后的 8 字节），随后跟合法 body
-    let mut out = Vec::new();
-    out.extend_from_slice(&[b'M', b'R', b'S', 1, 0]);
-    out.write_i64::<BigEndian>(-1).unwrap();
-    out.write_i64::<BigEndian>(0).unwrap();
-    out.push(1); // version
-    out.write_i64::<BigEndian>(1).unwrap();
-    out.write_u64::<BigEndian>(2).unwrap();
-    out.write_i64::<BigEndian>(1).unwrap();
-    out.write_u64::<BigEndian>(6).unwrap();
-    out.write_i64::<BigEndian>(1).unwrap();
-    out.push(b'a');
-    let result = parse_bytes(&compress(&out), RuleBehavior::Domain, RuleFormat::Mrs);
+    let raw = domain_mrs_with_header(-1, &[], &valid_domain_body());
+    let result = parse_bytes(&compress(&raw), RuleBehavior::Domain, RuleFormat::Mrs);
     assert!(matches!(result, Err(RuleParseError::InvalidMRSLength(-1))));
 }
 
