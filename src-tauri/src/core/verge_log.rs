@@ -13,7 +13,7 @@ use time::macros::format_description;
 use tracing::{Level, level_filters::LevelFilter};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
-    Layer, Registry, filter,
+    EnvFilter, Layer, Registry, filter,
     layer::SubscriberExt,
     reload::{self, Handle},
     util::SubscriberInitExt,
@@ -109,6 +109,7 @@ impl VergeLog {
             .with(level_filter)
             .with(file_layer)
             .with(console_layer)
+            .with(EnvFilter::from_default_env())
             .init();
 
         *self.app_log_handle.lock() = Some(reload_handle);
