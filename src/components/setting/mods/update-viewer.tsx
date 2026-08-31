@@ -3,13 +3,13 @@ import RocketLaunchRounded from "@mui/icons-material/RocketLaunchRounded";
 import { Button, LinearProgress } from "@mui/material";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { open as openUrl } from "@tauri-apps/plugin-shell";
-import type { DownloadEvent } from "@tauri-apps/plugin-updater";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import { useLockFn } from "ahooks";
 import dayjs from "dayjs";
 import {
   type ComponentProps,
   forwardRef,
+  memo,
   useImperativeHandle,
   useRef,
   useState,
@@ -20,9 +20,18 @@ import { BaseDialog, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { usePortable } from "@/hooks/use-portable";
 import { useWindowSize } from "@/hooks/use-window-size";
+import {
+  cancelUpdateDownload,
+  downloadUpdate,
+  type UpdateDownloadEvent,
+} from "@/services/cmds";
 import { useCheckUpdateSWR } from "@/services/swr";
 import { useAppUpdatingStore, useThemeModeStore } from "@/stores";
+import { type ThemeMode } from "@/stores/themeStore";
 import { getErrorMessage } from "@/utils";
+import getSystem from "@/utils/get-system";
+
+const isWindows = getSystem() === "windows";
 
 const formatBytes = (bytes: number) => {
   if (bytes === 0) return "0 B";
@@ -41,8 +50,22 @@ const markdownComponents = {
     ),
 } satisfies NonNullable<ComponentProps<typeof MarkdownPreview>["components"]>;
 
+// MarkdownPreview 重渲染代价较高（unified 管道 + 语法高亮）。独立成 memo 子组件：
+// 窗口缩放（useWindowSize）、弹窗开关等无关的重渲染不会再次解析 markdown。
+const ReleaseNotes = memo(
+  ({ source, themeMode }: { source: string; themeMode: ThemeMode }) => (
+    <MarkdownPreview
+      className="p-4"
+      source={source}
+      wrapperElement={{ "data-color-mode": themeMode }}
+      components={markdownComponents}
+    />
+  ),
+);
+
 interface DownloadProgressHandle {
-  report: (event: DownloadEvent) => void;
+  report: (event: UpdateDownloadEvent) => void;
+  reset: () => void;
 }
 
 // 独立子组件：下载进度状态全部收敛在这里。Progress 事件高频触发时，
@@ -58,7 +81,7 @@ const DownloadProgress = forwardRef<
   const [total, setTotal] = useState(10 * 1024 * 1024);
 
   useImperativeHandle(ref, () => ({
-    report: (event: DownloadEvent) => {
+    report: (event: UpdateDownloadEvent) => {
       if (event.event === "Started") {
         setDownloaded(0);
         setBuffer(0);
@@ -69,15 +92,23 @@ const DownloadProgress = forwardRef<
         setDownloaded((prev) => prev + chunkLength);
       }
     },
+    reset: () => {
+      setDownloaded(0);
+      setBuffer(0);
+      setTotal(10 * 1024 * 1024);
+    },
   }));
 
   if (!active) return null;
 
   // `total` 为 100 是“未知总大小”的哨兵值，此时进度条转为不确定态
   const determinate = total > 100;
-  const percent = determinate
-    ? Math.min(100, Math.round((downloaded / total) * 100))
+  const progress = determinate ? Math.min(100, (downloaded / total) * 100) : 0;
+  // 缓冲边缘 = 已下载 + 当前块大小，保证 valueBuffer >= value 且不越过 max
+  const buffered = determinate
+    ? Math.min(100, ((downloaded + buffer) / total) * 100)
     : 0;
+  const percent = Math.round(progress);
 
   return (
     <div className="border-primary/12 bg-background-default/60 flex flex-col gap-2 rounded-xl border px-4 py-3">
@@ -97,8 +128,8 @@ const DownloadProgress = forwardRef<
       </div>
       <LinearProgress
         variant={determinate ? "buffer" : "indeterminate"}
-        value={determinate ? (downloaded / total) * 100 : undefined}
-        valueBuffer={determinate ? buffer : undefined}
+        value={determinate ? progress : undefined}
+        valueBuffer={determinate ? buffered : undefined}
       />
       {determinate && (
         <div className="text-text-secondary text-xs tabular-nums">
@@ -114,6 +145,8 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
   const { notice } = useNotice();
   const themeMode = useThemeModeStore((s) => s.themeMode);
   const [open, setOpen] = useState(false);
+  // 更新已安装，等待用户手动重启应用
+  const [restartPending, setRestartPending] = useState(false);
   const appUpdating = useAppUpdatingStore((s) => s.appUpdating);
   const setAppUpdating = useAppUpdatingStore((s) => s.setAppUpdating);
   const { size } = useWindowSize();
@@ -144,6 +177,15 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
     if (!appUpdating) setOpen(false);
   };
 
+  // 取消：下载中则中止下载；否则关闭弹窗
+  const onCancel = () => {
+    if (appUpdating) {
+      cancelUpdateDownload();
+    } else {
+      close();
+    }
+  };
+
   const onUpdate = useLockFn(async () => {
     if (portable) {
       notice("error", t("messages.updater.portableError"));
@@ -156,15 +198,35 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
     }
     if (appUpdating) return;
     setAppUpdating(true);
+    setRestartPending(false);
     try {
-      await updateInfo.downloadAndInstall((event) => {
+      const result = await downloadUpdate(updateInfo.rid, (event) => {
         progressRef.current?.report(event);
       });
-      await relaunch();
+      if (result.status === "done") {
+        // Windows 下安装会自行退出并重启进程，无需显示手动重启按钮
+        if (!isWindows) {
+          setRestartPending(true);
+        }
+      } else if (result.status === "failed") {
+        notice("error", result.message);
+      }
     } catch (err: unknown) {
       notice("error", getErrorMessage(err));
     } finally {
       setAppUpdating(false);
+      // 取消/失败/完成后清空进度显示，避免下一次下载残留旧数据
+      progressRef.current?.reset();
+    }
+  });
+
+  // 用户手动重启以应用已安装的更新
+  const onRestart = useLockFn(async () => {
+    if (!restartPending) return;
+    try {
+      await relaunch();
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 
@@ -174,14 +236,29 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
       title={t("pages.settings.verge.updateViewer.title")}
       fullWidth
       maxWidth="sm"
-      okBtn={t("common.actions.update")}
+      okBtn={
+        restartPending
+          ? t("pages.settings.verge.updateViewer.restart")
+          : t("common.actions.update")
+      }
       okDisabled={appUpdating}
       loading={appUpdating}
-      cancelBtn={t("common.actions.cancel")}
+      cancelBtn={
+        restartPending
+          ? t("pages.settings.verge.updateViewer.later")
+          : t("common.actions.cancel")
+      }
       onClose={close}
-      onCancel={close}
-      onOk={onUpdate}>
+      onCancel={onCancel}
+      onOk={restartPending ? onRestart : onUpdate}>
       <div className="flex flex-col gap-4 pb-1">
+        {/* 已安装：提示用户手动重启以应用更新 */}
+        {restartPending && (
+          <div className="bg-success/10 text-success border-success/20 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium">
+            {t("pages.settings.verge.updateViewer.installed")}
+          </div>
+        )}
+
         {/* 头部：版本 + 发布信息 + 前往发布页 */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
@@ -237,12 +314,7 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
           <div
             className="border-divider bg-background-default min-h-0 overflow-auto rounded-xl border"
             style={{ maxHeight: Math.max(200, size.height - 380) }}>
-            <MarkdownPreview
-              className="p-4"
-              source={markdownContent}
-              wrapperElement={{ "data-color-mode": themeMode }}
-              components={markdownComponents}
-            />
+            <ReleaseNotes source={markdownContent} themeMode={themeMode} />
           </div>
         </div>
 

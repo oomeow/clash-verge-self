@@ -198,6 +198,8 @@ pub fn run() -> Result<()> {
             // update
             cmds::update::check_update,
             cmds::update::get_default_update_channel,
+            cmds::update::download_update,
+            cmds::update::cancel_update_download,
             // profile
             cmds::profile::get_profiles,
             cmds::profile::get_profile,

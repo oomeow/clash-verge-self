@@ -1,8 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
+import { Channel, invoke } from "@tauri-apps/api/core";
 import { Update } from "@tauri-apps/plugin-updater";
-import { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
+import type { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
 
-import { LogMessage } from "@/components/profile/profile-more";
+import type { LogMessage } from "@/components/profile/profile-more";
 import getSystem from "@/utils/get-system";
 
 export interface MergeResult {
@@ -22,6 +22,32 @@ export interface IUpdateMetadata {
 export async function checkUpdate() {
   const metadata = await invoke<IUpdateMetadata | null>("check_update");
   return metadata ? new Update(metadata) : null;
+}
+
+export type UpdateDownloadEvent =
+  | { event: "Started"; data: { contentLength?: number } }
+  | { event: "Progress"; data: { chunkLength: number } }
+  | { event: "Finished" };
+
+export type UpdateDownloadResult =
+  | { status: "done" }
+  | { status: "cancelled" }
+  | { status: "failed"; message: string };
+
+export async function downloadUpdate(
+  rid: number,
+  onEvent: (event: UpdateDownloadEvent) => void,
+) {
+  const channel = new Channel<UpdateDownloadEvent>();
+  channel.onmessage = onEvent;
+  return invoke<UpdateDownloadResult>("download_update", {
+    rid,
+    onEvent: channel,
+  });
+}
+
+export async function cancelUpdateDownload() {
+  return invoke<void>("cancel_update_download");
 }
 
 export async function getDefaultUpdateChannel() {
@@ -255,7 +281,7 @@ export async function cmdTestDelay(url: string) {
 /// service mode
 export async function checkService() {
   try {
-    const result = await invoke<any>("check_service");
+    const result = await invoke<Record<string, unknown>>("check_service");
     if (result?.code === 0) return "active";
     if (result?.code === 400) return "installed";
     return "unknown";

@@ -570,7 +570,10 @@
           "whatsNew": "更新内容",
           "downloading": "正在下载更新",
           "preparing": "正在准备更新…",
-          "noNotes": "暂无更新说明"
+          "noNotes": "暂无更新说明",
+          "installed": "更新已安装，重启应用以应用更新",
+          "restart": "重启并应用",
+          "later": "稍后"
         }
       }
     }

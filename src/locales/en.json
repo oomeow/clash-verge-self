@@ -570,7 +570,10 @@
           "whatsNew": "What's New",
           "downloading": "Downloading update",
           "preparing": "Preparing update…",
-          "noNotes": "No release notes available"
+          "noNotes": "No release notes available",
+          "installed": "Update installed. Restart the app to apply it",
+          "restart": "Restart & Apply",
+          "later": "Later"
         }
       }
     }
