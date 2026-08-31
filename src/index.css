@@ -503,3 +503,15 @@
   span {
   padding: 0 8px;
 }
+
+/* react-markdown-preview 的样式不应受 Tailwind 影响：
+   @uiw/react-markdown-preview 的样式表是非 layered 的 author 样式，天然优先于
+   Tailwind 的 preflight（位于 `@layer base`）和 utilities，因此库的 GitHub 风格会被完整保留。
+   唯一漏网的是 preflight 的 `ol, ul { list-style: none }`——库样式没有为顶层列表声明
+   list-style，导致 "### Features" 下的 "- 支持排序…" 等列表项不显示圆点/编号。
+   这里用非 layered 的 `list-style: revert` 统一补回浏览器默认符号；
+   因选择器优先级低于库自身的嵌套规则，嵌套 ol 的 lower-roman/lower-alpha 编号不受影响。 */
+.wmde-markdown ol,
+.wmde-markdown ul {
+  list-style: revert;
+}

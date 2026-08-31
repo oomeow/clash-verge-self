@@ -3,20 +3,16 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { open as openUrl } from "@tauri-apps/plugin-shell";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import { useLockFn } from "ahooks";
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useMemo,
-  useState,
-} from "react";
+import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BaseDialog, DialogRef } from "@/components/base";
+import { BaseDialog, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { usePortable } from "@/hooks/use-portable";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { useCheckUpdateSWR } from "@/services/swr";
 import { useAppUpdatingStore, useThemeModeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
@@ -78,8 +74,8 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
         }
       });
       await relaunch();
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       setAppUpdating(false);
     }
@@ -119,7 +115,7 @@ export const UpdateViewer = forwardRef<DialogRef>((_props, ref) => {
           source={markdownContent}
           wrapperElement={{ "data-color-mode": themeMode }}
           components={{
-            a: ({ node, ...props }) => {
+            a: ({ node: _, ...props }) => {
               const { children } = props;
               if (props.className === "anchor") return null;
               return (
