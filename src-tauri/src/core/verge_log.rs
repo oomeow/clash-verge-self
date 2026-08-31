@@ -70,8 +70,14 @@ impl VergeLog {
             !(metadata.target().contains("tungstenite") && *metadata.level() == Level::TRACE)
         });
 
-        // 输出到终端
-        let (level_filter, reload_handle) = reload::Layer::new(log_level);
+        // RUST_LOG 未设置时 EnvFilter 的默认指令只允许 error（from_default_env 的默认行为），
+        // 会盖过应用内的日志级别设置，因此仅在显式设置了 RUST_LOG 时才接入 EnvFilter。
+        let env_logging = std::env::var_os("RUST_LOG").is_some();
+
+        // 应用内日志级别作为默认门控。当设置了 RUST_LOG 时由 EnvFilter 全权控制，
+        // 故将可 reload 的门控层初始化为 TRACE，避免其（默认 INFO）叠加限制调试输出。
+        let (level_filter, reload_handle) =
+            reload::Layer::new(if env_logging { LevelFilter::TRACE } else { log_level });
         let console_layer = tracing_subscriber::fmt::layer()
             .compact()
             .with_ansi(true)
@@ -105,12 +111,16 @@ impl VergeLog {
             .with_writer(non_blocking_appender)
             .with_filter(exclude_filter);
 
-        tracing_subscriber::registry()
+        let subscriber = tracing_subscriber::registry()
             .with(level_filter)
             .with(file_layer)
-            .with(console_layer)
-            .with(EnvFilter::from_default_env())
-            .init();
+            .with(console_layer);
+
+        if env_logging {
+            subscriber.with(EnvFilter::from_default_env()).init();
+        } else {
+            subscriber.init();
+        }
 
         *self.app_log_handle.lock() = Some(reload_handle);
 
