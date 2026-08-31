@@ -562,6 +562,15 @@
             "all": "Config + Profiles",
             "profiles": "Profiles"
           }
+        },
+        "updateViewer": {
+          "title": "New Version Available",
+          "released": "Released on {{date}}",
+          "preview": "Preview",
+          "whatsNew": "What's New",
+          "downloading": "Downloading update",
+          "preparing": "Preparing update…",
+          "noNotes": "No release notes available"
         }
       }
     }
