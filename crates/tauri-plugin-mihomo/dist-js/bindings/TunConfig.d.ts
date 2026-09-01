@@ -40,6 +40,7 @@ export type TunConfig = {
     excludeMacAddress?: Array<string>;
     endpointIndependentNat?: boolean;
     udpTimeout?: number;
+    icmpTimeout?: number;
     disableIcmpForwarding?: boolean;
     fileDescriptor: number;
     inet4RouteAddress?: Array<string>;
