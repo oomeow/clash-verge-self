@@ -32,7 +32,7 @@ import {
 } from "@/components/profile/profile-viewer";
 import { ConfigViewer } from "@/components/setting/mods/config-viewer";
 import { useLoadingCacheStore, useProfilesStore } from "@/stores";
-import { getErrorMessage } from "@/utils";
+import { cn, getErrorMessage } from "@/utils";
 
 const compactUids = (uids: (string | undefined)[]) =>
   Array.from(new Set(uids.filter((uid): uid is string => !!uid)));
@@ -476,10 +476,15 @@ const ProfilePage = () => {
           {t("common.actions.new")}
         </Button>
       </div>
-      <div className="px-2">
+      <div
+        className={cn(
+          "px-2",
+          selectMode && selectedUids.length > 0 && "mb-16",
+        )}>
         <Box
           sx={{
             overflow: "hidden",
+            padding: "4px 0",
             transition: "opacity 0.2s",
             ...(selectMode &&
               selectionCategory === "chain" && {
@@ -586,7 +591,6 @@ const ProfilePage = () => {
               flexItem
               sx={(theme) => ({
                 width: "calc(100% - 32px)",
-                my: 1,
                 borderColor: "rgba(0, 0, 0, 0.06)",
                 ...theme.applyStyles("dark", {
                   borderColor: "rgba(255, 255, 255, 0.06)",
@@ -597,6 +601,7 @@ const ProfilePage = () => {
             <Box
               sx={{
                 overflow: "hidden",
+                padding: "4px 0",
                 transition: "opacity 0.2s",
                 ...(selectMode &&
                   selectionCategory === "profile" && {
