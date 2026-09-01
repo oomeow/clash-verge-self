@@ -14,6 +14,7 @@ import {
   registerPacFunctionLib,
 } from "@/services/monaco";
 import { useThemeModeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 import { BaseDialog } from "./base-dialog";
 import { useNotice } from "./notifies";
@@ -135,8 +136,8 @@ export const EditorViewer = (props: Props) => {
     try {
       onChange?.(value);
       onClose();
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 

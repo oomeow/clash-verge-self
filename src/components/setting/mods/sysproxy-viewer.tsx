@@ -34,6 +34,7 @@ import {
   getSystemProxy,
 } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 const DEFAULT_PAC = `function FindProxyForURL(url, host) {
@@ -152,8 +153,8 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
     try {
       await patchVerge(patch);
       setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 

@@ -31,7 +31,7 @@ import {
   loadMonaco,
 } from "@/services/monaco";
 import { useThemeModeStore } from "@/stores";
-import { sleep } from "@/utils";
+import { getErrorMessage, sleep } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
@@ -297,9 +297,9 @@ export const ProfileEditor = (props: Props) => {
       notice("success", t("messages.profiles.scriptRunCheckSuccessful"));
       saveChainCondition.current?.set(true);
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       saveChainCondition.current?.set(false);
-      notice("error", error);
+      notice("error", getErrorMessage(error));
       return false;
     } finally {
       setChecking(false);

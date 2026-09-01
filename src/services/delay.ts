@@ -2,7 +2,7 @@ import {
   delayGroup,
   delayProxyByName,
   healthcheckNodeInProvider,
-  Proxy,
+  type Proxy,
 } from "tauri-plugin-mihomo-api";
 
 export const DEFAULT_TEST_URL = "https://www.gstatic.com/generate_204";
@@ -62,7 +62,7 @@ class DelayManager {
     const key = hashKey(name, group);
     this.cache.set(key, [Date.now(), delay]);
     this.listenerMap.get(key)?.(delay);
-    this.groupListenerMap.get(group)?.forEach((listener) => listener());
+    this.groupListenerMap.get(group)?.forEach((listener) => void listener());
   }
 
   getDelay(name: string, group: string) {
@@ -132,7 +132,7 @@ class DelayManager {
   ) {
     const names = proxies.map((o) => o.name).filter(Boolean);
     // 设置正在延迟测试中
-    names.forEach((name) => this.setDelay(name, group, -2));
+    names.forEach((name) => void this.setDelay(name, group, -2));
 
     let total = names.length;
 
@@ -144,14 +144,14 @@ class DelayManager {
         const timeoutNames = names.filter(
           (name) => !resultNames.includes(name),
         );
-        timeoutNames.forEach((name) => this.setDelay(name, group, 0));
+        timeoutNames.forEach((name) => void this.setDelay(name, group, 0));
         Object.entries(result).forEach(([name, delay]) => {
           this.setDelay(name, group, delay);
         });
       } catch (err) {
         console.error(err);
         // group delay error, which means that all proxies are timeout
-        names.forEach((name) => this.setDelay(name, group, 0));
+        names.forEach((name) => void this.setDelay(name, group, 0));
       }
       return null;
     }
@@ -180,7 +180,7 @@ class DelayManager {
 
   formatDelay(delay: number, timeout = DEFAULT_LATENCY_TIMEOUT) {
     if (delay < 0) return "Error";
-    if (delay == 0) return "Timeout";
+    if (delay === 0) return "Timeout";
     if (delay > 1e5) return "Error";
     if (delay >= timeout) return "Timeout"; // 5s
     return `${delay}`;

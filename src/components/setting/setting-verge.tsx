@@ -52,6 +52,7 @@ import {
   swrKeys,
 } from "@/services/swr";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
@@ -161,8 +162,8 @@ const SettingVerge = ({ onError }: Props) => {
       } else {
         openViewer("update");
       }
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   };
 
@@ -213,10 +214,12 @@ const SettingVerge = ({ onError }: Props) => {
         await backupFilesRef.current?.getAllBackupFiles("webdav");
         backupFilesRef.current?.open();
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       notice(
         "error",
-        t("messages.backup.webdavConnectionFailed", { error: e }),
+        t("messages.backup.webdavConnectionFailed", {
+          error: getErrorMessage(e),
+        }),
         3000,
       );
     } finally {
@@ -260,8 +263,12 @@ const SettingVerge = ({ onError }: Props) => {
       setLoadingBackupFiles(true);
       await backupFilesRef.current?.getAllBackupFiles(source);
       backupFilesRef.current?.open();
-    } catch (e) {
-      notice("error", t("messages.backup.failed", { error: e }), 3000);
+    } catch (e: unknown) {
+      notice(
+        "error",
+        t("messages.backup.failed", { error: getErrorMessage(e) }),
+        3000,
+      );
     } finally {
       setLoadingBackupFiles(false);
     }
@@ -272,8 +279,12 @@ const SettingVerge = ({ onError }: Props) => {
       setStartingBackup(true);
       await createBackup(backupMode, onlyBackupProfiles);
       notice("success", t("messages.backup.success"));
-    } catch (e) {
-      notice("error", t("messages.backup.failed", { error: e }), 3000);
+    } catch (e: unknown) {
+      notice(
+        "error",
+        t("messages.backup.failed", { error: getErrorMessage(e) }),
+        3000,
+      );
     } finally {
       setStartingBackup(false);
     }

@@ -7,6 +7,7 @@ import { useShallow } from "zustand/react/shallow";
 
 import { BaseDialog } from "@/components/base";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 import { useNotice } from "../base/notifies";
 
@@ -86,8 +87,8 @@ export const TestViewer = forwardRef<TestViewerRef, Props>((props, ref) => {
       setOpen(false);
       setLoading(false);
       setTimeout(() => reset(), 500);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
       setLoading(false);
     }
   };

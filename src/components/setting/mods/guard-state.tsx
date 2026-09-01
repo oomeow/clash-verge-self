@@ -75,7 +75,7 @@ export function GuardState<T>(props: Props<T>) {
           setBusy(true);
           await onGuard(newValue, oldValue);
           setBusy(false);
-        } catch (err: any) {
+        } catch (err: unknown) {
           if (retry > 0) {
             await sleep(1000);
             await guradRetry(newValue, oldValue, retry - 1);

@@ -27,7 +27,7 @@ import {
 } from "@/components/base";
 import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { useProfilesStore } from "@/stores";
-import { sleep } from "@/utils";
+import { getErrorMessage, sleep } from "@/utils";
 
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
@@ -185,8 +185,8 @@ export const ProfileEditorViewer = (props: Props) => {
         if (!form.uid) throw new Error("UID not found");
         await patchProfile(form.uid, item);
         notice("success", t("messages.profiles.configUpdated"));
-      } catch (err: any) {
-        notice("error", err.message || err.toString());
+      } catch (err: unknown) {
+        notice("error", getErrorMessage(err));
       }
     }),
   );
@@ -223,8 +223,8 @@ export const ProfileEditorViewer = (props: Props) => {
         if (!saveStatus) return;
       }
       await handleProfileSubmit();
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       setSaving(false);
     }

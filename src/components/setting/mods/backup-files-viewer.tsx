@@ -17,7 +17,7 @@ import {
   deleteBackup,
   listBackup,
 } from "@/services/cmds";
-import { sleep } from "@/utils";
+import { getErrorMessage, sleep } from "@/utils";
 
 dayjs.extend(customParseFormat);
 
@@ -88,8 +88,11 @@ export const BackupFilesViewer = forwardRef<BackupFilesViewerRef>(
         await deleteBackup(source, file.filename);
         await getAllBackupFiles();
         notice("success", t("messages.backup.deleteSuccess"));
-      } catch (e) {
-        notice("error", t("messages.backup.deleteFailed", { error: e }));
+      } catch (e: unknown) {
+        notice(
+          "error",
+          t("messages.backup.deleteFailed", { error: getErrorMessage(e) }),
+        );
       } finally {
         setDeletingFile("");
       }

@@ -25,6 +25,7 @@ import { useService } from "@/hooks/use-service";
 import { invoke_uwp_tool } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { useClashLogStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
@@ -41,13 +42,7 @@ import WebUIViewer from "./mods/web-ui-viewer";
 const OS = getSystem();
 
 type ClashViewerKey =
-  | "web"
-  | "port"
-  | "controller"
-  | "core"
-  | "tun"
-  | "service"
-  | "netInfo";
+  "web" | "port" | "controller" | "core" | "tun" | "service" | "netInfo";
 
 interface Props {
   onError: (err: Error) => void;
@@ -148,8 +143,8 @@ const SettingClash = ({ onError }: Props) => {
     try {
       await updateGeo();
       notice("success", t("messages.clash.geoDataUpdated"));
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   };
 
@@ -162,8 +157,8 @@ const SettingClash = ({ onError }: Props) => {
           cache: "Fake-IP",
         }),
       );
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   };
 
@@ -174,8 +169,8 @@ const SettingClash = ({ onError }: Props) => {
         "success",
         t("pages.settings.clash.cacheFlushed", { cache: "DNS" }),
       );
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   };
 

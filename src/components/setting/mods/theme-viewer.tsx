@@ -26,6 +26,7 @@ import {
   useThemeSettingsStore,
 } from "@/stores";
 import { isSameThemeColors, normalizeThemeSetting } from "@/stores/themeStore";
+import { getErrorMessage } from "@/utils";
 
 import ThemeColorSelect from "./theme-color-select";
 
@@ -114,8 +115,8 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
         dark_theme_setting: themeSettings.dark,
       });
       setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 

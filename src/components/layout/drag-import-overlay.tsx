@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useNotice } from "@/components/base/notifies";
 import { router } from "@/router";
 import { useProfilesStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 type DragImportValidation = {
   paths: string[];
@@ -147,9 +148,8 @@ export function DragImportOverlay() {
           const data = await readTextFile(file);
           await createProfile(item, data);
           hasImported = true;
-        } catch (error: any) {
-          const errorMessage =
-            typeof error === "string" ? error : error?.message;
+        } catch (error: unknown) {
+          const errorMessage = getErrorMessage(error);
           notice(
             "error",
             errorMessage ||

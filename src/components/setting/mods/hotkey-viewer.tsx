@@ -7,6 +7,7 @@ import { useShallow } from "zustand/react/shallow";
 import { BaseDialog, DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 import {
   formatHotkeyKeys,
   normalizeKeys,
@@ -339,8 +340,8 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
 
     try {
       await patchVerge({ hotkeys: [], app_hotkeys: [] });
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
       return;
     }
     setOpen(true);
@@ -403,8 +404,8 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
         app_hotkeys: serializeHotkeyMap(appHotkeyMap),
       });
       setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -422,8 +423,8 @@ export const HotkeyViewer = forwardRef<DialogRef>((_props, ref) => {
         app_hotkeys: initial.app,
       });
       setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     } finally {
       setSaving(false);
     }

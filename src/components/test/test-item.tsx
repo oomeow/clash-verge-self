@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { BaseLoading } from "@/components/base";
 import { cmdTestDelay, downloadIconCache } from "@/services/cmds";
 import delayManager from "@/services/delay";
+import { getErrorMessage } from "@/utils";
 
 import { useNotice } from "../base/notifies";
 import { TestDiv } from "./test-box";
@@ -70,8 +71,8 @@ export const TestItem = (props: Props) => {
     setAnchorEl(null);
     try {
       onDeleteItem(uid);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 

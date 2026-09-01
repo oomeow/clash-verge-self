@@ -29,7 +29,7 @@ import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer"
 import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { openWebUrl, viewProfile } from "@/services/cmds";
 import { useLoadingCacheStore, useProfilesStore } from "@/stores";
-import { cn } from "@/utils";
+import { cn, getErrorMessage } from "@/utils";
 import parseTraffic from "@/utils/parse-traffic";
 
 import { useNotice } from "../base/notifies";
@@ -146,8 +146,8 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
     setAnchorEl(null);
     try {
       await viewProfile(uid);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 
@@ -177,8 +177,8 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
 
     try {
       await updateProfile(uid, option);
-    } catch (err: any) {
-      const errmsg = err?.message || err.toString();
+    } catch (err: unknown) {
+      const errmsg = getErrorMessage(err);
       notice(
         "error",
         errmsg.replace(/error sending request for url (\S+?): /, ""),

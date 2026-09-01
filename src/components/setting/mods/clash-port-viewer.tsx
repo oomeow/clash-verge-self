@@ -8,6 +8,7 @@ import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import { checkPortAvailable } from "@/services/cmds";
 import { mutate, swrKeys } from "@/services/swr";
+import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 const OS = getSystem();
@@ -162,8 +163,8 @@ export const ClashPortViewer = forwardRef<DialogRef>((_props, ref) => {
       await mutate(swrKeys.runtimeConfig);
       setOpen(false);
       notice("success", t("messages.clash.portModified"), 1000);
-    } catch (err: any) {
-      notice("error", err.message || err.toString(), 4000);
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err), 4000);
     }
   });
 

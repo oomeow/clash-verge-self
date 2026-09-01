@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import matchCaseIcon from "@/assets/image/component/match_case.svg?react";
 import matchWholeWordIcon from "@/assets/image/component/match_whole_word.svg?react";
 import useRegularExpressionIcon from "@/assets/image/component/use_regular_expression.svg?react";
+import { getErrorMessage } from "@/utils";
 
 type SearchState = {
   text: string;
@@ -86,8 +87,8 @@ export const BaseSearchBox = (props: SearchProps) => {
       const matcher = createMatcher(searchState);
       setErrorMessage((prev) => (prev ? "" : prev));
       emitSearch(matcher, searchState);
-    } catch (err) {
-      const nextError = `${err}`;
+    } catch (err: unknown) {
+      const nextError = getErrorMessage(err);
       setErrorMessage((prev) => (prev === nextError ? prev : nextError));
       emitSearch(() => false, searchState);
     }

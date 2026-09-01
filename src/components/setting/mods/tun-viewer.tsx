@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClash } from "@/hooks/use-clash";
+import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 import { StackModeSwitch } from "./stack-mode-switch";
@@ -74,7 +75,7 @@ export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
       setLoading(false);
       setOpen(false);
       notice("success", t("messages.clash.configUpdated"));
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (retry < 0) {
         await patchClash({ tun: { enable: false } });
         await mutateClash(
@@ -86,7 +87,7 @@ export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
         );
         setLoading(false);
         setOpen(false);
-        notice("error", err);
+        notice("error", getErrorMessage(err));
       } else {
         setTimeout(() => doSave(retry - 1), 1000);
       }

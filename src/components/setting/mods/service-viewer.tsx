@@ -10,6 +10,7 @@ import { useNotice } from "@/components/base/notifies";
 import { useService } from "@/hooks/use-service";
 import { installService, uninstallService } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 interface Props {
   enable: boolean;
@@ -41,9 +42,9 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
         mutateCheckService();
       }, 2000);
       notice("success", t("messages.settings.serviceInstalled"));
-    } catch (err: any) {
+    } catch (err: unknown) {
       mutateCheckService();
-      notice("error", err.message || err.toString());
+      notice("error", getErrorMessage(err));
     }
   });
 
@@ -57,9 +58,9 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
       mutateCheckService();
       setOpen(false);
       notice("success", t("messages.settings.serviceUninstalled"));
-    } catch (err: any) {
+    } catch (err: unknown) {
       mutateCheckService();
-      notice("error", err.message || err.toString());
+      notice("error", getErrorMessage(err));
     }
   });
 
@@ -69,9 +70,9 @@ export const ServiceViewer = forwardRef<DialogRef, Props>((props, ref) => {
       await patchVerge({ enable_service_mode: false });
       mutateCheckService();
       setOpen(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       mutateCheckService();
-      notice("error", err.message || err.toString());
+      notice("error", getErrorMessage(err));
     }
   });
 

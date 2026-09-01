@@ -18,6 +18,7 @@ import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { DEFAULT_TEST_URL } from "@/services/delay";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
@@ -92,8 +93,8 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
         log_max_keep_files: Math.max(1, values.logMaxKeepFiles || 1),
       });
       setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 

@@ -20,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import { BaseDialog, SwitchLovely } from "@/components/base";
 import { FileInput } from "@/components/profile/file-input";
 import { useProfilesStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 import { useNotice } from "../base/notifies";
 
@@ -198,8 +199,8 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
           setTimeout(() => formIns.reset(), 500);
           fileDataRef.current = null;
           props.onChange();
-        } catch (err: any) {
-          notice("error", err.message || err.toString());
+        } catch (err: unknown) {
+          notice("error", getErrorMessage(err));
           setLoading(false);
         }
       }),

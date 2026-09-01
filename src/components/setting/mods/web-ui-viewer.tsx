@@ -9,6 +9,7 @@ import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import { openWebUrl } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 import { WebUIItem } from "./web-ui-item";
 
@@ -75,8 +76,8 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
       }
 
       await openWebUrl(url);
-    } catch (e: any) {
-      notice("error", e.message || e.toString());
+    } catch (e: unknown) {
+      notice("error", getErrorMessage(e));
     }
   });
 
