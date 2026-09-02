@@ -8,6 +8,7 @@
     "check": "tsx scripts/check.ts",
     "dev": "tsx scripts/check_build_service.ts && tauri dev -c src-tauri/tauri.conf-dev.json",
     "dev:diff": "tsx scripts/check_build_service.ts && tauri dev -f verge-dev -c src-tauri/tauri.conf-dev.json",
+    "dev:diff:tc": "tsx scripts/check_build_service.ts && tauri dev -f verge-dev,tokio-console -c src-tauri/tauri.conf-dev.json",
     "build": "tauri build",
     "build:service": "tsx scripts/build-service.ts",
     "build:mihomo-api": "pnpm --filter tauri-plugin-mihomo-api run build",

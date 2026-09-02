@@ -80,6 +80,7 @@ mihomo-versions = { git = "https://github.com/oomeow/mihomo-versions" }
 network-interface = "2.0.1"
 rquickjs = { version = "0.12", features = ["bindgen"] }
 dark-light = "3.0.0"
+console-subscriber = { version = "0.5.0", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 runas = "=1.2"
@@ -99,3 +100,4 @@ signal-hook = "0.4"
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
 verge-dev = []
+tokio-console = ["dep:console-subscriber", "tokio/tracing"]
