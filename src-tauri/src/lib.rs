@@ -73,7 +73,6 @@ pub fn run() -> Result<()> {
 
     // 初始化日志
     let _g = VergeLog::global().init()?;
-    // console_subscriber::init();
 
     // panic hook
     resolve::setup_panic_hook();

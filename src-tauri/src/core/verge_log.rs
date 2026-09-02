@@ -21,11 +21,11 @@ use crate::{
     utils::dirs::{self},
 };
 
-type AppLogHandle = Box<dyn Fn(LevelFilter) -> Result<()> + Send + Sync>;
+type AppLogLevelUpdater = Box<dyn Fn(LevelFilter) -> Result<()> + Send + Sync>;
 
 #[derive(Default)]
 pub struct VergeLog {
-    app_log_handle: Arc<Mutex<Option<AppLogHandle>>>,
+    app_log_level_updater: Arc<Mutex<Option<AppLogLevelUpdater>>>,
     app_log_file: Arc<Mutex<PathBuf>>,
     clash_log_file: Arc<Mutex<PathBuf>>,
 }
@@ -161,7 +161,7 @@ impl VergeLog {
         // Handle 本身由闭包捕获，闭包对外只暴露修改 LevelFilter 的能力。
         #[cfg(not(feature = "tokio-console"))]
         {
-            let update_level: AppLogHandle = Box::new(move |level| {
+            let update_level: AppLogLevelUpdater = Box::new(move |level| {
                 reload_handle
                     .modify(|filter| *filter = level)
                     .context("failed to update application log level")?;
@@ -169,17 +169,17 @@ impl VergeLog {
                 Ok(())
             });
 
-            *self.app_log_handle.lock() = Some(update_level);
+            *self.app_log_level_updater.lock() = Some(update_level);
         }
 
         Ok(guard)
     }
 
     pub fn update_app_log_level(log_level: LevelFilter) -> Result<()> {
-        let log_handle = Self::global().app_log_handle.lock();
+        let updater = Self::global().app_log_level_updater.lock();
 
-        if let Some(handle) = log_handle.as_ref() {
-            handle(log_level)?;
+        if let Some(updater) = updater.as_ref() {
+            updater(log_level)?;
         } else {
             anyhow::bail!("log handle is none, need to init log");
         }
