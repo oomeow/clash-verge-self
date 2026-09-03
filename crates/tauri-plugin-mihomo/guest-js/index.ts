@@ -1,6 +1,6 @@
 import { Channel, invoke } from "@tauri-apps/api/core";
 
-import {
+import type {
   BaseConfig,
   Connections,
   CoreUpdaterChannel,
@@ -27,7 +27,7 @@ export type MihomoGroupDelay = Record<string, number>;
  */
 export async function updateController(controller: string): Promise<void> {
   const [host, portStr] = controller.trim().split(":");
-  const port = parseInt(portStr);
+  const port = parseInt(portStr, 10);
   await invoke<void>("plugin:mihomo|update_controller", { host, port });
 }
 

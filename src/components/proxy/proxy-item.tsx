@@ -202,7 +202,8 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
 
           {proxy.type !== "Direct" && delay >= 0 && (
             // 显示延迟
-            <div
+            <button
+              type="button"
               className="the-delay hover:bg-primary/15 rounded-md px-1.5 py-0.75 text-sm"
               onClick={(e) => {
                 e.preventDefault();
@@ -211,7 +212,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
               }}
               style={{ color: delayManager.formatDelayColor(delay, timeout) }}>
               {delayManager.formatDelay(delay, timeout)}
-            </div>
+            </button>
           )}
 
           {proxy.type !== "Direct" && delay !== -2 && delay < 0 && selected && (
