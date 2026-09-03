@@ -1,18 +1,18 @@
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { alpha, Box, ListItemButton, Typography } from "@mui/material";
 import { memo } from "react";
-import { Proxy } from "tauri-plugin-mihomo-api";
+import type { ProxyInfo } from "tauri-plugin-mihomo-api";
 
 import { BaseLoading } from "@/components/base";
 import delayManager, { DEFAULT_LATENCY_TIMEOUT } from "@/services/delay";
 import { useVergeStore } from "@/stores";
 import { proxyId } from "@/utils/proxyId";
 
-import { IProxyGroupItem } from "./use-render-list";
+import type { IProxyGroupItem } from "./use-render-list";
 
 interface Props {
   group: IProxyGroupItem;
-  proxy: Proxy;
+  proxy: ProxyInfo;
   fixed: boolean;
   selected: boolean;
   showType?: boolean;
@@ -110,7 +110,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
         },
       ]}>
       <Box
-        title={`${proxy.name}${proxy.now ? "\n" + proxy.now : ""}`}
+        title={`${proxy.name}${proxy.now ? `\n${proxy.now}` : ""}`}
         sx={{
           width: "100%",
           overflow: "hidden",

@@ -1,9 +1,9 @@
-import type { Proxy } from "./Proxy";
+import type { ProxyInfo } from "./ProxyInfo";
 /**
  * proxies
  */
 export type Proxies = {
     proxies: {
-        [key in string]: Proxy;
+        [key in string]: ProxyInfo;
     };
 };

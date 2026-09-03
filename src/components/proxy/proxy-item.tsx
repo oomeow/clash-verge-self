@@ -5,23 +5,23 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  SxProps,
-  Theme,
+  type SxProps,
+  type Theme,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
 import { memo } from "react";
-import { Proxy } from "tauri-plugin-mihomo-api";
+import type { ProxyInfo } from "tauri-plugin-mihomo-api";
 
 import { BaseLoading } from "@/components/base";
 import delayManager, { DEFAULT_LATENCY_TIMEOUT } from "@/services/delay";
 import { useVergeStore } from "@/stores";
 import { proxyId } from "@/utils/proxyId";
 
-import { IProxyGroupItem } from "./use-render-list";
+import type { IProxyGroupItem } from "./use-render-list";
 
 interface Props {
   group: IProxyGroupItem;
-  proxy: Proxy;
+  proxy: ProxyInfo;
   selected: boolean;
   fixed: boolean;
   showType?: boolean;

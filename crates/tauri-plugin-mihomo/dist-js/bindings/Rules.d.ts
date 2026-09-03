@@ -1,7 +1,7 @@
-import type { Rule } from "./Rule";
+import type { RuleInfo } from "./RuleInfo";
 /**
  * rules
  */
 export type Rules = {
-    rules: Array<Rule>;
+    rules: Array<RuleInfo>;
 };

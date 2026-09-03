@@ -1,7 +1,7 @@
-import type { Proxy } from "./Proxy";
+import type { ProxyInfo } from "./ProxyInfo";
 /**
  * group proxies
  */
 export type Groups = {
-    proxies: Array<Proxy>;
+    proxies: Array<ProxyInfo>;
 };

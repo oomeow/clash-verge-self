@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { Proxy } from "tauri-plugin-mihomo-api";
+import type { ProxyInfo } from "tauri-plugin-mihomo-api";
 
 import { useWindowSize } from "@/hooks/use-window-size";
 import { useProxiesSWR } from "@/services/swr";
@@ -21,8 +21,8 @@ export enum RenderType {
   PROXY_COL = 3,
 }
 
-export type IProxyGroupItem = Omit<Proxy, "all"> & {
-  all: Proxy[];
+export type IProxyGroupItem = Omit<ProxyInfo, "all"> & {
+  all: ProxyInfo[];
 };
 
 export interface IRenderItem {
@@ -30,9 +30,9 @@ export interface IRenderItem {
   type: RenderType;
   key: string;
   group: IProxyGroupItem;
-  proxy?: Proxy;
+  proxy?: ProxyInfo;
   col?: number;
-  proxyCol?: Proxy[];
+  proxyCol?: ProxyInfo[];
   headState?: HeadState;
 }
 
@@ -72,7 +72,7 @@ export const useRenderList = (mode: string) => {
     ) {
       setTimeout(() => mutateProxies(), 500);
     }
-  }, [proxiesData, mode]);
+  }, [proxiesData, mode, mutateProxies]);
 
   const renderList: IRenderItem[] = useMemo(() => {
     if (!proxiesData) return [];
@@ -145,7 +145,7 @@ export const useRenderList = (mode: string) => {
   };
 };
 
-function groupList<T = any>(list: T[], size: number): T[][] {
+function groupList(list: ProxyInfo[], size: number): ProxyInfo[][] {
   return list.reduce((p, n) => {
     if (!p.length) return [[n]];
 
@@ -157,5 +157,5 @@ function groupList<T = any>(list: T[], size: number): T[][] {
 
     p.push([n]);
     return p;
-  }, [] as T[][]);
+  }, [] as ProxyInfo[][]);
 }

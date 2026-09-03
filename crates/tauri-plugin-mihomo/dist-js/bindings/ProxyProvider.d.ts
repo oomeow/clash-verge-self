@@ -1,12 +1,12 @@
 import type { ProviderType } from "./ProviderType";
-import type { Proxy } from "./Proxy";
+import type { ProxyInfo } from "./ProxyInfo";
 import type { SubscriptionInfo } from "./SubscriptionInfo";
 import type { VehicleType } from "./VehicleType";
 export type ProxyProvider = {
     name: string;
     type: ProviderType;
     vehicleType: VehicleType;
-    proxies: Array<Proxy>;
+    proxies: Array<ProxyInfo>;
     testUrl: string;
     expectedStatus: string;
     updatedAt: string | null;

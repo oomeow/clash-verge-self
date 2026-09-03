@@ -489,14 +489,14 @@ impl Display for TunStack {
 #[ts(export)]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/groups.go#L31-L41
 pub struct Groups {
-    pub proxies: Vec<Proxy>,
+    pub proxies: Vec<ProxyInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/adapter.go#L135-L162
-pub struct Proxy {
+pub struct ProxyInfo {
     // group type need
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -632,7 +632,7 @@ pub struct DelayHistory {
 #[ts(export)]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/proxies.go#L62-L67
 pub struct Proxies {
-    pub proxies: HashMap<String, Proxy>,
+    pub proxies: HashMap<String, ProxyInfo>,
 }
 
 /// proxy delay result
@@ -686,7 +686,7 @@ pub struct ProxyProvider {
     #[serde(rename = "type")]
     pub provider_type: ProviderType,
     pub vehicle_type: VehicleType,
-    pub proxies: Vec<Proxy>,
+    pub proxies: Vec<ProxyInfo>,
     pub test_url: String,
     pub expected_status: String,
     pub updated_at: Option<String>,
@@ -709,13 +709,13 @@ pub struct SubscriptionInfo {
 #[ts(export)]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/rules.go#L42-L73
 pub struct Rules {
-    pub rules: Vec<Rule>,
+    pub rules: Vec<RuleInfo>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/hub/route/rules.go#L23-L32
-pub struct Rule {
+pub struct RuleInfo {
     pub index: isize,
     #[serde(rename = "type")]
     pub rule_type: RuleType,
@@ -845,7 +845,7 @@ pub struct RuleProvider {
 pub struct Connections {
     pub download_total: u64,
     pub upload_total: u64,
-    pub connections: Option<Vec<Connection>>,
+    pub connections: Option<Vec<ConnectionInfo>>,
     pub memory: u64,
 }
 
@@ -854,7 +854,7 @@ pub struct Connections {
 #[serde(rename_all = "camelCase")]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/statistic/manager.go#L85
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/statistic/tracker.go#L24-L34
-pub struct Connection {
+pub struct ConnectionInfo {
     pub id: String,
     pub metadata: ConnectionMetaData,
     pub upload: u64,

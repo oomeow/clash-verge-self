@@ -4,7 +4,7 @@ import InboxRounded from "@mui/icons-material/InboxRounded";
 import { alpha, Box, Card, Typography } from "@mui/material";
 import { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Proxy } from "tauri-plugin-mihomo-api";
+import type { ProxyInfo } from "tauri-plugin-mihomo-api";
 
 import { useProfilesStore } from "@/stores";
 import {
@@ -31,13 +31,13 @@ interface RenderProps {
   onLocation: (group: IProxyGroupItem) => void;
   onCheckAll: (groupName: string) => void;
   onGroupToggle?: (group: IProxyGroupItem) => void | Promise<void>;
-  onChangeProxy: (group: IProxyGroupItem, proxy: Proxy) => void;
+  onChangeProxy: (group: IProxyGroupItem, proxy: ProxyInfo) => void;
 }
 
 interface ProxyColProps {
   item: IRenderItem;
   delayVersion: number;
-  onChangeProxy: (group: IProxyGroupItem, proxy: Proxy) => void;
+  onChangeProxy: (group: IProxyGroupItem, proxy: ProxyInfo) => void;
 }
 
 interface ProxyGroupHeaderProps {
@@ -133,17 +133,17 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
   return (
     <Box
       className="my-1 grid h-14 gap-2 px-4"
-      style={{ gridTemplateColumns: `repeat(${item.col! || 2}, 1fr)` }}>
+      style={{ gridTemplateColumns: `repeat(${item.col || 2}, 1fr)` }}>
       {proxyCol?.map((proxy) => (
         <ProxyItemMini
           key={item.key + proxy.name}
           group={group}
-          proxy={proxy!}
+          proxy={proxy}
           fixed={group.fixed === proxy.name}
           selected={group.now === proxy.name}
           showType={headState?.showType}
           delayVersion={delayVersion}
-          onClick={() => onChangeProxy(group, proxy!)}
+          onClick={() => onChangeProxy(group, proxy)}
         />
       ))}
     </Box>
@@ -195,10 +195,10 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
     case RenderType.PROXY_ITEM:
       return (
         <ProxyItem
-          group={group!}
+          group={group}
           proxy={proxy!}
-          selected={group!.now === proxy!.name}
-          fixed={group!.fixed === proxy!.name}
+          selected={group.now === proxy!.name}
+          fixed={group.fixed === proxy!.name}
           showType={headState.showType}
           delayVersion={delayVersion}
           sx={{ py: "4px", px: 2 }}

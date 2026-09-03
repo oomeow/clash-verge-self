@@ -2,7 +2,7 @@ import {
   delayGroup,
   delayProxyByName,
   healthcheckNodeInProvider,
-  type Proxy,
+  type ProxyInfo,
 } from "tauri-plugin-mihomo-api";
 
 export const DEFAULT_TEST_URL = "https://www.gstatic.com/generate_204";
@@ -76,7 +76,7 @@ class DelayManager {
   }
 
   /// 暂时修复provider的节点延迟排序的问题
-  getDelayFix(proxy: Proxy, groupName: string) {
+  getDelayFix(proxy: ProxyInfo, groupName: string) {
     const delay = this.getDelay(proxy.name, groupName);
     if (delay >= 0 || delay === -2) return delay;
 
@@ -125,7 +125,7 @@ class DelayManager {
   }
 
   async checkListDelay(
-    proxies: Proxy[],
+    proxies: ProxyInfo[],
     group: string,
     timeout: number,
     concurrency = 36,

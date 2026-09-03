@@ -1,15 +1,15 @@
 import {
   getRuleProviders,
   getRules,
-  Rule,
-  RuleProvider,
+  type RuleInfo,
+  type RuleProvider,
   updateRulesDisable,
 } from "tauri-plugin-mihomo-api";
 import { create } from "zustand";
 
 import { getRuleProviderPayload } from "@/services/cmds";
 
-export type CustomRule = Rule &
+export type CustomRule = RuleInfo &
   Omit<RuleProvider, "type"> & {
     expanded: boolean;
     payloadContent: string[];
