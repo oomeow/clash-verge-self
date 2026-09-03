@@ -1,4 +1,4 @@
-import { BaseConfig, Connections, CoreUpdaterChannel, Groups, LogLevel, MihomoVersion, Proxies, ProxyDelay, ProxyItem, ProxyProvider, ProxyProviders, RuleProviders, Rules } from "./bindings";
+import type { BaseConfig, Connections, CoreUpdaterChannel, Groups, LogLevel, MihomoVersion, Proxies, ProxyDelay, ProxyInfo, ProxyProvider, ProxyProviders, RuleProviders, Rules } from "./bindings";
 export * from "./bindings";
 export type MihomoGroupDelay = Record<string, number>;
 /**
@@ -47,7 +47,7 @@ export declare function getGroups(): Promise<Groups>;
  * @param groupName 代理组名称
  * @returns 指定代理组信息
  */
-export declare function getGroupByName(groupName: string): Promise<ProxyItem>;
+export declare function getGroupByName(groupName: string): Promise<ProxyInfo>;
 /**
  * 对指定代理组进行延迟测试
  *
@@ -99,7 +99,7 @@ export declare function getProxies(): Promise<Proxies>;
  * @param proxyName 代理名称
  * @returns 代理信息
  */
-export declare function getProxyByName(proxyName: string): Promise<ProxyItem | null>;
+export declare function getProxyByName(proxyName: string): Promise<ProxyInfo | null>;
 /**
  * 为指定代理选择节点
  *

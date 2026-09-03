@@ -9,7 +9,7 @@ import type {
   MihomoVersion,
   Proxies,
   ProxyDelay,
-  ProxyItem,
+  ProxyInfo,
   ProxyProvider,
   ProxyProviders,
   RuleProviders,
@@ -98,8 +98,8 @@ export async function getGroups(): Promise<Groups> {
  * @param groupName 代理组名称
  * @returns 指定代理组信息
  */
-export async function getGroupByName(groupName: string): Promise<ProxyItem> {
-  return await invoke<ProxyItem>("plugin:mihomo|get_group_by_name", {
+export async function getGroupByName(groupName: string): Promise<ProxyInfo> {
+  return await invoke<ProxyInfo>("plugin:mihomo|get_group_by_name", {
     groupName,
   });
 }
@@ -214,8 +214,8 @@ export async function getProxies(): Promise<Proxies> {
  */
 export async function getProxyByName(
   proxyName: string,
-): Promise<ProxyItem | null> {
-  return await invoke<ProxyItem>("plugin:mihomo|get_proxy_by_name", {
+): Promise<ProxyInfo | null> {
+  return await invoke<ProxyInfo>("plugin:mihomo|get_proxy_by_name", {
     proxiesName: proxyName,
   });
 }
