@@ -164,9 +164,7 @@ impl VergeLog {
             let update_level: AppLogLevelUpdater = Box::new(move |level| {
                 reload_handle
                     .modify(|filter| *filter = level)
-                    .context("failed to update application log level")?;
-
-                Ok(())
+                    .context("failed to update application log level")
             });
 
             *self.app_log_level_updater.lock() = Some(update_level);
