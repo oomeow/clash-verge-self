@@ -15,7 +15,7 @@ import {
 import { getVersion } from "@tauri-apps/api/app";
 import { useAsyncEffect, useLockFn } from "ahooks";
 import { isEqual } from "lodash-es";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
@@ -31,9 +31,9 @@ import { getErrorMessage, sleep } from "@/utils";
 
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
-import { ProfileEditor, ProfileEditorHandle } from "./profile-editor";
+import { ProfileEditor, type ProfileEditorHandle } from "./profile-editor";
 import ProfileMoreMini from "./profile-more-mini";
-import { ProfileViewer, ProfileViewerRef } from "./profile-viewer";
+import { ProfileViewer, type ProfileViewerRef } from "./profile-viewer";
 
 interface Props {
   title?: string | ReactNode;
@@ -231,300 +231,295 @@ export const ProfileEditorViewer = (props: Props) => {
   });
 
   return (
-    <>
-      <BaseDialog
-        full
-        open={open}
-        title={title ?? t("pages.profiles.actions.editFile")}
-        cancelBtn={t("common.actions.cancel")}
-        okBtn={t("common.actions.save")}
-        onClose={() => {
-          setEditProfile(profileItem);
-          setExpand(type !== "clash");
-          onClose();
-        }}
-        onCancel={() => {
-          setEditProfile(profileItem);
-          setExpand(type !== "clash");
-          onClose();
-        }}
-        loading={saving}
-        onOk={onSave}
-        contentStyle={{ userSelect: "text" }}>
-        <div className="bg-background-paper flex h-full overflow-hidden">
-          <div className="no-scrollbar w-1/4 min-w-65 overflow-auto">
-            <div className="bg-background-paper sticky top-0 z-10">
-              <div
-                className="bg-primary/10 flex cursor-pointer items-center justify-between p-2"
-                onClick={() => setExpand(!expand)}>
-                <Marquee pauseOnHover>
-                  <span className="text-md font-bold">{profileName}</span>
-                </Marquee>
-                <ProfileTypeChip type={currentProfile?.type} />
-                <IconButton size="small">
-                  <ExpandMore
-                    fontSize="inherit"
-                    color="primary"
-                    style={{
-                      transform: expand ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 0.3s ease-in-out",
-                    }}
-                  />
-                </IconButton>
-              </div>
+    <BaseDialog
+      full
+      open={open}
+      title={title ?? t("pages.profiles.actions.editFile")}
+      cancelBtn={t("common.actions.cancel")}
+      okBtn={t("common.actions.save")}
+      onClose={() => {
+        setEditProfile(profileItem);
+        setExpand(type !== "clash");
+        onClose();
+      }}
+      onCancel={() => {
+        setEditProfile(profileItem);
+        setExpand(type !== "clash");
+        onClose();
+      }}
+      loading={saving}
+      onOk={onSave}
+      contentStyle={{ userSelect: "text" }}>
+      <div className="bg-background-paper flex h-full overflow-hidden">
+        <div className="no-scrollbar w-1/4 min-w-65 overflow-auto">
+          <div className="bg-background-paper sticky top-0 z-10">
+            <div
+              className="bg-primary/10 flex cursor-pointer items-center justify-between p-2"
+              onClick={() => setExpand(!expand)}>
+              <Marquee pauseOnHover>
+                <span className="text-md font-bold">{profileName}</span>
+              </Marquee>
+              <ProfileTypeChip type={currentProfile?.type} />
+              <IconButton size="small">
+                <ExpandMore
+                  fontSize="inherit"
+                  color="primary"
+                  style={{
+                    transform: expand ? "rotate(180deg)" : "rotate(0deg)",
+                    transition: "transform 0.3s ease-in-out",
+                  }}
+                />
+              </IconButton>
             </div>
-
-            <Collapse
-              in={expand}
-              timeout={"auto"}
-              unmountOnExit
-              className="mt-2 px-2">
-              <form>
-                <Controller
-                  name="name"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...text}
-                      {...field}
-                      required
-                      label={t("common.fields.name")}
-                    />
-                  )}
-                />
-                <Controller
-                  name="desc"
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...text}
-                      {...field}
-                      label={t("common.fields.description")}
-                    />
-                  )}
-                />
-                {isRemote && (
-                  <>
-                    <Controller
-                      name="url"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...text}
-                          {...field}
-                          multiline
-                          label={t("pages.profiles.fields.subscriptionUrl")}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name="option.user_agent"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField {...text} {...field} label="User Agent" />
-                      )}
-                    />
-                    <Controller
-                      name="option.update_interval"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...text}
-                          {...field}
-                          onChange={(e) => {
-                            e.target.value = e.target.value
-                              ?.replace(/\D/, "")
-                              .slice(0, 10);
-                            field.onChange(e);
-                          }}
-                          label={t("pages.profiles.fields.updateInterval")}
-                          slotProps={{
-                            input: {
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  mins
-                                </InputAdornment>
-                              ),
-                            },
-                          }}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name="option.with_proxy"
-                      control={control}
-                      render={({ field }) => (
-                        <div className="my-2 ml-2 flex items-center justify-between">
-                          <InputLabel>
-                            {t("pages.profiles.fields.useSystemProxy")}
-                          </InputLabel>
-                          <SwitchLovely
-                            checked={field.value}
-                            {...field}
-                            color="primary"
-                          />
-                        </div>
-                      )}
-                    />
-                    <Controller
-                      name="option.self_proxy"
-                      control={control}
-                      render={({ field }) => (
-                        <div className="my-2 ml-2 flex items-center justify-between">
-                          <InputLabel>
-                            {t("pages.profiles.fields.useClashProxy")}
-                          </InputLabel>
-                          <SwitchLovely
-                            checked={field.value}
-                            {...field}
-                            color="primary"
-                          />
-                        </div>
-                      )}
-                    />
-                    <Controller
-                      name="option.danger_accept_invalid_certs"
-                      control={control}
-                      render={({ field }) => (
-                        <div className="my-2 ml-2 flex items-center justify-between">
-                          <InputLabel>
-                            {t(
-                              "pages.profiles.fields.acceptInvalidCertsDanger",
-                            )}
-                          </InputLabel>
-                          <SwitchLovely
-                            checked={field.value}
-                            {...field}
-                            color="primary"
-                          />
-                        </div>
-                      )}
-                    />
-                  </>
-                )}
-              </form>
-            </Collapse>
-
-            {type === "clash" && (
-              <>
-                <Divider
-                  variant="fullWidth"
-                  className="text-text-secondary my-2 text-sm"
-                  flexItem>
-                  {t("pages.profiles.actions.enhanceScripts")}
-                </Divider>
-                <div className="px-1">
-                  <Button
-                    size="small"
-                    variant="contained"
-                    fullWidth
-                    startIcon={<Add />}
-                    onClick={() => viewerRef.current?.create(profileUid)}>
-                    {t("common.actions.add")}
-                  </Button>
-
-                  <ProfileViewer
-                    ref={viewerRef}
-                    onChange={async () => await fetchProfileChains(profileUid)}
-                  />
-
-                  <div className="overflow-auto px-1">
-                    <DragDropProvider
-                      onDragOver={(e) => {
-                        if (reactivating) e.preventDefault();
-                      }}
-                      onDragEnd={async (event) => {
-                        const { operation, canceled } = event;
-                        const { source, target } = operation;
-                        if (canceled) return;
-
-                        if (target && isSortable(source)) {
-                          const newIndex = source.sortable.index;
-                          const oldIndex = source.sortable.initialIndex;
-                          if (newIndex === oldIndex) return;
-                          const activeId =
-                            sortableProfileChainItems[oldIndex].uid;
-                          const overId =
-                            sortableProfileChainItems[newIndex].uid;
-
-                          const newChainList = arrayMove(
-                            sortableProfileChainItems,
-                            oldIndex,
-                            newIndex,
-                          );
-                          const needToEnhance =
-                            !isEqual(
-                              enabledProfileChainUids,
-                              getEnabledUids(newChainList),
-                            ) && isRunningProfile;
-
-                          await reorderProfile(activeId, overId);
-                          setSortableProfileChainItems(newChainList);
-
-                          if (needToEnhance) {
-                            setReactivating(true);
-                            try {
-                              await enhanceProfiles();
-                            } finally {
-                              setReactivating(false);
-                            }
-                          }
-                          await fetchProfileChains(profileUid);
-                        }
-                      }}>
-                      {sortableProfileChainItems.map((item, index) => (
-                        <SortableItem key={item.uid} id={item.id} index={index}>
-                          <ProfileMoreMini
-                            item={item}
-                            reactivating={reactivating && item.enable}
-                            selected={item.uid === editProfile.uid}
-                            logs={chainLogs[item.uid]}
-                            onToggleEnableCallback={async (_enabled) => {
-                              await fetchProfileChains(profileUid);
-                            }}
-                            onClick={async () => {
-                              await handleChainClick(item);
-                            }}
-                            onInfoChangeCallback={async () => {
-                              await fetchProfileChains(profileUid);
-                            }}
-                            onDeleteCallback={async () => {
-                              await handleChainDeleteCallBack(item);
-                            }}
-                          />
-                        </SortableItem>
-                      ))}
-                    </DragDropProvider>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
 
-          <ProfileEditor
-            ref={profileEditorRef}
-            parentUid={editProfile.parent}
-            chainLogs={chainLogs}
-            profileItem={editProfile}
-            onChange={() => setCurContentSaved(false)}
-            onReset={() => setCurContentSaved(true)}
-            onSave={() => {
-              setCurContentSaved(true);
-              if (editProfile.enable || editProfile.uid === profileUid) {
-                onChange?.();
-              }
-            }}
-          />
+          <Collapse
+            in={expand}
+            timeout={"auto"}
+            unmountOnExit
+            className="mt-2 px-2">
+            <form>
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...text}
+                    {...field}
+                    required
+                    label={t("common.fields.name")}
+                  />
+                )}
+              />
+              <Controller
+                name="desc"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...text}
+                    {...field}
+                    label={t("common.fields.description")}
+                  />
+                )}
+              />
+              {isRemote && (
+                <>
+                  <Controller
+                    name="url"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...text}
+                        {...field}
+                        multiline
+                        label={t("pages.profiles.fields.subscriptionUrl")}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="option.user_agent"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField {...text} {...field} label="User Agent" />
+                    )}
+                  />
+                  <Controller
+                    name="option.update_interval"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...text}
+                        {...field}
+                        onChange={(e) => {
+                          e.target.value = e.target.value
+                            ?.replace(/\D/, "")
+                            .slice(0, 10);
+                          field.onChange(e);
+                        }}
+                        label={t("pages.profiles.fields.updateInterval")}
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                mins
+                              </InputAdornment>
+                            ),
+                          },
+                        }}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="option.with_proxy"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="my-2 ml-2 flex items-center justify-between">
+                        <InputLabel>
+                          {t("pages.profiles.fields.useSystemProxy")}
+                        </InputLabel>
+                        <SwitchLovely
+                          checked={field.value}
+                          {...field}
+                          color="primary"
+                        />
+                      </div>
+                    )}
+                  />
+                  <Controller
+                    name="option.self_proxy"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="my-2 ml-2 flex items-center justify-between">
+                        <InputLabel>
+                          {t("pages.profiles.fields.useClashProxy")}
+                        </InputLabel>
+                        <SwitchLovely
+                          checked={field.value}
+                          {...field}
+                          color="primary"
+                        />
+                      </div>
+                    )}
+                  />
+                  <Controller
+                    name="option.danger_accept_invalid_certs"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="my-2 ml-2 flex items-center justify-between">
+                        <InputLabel>
+                          {t("pages.profiles.fields.acceptInvalidCertsDanger")}
+                        </InputLabel>
+                        <SwitchLovely
+                          checked={field.value}
+                          {...field}
+                          color="primary"
+                        />
+                      </div>
+                    )}
+                  />
+                </>
+              )}
+            </form>
+          </Collapse>
 
-          <ConfirmViewer
-            title={t("messages.profiles.saveContent", { keymap: "" })}
-            open={saveConfirmOpen}
-            message={t("messages.profiles.askSaveContentNow")}
-            onConfirm={() => handleConfirm()}
-            onClose={() => handleCancel()}
-          />
+          {type === "clash" && (
+            <>
+              <Divider
+                variant="fullWidth"
+                className="text-text-secondary my-2 text-sm"
+                flexItem>
+                {t("pages.profiles.actions.enhanceScripts")}
+              </Divider>
+              <div className="px-1">
+                <Button
+                  size="small"
+                  variant="contained"
+                  fullWidth
+                  startIcon={<Add />}
+                  onClick={() => viewerRef.current?.create(profileUid)}>
+                  {t("common.actions.add")}
+                </Button>
+
+                <ProfileViewer
+                  ref={viewerRef}
+                  onChange={async () => await fetchProfileChains(profileUid)}
+                />
+
+                <div className="overflow-auto px-1">
+                  <DragDropProvider
+                    onDragOver={(e) => {
+                      if (reactivating) e.preventDefault();
+                    }}
+                    onDragEnd={async (event) => {
+                      const { operation, canceled } = event;
+                      const { source, target } = operation;
+                      if (canceled) return;
+
+                      if (target && isSortable(source)) {
+                        const newIndex = source.sortable.index;
+                        const oldIndex = source.sortable.initialIndex;
+                        if (newIndex === oldIndex) return;
+                        const activeId =
+                          sortableProfileChainItems[oldIndex].uid;
+                        const overId = sortableProfileChainItems[newIndex].uid;
+
+                        const newChainList = arrayMove(
+                          sortableProfileChainItems,
+                          oldIndex,
+                          newIndex,
+                        );
+                        const needToEnhance =
+                          !isEqual(
+                            enabledProfileChainUids,
+                            getEnabledUids(newChainList),
+                          ) && isRunningProfile;
+
+                        await reorderProfile(activeId, overId);
+                        setSortableProfileChainItems(newChainList);
+
+                        if (needToEnhance) {
+                          setReactivating(true);
+                          try {
+                            await enhanceProfiles();
+                          } finally {
+                            setReactivating(false);
+                          }
+                        }
+                        await fetchProfileChains(profileUid);
+                      }
+                    }}>
+                    {sortableProfileChainItems.map((item, index) => (
+                      <SortableItem key={item.uid} id={item.id} index={index}>
+                        <ProfileMoreMini
+                          item={item}
+                          reactivating={reactivating && item.enable}
+                          selected={item.uid === editProfile.uid}
+                          logs={chainLogs[item.uid]}
+                          onToggleEnableCallback={async (_enabled) => {
+                            await fetchProfileChains(profileUid);
+                          }}
+                          onClick={async () => {
+                            await handleChainClick(item);
+                          }}
+                          onInfoChangeCallback={async () => {
+                            await fetchProfileChains(profileUid);
+                          }}
+                          onDeleteCallback={async () => {
+                            await handleChainDeleteCallBack(item);
+                          }}
+                        />
+                      </SortableItem>
+                    ))}
+                  </DragDropProvider>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-      </BaseDialog>
-    </>
+
+        <ProfileEditor
+          ref={profileEditorRef}
+          parentUid={editProfile.parent}
+          chainLogs={chainLogs}
+          profileItem={editProfile}
+          onChange={() => setCurContentSaved(false)}
+          onReset={() => setCurContentSaved(true)}
+          onSave={() => {
+            setCurContentSaved(true);
+            if (editProfile.enable || editProfile.uid === profileUid) {
+              onChange?.();
+            }
+          }}
+        />
+
+        <ConfirmViewer
+          title={t("messages.profiles.saveContent", { keymap: "" })}
+          open={saveConfirmOpen}
+          message={t("messages.profiles.askSaveContentNow")}
+          onConfirm={() => handleConfirm()}
+          onClose={() => handleCancel()}
+        />
+      </div>
+    </BaseDialog>
   );
 };

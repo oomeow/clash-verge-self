@@ -55,7 +55,7 @@ export const TestViewer = forwardRef<TestViewerRef, Props>((props, ref) => {
     edit: (item) => {
       if (item) {
         Object.entries(item).forEach(([key, value]) => {
-          setValue(key as any, value);
+          setValue(key as keyof IVergeTestItem, value);
         });
       }
       setOpenType("edit");
@@ -68,18 +68,16 @@ export const TestViewer = forwardRef<TestViewerRef, Props>((props, ref) => {
     try {
       if (!data.name) throw new Error("`Name` should not be null");
       if (!data.url) throw new Error("`Url` should not be null");
-      let newList;
-      let uid;
 
       if (openType === "new") {
-        uid = nanoid();
+        const uid = nanoid();
         const item = { ...data, uid };
-        newList = [...testList, item];
+        const newList = [...testList, item];
         await patchVerge({ test_list: newList });
         props.onChange(uid);
       } else {
         if (!data.uid) throw new Error("UID not found");
-        uid = data.uid;
+        const uid = data.uid;
 
         await patchTestList(uid, data);
         props.onChange(uid, data);

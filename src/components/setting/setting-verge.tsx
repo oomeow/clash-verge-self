@@ -27,9 +27,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { DialogRef } from "@/components/base";
+import type { DialogRef } from "@/components/base";
 import BackupFilesViewer, {
-  BackupFilesViewerRef,
+  type BackupFilesViewerRef,
   type BackupSource,
 } from "@/components/setting/mods/backup-files-viewer";
 import { routes } from "@/routes/__root";

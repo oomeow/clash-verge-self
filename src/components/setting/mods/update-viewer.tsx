@@ -27,7 +27,7 @@ import {
 } from "@/services/cmds";
 import { useCheckUpdateSWR } from "@/services/swr";
 import { useAppUpdatingStore, useThemeModeStore } from "@/stores";
-import { type ThemeMode } from "@/stores/themeStore";
+import type { ThemeMode } from "@/stores/themeStore";
 import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 

@@ -8,7 +8,7 @@ import {
   ListSubheader,
 } from "@mui/material";
 import CircularProgress from "@mui/material/CircularProgress";
-import React, { ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 import isAsyncFunction from "@/utils/is-async-function";
 
@@ -48,7 +48,7 @@ export const SettingItem: React.FC<ItemProps> = (props) => {
     if (onClick) {
       if (isAsyncFunction(onClick)) {
         setIsLoading(true);
-        onClick()!.finally(() => setIsLoading(false));
+        onClick()?.finally(() => setIsLoading(false));
       } else {
         onClick();
       }

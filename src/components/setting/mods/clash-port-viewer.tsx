@@ -3,7 +3,7 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BaseDialog, DialogRef } from "@/components/base";
+import { BaseDialog, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import { checkPortAvailable } from "@/services/cmds";

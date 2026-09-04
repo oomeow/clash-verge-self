@@ -7,7 +7,7 @@ import Terminal from "@mui/icons-material/Terminal";
 import {
   alpha,
   Badge,
-  BadgeProps,
+  type BadgeProps,
   Box,
   CircularProgress,
   IconButton,
@@ -16,7 +16,7 @@ import {
   Menu,
   MenuItem,
   styled,
-  SxProps,
+  type SxProps,
   Typography,
 } from "@mui/material";
 import { useLockFn } from "ahooks";

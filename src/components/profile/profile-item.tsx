@@ -16,7 +16,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  SxProps,
+  type SxProps,
   Typography,
 } from "@mui/material";
 import { useLockFn } from "ahooks";

@@ -1,7 +1,7 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import {
   ErrorBoundary,
-  FallbackProps,
+  type FallbackProps,
   getErrorMessage,
 } from "react-error-boundary";
 

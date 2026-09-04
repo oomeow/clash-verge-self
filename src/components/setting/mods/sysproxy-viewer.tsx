@@ -23,7 +23,7 @@ import { useTranslation } from "react-i18next";
 import {
   BaseDialog,
   BaseFieldset,
-  DialogRef,
+  type DialogRef,
   EditorViewer,
   SwitchLovely,
 } from "@/components/base";
@@ -390,43 +390,41 @@ export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
           </>
         )}
         {value.pac && (
-          <>
-            <ListItem sx={{ padding: "5px 2px", alignItems: "start" }}>
-              <ListItemText
-                primary={t("pages.settings.system.proxy.pac.content")}
-              />
-              <Input
-                value={value.pac_content ?? ""}
-                disabled
-                sx={{ width: 230 }}
-                endAdornment={
-                  <Button
-                    onClick={() => {
-                      setEditorOpen(true);
-                    }}>
-                    {t("common.actions.edit")}
-                  </Button>
+          <ListItem sx={{ padding: "5px 2px", alignItems: "start" }}>
+            <ListItemText
+              primary={t("pages.settings.system.proxy.pac.content")}
+            />
+            <Input
+              value={value.pac_content ?? ""}
+              disabled
+              sx={{ width: 230 }}
+              endAdornment={
+                <Button
+                  onClick={() => {
+                    setEditorOpen(true);
+                  }}>
+                  {t("common.actions.edit")}
+                </Button>
+              }
+            />
+            <EditorViewer
+              title={`${t("common.actions.edit")} PAC`}
+              open={editorOpen}
+              scope="pac"
+              language="javascript"
+              property={value.pac_content ?? ""}
+              onChange={(content) => {
+                let pac = DEFAULT_PAC;
+                if (content.trim().length > 0) {
+                  pac = content;
                 }
-              />
-              <EditorViewer
-                title={`${t("common.actions.edit")} PAC`}
-                open={editorOpen}
-                scope="pac"
-                language="javascript"
-                property={value.pac_content ?? ""}
-                onChange={(content) => {
-                  let pac = DEFAULT_PAC;
-                  if (content.trim().length > 0) {
-                    pac = content;
-                  }
-                  setValue((v) => ({ ...v, pac_content: pac }));
-                }}
-                onClose={() => {
-                  setEditorOpen(false);
-                }}
-              />
-            </ListItem>
-          </>
+                setValue((v) => ({ ...v, pac_content: pac }));
+              }}
+              onClose={() => {
+                setEditorOpen(false);
+              }}
+            />
+          </ListItem>
         )}
       </List>
     </BaseDialog>

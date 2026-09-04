@@ -1,7 +1,7 @@
 import { useLockFn } from "ahooks";
 import type { editor, IDisposable } from "monaco-editor";
 import { nanoid } from "nanoid";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useWindowSize } from "@/hooks/use-window-size";
@@ -42,7 +42,7 @@ export const EditorViewer = (props: Props) => {
     onChange,
   } = props;
   const { t } = useTranslation();
-  const editorDomRef = useRef<any>(null);
+  const editorDomRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const themeMode = useThemeModeStore((s) => s.themeMode);
   const [monaco, setMonaco] = useState<typeof import("monaco-editor") | null>(
@@ -64,12 +64,11 @@ export const EditorViewer = (props: Props) => {
     if (!monaco) return;
 
     const fetchContent = Promise.resolve(property);
-    let pacFunLib: IDisposable | undefined = undefined;
-    let pacCompletion: IDisposable | undefined = undefined;
-    let codeLens: IDisposable | null = null;
+    let pacFunLib: IDisposable;
+    let pacCompletion: IDisposable;
+    let codeLens: IDisposable | undefined;
     fetchContent.then(async (data) => {
       const dom = editorDomRef.current;
-
       if (!dom) return;
 
       if (instanceRef.current) instanceRef.current.dispose();
@@ -77,7 +76,7 @@ export const EditorViewer = (props: Props) => {
       const uri = monaco.Uri.parse(`${nanoid()}.${scope}.${language}`);
       const model = monaco.editor.createModel(data, language, uri);
 
-      instanceRef.current = monaco.editor.create(editorDomRef.current, {
+      instanceRef.current = monaco.editor.create(dom, {
         ...defaultOptions,
         model: model,
         language: language,
@@ -107,7 +106,7 @@ export const EditorViewer = (props: Props) => {
       codeLens?.dispose();
       instanceRef.current = null;
     };
-  }, [open, monaco]);
+  }, [open, monaco, scope, language, readonly, themeMode, property]);
 
   // 更新 monaco 显示小地图
   useEffect(() => {
@@ -131,7 +130,7 @@ export const EditorViewer = (props: Props) => {
   const onSave = useLockFn(async () => {
     const value = instanceRef.current?.getValue();
 
-    if (value == undefined) return;
+    if (value === undefined) return;
 
     try {
       onChange?.(value);

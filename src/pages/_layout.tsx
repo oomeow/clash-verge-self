@@ -3,7 +3,7 @@ import "dayjs/locale/zh-cn";
 
 import { Box, Paper, Stack } from "@mui/material";
 import { Outlet, useRouter, useRouterState } from "@tanstack/react-router";
-import { Event, listen } from "@tauri-apps/api/event";
+import { type Event, listen } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -17,7 +17,6 @@ import { LayoutControl } from "@/components/layout/layout-control";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useAppHotkeys } from "@/hooks/use-app-hotkeys";
 import { usePortable } from "@/hooks/use-portable";
-import { useVisibility } from "@/hooks/use-visibility";
 import LoadingPage from "@/pages/loading";
 import { appSWRConfig, refreshClashSWR, SWRConfig } from "@/services/swr";
 import { useProfilesStore } from "@/stores/profilesStore";
@@ -44,7 +43,6 @@ const Layout = () => {
   const [showRouteLoading, setShowRouteLoading] = useState(false);
   const visitedPathsRef = useRef(new Set<string>());
   const { notice } = useNotice();
-  const visible = useVisibility();
   const language = useVergeStore((s) => s.verge.language);
   const enableSystemTitleBar = useVergeStore(
     (s) => s.verge.enable_system_title_bar ?? false,
@@ -153,7 +151,7 @@ const Layout = () => {
       dayjs.locale(locale);
       i18next.changeLanguage(language);
     }
-  }, [language, visible]);
+  }, [language]);
 
   useEffect(() => {
     if (!pendingPath) return;

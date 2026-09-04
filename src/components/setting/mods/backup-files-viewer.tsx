@@ -2,7 +2,7 @@ import Check from "@mui/icons-material/Check";
 import Delete from "@mui/icons-material/Delete";
 import { Button, ButtonGroup, Chip } from "@mui/material";
 import { useLockFn } from "ahooks";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +10,12 @@ import { useTranslation } from "react-i18next";
 import LinuxIcon from "@/assets/image/linux.svg?react";
 import MacIcon from "@/assets/image/macos.svg?react";
 import WindowsIcon from "@/assets/image/windows.svg?react";
-import { BaseDialog, BaseEmpty, DialogRef, Marquee } from "@/components/base";
+import {
+  BaseDialog,
+  BaseEmpty,
+  type DialogRef,
+  Marquee,
+} from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import {
   applyBackupAndReload,

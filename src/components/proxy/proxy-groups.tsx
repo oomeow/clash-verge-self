@@ -109,7 +109,7 @@ export const ProxyGroups = (props: Props) => {
       if (autoCloseConnection) {
         getConnections().then(({ connections }) => {
           connections?.forEach((conn) => {
-            if (conn.chains.includes(now!)) {
+            if (now && conn.chains.includes(now)) {
               closeConnection(conn.id);
             }
           });
@@ -194,7 +194,7 @@ export const ProxyGroups = (props: Props) => {
           behavior: "smooth",
         });
         await stickyListRef.current?.waitForScrollEnd();
-        findAndHighlightElement(proxyId(name, now!));
+        if (now) findAndHighlightElement(proxyId(name, now));
       }
     },
     [renderList],

@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 
-import { DialogRef, SwitchLovely } from "@/components/base";
+import { type DialogRef, SwitchLovely } from "@/components/base";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";
@@ -128,7 +128,7 @@ const SettingClash = ({ onError }: Props) => {
   useEffect(() => {
     if (enableServiceMode === undefined) return;
     mutateCheckService();
-  }, [enableServiceMode]);
+  }, [enableServiceMode, mutateCheckService]);
 
   useEffect(() => {
     const viewer = pendingViewerRef.current;
@@ -195,24 +195,20 @@ const SettingClash = ({ onError }: Props) => {
         disabled={disableTunSetting}
         label={t("pages.settings.clash.tun.label")}
         extra={
-          <>
-            {disableTunSetting ? (
-              <Tooltip
-                title={t("pages.settings.clash.tun.info")}
-                placement="top">
-                <IconButton color="error" size="small">
-                  <InfoRounded fontSize="inherit" />
-                </IconButton>
-              </Tooltip>
-            ) : (
-              <IconButton
-                color="inherit"
-                size="small"
-                onClick={() => openViewer("tun")}>
-                <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
+          disableTunSetting ? (
+            <Tooltip title={t("pages.settings.clash.tun.info")} placement="top">
+              <IconButton color="error" size="small">
+                <InfoRounded fontSize="inherit" />
               </IconButton>
-            )}
-          </>
+            </Tooltip>
+          ) : (
+            <IconButton
+              color="inherit"
+              size="small"
+              onClick={() => openViewer("tun")}>
+              <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
+            </IconButton>
+          )
         }>
         <GuardState
           value={tun?.enable ?? false}
@@ -336,6 +332,7 @@ const SettingClash = ({ onError }: Props) => {
               }[mode];
               return (
                 <Tooltip
+                  key={buttonLabelKey}
                   title={t(
                     `pages.settings.clash.findProcessMode.options.${mode}`,
                   )}

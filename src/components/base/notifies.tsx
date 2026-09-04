@@ -1,6 +1,6 @@
 import Close from "@mui/icons-material/Close";
 import { nanoid } from "nanoid";
-import { BaseVariant, useSnackbar } from "notistack";
+import { type BaseVariant, useSnackbar } from "notistack";
 import { createContext, useContext } from "react";
 
 const NoticeContext = createContext<
@@ -31,9 +31,12 @@ export const NoticeProvider = ({ children }: { children: React.ReactNode }) => {
         textWrap: "wrap",
       },
       action: (
-        <div className="text-white" onClick={() => closeSnackbar(key)}>
+        <button
+          type="button"
+          className="text-white"
+          onClick={() => closeSnackbar(key)}>
           <Close fontSize="small" />
-        </div>
+        </button>
       ),
     });
   };

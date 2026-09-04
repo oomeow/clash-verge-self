@@ -1,6 +1,6 @@
 import { debounce } from "lodash-es";
 import React, {
-  ComponentPropsWithoutRef,
+  type ComponentPropsWithoutRef,
   useEffect,
   useRef,
   useState,
@@ -110,7 +110,7 @@ export function Marquee({
       resizeObserver.disconnect();
       mutationObserver.disconnect();
     };
-  }, [vertical, repeat, applyAnimation]);
+  }, [vertical, speed, applyAnimation]);
 
   return (
     <div

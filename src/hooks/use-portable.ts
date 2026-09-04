@@ -13,7 +13,7 @@ export const usePortable = () => {
     isPortableVersion().then((isPortable) => {
       setPortable(isPortable);
     });
-  }, []);
+  }, [setPortable]);
 
   return { portable };
 };

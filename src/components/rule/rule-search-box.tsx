@@ -15,7 +15,7 @@ import {
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { RuleSearchMode, RuleSearchState } from "@/utils/rule-search";
+import type { RuleSearchMode, RuleSearchState } from "@/utils/rule-search";
 
 type Props = {
   onSearch: (state: RuleSearchState) => void;

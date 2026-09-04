@@ -285,7 +285,8 @@ export async function checkService() {
     if (result?.code === 0) return "active";
     if (result?.code === 400) return "installed";
     return "unknown";
-  } catch (ignore) {
+  } catch (err: unknown) {
+    console.error(err);
     return "uninstall";
   }
 }

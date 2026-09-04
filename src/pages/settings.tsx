@@ -10,14 +10,15 @@ import SettingClash from "@/components/setting/setting-clash";
 import SettingSystem from "@/components/setting/setting-system";
 import SettingVerge from "@/components/setting/setting-verge";
 import { openWebUrl } from "@/services/cmds";
+import { getErrorMessage } from "@/utils";
 
 const SettingPage = () => {
   const { t } = useTranslation();
   const { notice } = useNotice();
 
   const onError = useMemo(
-    () => (err: any) => {
-      notice("error", err.message || err.toString());
+    () => (err: unknown) => {
+      notice("error", getErrorMessage(err));
     },
     [notice],
   );

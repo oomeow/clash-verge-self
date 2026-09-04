@@ -16,7 +16,7 @@ import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
+import { BaseDialog, type DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import { getErrorMessage } from "@/utils";

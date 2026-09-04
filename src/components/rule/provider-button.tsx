@@ -1,4 +1,4 @@
-import Error from "@mui/icons-material/Error";
+import ErrorIcon from "@mui/icons-material/Error";
 import RefreshRounded from "@mui/icons-material/RefreshRounded";
 import { Button, Divider, IconButton, Paper, Typography } from "@mui/material";
 import dayjs from "dayjs";
@@ -129,7 +129,7 @@ export const ProviderButton = () => {
                 <div className="w-full overflow-hidden">
                   <div className="flex items-center">
                     {error && (
-                      <Error
+                      <ErrorIcon
                         color="error"
                         fontSize="small"
                         sx={{ marginRight: "8px" }}

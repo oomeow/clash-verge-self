@@ -4,11 +4,17 @@ import RadioButtonUnchecked from "@mui/icons-material/RadioButtonUnchecked";
 import Restore from "@mui/icons-material/Restore";
 import Save from "@mui/icons-material/Save";
 import Terminal from "@mui/icons-material/Terminal";
-import { Badge, BadgeProps, IconButton, styled, Tooltip } from "@mui/material";
+import {
+  Badge,
+  type BadgeProps,
+  IconButton,
+  styled,
+  Tooltip,
+} from "@mui/material";
 import type { editor, IDisposable } from "monaco-editor";
 import { nanoid } from "nanoid";
 import {
-  ForwardedRef,
+  type ForwardedRef,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -17,7 +23,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { LogViewer } from "@/components/profile/log-viewer";
-import { LogMessage } from "@/components/profile/profile-more";
+import type { LogMessage } from "@/components/profile/profile-more";
 import { useWindowSize } from "@/hooks/use-window-size";
 import {
   readProfileFile,
@@ -275,7 +281,7 @@ export const ProfileEditor = (props: Props) => {
   const handleRunCheck = async (currentProfileUid: string) => {
     try {
       const value = instanceRef.current?.getValue();
-      if (value == undefined) return false;
+      if (value === undefined) return false;
 
       setChecking(true);
       const result = await testMergeChain(

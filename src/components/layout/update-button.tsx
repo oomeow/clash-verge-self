@@ -3,7 +3,7 @@ import React, { Suspense, useRef } from "react";
 import { useCheckUpdateSWR } from "@/services/swr";
 import { useVergeStore } from "@/stores";
 
-import { DialogRef } from "../base";
+import type { DialogRef } from "../base";
 
 const UpdateViewer = React.lazy(() =>
   import("../setting/mods/update-viewer").then((module) => ({
@@ -34,6 +34,7 @@ export const UpdateButton = (props: Props) => {
       </Suspense>
 
       <button
+        type="button"
         style={{
           backgroundColor: "#FF4040",
           border: "none",

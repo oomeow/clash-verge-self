@@ -1,4 +1,4 @@
-import { LogLevel } from "tauri-plugin-mihomo-api";
+import type { LogLevel } from "tauri-plugin-mihomo-api";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 

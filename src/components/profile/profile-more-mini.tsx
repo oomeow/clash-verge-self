@@ -6,7 +6,7 @@ import Terminal from "@mui/icons-material/Terminal";
 import {
   alpha,
   Badge,
-  BadgeProps,
+  type BadgeProps,
   Box,
   CircularProgress,
   IconButton,
@@ -17,14 +17,14 @@ import { t } from "i18next";
 import { useRef, useState } from "react";
 
 import { LogViewer } from "@/components/profile/log-viewer";
-import { LogMessage } from "@/components/profile/profile-more";
+import type { LogMessage } from "@/components/profile/profile-more";
 import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { useProfilesStore } from "@/stores";
 import { cn } from "@/utils";
 
 import { Marquee } from "../base";
 import { useCustomTheme } from "../layout/use-custom-theme";
-import { ProfileViewer, ProfileViewerRef } from "./profile-viewer";
+import { ProfileViewer, type ProfileViewerRef } from "./profile-viewer";
 
 interface Props {
   item: IProfileItem;

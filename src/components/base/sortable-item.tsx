@@ -1,5 +1,4 @@
 import { useSortable } from "@dnd-kit/react/sortable";
-import React from "react";
 
 interface DraggableItemProps {
   id: string;

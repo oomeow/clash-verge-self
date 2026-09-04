@@ -4,7 +4,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 
-import { BaseDialog, DialogRef } from "@/components/base";
+import { BaseDialog, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";

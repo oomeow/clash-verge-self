@@ -4,7 +4,7 @@ import { Button, ButtonGroup, IconButton, Tooltip } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { DialogRef, SwitchLovely } from "@/components/base";
+import { type DialogRef, SwitchLovely } from "@/components/base";
 import { useVergeStore } from "@/stores";
 
 import { GuardState } from "./mods/guard-state";

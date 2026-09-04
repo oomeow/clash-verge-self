@@ -4,7 +4,7 @@ import { t } from "i18next";
 import { Fragment, useMemo, useState } from "react";
 
 import { BaseDialog, BaseEmpty } from "@/components/base";
-import { LogMessage } from "@/components/profile/profile-more";
+import type { LogMessage } from "@/components/profile/profile-more";
 import { cn } from "@/utils";
 
 interface Props {

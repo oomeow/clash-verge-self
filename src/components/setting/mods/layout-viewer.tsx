@@ -18,11 +18,12 @@ import { exists } from "@tauri-apps/plugin-fs";
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
+import { BaseDialog, type DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { GuardState } from "@/components/setting/mods/guard-state";
 import { copyIconFile, getAppDir } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 const appWindow = getCurrentWebviewWindow();
@@ -103,8 +104,8 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
   }));
 
   const onSwitchFormat = (_e: any, value: boolean) => value;
-  const onError = (err: any) => {
-    notice("error", err.message || err.toString());
+  const onError = (err: unknown) => {
+    notice("error", getErrorMessage(err));
   };
 
   return (
@@ -118,7 +119,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
       onClose={() => setOpen(false)}>
       <List>
         {show_title_setting && (
-          <ListItem className="px-0.5 py-[5px]">
+          <ListItem className="px-0.5 py-1.25">
             <ListItemText
               primary={
                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -141,7 +142,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
         )}
 
         {OS === "macos" && (
-          <ListItem className="px-0.5 py-[5px]">
+          <ListItem className="px-0.5 py-1.25">
             <ListItemText
               primary={
                 <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -172,7 +173,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           </ListItem>
         )}
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={
               <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -201,7 +202,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
             <SwitchLovely edge="end" />
           </GuardState>
         </ListItem>
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={t("pages.settings.verge.layout.trafficGraph")}
           />
@@ -215,7 +216,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           </GuardState>
         </ListItem>
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={t("pages.settings.verge.layout.memoryUsage")}
           />
@@ -229,7 +230,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           </GuardState>
         </ListItem>
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={t("pages.settings.verge.layout.proxyGroupIcon")}
           />
@@ -243,7 +244,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           </GuardState>
         </ListItem>
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText primary={t("pages.settings.verge.layout.menuIcon")} />
           <GuardState
             value={menuIcon}
@@ -262,7 +263,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           </GuardState>
         </ListItem>
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText primary={t("pages.settings.verge.layout.tray.label")} />
           <GuardState
             value={enableTray}
@@ -275,7 +276,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
         </ListItem>
 
         {OS === "macos" && (
-          <ListItem className="px-0.5 py-[5px]">
+          <ListItem className="px-0.5 py-1.25">
             <ListItemText
               primary={t("pages.settings.verge.layout.tray.icon")}
             />
@@ -298,7 +299,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           </ListItem>
         )}
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={t("pages.settings.verge.layout.tray.common")}
           />
@@ -312,7 +313,11 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               startIcon={
                 commonTrayIcon &&
                 commonIcon && (
-                  <img height="20px" src={convertFileSrc(commonIcon)} />
+                  <img
+                    alt="common-tray-icon"
+                    height="20px"
+                    src={convertFileSrc(commonIcon)}
+                  />
                 )
               }
               onClick={async () => {
@@ -343,7 +348,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           </GuardState>
         </ListItem>
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText
             primary={t("pages.settings.verge.layout.tray.systemProxy")}
           />
@@ -357,7 +362,11 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               startIcon={
                 sysproxyTrayIcon &&
                 sysproxyIcon && (
-                  <img height="20px" src={convertFileSrc(sysproxyIcon)} />
+                  <img
+                    alt="sysproxy-tray-icon"
+                    height="20px"
+                    src={convertFileSrc(sysproxyIcon)}
+                  />
                 )
               }
               onClick={async () => {
@@ -388,7 +397,7 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
           </GuardState>
         </ListItem>
 
-        <ListItem className="px-0.5 py-[5px]">
+        <ListItem className="px-0.5 py-1.25">
           <ListItemText primary={t("pages.settings.verge.layout.tray.tun")} />
           <GuardState
             value={tunTrayIcon}
@@ -399,7 +408,13 @@ export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
               size="small"
               startIcon={
                 tunTrayIcon &&
-                tunIcon && <img height="20px" src={convertFileSrc(tunIcon)} />
+                tunIcon && (
+                  <img
+                    alt="tun-tray-icon"
+                    height="20px"
+                    src={convertFileSrc(tunIcon)}
+                  />
+                )
               }
               onClick={async () => {
                 if (tunTrayIcon) {

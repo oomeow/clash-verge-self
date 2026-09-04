@@ -166,6 +166,11 @@ export const generateTemplate = async (props: GenerateProps) => {
     "",
   );
 
+  if (!generateCommand) {
+    console.log("generateCommand is not defined");
+    return;
+  }
+
   // 增强脚本模板生成
   return monaco.languages.registerCodeLensProvider(languageSelector, {
     provideCodeLenses(model, _token) {
@@ -184,7 +189,7 @@ export const generateTemplate = async (props: GenerateProps) => {
               endColumn: 1,
             },
             command: {
-              id: generateCommand!,
+              id: generateCommand,
               title: t("messages.editor.regenerateTemplateContent"),
               arguments: [generateType, generateLanguage],
             },

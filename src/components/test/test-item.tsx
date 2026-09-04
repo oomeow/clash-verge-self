@@ -3,7 +3,7 @@ import { Box, Divider, Menu, MenuItem, Typography } from "@mui/material";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { useLockFn } from "ahooks";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { BaseLoading } from "@/components/base";
@@ -26,12 +26,14 @@ interface Props {
 const encodeSvgDataUri = (svg: string) =>
   `data:image/svg+xml,${encodeURIComponent(svg)}`;
 
+const getFileName = (url: string) => url.substring(url.lastIndexOf("/") + 1);
+
 export const TestItem = (props: Props) => {
   const { isDragging, style, itemData, onEdit, onDelete: onDeleteItem } = props;
 
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const [anchorEl, setAnchorEl] = useState<any>(null);
+  const [anchorEl, setAnchorEl] = useState<Element | null>(null);
   if (anchorEl && isDragging) {
     setAnchorEl(null);
   }
@@ -40,27 +42,23 @@ export const TestItem = (props: Props) => {
   const { uid, name, icon, url } = itemData;
   const [iconCachePath, setIconCachePath] = useState("");
 
-  useEffect(() => {
-    initIconCachePath();
-  }, [icon]);
-
-  async function initIconCachePath() {
-    if (icon && icon.trim().startsWith("http")) {
-      const fileName = uid + "-" + getFileName(icon);
+  const initIconCachePath = useCallback(async () => {
+    if (icon?.trim().startsWith("http")) {
+      const fileName = `${uid}-${getFileName(icon)}`;
       const iconPath = await downloadIconCache(icon, fileName);
       setIconCachePath(convertFileSrc(iconPath));
     }
-  }
+  }, [icon, uid]);
 
-  function getFileName(url: string) {
-    return url.substring(url.lastIndexOf("/") + 1);
-  }
+  useEffect(() => {
+    initIconCachePath();
+  }, [initIconCachePath]);
 
-  const onDelay = async () => {
+  const onDelay = useCallback(async (url: string) => {
     setDelay(-2);
     const result = await cmdTestDelay(url);
     setDelay(result);
-  };
+  }, []);
 
   const onEditTest = () => {
     setAnchorEl(null);
@@ -83,13 +81,13 @@ export const TestItem = (props: Props) => {
 
   useEffect(() => {
     const unlisten = listen("verge://test-all", () => {
-      onDelay();
+      onDelay(url);
     });
 
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, []);
+  }, [url, onDelay]);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -111,15 +109,20 @@ export const TestItem = (props: Props) => {
             <Box sx={{ display: "flex", justifyContent: "center" }}>
               {icon.trim().startsWith("http") && (
                 <img
+                  alt={getFileName(icon)}
                   src={iconCachePath === "" ? icon : iconCachePath}
                   height="40px"
                 />
               )}
               {icon.trim().startsWith("data") && (
-                <img src={icon} height="40px" />
+                <img alt={getFileName(icon)} src={icon} height="40px" />
               )}
               {icon.trim().startsWith("<svg") && (
-                <img src={encodeSvgDataUri(icon)} height="40px" />
+                <img
+                  alt={getFileName(icon)}
+                  src={encodeSvgDataUri(icon)}
+                  height="40px"
+                />
               )}
             </Box>
           ) : (
@@ -150,29 +153,31 @@ export const TestItem = (props: Props) => {
           )}
 
           {delay === -1 && (
-            <div
+            <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onDelay();
+                onDelay(url);
               }}
               className="hover:bg-primary/15 rounded px-1.5 py-0.75 text-sm uppercase">
               {t("pages.test.title")}
-            </div>
+            </button>
           )}
 
           {delay >= 0 && (
             // 显示延迟
-            <div
+            <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onDelay();
+                onDelay(url);
               }}
               className="hover:bg-primary/15 rounded px-1.5 py-0.75 text-sm uppercase"
               style={{ color: delayManager.formatDelayColor(delay) }}>
               {delayManager.formatDelay(delay)}
-            </div>
+            </button>
           )}
         </Box>
       </TestDiv>

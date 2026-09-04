@@ -28,7 +28,7 @@ export const TrafficGraph = forwardRef<TrafficRef>((_props, ref) => {
   const countRef = useRef(0);
   const styleRef = useRef(true);
   const listRef = useRef<TrafficData[]>(defaultList);
-  const canvasRef = useRef<HTMLCanvasElement>(null!);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const cacheRef = useRef<TrafficData | null>(null);
 
@@ -44,7 +44,7 @@ export const TrafficGraph = forwardRef<TrafficRef>((_props, ref) => {
   }));
 
   useEffect(() => {
-    let timer: any;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     const zero = { up: 0, down: 0 };
 
     const handleData = () => {
@@ -68,12 +68,10 @@ export const TrafficGraph = forwardRef<TrafficRef>((_props, ref) => {
 
   useEffect(() => {
     let raf = 0;
-    const canvas = canvasRef.current!;
-
+    const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const context = canvas.getContext("2d")!;
-
+    const context = canvas.getContext("2d");
     if (!context) return;
 
     const { primary, secondary, divider } = palette;
@@ -91,7 +89,7 @@ export const TrafficGraph = forwardRef<TrafficRef>((_props, ref) => {
     const countY = (v: number) => {
       const h = height;
 
-      if (v == 0) return h - 1;
+      if (v === 0) return h - 1;
       if (v <= 10) return h - (v / 10) * dy;
       if (v <= 100) return h - (v / 100 + 1) * dy;
       if (v <= 1024) return h - (v / 1024 + 2) * dy;

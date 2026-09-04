@@ -93,7 +93,7 @@ export class ManagedMihomoWebSocket {
 
     const onMessage = new Channel<ManagedMihomoWebSocketMessage>();
     onMessage.onmessage = (message) => {
-      listeners.forEach((listener) => listener(message));
+      listeners.forEach((listener) => void listener(message));
     };
 
     const id = await invoke<string>(command, { ...args, onMessage });

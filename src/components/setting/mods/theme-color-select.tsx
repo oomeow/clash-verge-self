@@ -6,7 +6,7 @@ import {
   useThemeModeStore,
   useThemeSettingsStore,
 } from "@/stores";
-import { isSameThemeSetting, ThemeSetting } from "@/stores/themeStore";
+import { isSameThemeSetting, type ThemeSetting } from "@/stores/themeStore";
 import { cn } from "@/utils";
 
 interface Props {

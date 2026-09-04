@@ -7,14 +7,14 @@ import {
   DialogTitle,
   IconButton,
   Stack,
-  SxProps,
+  type SxProps,
 } from "@mui/material";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { t } from "i18next";
 import {
-  CSSProperties,
+  type CSSProperties,
   isValidElement,
-  ReactNode,
+  type ReactNode,
   useEffect,
   useRef,
 } from "react";

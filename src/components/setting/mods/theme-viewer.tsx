@@ -15,7 +15,7 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
+import { BaseDialog, type DialogRef, EditorViewer } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { THEME_PRESETS } from "@/pages/_theme";
