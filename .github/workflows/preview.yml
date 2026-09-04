@@ -335,7 +335,7 @@ jobs:
           COMMIT_HASH=$(git rev-parse --short HEAD)
           COMMIT_URL="https://github.com/${GITHUB_REPOSITORY}/commit/${COMMIT_HASH}"
           {
-            echo "Commit: [\`${COMMIT_HASH}\`](${COMMIT_URL})"
+            echo "Source Commit: [\`${COMMIT_HASH}\`](${COMMIT_URL})"
             echo "Version: v${VERSION}"
             echo ""
             # changelog 内容（去掉开头的 html 注释块模板占位）
