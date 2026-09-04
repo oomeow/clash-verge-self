@@ -235,7 +235,7 @@ export const ProfileEditor = (props: Props) => {
       },
     });
 
-    let codeLensRef: IDisposable | null = null;
+    let codeLensRef: IDisposable | undefined;
     if (type !== "clash") {
       generateTemplate({
         monacoInstance: instanceRef.current,
