@@ -11,11 +11,10 @@
     }
   ],
   // disable biome/oxfmt/oxlint
-  "language_servers": ["!biome", "!oxfmt", "!oxlint", "..."],
+  "language_servers": ["!oxfmt", "!oxlint", "..."],
   "languages": {
     "CSS": {
       "language_servers": [
-        "!biome",
         "!oxfmt",
         "!oxlint",
         "tailwindcss-intellisense-css",
