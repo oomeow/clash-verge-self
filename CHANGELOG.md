@@ -5,6 +5,7 @@
 
 ### ✨ Features
 
+- 重构 profile 编辑器对话框：拆分为编排层与侧栏/元信息表单/链列表子组件，使用 memo 与稳定回调 + FormProvider 隔离输入重渲染，减少击键时对 Monaco 与列表子树的重渲染；附带日志种子与异步读取的过期结果防护
 - 抽离 Monaco 编辑器生命周期为共享 Hook（use-monaco-editor），profile 编辑器与基础编辑器复用，统一懒加载/销毁、主题与小地图同步，并修复历史 model 泄漏
 - 引入 Biome 作为补充 lint 并校准配置，与 ESLint/Prettier 既有约定对齐；修复由此暴露的问题（内容先转义再高亮的 XSS 加固、正则控制字符、可访问性、polyfill 与构建脚本清理等）
 - 支持 Preview 预览版更新渠道：CI 每天凌晨定时构建并发布预览版本（版本号为 `<版本号>-preview.YYMMDDHHMM`，基于构建时间）；仅当自上次构建以来存在非 bot 提交时才触发构建

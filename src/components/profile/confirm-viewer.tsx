@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-
 import { BaseDialog } from "../base";
 
 interface Props {
@@ -12,10 +10,6 @@ interface Props {
 
 export const ConfirmViewer = (props: Props) => {
   const { open, title, message, onClose, onConfirm } = props;
-
-  useEffect(() => {
-    if (!open) return;
-  }, [open]);
 
   return (
     <BaseDialog
