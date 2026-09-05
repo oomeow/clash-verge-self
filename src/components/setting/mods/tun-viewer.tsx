@@ -242,7 +242,7 @@ export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
             value={values.mtu}
             placeholder="9000"
             onChange={(e) =>
-              setValues((v) => ({ ...v, mtu: parseInt(e.target.value) }))
+              setValues((v) => ({ ...v, mtu: parseInt(e.target.value, 10) }))
             }
           />
         </ListItem>

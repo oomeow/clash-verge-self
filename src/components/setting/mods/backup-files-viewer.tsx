@@ -110,7 +110,7 @@ export const BackupFilesViewer = forwardRef<BackupFilesViewerRef>(
         await sleep(1000);
         setApplyingFile("");
         notice("success", t("messages.backup.applySuccess"));
-      } catch (ignore) {
+      } catch (_ignore) {
         notice("error", t("messages.backup.applyFailed"));
         setApplyingFile("");
       }

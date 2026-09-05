@@ -27,36 +27,57 @@ export const routes = [
   {
     label: "navigation.sidebar.proxies",
     path: "/",
-    icon: [<WifiRoundedIcon />, <ProxiesSvg />],
+    icon: [
+      <WifiRoundedIcon key="WifiRoundedIcon" />,
+      <ProxiesSvg key="ProxiesSvg" />,
+    ],
   },
   {
     label: "navigation.sidebar.profiles",
     path: "/profiles",
-    icon: [<DnsRoundedIcon />, <ProfilesSvg />],
+    icon: [
+      <DnsRoundedIcon key="DnsRoundedIcon" />,
+      <ProfilesSvg key="ProfilesSvg" />,
+    ],
   },
   {
     label: "navigation.sidebar.connections",
     path: "/connections",
-    icon: [<LanguageRoundedIcon />, <ConnectionsSvg />],
+    icon: [
+      <LanguageRoundedIcon key="LanguageRoundedIcon" />,
+      <ConnectionsSvg key="ConnectionsSvg" />,
+    ],
   },
   {
     label: "navigation.sidebar.rules",
     path: "/rules",
-    icon: [<ForkRightRoundedIcon />, <RulesSvg />],
+    icon: [
+      <ForkRightRoundedIcon key="ForkRightRoundedIcon" />,
+      <RulesSvg key="RulesSvg" />,
+    ],
   },
   {
     label: "navigation.sidebar.logs",
     path: "/logs",
-    icon: [<SubjectRoundedIcon />, <LogsSvg />],
+    icon: [
+      <SubjectRoundedIcon key="SubjectRoundedIcon" />,
+      <LogsSvg key="LogsSvg" />,
+    ],
   },
   {
     label: "navigation.sidebar.test",
     path: "/test",
-    icon: [<WifiTetheringRoundedIcon />, <TestSvg />],
+    icon: [
+      <WifiTetheringRoundedIcon key="WifiTetheringRoundedIcon" />,
+      <TestSvg key="TestSvg" />,
+    ],
   },
   {
     label: "navigation.sidebar.settings",
     path: "/settings",
-    icon: [<SettingsRoundedIcon />, <SettingsSvg />],
+    icon: [
+      <SettingsRoundedIcon key="SettingsRoundedIcon" />,
+      <SettingsSvg key="SettingsSvg" />,
+    ],
   },
 ];

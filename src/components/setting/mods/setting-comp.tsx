@@ -20,7 +20,7 @@ interface ItemProps {
   extra?: ReactNode;
   children?: ReactNode;
   secondary?: ReactNode;
-  onClick?: () => void | Promise<any>;
+  onClick?: () => void;
 }
 
 export const SettingItem: React.FC<ItemProps> = (props) => {
@@ -45,13 +45,12 @@ export const SettingItem: React.FC<ItemProps> = (props) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const handleClick = () => {
-    if (onClick) {
-      if (isAsyncFunction(onClick)) {
-        setIsLoading(true);
-        onClick()?.finally(() => setIsLoading(false));
-      } else {
-        onClick();
-      }
+    if (!onClick) return;
+    if (isAsyncFunction(onClick)) {
+      setIsLoading(true);
+      void Promise.resolve(onClick()).finally(() => setIsLoading(false));
+    } else {
+      onClick();
     }
   };
 

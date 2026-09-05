@@ -1,7 +1,7 @@
 import {
   cloneElement,
   isValidElement,
-  ReactNode,
+  type ReactNode,
   useRef,
   useState,
 } from "react";

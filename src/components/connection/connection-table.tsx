@@ -544,6 +544,7 @@ export const ConnectionTable = (props: Props) => {
                     ) : null}
                   </button>
                   {header.column.getCanResize() ? (
+                    // biome-ignore lint/a11y/noStaticElementInteractions: 列宽调整依赖指针拖拽，不适用于键盘操作
                     <span
                       className="absolute top-0 right-0 h-full w-0.5 cursor-col-resize bg-[rgba(0,0,0,0.2)] opacity-45 transition-[opacity,background-color,width] hover:w-1.5 hover:bg-[rgba(0,0,0,0.22)] hover:opacity-100"
                       onDoubleClick={(event) => {

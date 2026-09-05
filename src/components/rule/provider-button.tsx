@@ -48,7 +48,7 @@ export const ProviderButton = () => {
         }
         return prev;
       });
-    } catch (ignore) {
+    } catch (_ignore) {
       if (retryCount < 0) {
         setErrorItems((prev) => {
           if (prev?.includes(name)) {

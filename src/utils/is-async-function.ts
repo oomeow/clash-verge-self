@@ -1,5 +1,5 @@
 export default function isAsyncFunction(
-  fn: () => void | Promise<any>,
+  fn: (...args: any[]) => unknown,
 ): boolean {
   return fn.constructor.name === "AsyncFunction";
 }
