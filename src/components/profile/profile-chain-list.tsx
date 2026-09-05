@@ -1,7 +1,7 @@
 import { PointerActivationConstraints } from "@dnd-kit/dom";
 import { isSortable } from "@dnd-kit/dom/sortable";
 import { arrayMove } from "@dnd-kit/helpers";
-import { DragDropProvider, DragOverlay, PointerSensor } from "@dnd-kit/react";
+import { DragDropProvider, PointerSensor } from "@dnd-kit/react";
 import Add from "@mui/icons-material/Add";
 import { Button } from "@mui/material";
 import { isEqual } from "lodash-es";
@@ -142,7 +142,11 @@ export const ProfileChainList = memo(function ProfileChainList(props: Props) {
             }
           }}>
           {sortableItems.map((item, index) => (
-            <SortableItem key={item.uid} id={item.uid} index={index}>
+            <SortableItem
+              key={item.uid}
+              id={item.uid}
+              index={index}
+              className="my-2">
               <ProfileMoreMini
                 item={item}
                 reactivating={reactivating && item.enable}
@@ -155,25 +159,6 @@ export const ProfileChainList = memo(function ProfileChainList(props: Props) {
               />
             </SortableItem>
           ))}
-
-          <DragOverlay>
-            {(source) => {
-              const draggingItem = sortableItems.find(
-                (item) => item.uid === source.id,
-              );
-              if (!draggingItem) return null;
-              return (
-                <div className="pointer-events-none w-full cursor-grabbing">
-                  <ProfileMoreMini
-                    item={draggingItem}
-                    isDragging
-                    selected={draggingItem.uid === selectedUid}
-                    logs={chainLogs[draggingItem.uid]}
-                  />
-                </div>
-              );
-            }}
-          </DragOverlay>
         </DragDropProvider>
       </div>
     </div>

@@ -74,7 +74,7 @@ const ProfileMoreMini = memo(function ProfileMoreMini(props: Props) {
 
   return (
     <>
-      <div className="bg-background-default my-2 h-14 w-full rounded-lg">
+      <div className="bg-background-default h-14 w-full rounded-lg">
         <div
           style={{
             backgroundColor: item.enable
