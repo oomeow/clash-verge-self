@@ -5,6 +5,7 @@
 
 ### ✨ Features
 
+- 抽离 Monaco 编辑器生命周期为共享 Hook（use-monaco-editor），profile 编辑器与基础编辑器复用，统一懒加载/销毁、主题与小地图同步，并修复历史 model 泄漏
 - 引入 Biome 作为补充 lint 并校准配置，与 ESLint/Prettier 既有约定对齐；修复由此暴露的问题（内容先转义再高亮的 XSS 加固、正则控制字符、可访问性、polyfill 与构建脚本清理等）
 - 支持 Preview 预览版更新渠道：CI 每天凌晨定时构建并发布预览版本（版本号为 `<版本号>-preview.YYMMDDHHMM`，基于构建时间）；仅当自上次构建以来存在非 bot 提交时才触发构建
 - 支持在应用内切换更新渠道（Stable / Preview），随时获取对应渠道的最新版本
