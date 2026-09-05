@@ -102,7 +102,7 @@ export function getRustHost() {
 }
 
 export function getArgValue(argv: string[], arg: string) {
-  const index = argv.findIndex((item) => item === arg);
+  const index = argv.indexOf(arg);
   if (index === -1) {
     return undefined;
   }

@@ -16,7 +16,7 @@
     "web:dev": "vite dev",
     "web:build": "tsc && vite build",
     "web:preview": "vite preview",
-    "lint": "eslint scripts src vite.config.ts --max-warnings=0",
+    "lint": "eslint scripts src vite.config.ts --max-warnings=0 && biome lint",
     "lint:fix": "eslint scripts src vite.config.ts --fix",
     "updater": "tsx scripts/updater.ts",
     "portable": "tsx scripts/portable.ts",
@@ -72,6 +72,7 @@
   },
   "devDependencies": {
     "@actions/github": "9.1.1",
+    "@biomejs/biome": "2.5.12",
     "@clack/prompts": "1.7.0",
     "@eslint/js": "10.0.1",
     "@tailwindcss/vite": "4.3.3",

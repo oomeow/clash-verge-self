@@ -156,7 +156,7 @@ export const ClashPortViewer = forwardRef<DialogRef>((_props, ref) => {
             return;
           }
         }
-        updatePorts["port"] = port;
+        updatePorts.port = port;
       }
 
       await patchInfo(updatePorts);

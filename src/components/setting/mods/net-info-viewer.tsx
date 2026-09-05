@@ -29,35 +29,33 @@ export const NetInfoViewer = forwardRef<DialogRef>((_props, ref) => {
       hideOkBtn
       hideCancelBtn
       onClose={() => setOpen(false)}>
-      <>
-        {netInfo.map((net) => {
-          return (
-            <div key={net.name} className="w-full py-2">
-              <span className="border-primary bg-primary/10 inline-block w-full border-l-4 pl-2 font-bold">
-                {net.name}
-              </span>
-              {net.ipv4 && (
-                <div className="flex items-center pl-2">
-                  <div className="flex w-full items-center justify-between pl-2">
-                    <Typography variant="subtitle2">IPv4</Typography>
-                    <Typography>{net.ipv4}</Typography>
-                  </div>
-                  <CopyButton size="small" content={net.ipv4} />
+      {netInfo.map((net) => {
+        return (
+          <div key={net.name} className="w-full py-2">
+            <span className="border-primary bg-primary/10 inline-block w-full border-l-4 pl-2 font-bold">
+              {net.name}
+            </span>
+            {net.ipv4 && (
+              <div className="flex items-center pl-2">
+                <div className="flex w-full items-center justify-between pl-2">
+                  <Typography variant="subtitle2">IPv4</Typography>
+                  <Typography>{net.ipv4}</Typography>
                 </div>
-              )}
-              {net.ipv6 && (
-                <div className="flex items-center pl-2">
-                  <div className="flex w-full items-center justify-between pl-2">
-                    <Typography variant="subtitle2">IPv6</Typography>
-                    <Typography>{net.ipv6}</Typography>
-                  </div>
-                  <CopyButton size="small" content={net.ipv6} />
+                <CopyButton size="small" content={net.ipv4} />
+              </div>
+            )}
+            {net.ipv6 && (
+              <div className="flex items-center pl-2">
+                <div className="flex w-full items-center justify-between pl-2">
+                  <Typography variant="subtitle2">IPv6</Typography>
+                  <Typography>{net.ipv6}</Typography>
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </>
+                <CopyButton size="small" content={net.ipv6} />
+              </div>
+            )}
+          </div>
+        );
+      })}
     </BaseDialog>
   );
 });

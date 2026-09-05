@@ -569,7 +569,7 @@ export class MihomoWebSocket {
         forceTimeout: 0,
       });
       this.listeners.clear();
-    } catch (ignore) {
+    } catch (_ignore) {
       // ignore
     } finally {
       MihomoWebSocket.instances.delete(this);

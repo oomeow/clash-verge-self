@@ -21,9 +21,10 @@ export const TestDiv = ({
 
   return (
     <div
+      role="option"
       aria-label={label}
       aria-selected={selected}
-      onClick={undefined}
+      tabIndex={0}
       onContextMenu={onContextMenu}
       className={cn(
         "bg-background-paper relative box-border block w-full cursor-pointer rounded-xl p-2 text-left",

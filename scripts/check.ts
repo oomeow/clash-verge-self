@@ -764,7 +764,7 @@ async function runTaskWithRetry(task: Task) {
  */
 async function runTask() {
   intro(pc.bgCyan(pc.white(" Check and download files ")));
-  let channel: Channel | undefined = undefined;
+  let channel: Channel | undefined;
   if (RUN_ON_GITHUB_ACTIONS) {
     channel = await chooseServiceChannel();
   }

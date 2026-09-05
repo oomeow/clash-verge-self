@@ -388,7 +388,7 @@
 
   /* scrollbar */
   ::-webkit-scrollbar {
-    @apply h-[5px] w-[5px];
+    @apply h-1.25 w-1.25;
   }
 
   ::-webkit-scrollbar-track {
@@ -471,8 +471,8 @@
    这会破坏 MUI 在运行时测量 notched outline（凹槽）所依赖的行为。
    这些规则是最小化的，仅针对 MUI 的 outlined input，并放在 Tailwind 导入之后以覆盖 preflight。
 */
-.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline legend,
-.MuiOutlinedInput-notchedOutline legend {
+.MuiOutlinedInput-notchedOutline legend,
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline legend {
   padding: 0;
   height: 11px;
   /* match MUI's expected legend height for correct notch rendering */
@@ -485,8 +485,8 @@
   /* ensure measured width equals label width */
 }
 
-.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline legend span,
-.MuiOutlinedInput-notchedOutline legend span {
+.MuiOutlinedInput-notchedOutline legend span,
+.MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline legend span {
   display: inline-block;
   /* 移除水平内边距以避免在没有 label 时出现可见的凹槽 */
   padding: 0;
@@ -515,3 +515,7 @@
 .wmde-markdown ul {
   list-style: revert;
 }
+
+/*[data-dnd-dragging] {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32) !important;
+}*/
