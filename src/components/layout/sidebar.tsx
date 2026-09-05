@@ -64,10 +64,7 @@ export const Sidebar = (props: Props) => {
           "pt-4": !enableSystemTitleBar,
         },
       )}>
-      <LogoTitle
-        sidebarCollapsed={sidebarCollapsed}
-        enableSystemTitleBar={enableSystemTitleBar}
-      />
+      <LogoTitle sidebarCollapsed={sidebarCollapsed} />
 
       <List className="box-border flex-auto overflow-y-auto">
         {routes.map((route) => (

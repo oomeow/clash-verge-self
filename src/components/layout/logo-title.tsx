@@ -17,10 +17,8 @@ const OS = getSystem();
 
 export const LogoTitle = ({
   sidebarCollapsed,
-  enableSystemTitleBar,
 }: {
   sidebarCollapsed: boolean;
-  enableSystemTitleBar: boolean;
 }) => {
   const { toggleTheme } = useCustomTheme();
   const mode = useThemeModeStore((s) => s.themeMode);
@@ -89,9 +87,8 @@ export const LogoTitle = ({
           className={cn(
             "absolute top-0 right-4 z-10 h-4 w-4 cursor-pointer border-none bg-transparent",
             {
+              "-top-1 right-5.5": sidebarCollapsed,
               "top-2": isMacOS,
-              "top-2 right-5.5": sidebarCollapsed,
-              "-top-1": sidebarCollapsed && enableSystemTitleBar,
               "top-5": sidebarCollapsed && isMacOS,
             },
           )}
