@@ -15,6 +15,7 @@ import type { editor, IDisposable } from "monaco-editor";
 import { nanoid } from "nanoid";
 import {
   type ForwardedRef,
+  memo,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -24,19 +25,14 @@ import { useTranslation } from "react-i18next";
 
 import { LogViewer } from "@/components/profile/log-viewer";
 import type { LogMessage } from "@/components/profile/profile-more";
-import { useWindowSize } from "@/hooks/use-window-size";
+import { useMonacoEditor } from "@/hooks/use-monaco-editor";
 import {
   readProfileFile,
   saveProfileFile,
   testMergeChain,
 } from "@/services/cmds";
-import {
-  configureYaml,
-  defaultOptions,
-  generateTemplate,
-  loadMonaco,
-} from "@/services/monaco";
-import { useThemeModeStore } from "@/stores";
+import { generateTemplate } from "@/services/monaco";
+import { useProfilesStore } from "@/stores";
 import { getErrorMessage, sleep } from "@/utils";
 import getSystem from "@/utils/get-system";
 
@@ -53,42 +49,17 @@ interface Props {
   ref: ForwardedRef<ProfileEditorHandle>;
   parentUid: string | null | undefined;
   profileItem: IProfileItem;
-  chainLogs?: Record<string, LogMessage[]>;
   onChange?: (content: string) => void;
   onReset?: () => void;
   onSave?: () => void;
 }
 
-export const ProfileEditor = (props: Props) => {
-  const {
-    ref,
-    parentUid,
-    profileItem,
-    chainLogs = {},
-    onChange,
-    onReset,
-    onSave,
-  } = props;
-
-  useImperativeHandle(ref, () => ({
-    save: async () => {
-      try {
-        return await handleSave();
-      } catch (ignore) {
-        return false;
-      }
-    },
-    reset: () => {
-      if (originContentRef.current) {
-        instanceRef.current?.setValue(originContentRef.current);
-      }
-    },
-  }));
+export const ProfileEditor = memo(function ProfileEditor(props: Props) {
+  const { ref, parentUid, profileItem, onChange, onReset, onSave } = props;
 
   const { t } = useTranslation();
-  const { size } = useWindowSize();
   const { notice } = useNotice();
-  const themeMode = useThemeModeStore((s) => s.themeMode);
+
   const language = profileItem.type === "script" ? "javascript" : "yaml";
   const type =
     profileItem.type === "merge"
@@ -96,104 +67,76 @@ export const ProfileEditor = (props: Props) => {
       : profileItem.type === "script"
         ? "script"
         : "clash";
+  const isChain = type === "merge" || type === "script";
+
+  const { monaco, editor, domRef, setModel } = useMonacoEditor({ language });
 
   // 原始内容
   const originContentRef = useRef<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(true);
 
-  // monaco
-  const [monaco, setMonaco] = useState<typeof import("monaco-editor") | null>(
-    null,
-  );
-  const editorDomRef = useRef<any>(null);
-  const instanceRef = useRef<editor.IStandaloneCodeEditor | null>(null);
-  // const codeLensRef = useRef<IDisposable | null>(null);
+  // chain 相关上下文条件
   const editChainCondition =
     useRef<editor.IContextKey<boolean | undefined>>(null);
   const saveChainCondition =
     useRef<editor.IContextKey<boolean | undefined>>(null);
 
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(true);
+
   // chain
   const [chainChecked, setChainChecked] = useState(false);
   const [checking, setChecking] = useState(false);
 
-  // script chain
+  // script chain：日志以当前 uid 的 store 值作初始种子，后续由 handleRunCheck 更新
   const [logOpen, setLogOpen] = useState(false);
-  const [logs, setLogs] = useState<LogMessage[]>(
-    chainLogs[profileItem.uid] || [],
-  );
+  const [logs, setLogs] = useState<LogMessage[]>(() => {
+    const seed = useProfilesStore.getState().chainLogs[profileItem.uid];
+    return seed ?? [];
+  });
   const hasError = type === "script" && !!logs?.find((item) => item.exception);
 
-  // 初始化创建 monaco
+  // 编辑器创建后注册上下文条件
   useEffect(() => {
-    loadMonaco().then((instance) => {
-      setMonaco(instance);
-      configureYaml();
-    });
-    const dom = editorDomRef.current;
-    if (!dom || !monaco) return;
-
-    // 创建 monaco
-    const model = monaco.editor.createModel("", language);
-    instanceRef.current = monaco.editor.create(dom, {
-      ...defaultOptions,
-      model: model,
-      theme: themeMode === "dark" ? "vs-dark" : "light",
-      minimap: { enabled: size.width >= 1000 },
-    });
-
-    // 用于判断当前编辑的是否为脚本文件
-    editChainCondition.current = instanceRef.current.createContextKey(
-      "editChain",
-      type && ["merge", "script"].includes(type),
-    );
-
-    // 用于判断当前编辑的脚本是否通过运行检测, 并且可以保存
-    saveChainCondition.current = instanceRef.current.createContextKey(
-      "saveChain",
-      false,
-    );
-
+    if (!editor) return;
+    editChainCondition.current = editor.createContextKey("editChain", isChain);
+    saveChainCondition.current = editor.createContextKey("saveChain", false);
     return () => {
-      instanceRef.current?.dispose();
-      instanceRef.current = null;
+      editChainCondition.current = null;
+      saveChainCondition.current = null;
     };
-  }, [monaco]);
+  }, [editor]);
 
   // 读取并显示脚本内容
   useEffect(() => {
-    if (!instanceRef.current || !monaco) return;
+    const ed = editor;
+    if (!ed || !monaco) return;
 
+    // 切换编辑对象 / 卸载后忽略过期的异步结果，避免旧文件覆盖新内容
+    let cancelled = false;
     readProfileFile(profileItem.uid)
-      .then(async (data) => {
+      .then((data) => {
+        if (cancelled) return;
         originContentRef.current = data;
         // create uri to use schemas
         const id = nanoid();
-        const uri = monaco.Uri.parse(`${id}.${type}.${language}`);
-        const model = monaco.editor.createModel(data, language, uri);
-        const oldModel = instanceRef.current!.getModel();
-        instanceRef.current!.setModel(model);
-        editChainCondition.current?.set(
-          type && ["merge", "script"].includes(type),
-        );
-        oldModel?.dispose();
-
-        setLogs(chainLogs[profileItem.uid] ?? []);
+        const uri = `${id}.${type}.${language}`;
+        setModel(data, { language, uri });
+        editChainCondition.current?.set(isChain);
         saveChainCondition.current?.set(false);
         setChainChecked(false);
         setSaved(true);
+        setLogs(useProfilesStore.getState().chainLogs[profileItem.uid] ?? []);
       })
       .catch((e) => {
-        console.error(e);
+        if (!cancelled) console.error(e);
       });
 
     // Model 内容改变
-    const modelChange = instanceRef.current?.onDidChangeModelContent(() => {
+    const modelChange = ed.onDidChangeModelContent(() => {
       setChainChecked(false);
       let isReset = false;
       if (originContentRef.current) {
-        const content = instanceRef.current?.getValue() ?? "";
+        const content = ed.getValue() ?? "";
         if (originContentRef.current === content) {
           setSaved(true);
           saveChainCondition.current?.set(true);
@@ -206,15 +149,14 @@ export const ProfileEditor = (props: Props) => {
         setSaved(false);
         saveChainCondition.current?.set(false);
       }
-      const content = instanceRef.current?.getValue() ?? "";
-      onChange?.(content);
+      onChange?.(ed.getValue() ?? "");
       if (isReset) {
         onReset?.();
       }
     });
 
     // [F5] 快速执行脚本运行检测
-    const runCheckAction = instanceRef.current.addAction({
+    const runCheckAction = ed.addAction({
       id: "runChainCheck",
       label: "check run",
       keybindings: [monaco.KeyCode.F5],
@@ -225,7 +167,7 @@ export const ProfileEditor = (props: Props) => {
     });
 
     // [Ctrl + s] 保存当前编辑的配置内容
-    const saveAction = instanceRef.current.addAction({
+    const saveAction = ed.addAction({
       id: "saveProfile",
       label: "save profile",
       keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS],
@@ -238,7 +180,7 @@ export const ProfileEditor = (props: Props) => {
     let codeLensRef: IDisposable | undefined;
     if (type !== "clash") {
       generateTemplate({
-        monacoInstance: instanceRef.current,
+        monacoInstance: ed,
         languageSelector: ["yaml", "javascript"],
         generateType: type,
         generateLanguage: language,
@@ -250,37 +192,17 @@ export const ProfileEditor = (props: Props) => {
     }
 
     return () => {
+      cancelled = true;
       modelChange.dispose();
       runCheckAction.dispose();
       saveAction.dispose();
       codeLensRef?.dispose();
     };
-  }, [profileItem, monaco]);
-
-  // 更新 monaco 显示小地图
-  useEffect(() => {
-    if (!instanceRef.current || !monaco) return;
-
-    const minimap = instanceRef.current.getOption(
-      monaco.editor.EditorOption.minimap,
-    );
-    if (!minimap.enabled && size.width >= 1000) {
-      console.log("show mini map");
-      instanceRef.current.updateOptions({
-        minimap: { enabled: true },
-      });
-    }
-    if (minimap.enabled && size.width < 1000) {
-      console.log("disable mini map");
-      instanceRef.current.updateOptions({
-        minimap: { enabled: false },
-      });
-    }
-  }, [size, monaco]);
+  }, [profileItem, monaco, editor]);
 
   const handleRunCheck = async (currentProfileUid: string) => {
     try {
-      const value = instanceRef.current?.getValue();
+      const value = editor?.getValue();
       if (value === undefined) return false;
 
       setChecking(true);
@@ -315,7 +237,7 @@ export const ProfileEditor = (props: Props) => {
   const handleSave = async () => {
     setSaving(true);
     const uid = profileItem.uid;
-    const val = instanceRef.current?.getValue();
+    const val = editor?.getValue();
     if (!val) {
       notice("error", t("messages.editor.readMonacoContentFailed"));
       setSaving(false);
@@ -347,9 +269,24 @@ export const ProfileEditor = (props: Props) => {
     return true;
   };
 
+  useImperativeHandle(ref, () => ({
+    save: async () => {
+      try {
+        return await handleSave();
+      } catch (_ignore) {
+        return false;
+      }
+    },
+    reset: () => {
+      if (originContentRef.current) {
+        editor?.setValue(originContentRef.current);
+      }
+    },
+  }));
+
   return (
     <div className="flex h-full w-full overflow-hidden">
-      <div className="h-full w-full overflow-hidden" ref={editorDomRef} />
+      <div className="h-full w-full overflow-hidden" ref={domRef} />
       <div className="flex w-14 flex-col items-center justify-end space-y-2! px-1 pb-4">
         <Tooltip
           title={t("pages.profiles.editor.restoreChanges")}
@@ -362,7 +299,7 @@ export const ProfileEditor = (props: Props) => {
               color="primary"
               onClick={() => {
                 if (originContentRef.current) {
-                  instanceRef.current?.setValue(originContentRef.current);
+                  editor?.setValue(originContentRef.current);
                   onReset?.();
                   setSaved(true);
                 }
@@ -451,7 +388,7 @@ export const ProfileEditor = (props: Props) => {
       )}
     </div>
   );
-};
+});
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   "& .MuiBadge-badge": {
