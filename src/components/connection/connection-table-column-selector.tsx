@@ -31,7 +31,7 @@ const SortableColumnOption = ({
     <Box
       ref={setElement}
       data-show={isDragging || undefined}
-      className={cn("bg-background-paper", isDragging && "shadow-8")}>
+      className={cn("bg-background-paper")}>
       <Box className="hover:bg-action-hover flex items-center gap-2 rounded px-3 py-2">
         <button
           ref={handleRef}

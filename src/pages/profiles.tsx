@@ -1,7 +1,7 @@
 import { PointerActivationConstraints } from "@dnd-kit/dom";
 import { isSortable } from "@dnd-kit/dom/sortable";
 import { arrayMove } from "@dnd-kit/helpers";
-import { DragDropProvider, DragOverlay, PointerSensor } from "@dnd-kit/react";
+import { DragDropProvider, PointerSensor } from "@dnd-kit/react";
 import CheckCircle from "@mui/icons-material/CheckCircle";
 import ClearRounded from "@mui/icons-material/ClearRounded";
 import ContentPasteRounded from "@mui/icons-material/ContentPasteRounded";
@@ -554,7 +554,7 @@ const ProfilePage = () => {
                 );
               })}
             </div>
-            <DragOverlay>
+            {/*<DragOverlay>
               {(source) => {
                 const draggingItem = sortableProfileItems.find(
                   (item) => item.uid === source.id,
@@ -580,7 +580,7 @@ const ProfilePage = () => {
                   />
                 );
               }}
-            </DragOverlay>
+            </DragOverlay>*/}
           </DragDropProvider>
         </Box>
 
@@ -689,7 +689,7 @@ const ProfilePage = () => {
                     );
                   })}
                 </div>
-                <DragOverlay>
+                {/*<DragOverlay>
                   {(source) => {
                     const draggingItem = sortableGlobalChainItems.find(
                       (item) => item.id === source.id,
@@ -714,7 +714,7 @@ const ProfilePage = () => {
                       />
                     );
                   }}
-                </DragOverlay>
+                </DragOverlay>*/}
               </DragDropProvider>
             </Box>
           </>
