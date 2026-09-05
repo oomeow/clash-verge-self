@@ -13,6 +13,8 @@ import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 
+const OS = getSystem();
+
 export const LogoTitle = ({
   sidebarCollapsed,
   enableSystemTitleBar,
@@ -23,7 +25,8 @@ export const LogoTitle = ({
   const { toggleTheme } = useCustomTheme();
   const mode = useThemeModeStore((s) => s.themeMode);
   const isDark = mode === "dark";
-  const isMacOS = getSystem() === "macos";
+  const isMacOS = OS === "macos";
+  const isLinux = OS === "linux";
   const dragRegionRef = useRef<HTMLDivElement>(null);
 
   useLongPress(
@@ -74,6 +77,8 @@ export const LogoTitle = ({
         className={cn("absolute top-0 left-0 z-10 scale-[0.7] cursor-pointer", {
           "top-0 left-16 scale-75": !sidebarCollapsed,
           "top-13 left-1": sidebarCollapsed,
+          "top-15 left-1.5": isLinux && sidebarCollapsed,
+          "top-19": isLinux && sidebarCollapsed && !enableSystemTitleBar,
         })}
       />
       <AnimatePresence initial={false}>
