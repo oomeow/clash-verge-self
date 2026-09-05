@@ -26,7 +26,6 @@ export const LogoTitle = ({
   const mode = useThemeModeStore((s) => s.themeMode);
   const isDark = mode === "dark";
   const isMacOS = OS === "macos";
-  const isLinux = OS === "linux";
   const dragRegionRef = useRef<HTMLDivElement>(null);
 
   useLongPress(
@@ -49,9 +48,9 @@ export const LogoTitle = ({
         className={cn("flex items-center justify-around px-5", {
           "px-2": sidebarCollapsed,
         })}>
-        <div>
+        <div id="logo-title" className="relative">
           <LogoSvg
-            onClick={(e) => {
+            onClick={(e: MouseEvent) => {
               e.preventDefault();
               e.stopPropagation();
               toggleTheme(isDark ? "light" : "dark");
@@ -64,6 +63,12 @@ export const LogoTitle = ({
               },
             )}
           />
+          <UpdateButton
+            className={cn("absolute z-10 scale-75 cursor-pointer", {
+              "top-17 left-0": sidebarCollapsed,
+              "-top-2 left-12": !sidebarCollapsed,
+            })}
+          />
         </div>
         <div>
           <AppNameSvg
@@ -73,14 +78,6 @@ export const LogoTitle = ({
           />
         </div>
       </div>
-      <UpdateButton
-        className={cn("absolute top-0 left-0 z-10 scale-[0.7] cursor-pointer", {
-          "top-0 left-16 scale-75": !sidebarCollapsed,
-          "top-13 left-1": sidebarCollapsed,
-          "top-15 left-1.5": isLinux && sidebarCollapsed,
-          "top-19": isLinux && sidebarCollapsed && !enableSystemTitleBar,
-        })}
-      />
       <AnimatePresence initial={false}>
         <motion.button
           key={isDark ? "dark" : "light"}
