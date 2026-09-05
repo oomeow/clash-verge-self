@@ -185,8 +185,13 @@ export const ProfileEditorViewer = (props: Props) => {
 
   const closeDialog = useCallback(() => {
     setEditProfile(profileItem);
+    // 取消/关闭时丢弃本次未保存的编辑：
+    // 表单回到存储值（避免重新打开时残留旧输入）、编辑器内容还原、清空未保存标记
+    profileEditorRef.current?.reset();
+    formMethods.reset(profileItem);
+    setCurContentSaved(true);
     onClose();
-  }, [onClose, profileItem]);
+  }, [onClose, profileItem, formMethods]);
 
   return (
     <BaseDialog
