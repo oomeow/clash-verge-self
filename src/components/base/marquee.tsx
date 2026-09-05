@@ -1,7 +1,6 @@
 import { debounce } from "lodash-es";
 import React, {
   type ComponentPropsWithoutRef,
-  type CSSProperties,
   type RefObject,
   useCallback,
   useEffect,
@@ -186,10 +185,16 @@ export function Marquee({
       ref={containerRef}
       {...containerProps}
       className={cn(
-        "flex w-full overflow-hidden [--gap:1rem]",
+        "flex w-full overflow-hidden [contain:paint] [--gap:1rem]",
         vertical ? "flex-col" : "flex-row",
         className,
-      )}>
+      )}
+      style={{
+        ...props.style,
+        // 滚动时让裁剪容器自身也参与合成，确保超宽的轨道合成层被正确裁剪，
+        // 规避部分 Linux WebView 因溢出裁剪失效而出现的"静止文本 + 滚动文本"重叠
+        willChange: animate ? "transform" : undefined,
+      }}>
       {/* 轨道结构恒定，groupA 始终作为首个子节点（ref/测量稳定）；
           是否滚动仅通过增删第二份副本与 WAAPI 动画来控制。
           key 随内容文本变化而变，触发轨道重挂载（重建合成图层） */}
@@ -199,10 +204,7 @@ export function Marquee({
         className={cn(
           "flex shrink-0 gap-(--gap)",
           vertical ? "flex-col" : "flex-row",
-        )}
-        style={
-          { willChange: animate ? "transform" : undefined } as CSSProperties
-        }>
+        )}>
         <div ref={groupRef} className={groupClasses}>
           {children}
         </div>
