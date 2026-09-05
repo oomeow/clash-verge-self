@@ -3,6 +3,13 @@
 // For a full list of overridable settings, and general information on folder-specific settings,
 // see the documentation: https://zed.dev/docs/configuring-zed#settings-files
 {
+  "lsp": {
+    "biome": {
+      "settings": {
+        "config_path": "biome.json"
+      }
+    }
+  },
   "formatter": [
     "language_server",
     "prettier",
@@ -10,7 +17,7 @@
       "code_action": "source.fixAll.eslint"
     }
   ],
-  // disable biome/oxfmt/oxlint
+  // disable oxfmt/oxlint
   "language_servers": ["!oxfmt", "!oxlint", "..."],
   "languages": {
     "CSS": {
