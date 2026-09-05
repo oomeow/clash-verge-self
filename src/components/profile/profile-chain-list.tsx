@@ -1,6 +1,7 @@
+import { PointerActivationConstraints } from "@dnd-kit/dom";
 import { isSortable } from "@dnd-kit/dom/sortable";
 import { arrayMove } from "@dnd-kit/helpers";
-import { DragDropProvider } from "@dnd-kit/react";
+import { DragDropProvider, DragOverlay, PointerSensor } from "@dnd-kit/react";
 import Add from "@mui/icons-material/Add";
 import { Button } from "@mui/material";
 import { isEqual } from "lodash-es";
@@ -93,6 +94,17 @@ export const ProfileChainList = memo(function ProfileChainList(props: Props) {
 
       <div className="overflow-auto px-1">
         <DragDropProvider
+          sensors={(defaults) => [
+            ...defaults,
+            PointerSensor.configure({
+              // 行内主体为 <button>（可点击整行），默认 PointerSensor 会忽略
+              // 落在交互元素上的拖拽起点，这里放开以支持整行拖拽排序
+              preventActivation: () => false,
+              activationConstraints: [
+                new PointerActivationConstraints.Distance({ value: 5 }),
+              ],
+            }),
+          ]}
           onDragOver={(e) => {
             if (reactivating) e.preventDefault();
           }}
@@ -143,6 +155,25 @@ export const ProfileChainList = memo(function ProfileChainList(props: Props) {
               />
             </SortableItem>
           ))}
+
+          <DragOverlay>
+            {(source) => {
+              const draggingItem = sortableItems.find(
+                (item) => item.uid === source.id,
+              );
+              if (!draggingItem) return null;
+              return (
+                <div className="pointer-events-none w-full cursor-grabbing">
+                  <ProfileMoreMini
+                    item={draggingItem}
+                    isDragging
+                    selected={draggingItem.uid === selectedUid}
+                    logs={chainLogs[draggingItem.uid]}
+                  />
+                </div>
+              );
+            }}
+          </DragOverlay>
         </DragDropProvider>
       </div>
     </div>
