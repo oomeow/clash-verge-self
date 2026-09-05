@@ -14,4 +14,4 @@ serde_yaml.workspace = true
 thiserror.workspace = true
 
 byteorder = "1.5"
-zstd = "0.13"
+zstd = "0.14"
