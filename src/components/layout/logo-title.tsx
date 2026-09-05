@@ -58,14 +58,15 @@ export const LogoTitle = ({
             className={cn(
               "fill-primary! z-10 mr-1 h-full w-12 cursor-pointer transition-all duration-200",
               {
-                "mt-6 mr-0": sidebarCollapsed,
-                "mt-2": !isMacOS && enableSystemTitleBar,
+                "mt-2 mr-0": sidebarCollapsed,
+                "mt-6": isMacOS && sidebarCollapsed,
               },
             )}
           />
           <UpdateButton
             className={cn("absolute z-10 scale-75 cursor-pointer", {
-              "top-17 left-0": sidebarCollapsed,
+              "top-11 left-0": sidebarCollapsed,
+              "top-17": isMacOS && sidebarCollapsed,
               "-top-2 left-12": !sidebarCollapsed,
             })}
           />
