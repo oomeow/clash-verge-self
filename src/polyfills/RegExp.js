@@ -4,7 +4,10 @@
   }
 
   const originalRegExp = window.RegExp;
-  const hasOwn = Object.prototype.hasOwnProperty.call;
+  function hasOwn(object, key) {
+    // biome-ignore lint/suspicious/noPrototypeBuiltins: 需兼容缺少 Object.hasOwn 的旧内核
+    return Object.prototype.hasOwnProperty.call(object, key);
+  }
 
   // biome-ignore lint/complexity/useArrowFunction: polyfill 出的 RegExp 仍需可用作构造器（new RegExp(...)）
   window.RegExp = function (pattern, flags) {
