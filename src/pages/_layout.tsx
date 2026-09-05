@@ -47,6 +47,10 @@ const Layout = () => {
   const enableSystemTitleBar = useVergeStore(
     (s) => s.verge.enable_system_title_bar ?? false,
   );
+  // 自定义标题栏（Linux 透明圆角窗口）且未最大化时，根容器自身成为
+  // fixed 定位后代的包含块，使经主题 Dialog container 挂载进来的
+  // Modal/弹窗被其 overflow-hidden 按圆角裁切
+  const clipRounded = OS === "linux" && !enableSystemTitleBar && !isMaximized;
   const appHotkeys = useVergeStore((s) => s.verge.app_hotkeys);
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
   const refreshProfilesConfig = useProfilesStore((s) => s.refreshConfig);
@@ -145,6 +149,43 @@ const Layout = () => {
     };
   }, [isMaximized]);
 
+  // 自定义标题栏：按指针到窗口边缘/角落的距离切换缩放光标。
+  // 不依赖具体元素 hover（边缘常被内容/滚动条覆盖），改 body 光标最可靠，
+  // 且仅在光标值变化时才写入样式。
+  useEffect(() => {
+    if (enableSystemTitleBar || isMaximized) return;
+
+    const EDGE = 2;
+    const handleMouseMove = (e: MouseEvent) => {
+      const { clientX: x, clientY: y } = e;
+      const { innerWidth, innerHeight } = window;
+      const onLeft = x <= EDGE;
+      const onRight = x >= innerWidth - EDGE;
+      const onTop = y <= EDGE;
+      const onBottom = y >= innerHeight - EDGE;
+
+      let cursor = "";
+      if ((onTop && onLeft) || (onBottom && onRight)) {
+        cursor = "nwse-resize";
+      } else if ((onTop && onRight) || (onBottom && onLeft)) {
+        cursor = "nesw-resize";
+      } else if (onTop || onBottom) {
+        cursor = "ns-resize";
+      } else if (onLeft || onRight) {
+        cursor = "ew-resize";
+      }
+      if (document.body.style.cursor !== cursor) {
+        document.body.style.cursor = cursor;
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      document.body.style.cursor = "";
+    };
+  }, [enableSystemTitleBar, isMaximized]);
+
   useEffect(() => {
     if (language) {
       const locale = language.replace("_", "-").toLowerCase();
@@ -174,11 +215,16 @@ const Layout = () => {
       <Paper
         square
         elevation={0}
+        data-dialog-container
         className={cn("relative flex h-screen w-screen overflow-hidden", {
-          "rounded-lg border border-solid border-(--divider-color)":
-            OS === "linux" && !enableSystemTitleBar,
+          // 自定义标题栏时给窗口外圈加 2px 描边，作为边缘缩放抓手（全平台）
+          "border-2 border-solid border-(--divider-color)":
+            !enableSystemTitleBar,
+          // Linux 自定义标题栏为圆角窗口
+          "rounded-lg": OS === "linux" && !enableSystemTitleBar,
           "rounded-none": isMaximized,
         })}
+        style={clipRounded ? { transform: "translateZ(0)" } : undefined}
         onContextMenu={(e) => {
           if (process.env.NODE_ENV === "production") {
             // only prevent it on Windows

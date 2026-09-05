@@ -185,7 +185,7 @@ export function Marquee({
       ref={containerRef}
       {...containerProps}
       className={cn(
-        "flex w-full overflow-hidden [contain:paint] [--gap:1rem]",
+        "flex w-full overflow-hidden contain-[paint] [--gap:1rem]",
         vertical ? "flex-col" : "flex-row",
         className,
       )}

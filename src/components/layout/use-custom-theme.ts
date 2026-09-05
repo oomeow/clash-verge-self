@@ -41,6 +41,14 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
 
 function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
   const rootElement = document.getElementById("root");
+  // Dialog 需挂载到带圆角裁切的根容器（data-dialog-container）内，
+  // 才能随应用整体形状被裁剪；其余 Portal 组件保持挂在 #root 下即可。
+  const dialogContainer = () => {
+    return (
+      document.querySelector<HTMLElement>("[data-dialog-container]") ??
+      rootElement
+    );
+  };
   const settingsFontFamily = setting.font_family?.split(",") ?? [];
   const typographyFontFamily = [settingsFontFamily, "Twemoji Mozilla"]
     .flat()
@@ -90,7 +98,7 @@ function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
       },
       MuiDialog: {
         defaultProps: {
-          container: rootElement,
+          container: dialogContainer,
         },
       },
       MuiModal: {
