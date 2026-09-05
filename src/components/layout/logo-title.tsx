@@ -65,7 +65,7 @@ export const LogoTitle = ({
           />
           <UpdateButton
             className={cn("absolute z-10 scale-75 cursor-pointer", {
-              "top-11 left-0": sidebarCollapsed,
+              "top-13 left-0": sidebarCollapsed,
               "top-17": isMacOS && sidebarCollapsed,
               "-top-2 left-12": !sidebarCollapsed,
             })}
