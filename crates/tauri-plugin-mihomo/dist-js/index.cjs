@@ -448,7 +448,7 @@ class MihomoWebSocket {
             });
             this.listeners.clear();
         }
-        catch (ignore) {
+        catch (_ignore) {
             // ignore
         }
         finally {
