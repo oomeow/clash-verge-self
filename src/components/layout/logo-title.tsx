@@ -48,7 +48,7 @@ export const LogoTitle = ({
         })}>
         <div id="logo-title" className="relative">
           <LogoSvg
-            onClick={(e: MouseEvent) => {
+            onClick={(e: React.MouseEvent<SVGSVGElement>) => {
               e.preventDefault();
               e.stopPropagation();
               toggleTheme(isDark ? "light" : "dark");
