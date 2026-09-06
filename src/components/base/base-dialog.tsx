@@ -89,7 +89,7 @@ export const BaseDialog = (props: BaseDialogProps) => {
         }
       }
     });
-  }, [full]);
+  }, [titlebarRef.current, full]);
 
   return (
     <Dialog
