@@ -122,7 +122,10 @@ jobs:
       - name: Add Rust Target
         run: rustup target add ${{ matrix.target }}
 
+      # cross executes Cargo inside a container. Do not restore the host target
+      # directory: build scripts in it may require a newer host GLIBC.
       - name: Rust Cache
+        if: matrix.os != 'ubuntu-22.04' || matrix.target == 'x86_64-unknown-linux-gnu'
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
 
       - name: Configure Fast APT Mirror
