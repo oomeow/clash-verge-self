@@ -30,7 +30,7 @@ RUN dpkg --add-architecture armhf && \
     patchelf:armhf
 
 # Install Rust
-RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile minimal
+RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile default
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup target add armv7-unknown-linux-gnueabihf
 ENV CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc \
