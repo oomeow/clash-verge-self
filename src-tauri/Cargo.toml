@@ -78,7 +78,7 @@ rfd = { version = "0.17", default-features = false, features = [
 ] }
 mihomo-versions = { git = "https://github.com/oomeow/mihomo-versions" }
 network-interface = "2.0.1"
-rquickjs = { version = "0.12", features = ["bindgen"] }
+rquickjs = { version = "0.13", features = ["bindgen"] }
 dark-light = "3.0.0"
 console-subscriber = { version = "0.5.0", optional = true }
 
