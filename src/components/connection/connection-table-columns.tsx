@@ -28,6 +28,7 @@ export const createConnectionColumns = ({
           header: "",
           cell: ({ row }) => (
             <button
+              type="button"
               className="cursor-pointer rounded-full text-xs hover:bg-gray-200"
               onClick={(event) => {
                 event.stopPropagation();

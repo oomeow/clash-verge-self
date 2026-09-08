@@ -6,7 +6,7 @@ import {
   Card,
   Collapse,
   IconButton,
-  IconButtonProps,
+  type IconButtonProps,
   ListItemButton,
   styled,
   Switch,
@@ -15,7 +15,7 @@ import {
 import dayjs from "dayjs";
 import { Virtuoso } from "react-virtuoso";
 
-import { CustomRule, useRulesStateStore } from "@/stores/rulesStateStore";
+import { type CustomRule, useRulesStateStore } from "@/stores/rulesStateStore";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;

@@ -1,4 +1,4 @@
-import type { Connection, Connections } from "tauri-plugin-mihomo-api";
+import type { ConnectionInfo, Connections } from "tauri-plugin-mihomo-api";
 
 import {
   ManagedMihomoWebSocket,
@@ -6,7 +6,7 @@ import {
 } from "@/services/managedMihomoWs";
 import { mutate, swrSubscriptionKey, useSWRSubscription } from "@/services/swr";
 
-export type IConnectionsItem = Connection & {
+export type IConnectionsItem = ConnectionInfo & {
   curUpload?: number; // upload speed, calculate at runtime
   curDownload?: number; // download speed, calculate at runtime
 };

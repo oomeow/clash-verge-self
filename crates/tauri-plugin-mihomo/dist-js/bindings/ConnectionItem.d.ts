@@ -1,5 +1,5 @@
 import type { ConnectionMetaData } from "./ConnectionMetaData";
-export type Connection = {
+export type ConnectionItem = {
     id: string;
     metadata: ConnectionMetaData;
     upload: number;

@@ -16,9 +16,10 @@ import { nanoid } from "nanoid";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
+import { BaseDialog, type DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
+import { getErrorMessage } from "@/utils";
 
 const DEFAULT_ALLOW_ORIGINS = [
   "https://metacubex.github.io",
@@ -67,8 +68,8 @@ export const ControllerViewer = forwardRef<DialogRef>((_props, ref) => {
         1000,
       );
       setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString(), 4000);
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err), 4000);
     }
   });
 
@@ -125,7 +126,7 @@ export const ControllerViewer = forwardRef<DialogRef>((_props, ref) => {
             value={secret}
             placeholder={t("common.status.recommended")}
             onChange={(e) =>
-              setSecret(e.target.value?.replace(/[^\x00-\x7F]/g, ""))
+              setSecret(e.target.value?.replace(/[^\p{ASCII}]/gu, ""))
             }
           />
         </ListItem>

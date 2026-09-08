@@ -1,18 +1,18 @@
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { alpha, Box, ListItemButton, Typography } from "@mui/material";
 import { memo } from "react";
-import { Proxy } from "tauri-plugin-mihomo-api";
+import type { ProxyInfo } from "tauri-plugin-mihomo-api";
 
 import { BaseLoading } from "@/components/base";
 import delayManager, { DEFAULT_LATENCY_TIMEOUT } from "@/services/delay";
 import { useVergeStore } from "@/stores";
 import { proxyId } from "@/utils/proxyId";
 
-import { IProxyGroupItem } from "./use-render-list";
+import type { IProxyGroupItem } from "./use-render-list";
 
 interface Props {
   group: IProxyGroupItem;
-  proxy: Proxy;
+  proxy: ProxyInfo;
   fixed: boolean;
   selected: boolean;
   showType?: boolean;
@@ -110,7 +110,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
         },
       ]}>
       <Box
-        title={`${proxy.name}${proxy.now ? "\n" + proxy.now : ""}`}
+        title={`${proxy.name}${proxy.now ? `\n${proxy.now}` : ""}`}
         sx={{
           width: "100%",
           overflow: "hidden",
@@ -203,7 +203,8 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
 
         {proxy.type !== "Direct" && delay >= 0 && (
           // 显示延迟
-          <div
+          <button
+            type="button"
             className="the-delay hover:bg-primary/15 rounded-md px-1.5 py-0.5 text-sm"
             onClick={(e) => {
               e.preventDefault();
@@ -212,7 +213,7 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
             }}
             style={{ color: delayManager.formatDelayColor(delay, timeout) }}>
             {delayManager.formatDelay(delay, timeout)}
-          </div>
+          </button>
         )}
         {proxy.type !== "Direct" && delay !== -2 && delay < 0 && selected && (
           // 展示已选择的icon

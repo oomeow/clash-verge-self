@@ -1,16 +1,16 @@
-(function () {
+(() => {
   if (typeof window.WeakRef !== "undefined") {
     return;
   }
 
-  window.WeakRef = (function (weakMap) {
-    function WeakRef(target) {
+  window.WeakRef = ((weakMap) => {
+    function WeakRefPolyfill(target) {
       weakMap.set(this, target);
     }
-    WeakRef.prototype.deref = function () {
+    WeakRefPolyfill.prototype.deref = function () {
       return weakMap.get(this);
     };
 
-    return WeakRef;
+    return WeakRefPolyfill;
   })(new WeakMap());
 })();

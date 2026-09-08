@@ -1,6 +1,6 @@
 import type { RuleExtra } from "./RuleExtra";
 import type { RuleType } from "./RuleType";
-export type Rule = {
+export type RuleInfo = {
     index: number;
     type: RuleType;
     payload: string;

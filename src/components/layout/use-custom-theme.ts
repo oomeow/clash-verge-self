@@ -1,9 +1,9 @@
 import {
   alpha,
   createTheme,
-  CssVarsThemeOptions,
-  Theme,
-  ThemeOptions,
+  type CssVarsThemeOptions,
+  type Theme,
+  type ThemeOptions,
 } from "@mui/material";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { useEffect, useMemo } from "react";
@@ -15,7 +15,7 @@ import {
   useThemeModeStore,
   useThemeSettingsStore,
 } from "@/stores";
-import { ThemeMode } from "@/stores/themeStore";
+import type { ThemeMode } from "@/stores/themeStore";
 
 const appWindow = getCurrentWebviewWindow();
 
@@ -41,6 +41,14 @@ type CustomThemeOptions = Omit<ThemeOptions, "components"> &
 
 function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
   const rootElement = document.getElementById("root");
+  // Dialog 需挂载到带圆角裁切的根容器（data-dialog-container）内，
+  // 才能随应用整体形状被裁剪；其余 Portal 组件保持挂在 #root 下即可。
+  const dialogContainer = () => {
+    return (
+      document.querySelector<HTMLElement>("[data-dialog-container]") ??
+      rootElement
+    );
+  };
   const settingsFontFamily = setting.font_family?.split(",") ?? [];
   const typographyFontFamily = [settingsFontFamily, "Twemoji Mozilla"]
     .flat()
@@ -90,7 +98,7 @@ function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
       },
       MuiDialog: {
         defaultProps: {
-          container: rootElement,
+          container: dialogContainer,
         },
       },
       MuiModal: {
@@ -104,7 +112,6 @@ function createCustomTheme(themeMode: ThemeMode, setting: IVergeThemeSettings) {
 
 export const useCustomTheme = () => {
   const vergeThemeMode = useVergeStore((s) => s.verge.theme_mode);
-  const language = useVergeStore((s) => s.verge.language);
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const currentThemeMode = useThemeModeStore((s) => s.themeMode);
   const setMode = useThemeModeStore((s) => s.setThemeMode);
@@ -112,8 +119,8 @@ export const useCustomTheme = () => {
 
   useEffect(() => {
     if (!vergeThemeMode) return;
-    const themeMode = ["light", "dark", "system"].includes(vergeThemeMode!)
-      ? vergeThemeMode!
+    const themeMode = ["light", "dark", "system"].includes(vergeThemeMode)
+      ? vergeThemeMode
       : "light";
     if (themeMode !== "system") {
       setMode(themeMode);
@@ -125,7 +132,7 @@ export const useCustomTheme = () => {
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, [vergeThemeMode]);
+  }, [vergeThemeMode, setMode]);
 
   const theme = useMemo(() => {
     const setting = normalizeThemeSetting(
@@ -173,7 +180,7 @@ export const useCustomTheme = () => {
     if (!style) {
       style = document.createElement("style");
       style.id = "verge-theme";
-      document.head.appendChild(style!);
+      document.head.appendChild(style);
     }
     if (style) {
       style.innerHTML = setting?.css_injection || "";
@@ -200,7 +207,7 @@ export const useCustomTheme = () => {
     }
 
     return theme;
-  }, [currentThemeMode, themeSettings, language]);
+  }, [currentThemeMode, themeSettings]);
 
   const toggleTheme = async (changeMode: "light" | "dark" | "system") => {
     let nextThemeMode: ThemeMode;

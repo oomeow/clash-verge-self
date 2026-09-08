@@ -1,7 +1,7 @@
 import type { DelayHistory } from "./DelayHistory";
 import type { Extra } from "./Extra";
 import type { ProxyType } from "./ProxyType";
-export type Proxy = {
+export type ProxyInfo = {
     all?: Array<string>;
     expectedStatus?: string;
     fixed?: string;

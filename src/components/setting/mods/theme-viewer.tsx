@@ -15,7 +15,7 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BaseDialog, DialogRef, EditorViewer } from "@/components/base";
+import { BaseDialog, type DialogRef, EditorViewer } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { THEME_PRESETS } from "@/pages/_theme";
@@ -26,6 +26,7 @@ import {
   useThemeSettingsStore,
 } from "@/stores";
 import { isSameThemeColors, normalizeThemeSetting } from "@/stores/themeStore";
+import { getErrorMessage } from "@/utils";
 
 import ThemeColorSelect from "./theme-color-select";
 
@@ -114,8 +115,8 @@ export const ThemeViewer = forwardRef<DialogRef>((_props, ref) => {
         dark_theme_setting: themeSettings.dark,
       });
       setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 

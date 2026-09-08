@@ -6,7 +6,7 @@ import Terminal from "@mui/icons-material/Terminal";
 import {
   alpha,
   Badge,
-  BadgeProps,
+  type BadgeProps,
   Box,
   CircularProgress,
   IconButton,
@@ -14,17 +14,17 @@ import {
   Tooltip,
 } from "@mui/material";
 import { t } from "i18next";
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 
 import { LogViewer } from "@/components/profile/log-viewer";
-import { LogMessage } from "@/components/profile/profile-more";
+import type { LogMessage } from "@/components/profile/profile-more";
 import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { useProfilesStore } from "@/stores";
 import { cn } from "@/utils";
 
 import { Marquee } from "../base";
 import { useCustomTheme } from "../layout/use-custom-theme";
-import { ProfileViewer, ProfileViewerRef } from "./profile-viewer";
+import { ProfileViewer, type ProfileViewerRef } from "./profile-viewer";
 
 interface Props {
   item: IProfileItem;
@@ -33,12 +33,12 @@ interface Props {
   selected: boolean;
   logs?: LogMessage[];
   onToggleEnableCallback?: (enable: boolean) => Promise<void>;
-  onClick?: () => Promise<void>;
+  onClick?: (item: IProfileItem) => Promise<void>;
   onInfoChangeCallback?: () => Promise<void>;
-  onDeleteCallback?: () => Promise<void>;
+  onDeleteCallback?: (item: IProfileItem) => Promise<void>;
 }
 
-export default function ProfileMoreMini(props: Props) {
+const ProfileMoreMini = memo(function ProfileMoreMini(props: Props) {
   const {
     item,
     isDragging,
@@ -74,7 +74,7 @@ export default function ProfileMoreMini(props: Props) {
 
   return (
     <>
-      <div className="bg-background-default my-2 h-14 w-full rounded-lg">
+      <div className="bg-background-default h-14 w-full rounded-lg">
         <div
           style={{
             backgroundColor: item.enable
@@ -86,7 +86,7 @@ export default function ProfileMoreMini(props: Props) {
                 : unselectedbackgroundColor,
           }}
           className={cn(
-            "relative flex h-full w-full cursor-pointer items-center gap-1 overflow-hidden rounded-lg border border-(--divider-color) px-2 py-1 shadow-sm",
+            "relative flex h-full w-full items-center gap-1 overflow-hidden rounded-lg border border-(--divider-color) px-2 py-1 shadow-sm",
             {
               "border-primary border-0 border-l-2! border-solid":
                 item.enable && !hasError,
@@ -94,8 +94,7 @@ export default function ProfileMoreMini(props: Props) {
                 item.enable && hasError && !selected,
               "border-primary animate-highlight border border-solid": selected,
             },
-          )}
-          onClick={onClick}>
+          )}>
           <div className="flex h-full w-8 shrink-0 items-center justify-center">
             <IconButton
               loading={toggleEnabling}
@@ -121,7 +120,10 @@ export default function ProfileMoreMini(props: Props) {
             </IconButton>
           </div>
 
-          <div className="box-border flex h-full min-w-0 flex-1 flex-col justify-center gap-1 overflow-hidden text-sm">
+          <button
+            type="button"
+            onClick={() => void onClick?.(item)}
+            className="box-border flex h-full min-w-0 flex-1 flex-col items-start justify-center gap-1 overflow-hidden p-0 text-left text-sm">
             <div className="flex min-w-0 items-center gap-1.5">
               <ProfileTypeChip
                 type={item.type}
@@ -137,7 +139,7 @@ export default function ProfileMoreMini(props: Props) {
               className="text-text-secondary min-w-0 text-xs">
               <span>{item.desc || "-"}</span>
             </Marquee>
-          </div>
+          </button>
 
           <div className="flex h-full shrink-0 items-center gap-0.5">
             <div className="flex h-6.5 w-6.5 items-center justify-center">
@@ -224,7 +226,7 @@ export default function ProfileMoreMini(props: Props) {
                   try {
                     setDeleting(true);
                     await deleteProfile(item.uid);
-                    await onDeleteCallback?.();
+                    await onDeleteCallback?.(item);
                   } finally {
                     setDeleting(false);
                   }
@@ -269,7 +271,9 @@ export default function ProfileMoreMini(props: Props) {
       )}
     </>
   );
-}
+});
+
+export default ProfileMoreMini;
 
 const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
   "& .MuiBadge-badge": {

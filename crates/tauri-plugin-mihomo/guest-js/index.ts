@@ -1,6 +1,6 @@
 import { Channel, invoke } from "@tauri-apps/api/core";
 
-import {
+import type {
   BaseConfig,
   Connections,
   CoreUpdaterChannel,
@@ -8,8 +8,8 @@ import {
   LogLevel,
   MihomoVersion,
   Proxies,
-  Proxy,
   ProxyDelay,
+  ProxyInfo,
   ProxyProvider,
   ProxyProviders,
   RuleProviders,
@@ -27,7 +27,7 @@ export type MihomoGroupDelay = Record<string, number>;
  */
 export async function updateController(controller: string): Promise<void> {
   const [host, portStr] = controller.trim().split(":");
-  const port = parseInt(portStr);
+  const port = parseInt(portStr, 10);
   await invoke<void>("plugin:mihomo|update_controller", { host, port });
 }
 
@@ -98,8 +98,8 @@ export async function getGroups(): Promise<Groups> {
  * @param groupName 代理组名称
  * @returns 指定代理组信息
  */
-export async function getGroupByName(groupName: string): Promise<Proxy> {
-  return await invoke<Proxy>("plugin:mihomo|get_group_by_name", {
+export async function getGroupByName(groupName: string): Promise<ProxyInfo> {
+  return await invoke<ProxyInfo>("plugin:mihomo|get_group_by_name", {
     groupName,
   });
 }
@@ -212,8 +212,10 @@ export async function getProxies(): Promise<Proxies> {
  * @param proxyName 代理名称
  * @returns 代理信息
  */
-export async function getProxyByName(proxyName: string): Promise<Proxy | null> {
-  return await invoke<Proxy>("plugin:mihomo|get_proxy_by_name", {
+export async function getProxyByName(
+  proxyName: string,
+): Promise<ProxyInfo | null> {
+  return await invoke<ProxyInfo>("plugin:mihomo|get_proxy_by_name", {
     proxiesName: proxyName,
   });
 }
@@ -567,7 +569,7 @@ export class MihomoWebSocket {
         forceTimeout: 0,
       });
       this.listeners.clear();
-    } catch (ignore) {
+    } catch (_ignore) {
       // ignore
     } finally {
       MihomoWebSocket.instances.delete(this);

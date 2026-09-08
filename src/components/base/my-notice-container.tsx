@@ -5,8 +5,12 @@ import Info from "@mui/icons-material/Info";
 import Warning from "@mui/icons-material/Warning";
 import { ThemeProvider } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
-import { CustomContentProps, SnackbarContent, useSnackbar } from "notistack";
-import { ForwardedRef, useCallback } from "react";
+import {
+  type CustomContentProps,
+  SnackbarContent,
+  useSnackbar,
+} from "notistack";
+import { type ForwardedRef, useCallback } from "react";
 
 import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
@@ -42,7 +46,7 @@ export const MyNoticeContainer = (props: MyNoticeContainerProps) => {
   const successColor = theme.palette.success.main;
   const errorColor = theme.palette.error.main;
 
-  let contentColor;
+  let contentColor: string;
   switch (variant) {
     case "info":
       contentColor = infoColor;

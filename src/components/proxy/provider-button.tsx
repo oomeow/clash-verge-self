@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 import { updateProxyProvider } from "tauri-plugin-mihomo-api";
 
 import { mutate, swrKeys, useProxyProvidersSWR } from "@/services/swr";
-import { cn } from "@/utils";
+import { cn, getErrorMessage } from "@/utils";
 import parseTraffic from "@/utils/parse-traffic";
 
 import { BaseDialog } from "../base";
@@ -41,8 +41,9 @@ export const ProviderButton = () => {
     try {
       setUpdatingAt(true, index);
       await updateProxyProvider(key);
-    } catch (e: any) {
-      console.error(e);
+    } catch (e: unknown) {
+      const errmsg = getErrorMessage(e);
+      console.error(errmsg);
     } finally {
       setUpdatingAt(false, index);
     }

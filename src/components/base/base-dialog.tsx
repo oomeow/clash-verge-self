@@ -7,19 +7,11 @@ import {
   DialogTitle,
   IconButton,
   Stack,
-  SxProps,
+  type SxProps,
 } from "@mui/material";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { t } from "i18next";
-import {
-  CSSProperties,
-  isValidElement,
-  ReactNode,
-  useEffect,
-  useRef,
-} from "react";
+import { type CSSProperties, isValidElement, type ReactNode } from "react";
 
-import { useVergeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 
@@ -76,24 +68,6 @@ export const BaseDialog = (props: BaseDialogProps) => {
     onCancel,
     onClose,
   } = props;
-  const enableSystemTitleBar = useVergeStore(
-    (s) => s.verge.enable_system_title_bar ?? false,
-  );
-  const titlebarRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!titlebarRef.current || !full) return;
-    titlebarRef.current?.addEventListener("mousedown", (e) => {
-      if (e.buttons === 1) {
-        const appWindow = getCurrentWindow();
-        if (e.detail === 2) {
-          appWindow.toggleMaximize();
-        } else {
-          appWindow.startDragging();
-        }
-      }
-    });
-  }, [full]);
 
   return (
     <Dialog
@@ -107,25 +81,18 @@ export const BaseDialog = (props: BaseDialogProps) => {
           className: cn({ "bg-black/50": !full }),
         },
         paper: {
-          className: cn(
-            "m-0 rounded-xl",
-            full && "h-full max-h-full w-full max-w-full",
-          ),
+          className: cn("m-0", full && "h-full max-h-full w-full max-w-full"),
           style: {
             backgroundImage: "var(--mui-overlays-24)",
             ...contentStyle,
           },
         },
-      }}
-      className={cn({
-        "rounded-md border-2 border-solid border-(--divider-color)":
-          OS === "linux" && !enableSystemTitleBar,
-      })}>
+      }}>
       <DialogTitle
-        ref={titlebarRef}
         className={cn("px-6 py-4 text-xl font-bold", {
           "pt-6": full && OS === "macos",
         })}
+        data-tauri-drag-region={full ? "deep" : undefined}
         sx={{ cursor: full ? "default" : undefined }}>
         {!hideCloseBtn ? (
           <div className="flex items-center justify-between">

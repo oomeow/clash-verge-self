@@ -1,4 +1,4 @@
-import { ILogItem } from "@/hooks/use-log-data";
+import type { ILogItem } from "@/hooks/use-log-data";
 
 interface Props {
   value: ILogItem;

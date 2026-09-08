@@ -1,5 +1,4 @@
 import { styled } from "@mui/material";
-import React from "react";
 
 type Props = {
   label: string;

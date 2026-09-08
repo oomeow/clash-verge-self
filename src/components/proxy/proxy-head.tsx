@@ -9,7 +9,7 @@ import VisibilityOffRounded from "@mui/icons-material/VisibilityOffRounded";
 import VisibilityRounded from "@mui/icons-material/VisibilityRounded";
 import WifiTetheringOffRounded from "@mui/icons-material/WifiTetheringOffRounded";
 import WifiTetheringRounded from "@mui/icons-material/WifiTetheringRounded";
-import { Box, IconButton, SxProps, TextField } from "@mui/material";
+import { Box, IconButton, type SxProps, TextField } from "@mui/material";
 import debounce from "lodash-es/debounce";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

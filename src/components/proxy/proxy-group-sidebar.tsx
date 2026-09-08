@@ -61,7 +61,7 @@ export const ProxyGroupSidebar = memo(function ProxyGroupSidebar(props: Props) {
                 color: "text.primary",
                 "&:hover": { color: "primary.main" },
               }}
-              onClick={() => onGroupNameClick && onGroupNameClick(item.name)}>
+              onClick={() => onGroupNameClick?.(item.name)}>
               <Typography variant="body2">
                 {open ? item.name : item.shortName}
               </Typography>

@@ -530,7 +530,7 @@ export async function updateUpdateLog(repoInfo: RepoInfo) {
   const updateLogContent = await fs
     .readFile(update_log_file)
     .then((d) => d.toString("utf8"));
-  const regexp = new RegExp("## (v.*)", "g");
+  const regexp = /## (v.*)/g;
   const allVersions = [...updateLogContent.matchAll(regexp)].map((match) =>
     match[1].trim(),
   );

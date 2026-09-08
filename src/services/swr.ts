@@ -1,4 +1,4 @@
-import { Update } from "@tauri-apps/plugin-updater";
+import type { Update } from "@tauri-apps/plugin-updater";
 import useBaseSWR, { mutate, SWRConfig, type SWRConfiguration } from "swr";
 import useBaseSWRSubscription from "swr/subscription";
 

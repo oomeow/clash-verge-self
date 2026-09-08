@@ -14,10 +14,11 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { BaseDialog, DialogRef, SwitchLovely } from "@/components/base";
+import { BaseDialog, type DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { DEFAULT_TEST_URL } from "@/services/delay";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
@@ -87,13 +88,13 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
         proxy_layout_column: values.proxyLayoutColumn,
         default_latency_test: values.defaultLatencyTest,
         default_latency_timeout: values.defaultLatencyTimeout || 5000,
-        auto_log_clean: values.autoLogClean as any,
+        auto_log_clean: values.autoLogClean as IVergeConfig["auto_log_clean"],
         log_roll_size_mb: Math.max(1, values.logRollSizeMb || 1),
         log_max_keep_files: Math.max(1, values.logMaxKeepFiles || 1),
       });
       setOpen(false);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 
@@ -248,7 +249,7 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
             onChange={(e) =>
               setValues((v) => ({
                 ...v,
-                defaultLatencyTimeout: parseInt(e.target.value),
+                defaultLatencyTimeout: parseInt(e.target.value, 10),
               }))
             }
           />
@@ -286,7 +287,7 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
             onChange={(e) =>
               setValues((v) => ({
                 ...v,
-                logRollSizeMb: Math.max(1, parseInt(e.target.value)),
+                logRollSizeMb: Math.max(1, parseInt(e.target.value, 10)),
               }))
             }
           />
@@ -324,7 +325,7 @@ export const MiscViewer = forwardRef<DialogRef>((_props, ref) => {
             onChange={(e) =>
               setValues((v) => ({
                 ...v,
-                logMaxKeepFiles: Math.max(1, parseInt(e.target.value)),
+                logMaxKeepFiles: Math.max(1, parseInt(e.target.value, 10)),
               }))
             }
           />

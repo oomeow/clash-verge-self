@@ -4,11 +4,12 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 
-import { BaseDialog, BaseEmpty, DialogRef } from "@/components/base";
+import { BaseDialog, BaseEmpty, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import { openWebUrl } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 
 import { WebUIItem } from "./web-ui-item";
 
@@ -75,8 +76,8 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
       }
 
       await openWebUrl(url);
-    } catch (e: any) {
-      notice("error", e.message || e.toString());
+    } catch (e: unknown) {
+      notice("error", getErrorMessage(e));
     }
   });
 
@@ -121,7 +122,7 @@ export const WebUIViewer = forwardRef<DialogRef>((_props, ref) => {
       )}
       {webUIList.map((item, index) => (
         <WebUIItem
-          key={index}
+          key={item}
           value={item}
           onChange={(v) => handleChange(index, v)}
           onDelete={() => handleDelete(index)}

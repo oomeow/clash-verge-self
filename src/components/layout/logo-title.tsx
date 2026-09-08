@@ -13,17 +13,17 @@ import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
 
+const OS = getSystem();
+
 export const LogoTitle = ({
   sidebarCollapsed,
-  enableSystemTitleBar,
 }: {
   sidebarCollapsed: boolean;
-  enableSystemTitleBar: boolean;
 }) => {
   const { toggleTheme } = useCustomTheme();
   const mode = useThemeModeStore((s) => s.themeMode);
   const isDark = mode === "dark";
-  const isMacOS = getSystem() === "macos";
+  const isMacOS = OS === "macos";
   const dragRegionRef = useRef<HTMLDivElement>(null);
 
   useLongPress(
@@ -46,9 +46,9 @@ export const LogoTitle = ({
         className={cn("flex items-center justify-around px-5", {
           "px-2": sidebarCollapsed,
         })}>
-        <div>
+        <div id="logo-title" className="relative">
           <LogoSvg
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<SVGSVGElement>) => {
               e.preventDefault();
               e.stopPropagation();
               toggleTheme(isDark ? "light" : "dark");
@@ -56,10 +56,17 @@ export const LogoTitle = ({
             className={cn(
               "fill-primary! z-10 mr-1 h-full w-12 cursor-pointer transition-all duration-200",
               {
-                "mt-6 mr-0": sidebarCollapsed,
-                "mt-2": !isMacOS && enableSystemTitleBar,
+                "mt-2 mr-0": sidebarCollapsed,
+                "mt-6": isMacOS && sidebarCollapsed,
               },
             )}
+          />
+          <UpdateButton
+            className={cn("absolute z-10 scale-75 cursor-pointer", {
+              "top-13 left-0": sidebarCollapsed,
+              "top-17": isMacOS && sidebarCollapsed,
+              "-top-2 left-12": !sidebarCollapsed,
+            })}
           />
         </div>
         <div>
@@ -70,12 +77,6 @@ export const LogoTitle = ({
           />
         </div>
       </div>
-      <UpdateButton
-        className={cn("absolute top-0 left-0 z-10 scale-[0.7] cursor-pointer", {
-          "top-0 left-16 scale-75": !sidebarCollapsed,
-          "top-13 left-1": sidebarCollapsed,
-        })}
-      />
       <AnimatePresence initial={false}>
         <motion.button
           key={isDark ? "dark" : "light"}
@@ -86,9 +87,8 @@ export const LogoTitle = ({
           className={cn(
             "absolute top-0 right-4 z-10 h-4 w-4 cursor-pointer border-none bg-transparent",
             {
+              "-top-1 right-5.5": sidebarCollapsed,
               "top-2": isMacOS,
-              "top-2 right-5.5": sidebarCollapsed,
-              "-top-1": sidebarCollapsed && enableSystemTitleBar,
               "top-5": sidebarCollapsed && isMacOS,
             },
           )}

@@ -25,7 +25,7 @@ RUN dpkg --add-architecture i386 && \
     patchelf:i386
 
 # Install Rust
-RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile minimal
+RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain stable --profile default
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup target add i686-unknown-linux-gnu
 ENV PKG_CONFIG_PATH=/usr/lib/i386-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH \

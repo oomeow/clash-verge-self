@@ -13,6 +13,7 @@ import { useTrafficData } from "@/hooks/use-traffic-data";
 import { useVisibility } from "@/hooks/use-visibility";
 import { restartSidecar } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 import parseTraffic from "@/utils/parse-traffic";
 
 import { useNotice } from "../base/notifies";
@@ -51,8 +52,8 @@ export const LayoutTraffic = () => {
     try {
       await restartSidecar();
       notice("success", t(`messages.clash.core.restarted`), 1000);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   }, 500);
 

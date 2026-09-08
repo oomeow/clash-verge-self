@@ -13,7 +13,7 @@ use crate::{
     DOWNLOAD_FILE_TIMEOUT, Error, Result,
     models::{
         BaseConfig, Connections, CoreUpdaterChannel, ErrorResponse, Groups, LogLevel, MihomoVersion, Protocol, Proxies,
-        Proxy, ProxyDelay, ProxyProvider, ProxyProviders, RuleProviders, Rules, WebSocketConnectionId,
+        ProxyDelay, ProxyInfo, ProxyProvider, ProxyProviders, RuleProviders, Rules, WebSocketConnectionId,
     },
     ret_failed_resp,
     ws_connection_manager::ConnectionManager,
@@ -383,7 +383,7 @@ impl Mihomo {
         Ok(response.json::<Groups>().await?)
     }
 
-    pub async fn get_group_by_name(&self, group_name: &str) -> Result<Proxy> {
+    pub async fn get_group_by_name(&self, group_name: &str) -> Result<ProxyInfo> {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["group", group_name])?.send().await?;
         if !response.status().is_success() {
@@ -393,7 +393,7 @@ impl Mihomo {
                 .map_or_else(|e| format!("get group error, {}", e), |err_res| err_res.message);
             ret_failed_resp!("{}", err_msg);
         }
-        Ok(response.json::<Proxy>().await?)
+        Ok(response.json::<ProxyInfo>().await?)
     }
 
     pub async fn delay_group(&self, group_name: &str, test_url: &str, timeout: u32) -> Result<HashMap<String, u32>> {
@@ -523,7 +523,7 @@ impl Mihomo {
         Ok(response.json::<Proxies>().await?)
     }
 
-    pub async fn get_proxy_by_name(&self, proxy_name: &str) -> Result<Proxy> {
+    pub async fn get_proxy_by_name(&self, proxy_name: &str) -> Result<ProxyInfo> {
         let ctx = self.load_ctx();
         let response = ctx.build_request(Method::GET, ["proxies", proxy_name])?.send().await?;
         if !response.status().is_success() {
@@ -533,7 +533,7 @@ impl Mihomo {
             );
             ret_failed_resp!("{}", err_msg);
         }
-        Ok(response.json::<Proxy>().await?)
+        Ok(response.json::<ProxyInfo>().await?)
     }
 
     pub async fn select_node_for_group(&self, group_name: &str, node: &str) -> Result<()> {

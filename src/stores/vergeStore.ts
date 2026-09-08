@@ -57,7 +57,7 @@ export const useVergeStore = create<VergeState & VergeActions>()(
       },
       patchVerge: async (value) => {
         const previous = get().verge;
-        const next = { ...(previous ?? {}), ...value } as IVergeConfig;
+        const next = { ...previous, ...value } as IVergeConfig;
         const hasChanged = !isEqual(previous, next);
 
         if (hasChanged) {

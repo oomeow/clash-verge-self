@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Proxy } from "tauri-plugin-mihomo-api";
+import type { ProxyInfo } from "tauri-plugin-mihomo-api";
 
 import delayManager from "@/services/delay";
 
@@ -7,7 +7,7 @@ import delayManager from "@/services/delay";
 export type ProxySortType = 0 | 1 | 2;
 
 export default function useFilterSort(
-  proxies: Proxy[],
+  proxies: ProxyInfo[],
   groupName: string,
   filterText: string,
   sortType: ProxySortType,
@@ -39,7 +39,7 @@ export default function useFilterSort(
 }
 
 export function filterSort(
-  proxies: Proxy[],
+  proxies: ProxyInfo[],
   groupName: string,
   filterText: string,
   sortType: ProxySortType,
@@ -60,7 +60,7 @@ const regex2 = /type=(.*)/i;
  * according to the regular conditions
  */
 function filterProxies(
-  proxies: Proxy[],
+  proxies: ProxyInfo[],
   groupName: string,
   filterText: string,
 ) {
@@ -80,7 +80,7 @@ function filterProxies(
       if (symbol === "=" && symbol2 === "error") return delay >= 1e5;
       if (symbol === "=" && symbol2 === "timeout")
         return delay < 1e5 && delay >= 3000;
-      if (symbol === "=") return delay == value;
+      if (symbol === "=") return delay === value;
       if (symbol === "<") return delay <= value;
       if (symbol === ">") return delay >= value;
       return false;
@@ -102,7 +102,7 @@ function filterProxies(
  * sort the proxy
  */
 function sortProxies(
-  proxies: Proxy[],
+  proxies: ProxyInfo[],
   groupName: string,
   sortType: ProxySortType,
 ) {

@@ -1,0 +1,12 @@
+import type { ConnectionMetaData } from "./ConnectionMetaData";
+export type ConnectionInfo = {
+    id: string;
+    metadata: ConnectionMetaData;
+    upload: number;
+    download: number;
+    start: string;
+    chains: Array<string>;
+    providerChains: Array<string>;
+    rule: string;
+    rulePayload: string;
+};

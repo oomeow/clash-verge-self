@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 
-import { DialogRef, SwitchLovely } from "@/components/base";
+import { type DialogRef, SwitchLovely } from "@/components/base";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
 import { usePortable } from "@/hooks/use-portable";
@@ -25,6 +25,7 @@ import { useService } from "@/hooks/use-service";
 import { invoke_uwp_tool } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { useClashLogStore } from "@/stores";
+import { getErrorMessage } from "@/utils";
 import getSystem from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
@@ -41,13 +42,7 @@ import WebUIViewer from "./mods/web-ui-viewer";
 const OS = getSystem();
 
 type ClashViewerKey =
-  | "web"
-  | "port"
-  | "controller"
-  | "core"
-  | "tun"
-  | "service"
-  | "netInfo";
+  "web" | "port" | "controller" | "core" | "tun" | "service" | "netInfo";
 
 interface Props {
   onError: (err: Error) => void;
@@ -133,7 +128,7 @@ const SettingClash = ({ onError }: Props) => {
   useEffect(() => {
     if (enableServiceMode === undefined) return;
     mutateCheckService();
-  }, [enableServiceMode]);
+  }, [enableServiceMode, mutateCheckService]);
 
   useEffect(() => {
     const viewer = pendingViewerRef.current;
@@ -148,8 +143,8 @@ const SettingClash = ({ onError }: Props) => {
     try {
       await updateGeo();
       notice("success", t("messages.clash.geoDataUpdated"));
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   };
 
@@ -162,8 +157,8 @@ const SettingClash = ({ onError }: Props) => {
           cache: "Fake-IP",
         }),
       );
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   };
 
@@ -174,8 +169,8 @@ const SettingClash = ({ onError }: Props) => {
         "success",
         t("pages.settings.clash.cacheFlushed", { cache: "DNS" }),
       );
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   };
 
@@ -200,24 +195,20 @@ const SettingClash = ({ onError }: Props) => {
         disabled={disableTunSetting}
         label={t("pages.settings.clash.tun.label")}
         extra={
-          <>
-            {disableTunSetting ? (
-              <Tooltip
-                title={t("pages.settings.clash.tun.info")}
-                placement="top">
-                <IconButton color="error" size="small">
-                  <InfoRounded fontSize="inherit" />
-                </IconButton>
-              </Tooltip>
-            ) : (
-              <IconButton
-                color="inherit"
-                size="small"
-                onClick={() => openViewer("tun")}>
-                <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
+          disableTunSetting ? (
+            <Tooltip title={t("pages.settings.clash.tun.info")} placement="top">
+              <IconButton color="error" size="small">
+                <InfoRounded fontSize="inherit" />
               </IconButton>
-            )}
-          </>
+            </Tooltip>
+          ) : (
+            <IconButton
+              color="inherit"
+              size="small"
+              onClick={() => openViewer("tun")}>
+              <Settings fontSize="inherit" style={{ opacity: 0.75 }} />
+            </IconButton>
+          )
         }>
         <GuardState
           value={tun?.enable ?? false}
@@ -341,6 +332,7 @@ const SettingClash = ({ onError }: Props) => {
               }[mode];
               return (
                 <Tooltip
+                  key={buttonLabelKey}
                   title={t(
                     `pages.settings.clash.findProcessMode.options.${mode}`,
                   )}

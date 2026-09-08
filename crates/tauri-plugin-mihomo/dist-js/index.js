@@ -7,7 +7,7 @@ import { Channel, invoke } from '@tauri-apps/api/core';
  */
 async function updateController(controller) {
     const [host, portStr] = controller.trim().split(":");
-    const port = parseInt(portStr);
+    const port = parseInt(portStr, 10);
     await invoke("plugin:mihomo|update_controller", { host, port });
 }
 /**
@@ -446,7 +446,7 @@ class MihomoWebSocket {
             });
             this.listeners.clear();
         }
-        catch (ignore) {
+        catch (_ignore) {
             // ignore
         }
         finally {

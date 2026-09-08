@@ -1,6 +1,6 @@
 import { PointerActivationConstraints } from "@dnd-kit/dom";
 import { move } from "@dnd-kit/helpers";
-import { DragDropProvider, DragOverlay, PointerSensor } from "@dnd-kit/react";
+import { DragDropProvider, PointerSensor } from "@dnd-kit/react";
 import { Box, Button } from "@mui/material";
 import { emit } from "@tauri-apps/api/event";
 import { nanoid } from "nanoid";
@@ -140,7 +140,7 @@ const TestPage = () => {
               </SortableItem>
             ))}
           </div>
-          <DragOverlay>
+          {/*<DragOverlay>
             {(source) => {
               const draggingItem = sortableTestList.find(
                 (x) => x.id === source.id,
@@ -159,7 +159,7 @@ const TestPage = () => {
                 />
               );
             }}
-          </DragOverlay>
+          </DragOverlay>*/}
         </DragDropProvider>
       </Box>
       <TestViewer

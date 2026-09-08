@@ -5,7 +5,7 @@ use tauri::{State, command, ipc::Channel};
 use crate::{
     Mihomo, Result,
     models::{
-        BaseConfig, Connections, CoreUpdaterChannel, Groups, LogLevel, MihomoVersion, Proxies, Proxy, ProxyDelay,
+        BaseConfig, Connections, CoreUpdaterChannel, Groups, LogLevel, MihomoVersion, Proxies, ProxyDelay, ProxyInfo,
         ProxyProvider, ProxyProviders, RuleProviders, Rules, WebSocketConnectionId,
     },
 };
@@ -61,7 +61,7 @@ pub(crate) async fn get_groups(state: State<'_, Mihomo>) -> Result<Groups> {
 }
 
 #[command]
-pub(crate) async fn get_group_by_name(state: State<'_, Mihomo>, group_name: String) -> Result<Proxy> {
+pub(crate) async fn get_group_by_name(state: State<'_, Mihomo>, group_name: String) -> Result<ProxyInfo> {
     state.get_group_by_name(&group_name).await
 }
 
@@ -133,7 +133,7 @@ pub(crate) async fn get_proxies(state: State<'_, Mihomo>) -> Result<Proxies> {
 }
 
 #[command]
-pub(crate) async fn get_proxy_by_name(state: State<'_, Mihomo>, proxy_name: String) -> Result<Proxy> {
+pub(crate) async fn get_proxy_by_name(state: State<'_, Mihomo>, proxy_name: String) -> Result<ProxyInfo> {
     state.get_proxy_by_name(&proxy_name).await
 }
 

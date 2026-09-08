@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   closeConnection,
   getConnections,
-  Proxy,
+  type ProxyInfo,
   selectNodeForGroup,
   unfixedProxy,
 } from "tauri-plugin-mihomo-api";
@@ -24,7 +24,7 @@ import {
   type StickyVirtualListHandle,
 } from "../base";
 import {
-  IProxyGroupItem,
+  type IProxyGroupItem,
   type IRenderItem,
   RenderType,
   useRenderList,
@@ -88,7 +88,7 @@ export const ProxyGroups = (props: Props) => {
 
   // 切换分组的节点代理
   const handleChangeProxy = useMemoizedFn(
-    useLockFn(async (group: IProxyGroupItem, proxy: Proxy) => {
+    useLockFn(async (group: IProxyGroupItem, proxy: ProxyInfo) => {
       if (!["Selector", "URLTest", "Fallback"].includes(group.type)) return;
 
       const { name, type, fixed, now } = group;
@@ -109,7 +109,7 @@ export const ProxyGroups = (props: Props) => {
       if (autoCloseConnection) {
         getConnections().then(({ connections }) => {
           connections?.forEach((conn) => {
-            if (conn.chains.includes(now!)) {
+            if (now && conn.chains.includes(now)) {
               closeConnection(conn.id);
             }
           });
@@ -194,7 +194,7 @@ export const ProxyGroups = (props: Props) => {
           behavior: "smooth",
         });
         await stickyListRef.current?.waitForScrollEnd();
-        findAndHighlightElement(proxyId(name, now!));
+        if (now) findAndHighlightElement(proxyId(name, now));
       }
     },
     [renderList],

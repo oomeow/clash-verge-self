@@ -7,7 +7,7 @@ import Terminal from "@mui/icons-material/Terminal";
 import {
   alpha,
   Badge,
-  BadgeProps,
+  type BadgeProps,
   Box,
   CircularProgress,
   IconButton,
@@ -16,7 +16,7 @@ import {
   Menu,
   MenuItem,
   styled,
-  SxProps,
+  type SxProps,
   Typography,
 } from "@mui/material";
 import { useLockFn } from "ahooks";
@@ -28,7 +28,7 @@ import { LogViewer } from "@/components/profile/log-viewer";
 import { ProfileEditorViewer } from "@/components/profile/profile-editor-viewer";
 import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
 import { viewProfile } from "@/services/cmds";
-import { cn } from "@/utils";
+import { cn, getErrorMessage } from "@/utils";
 
 import { useNotice } from "../base/notifies";
 import { ConfirmViewer } from "./confirm-viewer";
@@ -106,8 +106,8 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
     setAnchorEl(null);
     try {
       await viewProfile(uid);
-    } catch (err: any) {
-      notice("error", err.message || err.toString());
+    } catch (err: unknown) {
+      notice("error", getErrorMessage(err));
     }
   });
 

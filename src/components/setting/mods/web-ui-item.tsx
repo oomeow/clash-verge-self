@@ -81,8 +81,16 @@ export const WebUIItem = (props: Props) => {
     );
   }
 
-  const html = value
-    ?.replace("%host", "<span>%host</span>")
+  const escapeHtml = (input: string) =>
+    input
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+
+  const html = escapeHtml(value ?? "")
+    .replace("%host", "<span>%host</span>")
     .replace("%port", "<span>%port</span>")
     .replace("%secret", "<span>%secret</span>");
 
@@ -100,6 +108,7 @@ export const WebUIItem = (props: Props) => {
           component="div"
           title={value}
           color={value ? "text.primary" : "text.secondary"}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: value 已先经 escapeHtml 转义，仅用于高亮 %host/%port/%secret 占位符
           dangerouslySetInnerHTML={{ __html: html || "NULL" }}
           sx={[
             {
