@@ -24,7 +24,7 @@ interface Props {
 }
 
 const encodeSvgDataUri = (svg: string) =>
-  `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 
 const getFileName = (url: string) => url.substring(url.lastIndexOf("/") + 1);
 

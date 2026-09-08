@@ -71,7 +71,7 @@ const sanitizeExtension = (extension: string) => {
 };
 
 const encodeSvgDataUri = (svg: string) =>
-  `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 
 const sha256Hex = async (value: string) => {
   const digest = await crypto.subtle.digest(
