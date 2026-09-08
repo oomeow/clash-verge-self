@@ -21,11 +21,10 @@ export const BasePage: React.FC<Props> = (props) => {
       <div className="flex h-full min-h-0 w-full flex-col">
         <div
           className="flex h-12.5 shrink-0 items-center justify-between px-2"
-          data-tauri-drag-region="true"
+          data-tauri-drag-region="deep"
           style={{ userSelect: "none" }}>
           <Typography
-            sx={{ fontSize: "20px", fontWeight: "700 " }}
-            data-tauri-drag-region="true">
+            sx={{ fontSize: "20px", fontWeight: "700 ", cursor: "default" }}>
             {title}
           </Typography>
 

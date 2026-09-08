@@ -9,15 +9,8 @@ import {
   Stack,
   type SxProps,
 } from "@mui/material";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { t } from "i18next";
-import {
-  type CSSProperties,
-  isValidElement,
-  type ReactNode,
-  useEffect,
-  useRef,
-} from "react";
+import { type CSSProperties, isValidElement, type ReactNode } from "react";
 
 import { cn } from "@/utils";
 import getSystem from "@/utils/get-system";
@@ -75,21 +68,6 @@ export const BaseDialog = (props: BaseDialogProps) => {
     onCancel,
     onClose,
   } = props;
-  const titlebarRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!titlebarRef.current || !full) return;
-    titlebarRef.current?.addEventListener("mousedown", (e) => {
-      if (e.buttons === 1) {
-        const appWindow = getCurrentWindow();
-        if (e.detail === 2) {
-          appWindow.toggleMaximize();
-        } else {
-          appWindow.startDragging();
-        }
-      }
-    });
-  }, [titlebarRef.current, full]);
 
   return (
     <Dialog
@@ -111,10 +89,10 @@ export const BaseDialog = (props: BaseDialogProps) => {
         },
       }}>
       <DialogTitle
-        ref={titlebarRef}
         className={cn("px-6 py-4 text-xl font-bold", {
           "pt-6": full && OS === "macos",
         })}
+        data-tauri-drag-region={full ? "deep" : undefined}
         sx={{ cursor: full ? "default" : undefined }}>
         {!hideCloseBtn ? (
           <div className="flex items-center justify-between">
