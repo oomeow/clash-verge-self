@@ -3,13 +3,13 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { OS } from "@/App";
 import { BaseDialog, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClashInfo } from "@/hooks/use-clash";
 import { checkPortAvailable } from "@/services/cmds";
 import { mutate, swrKeys } from "@/services/swr";
 import { getErrorMessage } from "@/utils";
+import { OS } from "@/utils/get-system";
 
 export const ClashPortViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();

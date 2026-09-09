@@ -17,7 +17,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 
-import { OS } from "@/App";
 import { type DialogRef, SwitchLovely } from "@/components/base";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
@@ -27,6 +26,7 @@ import { invoke_uwp_tool } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { useClashLogStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
+import { OS } from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
 import ClashCoreViewer from "./mods/clash-core-viewer";

@@ -27,7 +27,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { OS } from "@/App";
 import type { DialogRef } from "@/components/base";
 import BackupFilesViewer, {
   type BackupFilesViewerRef,
@@ -54,6 +53,7 @@ import {
 } from "@/services/swr";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
+import { OS } from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
 import ConfigViewer from "./mods/config-viewer";

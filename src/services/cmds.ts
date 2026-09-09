@@ -2,8 +2,8 @@ import { Channel, invoke } from "@tauri-apps/api/core";
 import { Update } from "@tauri-apps/plugin-updater";
 import type { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
 
-import { OS } from "@/App";
 import type { LogMessage } from "@/components/profile/profile-more";
+import { OS } from "@/utils/get-system";
 
 export interface MergeResult {
   config: string;

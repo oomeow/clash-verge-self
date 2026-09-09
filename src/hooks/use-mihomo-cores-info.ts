@@ -1,12 +1,12 @@
 import { Command } from "@tauri-apps/plugin-shell";
 import { useCallback } from "react";
 
-import { OS } from "@/App";
 import {
   checkPermissionsGranted,
   refreshPermissionsGranted,
 } from "@/services/cmds";
 import { swrKeys, useSWR } from "@/services/swr";
+import { OS } from "@/utils/get-system";
 
 import { usePortable } from "./use-portable";
 import { useService } from "./use-service";

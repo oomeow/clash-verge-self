@@ -5,13 +5,13 @@ import { useLongPress } from "ahooks";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef } from "react";
 
-import { OS } from "@/App";
 import AppNameSvg from "@/assets/image/clash_verge.svg?react";
 import LogoSvg from "@/assets/image/logo.svg?react";
 import { UpdateButton } from "@/components/layout/update-button";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
+import { OS } from "@/utils/get-system";
 
 export const LogoTitle = ({
   sidebarCollapsed,

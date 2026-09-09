@@ -16,7 +16,6 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { OS } from "@/App";
 import { BaseDialog, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { usePortable } from "@/hooks/use-portable";
@@ -30,6 +29,7 @@ import { useCheckUpdateSWR } from "@/services/swr";
 import { useAppUpdatingStore, useThemeModeStore } from "@/stores";
 import type { ThemeMode } from "@/stores/themeStore";
 import { getErrorMessage } from "@/utils";
+import { OS } from "@/utils/get-system";
 
 const isWindows = OS === "windows";
 

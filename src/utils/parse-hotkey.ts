@@ -1,4 +1,4 @@
-import { OS } from "@/App";
+import { OS } from "@/utils/get-system";
 
 export const MODIFIER_KEYS = ["CTRL", "OPTION", "ALT", "SHIFT", "CMD"];
 

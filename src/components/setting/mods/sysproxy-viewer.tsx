@@ -20,7 +20,6 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { OS } from "@/App";
 import {
   BaseDialog,
   BaseFieldset,
@@ -36,6 +35,7 @@ import {
 } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
+import { OS } from "@/utils/get-system";
 
 const DEFAULT_PAC = `function FindProxyForURL(url, host) {
   return "PROXY 127.0.0.1:%mixed-port%; SOCKS5 127.0.0.1:%mixed-port%; DIRECT;";

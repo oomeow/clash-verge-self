@@ -11,7 +11,6 @@ import i18next from "i18next";
 import debounce from "lodash-es/debounce";
 import { Suspense, useEffect, useRef, useState } from "react";
 
-import { OS } from "@/App";
 import { useNotice } from "@/components/base/notifies";
 import { TailwindIndicator } from "@/components/base/tailwind-indicator";
 import { LayoutControl } from "@/components/layout/layout-control";
@@ -25,6 +24,7 @@ import { useRulesStateStore } from "@/stores/rulesStateStore";
 import { useVergeStore } from "@/stores/vergeStore";
 import { cn } from "@/utils";
 import { signalFrontendReady } from "@/utils/frontend-ready";
+import { OS } from "@/utils/get-system";
 
 dayjs.extend(relativeTime);
 

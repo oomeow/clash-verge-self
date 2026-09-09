@@ -3,8 +3,8 @@ import { alpha, Box, IconButton, styled } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { OS } from "@/App";
 import { useNotice } from "@/components/base/notifies";
+import { OS } from "@/utils/get-system";
 import {
   formatHotkeyKey,
   MODIFIER_KEYS,
