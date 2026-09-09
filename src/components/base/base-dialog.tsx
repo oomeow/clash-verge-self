@@ -12,10 +12,8 @@ import {
 import { t } from "i18next";
 import { type CSSProperties, isValidElement, type ReactNode } from "react";
 
+import { OS } from "@/App";
 import { cn } from "@/utils";
-import getSystem from "@/utils/get-system";
-
-const OS = getSystem();
 
 type DialogMaxWidth = "xs" | "sm" | "md" | "lg" | "xl" | false;
 

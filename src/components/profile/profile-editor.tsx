@@ -23,6 +23,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import { OS } from "@/App";
 import { LogViewer } from "@/components/profile/log-viewer";
 import type { LogMessage } from "@/components/profile/profile-more";
 import { useMonacoEditor } from "@/hooks/use-monaco-editor";
@@ -34,11 +35,8 @@ import {
 import { generateTemplate } from "@/services/monaco";
 import { useProfilesStore } from "@/stores";
 import { getErrorMessage, sleep } from "@/utils";
-import getSystem from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
-
-const OS = getSystem();
 
 export type ProfileEditorHandle = {
   save: () => Promise<boolean>;

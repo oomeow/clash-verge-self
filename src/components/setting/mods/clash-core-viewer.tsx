@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { PulseLoader } from "react-spinners";
 import { closeAllConnections } from "tauri-plugin-mihomo-api";
 
+import { OS } from "@/App";
 import MetaIcon from "@/assets/image/Meta.svg?react";
 import { BaseDialog, type DialogRef } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
@@ -34,7 +35,6 @@ import {
 } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
-import getSystem from "@/utils/get-system";
 
 import MihomoVersionManager from "./mihomo-version-manager";
 
@@ -42,7 +42,6 @@ interface Props {
   serviceActive: boolean;
 }
 
-const OS = getSystem();
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 // const refreshMihomoWebSocketData = () => {

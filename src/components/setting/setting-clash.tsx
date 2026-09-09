@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { flushDNS, flushFakeIp, updateGeo } from "tauri-plugin-mihomo-api";
 
+import { OS } from "@/App";
 import { type DialogRef, SwitchLovely } from "@/components/base";
 import { useClash } from "@/hooks/use-clash";
 import { useMihomoCoresInfo } from "@/hooks/use-mihomo-cores-info";
@@ -26,7 +27,6 @@ import { invoke_uwp_tool } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { useClashLogStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
-import getSystem from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
 import ClashCoreViewer from "./mods/clash-core-viewer";
@@ -38,8 +38,6 @@ import ServiceViewer from "./mods/service-viewer";
 import { SettingItem, SettingList } from "./mods/setting-comp";
 import TunViewer from "./mods/tun-viewer";
 import WebUIViewer from "./mods/web-ui-viewer";
-
-const OS = getSystem();
 
 type ClashViewerKey =
   "web" | "port" | "controller" | "core" | "tun" | "service" | "netInfo";

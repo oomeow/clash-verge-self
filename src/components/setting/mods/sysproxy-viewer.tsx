@@ -20,6 +20,7 @@ import { useLockFn } from "ahooks";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { OS } from "@/App";
 import {
   BaseDialog,
   BaseFieldset,
@@ -35,18 +36,15 @@ import {
 } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
-import getSystem from "@/utils/get-system";
 
 const DEFAULT_PAC = `function FindProxyForURL(url, host) {
   return "PROXY 127.0.0.1:%mixed-port%; SOCKS5 127.0.0.1:%mixed-port%; DIRECT;";
 }`;
 
-const OS = getSystem();
-
 export const SysproxyViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const isWindows = getSystem() === "windows";
+  const isWindows = OS === "windows";
   const separator = isWindows ? ";" : ",";
 
   const [open, setOpen] = useState(false);

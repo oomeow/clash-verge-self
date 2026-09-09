@@ -1,6 +1,5 @@
-import getSystem from "@/utils/get-system";
+import { OS } from "@/App";
 
-const OS = getSystem();
 const DEFAULT_FONT_FAMILY = `-apple-system, BlinkMacSystemFont,"Microsoft YaHei UI", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji"${
   OS === "windows" ? ", twemoji mozilla" : ""
 }`;

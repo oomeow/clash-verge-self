@@ -21,6 +21,9 @@ import {
   useThemeSettingsStore,
   useVergeStore,
 } from "./stores";
+import getSystem from "./utils/get-system";
+
+export const OS = getSystem();
 
 function App() {
   const refreshVerge = useVergeStore((s) => s.refreshVerge);
