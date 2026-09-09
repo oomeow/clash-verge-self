@@ -78,14 +78,14 @@ const DownloadProgress = forwardRef<
   const [downloaded, setDownloaded] = useState(0);
   const [buffer, setBuffer] = useState(0);
   // default 10M
-  const [total, setTotal] = useState(10 * 1024 * 1024);
+  const [total, setTotal] = useState(0);
 
   useImperativeHandle(ref, () => ({
     report: (event: UpdateDownloadEvent) => {
       if (event.event === "Started") {
         setDownloaded(0);
         setBuffer(0);
-        setTotal(event.data.contentLength || 100);
+        setTotal(event.data.contentLength ?? 0);
       } else if (event.event === "Progress") {
         const chunkLength = event.data.chunkLength;
         setBuffer(chunkLength);
@@ -95,7 +95,7 @@ const DownloadProgress = forwardRef<
     reset: () => {
       setDownloaded(0);
       setBuffer(0);
-      setTotal(10 * 1024 * 1024);
+      setTotal(0);
     },
   }));
 
