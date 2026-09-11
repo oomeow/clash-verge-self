@@ -12,6 +12,5 @@ name = "mihomo_rule_parser"
 serde.workspace = true
 serde_yaml.workspace = true
 thiserror.workspace = true
-
 byteorder = "1.5"
 zstd = "0.14"

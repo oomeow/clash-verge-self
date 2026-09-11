@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use std::{fmt::Display, path::Path};
 
 use classical::ClassicalCodecStrategy;
@@ -14,6 +13,8 @@ mod classical;
 mod domain;
 mod error;
 mod ipcidr;
+#[cfg(test)]
+mod test_utils;
 mod utils;
 
 /// MRSv1
@@ -87,6 +88,10 @@ impl TryFrom<String> for RuleFormat {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RulePayload {
+    /// 规则计数，语义随来源不同而不同：
+    /// - 解析侧：MRS 头部声明的 count（原始插入次数，与 `rules.len()` 可能不同）；
+    /// - 文本/YAML：有效行数（跳过空行与注释）；
+    /// - 导出侧：domain 为去重后未被通配符覆盖的规则数，ipcidr 为源规则条数。
     pub count: i64,
     pub rules: Vec<String>,
 }

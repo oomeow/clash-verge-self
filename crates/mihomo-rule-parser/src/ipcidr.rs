@@ -5,7 +5,7 @@ use std::{
     path::Path,
 };
 
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use byteorder::{BigEndian, WriteBytesExt};
 
 use crate::{
     Codec, MRS_VERSION, RuleBehavior, RuleFormat, RulePayload,
@@ -41,17 +41,17 @@ struct IpRange {
 }
 
 impl IpRange {
-    pub fn prefixes(&self) -> Vec<Prefix> {
+    pub fn prefixes(&self) -> Result<Vec<Prefix>> {
         match (self.from, self.to) {
-            (IpAddr::V4(from), IpAddr::V4(to)) => ipv4_prefixes(from, to),
-            (IpAddr::V6(from), IpAddr::V6(to)) => ipv6_prefixes(from, to),
-            _ => panic!("IP version mismatch between from and to addresses"),
+            (IpAddr::V4(from), IpAddr::V4(to)) => Ok(ipv4_prefixes(from, to)),
+            (IpAddr::V6(from), IpAddr::V6(to)) => Ok(ipv6_prefixes(from, to)),
+            _ => Err(RuleParseError::InvalidRule(format!("IP version mismatch: {self:?}"))),
         }
     }
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Prefix {
+pub(crate) struct Prefix {
     addr: IpAddr,
     prefix_len: u8,
 }
@@ -218,8 +218,9 @@ impl IpCidrTransform for IpAddr {
 // ------------------------------ Parse ------------------------------------
 
 fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
-    // create ZSTD decoder
-    let mut reader = zstd::Decoder::new(Cursor::new(buf))?;
+    // 有界解压，之后再从解压后的切片解析，所有长度字段均可精确校验
+    let decompressed = utils::read_mrs_payload(buf)?;
+    let mut reader = Cursor::new(decompressed.as_slice());
 
     // validate mrs file
     let (behavior, count) = utils::read_mrs_header(&mut reader)?;
@@ -238,13 +239,14 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
     }
 
     // length
-    let length = reader.read_i64::<BigEndian>()?;
-    if length < 1 {
+    let length = utils::read_length(&mut reader)?;
+    let range_count = length as usize;
+    if range_count > utils::cursor_remaining(&reader) / 32 {
         return Err(RuleParseError::InvalidMRSLength(length));
     }
 
     let mut rules: Vec<String> = Vec::new();
-    for _ in 0..length {
+    for _ in 0..range_count {
         let mut from = [0u8; 16];
         reader.read_exact(&mut from)?;
         let from_addr = IpAddr::addr_from_16(from).unmap();
@@ -255,9 +257,8 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
 
         // generate Ip range
         let range = IpAddr::ip_range(from_addr, to_addr);
-        rules.extend(range.prefixes().into_iter().map(|prefix| prefix.to_string()));
+        rules.extend(range.prefixes()?.into_iter().map(|prefix| prefix.to_string()));
     }
-    drop(reader);
 
     Ok(RulePayload { count, rules })
 }
@@ -266,13 +267,13 @@ fn parse_from_mrs(buf: &[u8]) -> Result<RulePayload> {
 
 fn export_as_mrs<P: AsRef<Path>>(rules: &[String], file_path: P) -> Result<()> {
     let (count, ranges) = prepare_ranges(rules)?;
-    let file = std::fs::File::create(file_path)?;
-    let buffered = std::io::BufWriter::new(file);
-    let mut writer = zstd::Encoder::new(buffered, 0)?;
-    utils::write_mrs_header(&mut writer, RuleBehavior::IpCidr, count)?;
-    write_ranges(&mut writer, &ranges)?;
-    writer.finish()?;
-    Ok(())
+    utils::atomic_write(file_path, |writer| {
+        let mut encoder = zstd::Encoder::new(writer, 0)?;
+        utils::write_mrs_header(&mut encoder, RuleBehavior::IpCidr, count)?;
+        write_ranges(&mut encoder, &ranges)?;
+        encoder.finish()?;
+        Ok(())
+    })
 }
 
 fn prepare_ranges(rules: &[String]) -> Result<(i64, Vec<IpRange>)> {
@@ -364,44 +365,15 @@ fn ip_addr_to_mrs_bytes(addr: IpAddr) -> [u8; 16] {
 #[allow(deprecated)]
 mod tests {
 
-    use std::{path::PathBuf, process::Command};
-
     use super::*;
     use crate::error::Result;
-
-    fn init_meta_rules() -> Result<PathBuf> {
-        let tmp_dir = std::env::temp_dir();
-        let rules_dir = tmp_dir.join("meta-rules-dat");
-        let exists = std::fs::exists(&rules_dir)?;
-        if exists {
-            let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-            commands.iter().for_each(|args| {
-                Command::new("git")
-                    .args(args)
-                    .current_dir(&rules_dir)
-                    .spawn()
-                    .expect("failed to spawn command")
-                    .wait()
-                    .expect("command not running");
-            });
-        } else {
-            Command::new("git")
-                .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])
-                .current_dir(&tmp_dir)
-                .spawn()
-                .expect("failed to clone rules")
-                .wait()
-                .expect("command not running");
-        }
-        Ok(rules_dir)
-    }
 
     #[test]
     fn test_ip_range_prefix() -> Result<()> {
         let from_addr = IpAddr::V4(Ipv4Addr::new(192, 168, 3, 0));
         let to_addr = IpAddr::V4(Ipv4Addr::new(192, 168, 3, 96));
         let range = IpAddr::ip_range(from_addr, to_addr);
-        let prefixes = range.prefixes();
+        let prefixes = range.prefixes()?;
         for prefix in prefixes {
             println!("{:?}", prefix);
         }
@@ -409,8 +381,75 @@ mod tests {
     }
 
     #[test]
+    fn test_cidr_boundaries() -> Result<()> {
+        let expect = |from: IpAddr, to: IpAddr, prefix: &str| {
+            let range = parse_cidr_rule(prefix).unwrap();
+            assert_eq!(
+                range.from, from,
+                "from mismatch for {prefix}: {} != {}",
+                range.from, from
+            );
+            assert_eq!(range.to, to, "to mismatch for {prefix}");
+            let prefixes = range.prefixes().unwrap();
+            let joined = prefixes.iter().map(|p| p.to_string()).collect::<Vec<_>>().join(",");
+            assert_eq!(joined, prefix, "single-prefix split for {prefix}");
+        };
+
+        // 全零 / 全地址空间
+        expect(
+            IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
+            IpAddr::V4(Ipv4Addr::new(255, 255, 255, 255)),
+            "0.0.0.0/0",
+        );
+        expect(
+            IpAddr::V6(Ipv6Addr::UNSPECIFIED),
+            IpAddr::V6(Ipv6Addr::new(
+                0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
+            )),
+            "::/0",
+        );
+
+        // 单地址 /32 /128
+        expect(
+            IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+            IpAddr::V4(Ipv4Addr::new(192, 168, 1, 1)),
+            "192.168.1.1/32",
+        );
+        let v6 = IpAddr::V6("2001:db8::1".parse().unwrap());
+        expect(v6, v6, "2001:db8::1/128");
+
+        // host 位非零：192.168.3.0/16 必须规整为 192.168.0.0/16
+        expect(
+            IpAddr::V4(Ipv4Addr::new(192, 168, 0, 0)),
+            IpAddr::V4(Ipv4Addr::new(192, 168, 255, 255)),
+            "192.168.0.0/16",
+        );
+
+        // IPv4-mapped IPv6 在导出端保持映射形式
+        let mapped_from = IpAddr::V6("::ffff:192.168.0.0".parse().unwrap());
+        let mapped_to = IpAddr::V6("::ffff:192.168.255.255".parse().unwrap());
+        expect(mapped_from, mapped_to, "::ffff:192.168.0.0/112");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_cidr_invalid_rules_rejected() {
+        for rule in [
+            "not-a-cidr",
+            "192.168.1.1/33",
+            "2001:db8::1/129",
+            "192.168.1.1/",
+            "/24",
+            "abc.def.ghi.jkl/24",
+        ] {
+            assert!(parse_cidr_rule(rule).is_err(), "expected {rule} to be rejected");
+        }
+    }
+
+    #[test]
     fn test_ipcidr_parse_from_mrs() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.mrs"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -421,7 +460,7 @@ mod tests {
 
     #[test]
     fn test_ipcidr_parse_from_yaml() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.yaml"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
@@ -432,7 +471,7 @@ mod tests {
 
     #[test]
     fn test_ipcidr_parse_from_text() -> Result<()> {
-        let rules_dir = init_meta_rules()?;
+        let rules_dir = crate::test_utils::init_meta_rules()?;
         let mut file = std::fs::File::open(rules_dir.join("geo/geoip/ad.list"))?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
