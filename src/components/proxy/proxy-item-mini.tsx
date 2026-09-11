@@ -1,6 +1,7 @@
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { alpha, Box, ListItemButton, Typography } from "@mui/material";
 import { memo } from "react";
+import { useTranslation } from "react-i18next";
 import type { ProxyInfo } from "tauri-plugin-mihomo-api";
 
 import { BaseLoading } from "@/components/base";
@@ -8,6 +9,7 @@ import delayManager, { DEFAULT_LATENCY_TIMEOUT } from "@/services/delay";
 import { useVergeStore } from "@/stores";
 import { proxyId } from "@/utils/proxyId";
 
+import { ProxyGroupJumpButton } from "./proxy-group-jump";
 import type { IProxyGroupItem } from "./use-render-list";
 
 interface Props {
@@ -18,6 +20,7 @@ interface Props {
   showType?: boolean;
   delayVersion?: number;
   onClick?: (name: string) => void;
+  onGroupLocation?: (groupName: string) => void;
 }
 
 // 多列布局
@@ -30,7 +33,9 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
     showType = true,
     delayVersion,
     onClick,
+    onGroupLocation,
   } = props;
+  const { t } = useTranslation();
   const timeout = useVergeStore(
     (s) => s.verge.default_latency_timeout ?? DEFAULT_LATENCY_TIMEOUT,
   );
@@ -115,19 +120,27 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
           width: "100%",
           overflow: "hidden",
         }}>
-        <Typography
-          variant="body2"
-          component="div"
-          sx={{
-            color: "text.primary",
-            display: "block",
-            textOverflow: "ellipsis",
-            wordBreak: "break-all",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-          }}>
-          {proxy.name}
-        </Typography>
+        <div className="flex items-center">
+          {proxy.all ? (
+            <span className="bg-primary/12 text-primary mr-1.5 inline-flex shrink-0 items-center rounded px-1 py-px text-[10px] leading-tight font-medium">
+              {t("pages.proxies.groupBadge")}
+            </span>
+          ) : null}
+          <Typography
+            variant="body2"
+            component="div"
+            sx={{
+              color: "text.primary",
+              display: "block",
+              minWidth: 0,
+              textOverflow: "ellipsis",
+              overflow: "hidden",
+              wordBreak: "break-all",
+              whiteSpace: "nowrap",
+            }}>
+            {proxy.name}
+          </Typography>
+        </div>
 
         {showType && (
           <Box
@@ -181,47 +194,70 @@ export const ProxyItemMini = memo(function ProxyItemMini(props: Props) {
           </Box>
         )}
       </Box>
-      <Box sx={{ ml: 0.5, color: "primary.main" }}>
-        {delay === -2 && (
-          <div className="rounded-md px-1.5 py-0.5 text-sm">
-            <BaseLoading />
-          </div>
-        )}
-        {proxy.type !== "Direct" && delay !== -2 && (
-          <Box
-            component="div"
-            className="the-check hover:bg-primary/15 rounded-md px-1.5 py-0.5 text-sm"
-            sx={{ display: "none" }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDelay(proxy.providerName);
-            }}>
-            Check
-          </Box>
-        )}
-
-        {proxy.type !== "Direct" && delay >= 0 && (
-          // 显示延迟
-          <button
-            type="button"
-            className="the-delay hover:bg-primary/15 rounded-md px-1.5 py-0.5 text-sm"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onDelay(proxy.providerName);
-            }}
-            style={{ color: delayManager.formatDelayColor(delay, timeout) }}>
-            {delayManager.formatDelay(delay, timeout)}
-          </button>
-        )}
-        {proxy.type !== "Direct" && delay !== -2 && delay < 0 && selected && (
-          // 展示已选择的icon
-          <CheckCircleOutlineRounded
-            className="the-icon"
-            sx={{ fontSize: 16, mr: 0.5, display: "block" }}
+      <Box
+        sx={{
+          ml: 0.5,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          justifyContent: "center",
+          gap: 0.25,
+          color: "primary.main",
+        }}>
+        {proxy.all && onGroupLocation ? (
+          <ProxyGroupJumpButton
+            groupName={proxy.name}
+            onGroupLocation={onGroupLocation}
           />
-        )}
+        ) : null}
+        <Box
+          sx={{
+            display: "flex",
+            height: 24,
+            alignItems: "center",
+            justifyContent: "flex-end",
+          }}>
+          {delay === -2 && (
+            <div className="rounded-md px-1.5 py-0.5 text-sm">
+              <BaseLoading />
+            </div>
+          )}
+          {proxy.type !== "Direct" && delay !== -2 && (
+            <Box
+              component="div"
+              className="the-check hover:bg-primary/15 rounded-md px-1.5 py-0.5 text-sm"
+              sx={{ display: "none" }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelay(proxy.providerName);
+              }}>
+              Check
+            </Box>
+          )}
+
+          {proxy.type !== "Direct" && delay >= 0 && (
+            // 显示延迟
+            <button
+              type="button"
+              className="the-delay hover:bg-primary/15 rounded-md px-1.5 py-0.5 text-sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelay(proxy.providerName);
+              }}
+              style={{ color: delayManager.formatDelayColor(delay, timeout) }}>
+              {delayManager.formatDelay(delay, timeout)}
+            </button>
+          )}
+          {proxy.type !== "Direct" && delay !== -2 && delay < 0 && selected && (
+            // 展示已选择的icon
+            <CheckCircleOutlineRounded
+              className="the-icon"
+              sx={{ fontSize: 16, mr: 0.5, display: "block" }}
+            />
+          )}
+        </Box>
       </Box>
       {fixed && (
         // 展示fixed状态
