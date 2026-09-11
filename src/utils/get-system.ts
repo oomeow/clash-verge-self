@@ -12,3 +12,5 @@ export default function getSystem() {
 
   return "unknown";
 }
+
+export const OS = getSystem();

@@ -24,12 +24,11 @@ import { GuardState } from "@/components/setting/mods/guard-state";
 import { copyIconFile, getAppDir } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
-import getSystem from "@/utils/get-system";
+import { OS } from "@/utils/get-system";
 
 const appWindow = getCurrentWebviewWindow();
 
 export const LayoutViewer = forwardRef<DialogRef>((_props, ref) => {
-  const OS = getSystem();
   const show_title_setting = OS === "linux" || OS === "windows";
 
   const { t } = useTranslation();

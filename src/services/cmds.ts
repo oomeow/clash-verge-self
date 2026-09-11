@@ -3,7 +3,7 @@ import { Update } from "@tauri-apps/plugin-updater";
 import type { RuleBehavior, RuleFormat } from "tauri-plugin-mihomo-api";
 
 import type { LogMessage } from "@/components/profile/profile-more";
-import getSystem from "@/utils/get-system";
+import { OS } from "@/utils/get-system";
 
 export interface MergeResult {
   config: string;
@@ -203,7 +203,6 @@ export async function checkPortAvailable(port: number) {
 
 export async function getVergeConfig() {
   const verge = await invoke<IVergeConfig>("get_verge_config");
-  const OS = getSystem();
   if (OS === "windows") {
     verge.bypass = verge.windows_bypass;
   } else if (OS === "macos") {
@@ -372,7 +371,6 @@ export async function deleteBackup(backupType: BackupType, fileName: string) {
 }
 
 export async function isWayland() {
-  const OS = getSystem();
   if (OS !== "linux") return false;
   return invoke<boolean>("is_wayland");
 }

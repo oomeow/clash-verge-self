@@ -53,7 +53,7 @@ import {
 } from "@/services/swr";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
-import getSystem from "@/utils/get-system";
+import { OS } from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
 import ConfigViewer from "./mods/config-viewer";
@@ -69,8 +69,6 @@ import UpdateViewer from "./mods/update-viewer";
 interface Props {
   onError?: (err: Error) => void;
 }
-
-const OS = getSystem();
 
 type VergeViewerKey =
   "theme" | "config" | "hotkey" | "misc" | "layout" | "update";

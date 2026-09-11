@@ -11,9 +11,7 @@ import { UpdateButton } from "@/components/layout/update-button";
 import { useCustomTheme } from "@/components/layout/use-custom-theme";
 import { useThemeModeStore } from "@/stores";
 import { cn } from "@/utils";
-import getSystem from "@/utils/get-system";
-
-const OS = getSystem();
+import { OS } from "@/utils/get-system";
 
 export const LogoTitle = ({
   sidebarCollapsed,

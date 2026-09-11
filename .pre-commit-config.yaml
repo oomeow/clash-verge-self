@@ -13,6 +13,9 @@ repos:
             - CHANGELOG.md
       - id: mixed-line-ending
       - id: check-yaml
+        exclude:
+          glob:
+            - pnpm-lock.yaml
       - id: check-toml
       - id: end-of-file-fixer
 

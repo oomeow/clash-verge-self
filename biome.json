@@ -16,6 +16,13 @@
       "!src-tauri/src/enhance/builtin"
     ]
   },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  },
   "css": {
     "parser": {
       "tailwindDirectives": true

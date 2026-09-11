@@ -24,10 +24,9 @@ import { useRulesStateStore } from "@/stores/rulesStateStore";
 import { useVergeStore } from "@/stores/vergeStore";
 import { cn } from "@/utils";
 import { signalFrontendReady } from "@/utils/frontend-ready";
-import getSystem from "@/utils/get-system";
+import { OS } from "@/utils/get-system";
 
 dayjs.extend(relativeTime);
-const OS = getSystem();
 
 interface NoticePayload {
   status: "success" | "info" | "warning" | "error";

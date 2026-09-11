@@ -34,7 +34,7 @@ import {
 } from "@/services/cmds";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
-import getSystem from "@/utils/get-system";
+import { OS } from "@/utils/get-system";
 
 import MihomoVersionManager from "./mihomo-version-manager";
 
@@ -42,7 +42,6 @@ interface Props {
   serviceActive: boolean;
 }
 
-const OS = getSystem();
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
 // const refreshMihomoWebSocketData = () => {

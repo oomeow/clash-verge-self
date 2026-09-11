@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useNotice } from "@/components/base/notifies";
-import getSystem from "@/utils/get-system";
+import { OS } from "@/utils/get-system";
 import {
   formatHotkeyKey,
   MODIFIER_KEYS,
@@ -12,7 +12,6 @@ import {
   sortKeys,
 } from "@/utils/parse-hotkey";
 
-const OS = getSystem();
 const HOTKEY_INPUT_WIDTH = 204;
 
 const KeyWrapper = styled("div")(({ theme }) => ({

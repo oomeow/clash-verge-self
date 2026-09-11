@@ -1,6 +1,4 @@
-import getSystem from "./get-system";
-
-const OS = getSystem();
+import { OS } from "@/utils/get-system";
 
 export const MODIFIER_KEYS = ["CTRL", "OPTION", "ALT", "SHIFT", "CMD"];
 

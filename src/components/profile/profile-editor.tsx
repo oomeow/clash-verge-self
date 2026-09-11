@@ -34,11 +34,9 @@ import {
 import { generateTemplate } from "@/services/monaco";
 import { useProfilesStore } from "@/stores";
 import { getErrorMessage, sleep } from "@/utils";
-import getSystem from "@/utils/get-system";
+import { OS } from "@/utils/get-system";
 
 import { useNotice } from "../base/notifies";
-
-const OS = getSystem();
 
 export type ProfileEditorHandle = {
   save: () => Promise<boolean>;

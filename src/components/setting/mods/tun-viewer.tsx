@@ -15,11 +15,9 @@ import { BaseDialog, type DialogRef, SwitchLovely } from "@/components/base";
 import { useNotice } from "@/components/base/notifies";
 import { useClash } from "@/hooks/use-clash";
 import { getErrorMessage } from "@/utils";
-import getSystem from "@/utils/get-system";
+import { OS } from "@/utils/get-system";
 
 import { StackModeSwitch } from "./stack-mode-switch";
-
-const OS = getSystem();
 
 export const TunViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();

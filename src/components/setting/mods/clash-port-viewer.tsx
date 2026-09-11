@@ -9,9 +9,7 @@ import { useClashInfo } from "@/hooks/use-clash";
 import { checkPortAvailable } from "@/services/cmds";
 import { mutate, swrKeys } from "@/services/swr";
 import { getErrorMessage } from "@/utils";
-import getSystem from "@/utils/get-system";
-
-const OS = getSystem();
+import { OS } from "@/utils/get-system";
 
 export const ClashPortViewer = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
