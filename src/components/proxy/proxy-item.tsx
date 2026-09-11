@@ -49,6 +49,10 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
   const timeout = useVergeStore(
     (s) => s.verge.default_latency_timeout ?? DEFAULT_LATENCY_TIMEOUT,
   );
+  const enableGroupJump = useVergeStore(
+    (s) => s.verge.enable_group_jump ?? true,
+  );
+  const showGroupJump = !!proxy.all && enableGroupJump;
   const delay = delayManager.getDelayFix(proxy, group.name);
 
   const onDelay = useLockFn(async (providerName?: string) => {
@@ -143,7 +147,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
           secondary={
             <span className="flex flex-col">
               <span className="flex min-w-0 items-center gap-1.5">
-                {proxy.all ? (
+                {showGroupJump ? (
                   <span className="bg-primary/12 text-primary shrink-0 rounded px-1 py-px text-[10px] leading-tight font-medium">
                     {t("pages.proxies.groupBadge")}
                   </span>
@@ -198,7 +202,7 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
             justifyContent: "center",
             gap: 0.25,
           }}>
-          {proxy.all && onGroupLocation ? (
+          {showGroupJump && onGroupLocation ? (
             <ProxyGroupJumpButton
               groupName={proxy.name}
               onGroupLocation={onGroupLocation}

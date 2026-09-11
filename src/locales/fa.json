@@ -135,7 +135,8 @@
         "delayCheck": "بررسی تأخیر",
         "delayCheckUrl": "آدرس بررسی تأخیر",
         "delayCheckToCancelFixed": "برای لغو تثبیت، تأخیر را بررسی کنید",
-        "jumpToGroup": "پرش به این گروه پراکسی"
+        "jumpToGroup": "پرش به این گروه پراکسی",
+        "groupJump": "پرش به گروه پراکسی"
       },
       "sort": {
         "default": "مرتب‌سازی بر اساس پیش‌فرض",

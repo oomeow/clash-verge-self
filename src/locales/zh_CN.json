@@ -135,7 +135,8 @@
         "delayCheck": "延迟测试",
         "delayCheckUrl": "延迟测试链接",
         "delayCheckToCancelFixed": "进行延迟测试，以取消固定",
-        "jumpToGroup": "跳转到该代理组"
+        "jumpToGroup": "跳转到该代理组",
+        "groupJump": "代理组跳转"
       },
       "sort": {
         "default": "默认排序",

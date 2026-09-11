@@ -135,7 +135,8 @@
         "delayCheck": "Delay check",
         "delayCheckUrl": "Delay check URL",
         "delayCheckToCancelFixed": "Delay check to cancel fixed",
-        "jumpToGroup": "Jump to this proxy group"
+        "jumpToGroup": "Jump to this proxy group",
+        "groupJump": "Proxy Group Jump"
       },
       "sort": {
         "default": "Sort by default",
