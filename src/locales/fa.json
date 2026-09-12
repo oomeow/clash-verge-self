@@ -119,6 +119,7 @@
     "proxies": {
       "title": "پراکسی‌ها",
       "groups": "گروه‌های پراکسی",
+      "groupBadge": "گروه",
       "provider": "تأمین‌کننده پروکسی",
       "updateAt": "به‌روزرسانی در",
       "modes": {
@@ -133,7 +134,9 @@
       "actions": {
         "delayCheck": "بررسی تأخیر",
         "delayCheckUrl": "آدرس بررسی تأخیر",
-        "delayCheckToCancelFixed": "برای لغو تثبیت، تأخیر را بررسی کنید"
+        "delayCheckToCancelFixed": "برای لغو تثبیت، تأخیر را بررسی کنید",
+        "jumpToGroup": "پرش به این گروه پراکسی",
+        "groupJump": "پرش به گروه پراکسی"
       },
       "sort": {
         "default": "مرتب‌سازی بر اساس پیش‌فرض",

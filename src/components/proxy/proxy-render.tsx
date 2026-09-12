@@ -32,12 +32,14 @@ interface RenderProps {
   onCheckAll: (groupName: string) => void;
   onGroupToggle?: (group: IProxyGroupItem) => void | Promise<void>;
   onChangeProxy: (group: IProxyGroupItem, proxy: ProxyInfo) => void;
+  onGroupLocation: (groupName: string) => void;
 }
 
 interface ProxyColProps {
   item: IRenderItem;
   delayVersion: number;
   onChangeProxy: (group: IProxyGroupItem, proxy: ProxyInfo) => void;
+  onGroupLocation: (groupName: string) => void;
 }
 
 interface ProxyGroupHeaderProps {
@@ -128,7 +130,7 @@ const ProxyGroupHeader = memo(function ProxyGroupHeader(
 });
 
 const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
-  const { item, delayVersion, onChangeProxy } = props;
+  const { item, delayVersion, onChangeProxy, onGroupLocation } = props;
   const { group, headState, proxyCol } = item;
   return (
     <Box
@@ -144,6 +146,7 @@ const ProxyItemMiniCol = memo(function ProxyItemMiniCol(props: ProxyColProps) {
           showType={headState?.showType}
           delayVersion={delayVersion}
           onClick={() => onChangeProxy(group, proxy)}
+          onGroupLocation={onGroupLocation}
         />
       ))}
     </Box>
@@ -177,6 +180,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
     onCheckAll,
     onGroupToggle,
     onChangeProxy,
+    onGroupLocation,
   } = props;
   const { type, group, proxy, headState = DEFAULT_STATE } = item;
 
@@ -203,6 +207,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           delayVersion={delayVersion}
           sx={{ py: "4px", px: 2 }}
           onClick={() => onChangeProxy(group, proxy!)}
+          onGroupLocation={onGroupLocation}
         />
       );
     case RenderType.EMPTY_MESSAGE:
@@ -213,6 +218,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           item={item}
           delayVersion={delayVersion}
           onChangeProxy={onChangeProxy}
+          onGroupLocation={onGroupLocation}
         />
       );
     default:

@@ -119,6 +119,7 @@
     "proxies": {
       "title": "代理",
       "groups": "代理组",
+      "groupBadge": "组",
       "provider": "代理集合",
       "updateAt": "更新于",
       "modes": {
@@ -133,7 +134,9 @@
       "actions": {
         "delayCheck": "延迟测试",
         "delayCheckUrl": "延迟测试链接",
-        "delayCheckToCancelFixed": "进行延迟测试，以取消固定"
+        "delayCheckToCancelFixed": "进行延迟测试，以取消固定",
+        "jumpToGroup": "跳转到该代理组",
+        "groupJump": "代理组跳转"
       },
       "sort": {
         "default": "默认排序",
