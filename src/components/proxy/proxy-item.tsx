@@ -147,11 +147,11 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
           secondary={
             <span className="flex flex-col">
               <span className="flex min-w-0 items-center gap-1.5">
-                {showGroupJump ? (
+                {showGroupJump && (
                   <span className="bg-primary/12 text-primary shrink-0 rounded px-1 py-px text-[10px] leading-tight font-medium">
                     {t("pages.proxies.groupBadge")}
                   </span>
-                ) : null}
+                )}
                 <span className="text-text-primary line-clamp-2 min-w-0 text-sm">
                   {proxy.name}
                 </span>
@@ -202,12 +202,12 @@ export const ProxyItem = memo(function ProxyItem(props: Props) {
             justifyContent: "center",
             gap: 0.25,
           }}>
-          {showGroupJump && onGroupLocation ? (
+          {showGroupJump && onGroupLocation && (
             <ProxyGroupJumpButton
               groupName={proxy.name}
               onGroupLocation={onGroupLocation}
             />
-          ) : null}
+          )}
 
           <ListItemIcon
             sx={{
