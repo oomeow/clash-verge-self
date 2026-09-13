@@ -1,4 +1,5 @@
-import { Box, Button, ButtonGroup } from "@mui/material";
+import AccountTreeRounded from "@mui/icons-material/AccountTreeRounded";
+import { Box, Button, ButtonGroup, IconButton } from "@mui/material";
 import { useLockFn, useMemoizedFn } from "ahooks";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +19,10 @@ const ProxyPage = () => {
   const autoCloseConnection = useVergeStore(
     (s) => s.verge.auto_close_connection ?? true,
   );
+  const enableGroupJump = useVergeStore(
+    (s) => s.verge.enable_group_jump ?? true,
+  );
+  const patchVerge = useVergeStore((s) => s.patchVerge);
 
   const curMode = clashInfo?.mode?.toLowerCase() ?? "rule";
 
@@ -62,6 +67,14 @@ const ProxyPage = () => {
               </Button>
             ))}
           </ButtonGroup>
+
+          <IconButton
+            size="small"
+            color={enableGroupJump ? "primary" : "inherit"}
+            title={t("pages.proxies.actions.groupJump")}
+            onClick={() => patchVerge({ enable_group_jump: !enableGroupJump })}>
+            <AccountTreeRounded />
+          </IconButton>
         </Box>
       }>
       <ProxyGroups mode={curMode} />

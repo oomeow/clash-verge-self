@@ -24,6 +24,7 @@ const PERSISTED_VERGE_KEYS = [
   "traffic_graph",
   "enable_memory_usage",
   "enable_group_icon",
+  "enable_group_jump",
   "menu_icon",
   "enable_tray",
   "tray_icon",

@@ -52,6 +52,9 @@ pub struct IVerge {
     /// enable group icon
     pub enable_group_icon: Option<bool>,
 
+    /// enable proxy group jump entry
+    pub enable_group_jump: Option<bool>,
+
     /// common tray icon
     pub common_tray_icon: Option<bool>,
 
@@ -324,6 +327,7 @@ impl IVerge {
             traffic_graph: Some(true),
             enable_memory_usage: Some(true),
             enable_group_icon: Some(true),
+            enable_group_jump: Some(true),
             #[cfg(target_os = "macos")]
             tray_icon: Some("monochrome".into()),
             menu_icon: Some("monochrome".into()),
@@ -380,6 +384,7 @@ impl IVerge {
         patch!(traffic_graph);
         patch!(enable_memory_usage);
         patch!(enable_group_icon);
+        patch!(enable_group_jump);
         #[cfg(target_os = "macos")]
         patch!(tray_icon);
         patch!(menu_icon);

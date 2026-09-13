@@ -234,6 +234,7 @@ export const ProxyGroups = (props: Props) => {
         onCheckAll={handleCheckAll}
         onGroupToggle={handleGroupToggle}
         onChangeProxy={handleChangeProxy}
+        onGroupLocation={handleGroupLocation}
       />
     ),
     [
@@ -242,6 +243,7 @@ export const ProxyGroups = (props: Props) => {
       handleCheckAll,
       handleGroupToggle,
       handleLocation,
+      handleGroupLocation,
     ],
   );
 
@@ -255,6 +257,7 @@ export const ProxyGroups = (props: Props) => {
         onCheckAll={handleCheckAll}
         onGroupToggle={handleGroupToggle}
         onChangeProxy={handleChangeProxy}
+        onGroupLocation={handleGroupLocation}
       />
     ),
     [
@@ -263,6 +266,7 @@ export const ProxyGroups = (props: Props) => {
       handleCheckAll,
       handleGroupToggle,
       handleLocation,
+      handleGroupLocation,
     ],
   );
 

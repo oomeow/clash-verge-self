@@ -119,6 +119,7 @@
     "proxies": {
       "title": "Прокси",
       "groups": "Группы прокси",
+      "groupBadge": "Группа",
       "provider": "Провайдер прокси",
       "updateAt": "Обновлено в",
       "modes": {
@@ -133,7 +134,9 @@
       "actions": {
         "delayCheck": "Проверка задержки",
         "delayCheckUrl": "URL проверки задержки",
-        "delayCheckToCancelFixed": "Проверить задержку, чтобы снять фиксацию"
+        "delayCheckToCancelFixed": "Проверить задержку, чтобы снять фиксацию",
+        "jumpToGroup": "Перейти к этой группе прокси",
+        "groupJump": "Переход к группе прокси"
       },
       "sort": {
         "default": "Сортировать по умолчанию",
