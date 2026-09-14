@@ -91,7 +91,7 @@
     "@types/sortablejs": "1.15.9",
     "@vitejs/plugin-legacy": "8.2.3",
     "@vitejs/plugin-react": "6.1.1",
-    "adm-zip": "0.6.0",
+    "adm-zip": "0.6.1",
     "clsx": "2.1.1",
     "eslint": "10.10.0",
     "eslint-plugin-react-hooks": "7.1.1",
