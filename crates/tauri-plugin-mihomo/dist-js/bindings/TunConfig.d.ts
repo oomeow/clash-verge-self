@@ -49,4 +49,5 @@ export type TunConfig = {
     inet6RouteExcludeAddress?: Array<string>;
     recvmsgx?: boolean;
     sendmsgx?: boolean;
+    processorsPerChannel?: number;
 };
