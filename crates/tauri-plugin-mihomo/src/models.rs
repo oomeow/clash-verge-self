@@ -76,7 +76,7 @@ pub struct BaseConfig {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
 #[serde(rename_all(serialize = "camelCase", deserialize = "kebab-case"))]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tun.go#L12-L66
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tun.go#L12-L69
 pub struct TunConfig {
     pub enable: bool,
     pub device: String,
@@ -257,12 +257,17 @@ pub struct TunConfig {
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sendmsgx: Option<bool>,
+
+    // gvisor special config (Non-public option; do not include it in the document.)
+    #[ts(optional)]
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub processors_per_channel: Option<isize>,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export, rename_all = "camelCase")]
 #[serde(rename_all(serialize = "camelCase", deserialize = "kebab-case"))]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tuic.go#L9-L30
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/listener/config/tuic.go#L9-L28
 pub struct TuicServer {
     pub enable: bool,
     pub listen: String,
@@ -412,7 +417,7 @@ pub struct MihomoVersion {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/component/updater/update_core.go#L39-L42
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/component/updater/update_core.go#L91-L102
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/component/updater/update_core.go#L94-L105
 pub enum CoreUpdaterChannel {
     #[serde(rename = "release")]
     ReleaseChannel,
@@ -461,13 +466,14 @@ impl Display for ClashMode {
 /// tun stack enum
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/tun.go#L14-L18
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/tun.go#L37-L48
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/tun.go#L15-L20
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/tun.go#L39-L52
 pub enum TunStack {
     Mixed,
     #[serde(rename = "gVisor")]
     Gvisor,
     System,
+    Mips,
 
     #[serde(other)]
     Unknown,
@@ -479,6 +485,7 @@ impl Display for TunStack {
             TunStack::Mixed => write!(f, "Mixed"),
             TunStack::Gvisor => write!(f, "gVisor"),
             TunStack::System => write!(f, "System"),
+            TunStack::Mips => write!(f, "Mips"),
             TunStack::Unknown => write!(f, "Unknown"),
         }
     }
@@ -495,7 +502,7 @@ pub struct Groups {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/adapter.go#L135-L162
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/adapter.go#L136-L162
 pub struct ProxyInfo {
     // group type need
     #[ts(optional)]
@@ -556,8 +563,10 @@ pub struct ProxyInfo {
     pub provider_name: String,
 
     // group type need: fallback proxy name when the group has no available proxies
-    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/selector.go
-    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/urltest.go
+    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/selector.go#L75
+    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/urltest.go#L179
+    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/fallback.go#L95
+    // https://github.com/MetaCubeX/mihomo/blob/Alpha/adapter/outboundgroup/loadbalance.go#L234
     #[ts(optional)]
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub empty_fallback: Option<String>,
@@ -565,8 +574,8 @@ pub struct ProxyInfo {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L18-L57
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L178-L255
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L18-L58
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L179-L258
 pub enum ProxyType {
     Direct,
     Reject,
@@ -605,6 +614,7 @@ pub enum ProxyType {
     OpenVPN,
     Tailscale,
     ZeroTier,
+    EasyTier,
     GostRelay,
 
     #[serde(other)]
@@ -613,7 +623,7 @@ pub enum ProxyType {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L158-L161
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L159-L162
 pub struct Extra {
     pub alive: bool,
     pub history: Vec<DelayHistory>,
@@ -621,7 +631,7 @@ pub struct Extra {
 
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L153-L156
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/constant/adapters.go#L154-L157
 pub struct DelayHistory {
     pub time: String,
     pub delay: u16,
@@ -852,7 +862,7 @@ pub struct Connections {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
-// https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/statistic/manager.go#L85
+// https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/statistic/manager.go#L84-L96
 // https://github.com/MetaCubeX/mihomo/blob/Alpha/tunnel/statistic/tracker.go#L24-L34
 pub struct ConnectionInfo {
     pub id: String,

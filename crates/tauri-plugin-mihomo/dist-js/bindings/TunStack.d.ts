@@ -1,4 +1,4 @@
 /**
  * tun stack enum
  */
-export type TunStack = "Mixed" | "gVisor" | "System" | "Unknown";
+export type TunStack = "Mixed" | "gVisor" | "System" | "Mips" | "Unknown";
