@@ -17,8 +17,6 @@ export const TestDiv = ({
   "aria-selected": selected,
   onContextMenu,
 }: TestDivProps) => {
-  const isDragging = label === "dragging";
-
   return (
     <div
       role="option"
@@ -30,8 +28,6 @@ export const TestDiv = ({
         "bg-background-paper relative box-border block w-full cursor-pointer rounded-xl p-2 text-left",
         "text-text-secondary dark:text-text-secondary/65 shadow-sm",
         selected ? "[&_h2]:text-primary" : "[&_h2]:text-text-primary",
-        isDragging &&
-          "border-primary/50 border border-solid shadow-[0_0_0_4px_var(--mui-palette-primary-main)]",
         className,
       )}
       style={style}>

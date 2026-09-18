@@ -16,7 +16,6 @@ import { TestDiv } from "./test-box";
 
 interface Props {
   id: string;
-  isDragging?: boolean;
   style?: React.CSSProperties;
   itemData: IVergeTestItem;
   onEdit: () => void;
@@ -29,14 +28,11 @@ const encodeSvgDataUri = (svg: string) =>
 const getFileName = (url: string) => url.substring(url.lastIndexOf("/") + 1);
 
 export const TestItem = (props: Props) => {
-  const { isDragging, style, itemData, onEdit, onDelete: onDeleteItem } = props;
+  const { style, itemData, onEdit, onDelete: onDeleteItem } = props;
 
   const { t } = useTranslation();
   const { notice } = useNotice();
   const [anchorEl, setAnchorEl] = useState<Element | null>(null);
-  if (anchorEl && isDragging) {
-    setAnchorEl(null);
-  }
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const [delay, setDelay] = useState(-1);
   const { uid, name, icon, url } = itemData;
@@ -92,7 +88,7 @@ export const TestItem = (props: Props) => {
   return (
     <Box sx={{ width: "100%" }}>
       <TestDiv
-        aria-label={isDragging ? "dragging" : "test"}
+        aria-label="test"
         style={style}
         onContextMenu={(event) => {
           const { clientX, clientY } = event;

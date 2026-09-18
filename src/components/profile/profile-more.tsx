@@ -43,7 +43,6 @@ export interface LogMessage {
 interface Props {
   sx?: SxProps;
   selected: boolean;
-  isDragging?: boolean;
   itemData: IProfileItem;
   logs?: LogMessage[];
   reactivating: boolean;
@@ -72,7 +71,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
   const {
     sx,
     selected,
-    isDragging,
     itemData,
     logs = [],
     reactivating,
@@ -88,9 +86,6 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const [anchorEl, setAnchorEl] = useState<any>(null);
-  if (anchorEl && isDragging) {
-    setAnchorEl(null);
-  }
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const [fileOpen, setFileOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -196,7 +191,7 @@ export const ProfileMore = memo(function ProfileMore(props: Props) {
         };
       }}>
       <ProfileDiv
-        aria-label={isDragging ? "dragging" : "script"}
+        aria-label="script"
         aria-selected={selected || itemData.enable}
         onClick={onClick ? () => onClick(uid) : undefined}
         onDoubleClick={() => {

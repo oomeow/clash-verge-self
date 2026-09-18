@@ -41,7 +41,6 @@ const formatTraffic = (value: number) => parseTraffic(value).join(" ");
 interface Props {
   sx?: SxProps;
   selected: boolean;
-  isDragging?: boolean;
   activating: boolean;
   itemData: IProfileItem;
   onSelect: (uid: string) => void;
@@ -55,7 +54,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
   const {
     sx,
     selected,
-    isDragging,
     activating,
     itemData,
     onSelect,
@@ -69,9 +67,6 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
   const { notice } = useNotice();
   const updateProfile = useProfilesStore((s) => s.updateProfile);
   const [anchorEl, setAnchorEl] = useState<any>(null);
-  if (anchorEl && isDragging) {
-    setAnchorEl(null);
-  }
   const [position, setPosition] = useState({ left: 0, top: 0 });
   const loadingCache = useLoadingCacheStore((s) => s.loadingCache);
   const setLoading = useLoadingCacheStore((s) => s.setLoading);
@@ -278,7 +273,7 @@ export const ProfileItem = memo(function ProfileItem(props: Props) {
         };
       }}>
       <ProfileDiv
-        aria-label={isDragging ? "dragging" : "profile"}
+        aria-label="profile"
         aria-selected={selected}
         onClick={() => onSelect(uid)}
         onContextMenu={(event) => {

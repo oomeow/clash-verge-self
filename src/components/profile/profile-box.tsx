@@ -21,8 +21,6 @@ export const ProfileDiv = ({
   onDoubleClick,
   onContextMenu,
 }: ProfileDivProps) => {
-  const isDragging = label === "dragging";
-
   return (
     <Card
       elevation={0}
@@ -39,7 +37,6 @@ export const ProfileDiv = ({
         "hover:bg-primary/10 dark:hover:bg-primary/18",
         selected &&
           "bg-primary/16 dark:bg-primary/28 border-primary w-full border-l-[3px]",
-        isDragging && "shadow-[0_0_10px_5px_rgba(0,0,0,0.12)]",
         "[&_h2]:text-text-primary",
         className,
       )}>

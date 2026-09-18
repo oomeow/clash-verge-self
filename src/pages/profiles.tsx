@@ -554,33 +554,6 @@ const ProfilePage = () => {
                 );
               })}
             </div>
-            {/*<DragOverlay>
-              {(source) => {
-                const draggingItem = sortableProfileItems.find(
-                  (item) => item.uid === source.id,
-                );
-                if (!draggingItem) return null;
-                return (
-                  <ProfileItem
-                    isDragging
-                    sx={{
-                      borderRadius: "8px",
-                      boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
-                    }}
-                    selected={
-                      activatingUidSet.has(draggingItem.uid) ||
-                      (!hasActivatingItems &&
-                        currentProfileUid === draggingItem.uid)
-                    }
-                    activating={activatingUidSet.has(draggingItem.uid)}
-                    itemData={draggingItem}
-                    onSelect={onSelect}
-                    onDelete={onDelete}
-                    onActivatedSave={onEnhance}
-                  />
-                );
-              }}
-            </DragOverlay>*/}
           </DragDropProvider>
         </Box>
 
@@ -689,32 +662,6 @@ const ProfilePage = () => {
                     );
                   })}
                 </div>
-                {/*<DragOverlay>
-                  {(source) => {
-                    const draggingItem = sortableGlobalChainItems.find(
-                      (item) => item.id === source.id,
-                    );
-                    if (!draggingItem) return null;
-                    return (
-                      <ProfileMore
-                        isDragging
-                        selected={
-                          activatingUidSet.has(draggingItem.uid) ||
-                          !!draggingItem.enable
-                        }
-                        itemData={draggingItem}
-                        sx={{
-                          borderRadius: "8px",
-                          boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
-                        }}
-                        logs={chainLogs[draggingItem.uid]}
-                        reactivating={activatingUidSet.has(draggingItem.uid)}
-                        onToggleEnable={handleToggleEnable}
-                        onActivatedSave={onEnhance}
-                      />
-                    );
-                  }}
-                </DragOverlay>*/}
               </DragDropProvider>
             </Box>
           </>

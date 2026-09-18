@@ -140,26 +140,6 @@ const TestPage = () => {
               </SortableItem>
             ))}
           </div>
-          {/*<DragOverlay>
-            {(source) => {
-              const draggingItem = sortableTestList.find(
-                (x) => x.id === source.id,
-              );
-              if (!draggingItem) return null;
-              return (
-                <TestItem
-                  id={draggingItem.uid}
-                  itemData={draggingItem}
-                  style={{
-                    borderRadius: "8px",
-                    boxShadow: "0px 0px 10px 5px rgba(0,0,0,0.2)",
-                  }}
-                  onEdit={() => {}}
-                  onDelete={() => {}}
-                />
-              );
-            }}
-          </DragOverlay>*/}
         </DragDropProvider>
       </Box>
       <TestViewer

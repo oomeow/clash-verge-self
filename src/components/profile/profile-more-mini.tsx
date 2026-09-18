@@ -28,7 +28,6 @@ import { ProfileViewer, type ProfileViewerRef } from "./profile-viewer";
 
 interface Props {
   item: IProfileItem;
-  isDragging?: boolean;
   reactivating?: boolean;
   selected: boolean;
   logs?: LogMessage[];
@@ -41,7 +40,6 @@ interface Props {
 const ProfileMoreMini = memo(function ProfileMoreMini(props: Props) {
   const {
     item,
-    isDragging,
     reactivating,
     selected,
     logs,
@@ -67,10 +65,6 @@ const ProfileMoreMini = memo(function ProfileMoreMini(props: Props) {
     theme.palette.mode === "light"
       ? alpha(theme.palette.primary.main, 0.25)
       : alpha(theme.palette.primary.main, 0.35);
-  const draggingBackgroundColor =
-    theme.palette.mode === "light"
-      ? alpha(theme.palette.primary.main, 0.45)
-      : alpha(theme.palette.primary.main, 0.55);
 
   return (
     <>
@@ -78,12 +72,8 @@ const ProfileMoreMini = memo(function ProfileMoreMini(props: Props) {
         <div
           style={{
             backgroundColor: item.enable
-              ? isDragging
-                ? draggingBackgroundColor
-                : selectedBackgroundColor
-              : isDragging
-                ? draggingBackgroundColor
-                : unselectedbackgroundColor,
+              ? selectedBackgroundColor
+              : unselectedbackgroundColor,
           }}
           className={cn(
             "relative flex h-full w-full items-center gap-1 overflow-hidden rounded-lg border border-(--divider-color) px-2 py-1 shadow-sm",
