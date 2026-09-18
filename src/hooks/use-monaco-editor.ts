@@ -1,5 +1,11 @@
 import type { editor } from "monaco-editor";
-import { type RefObject, useEffect, useRef, useState } from "react";
+import {
+  type RefCallback,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { configureYaml, defaultOptions, loadMonaco } from "@/services/monaco";
 import { useThemeModeStore } from "@/stores";
@@ -26,8 +32,8 @@ export interface UseMonacoEditorResult {
   monaco: Monaco | null;
   /** 编辑器实例，monaco 加载完成且 active 后非空 */
   editor: editor.IStandaloneCodeEditor | null;
-  /** 编辑器容器 DOM ref，需要挂载到一个 `<div ref={domRef} />` 上 */
-  domRef: RefObject<HTMLDivElement | null>;
+  /** 编辑器容器 ref（回调 ref），需要挂载到一个 `<div ref={domRef} />` 上 */
+  domRef: RefCallback<HTMLDivElement>;
   /**
    * 用新内容替换当前 model（旧的 model 会被 dispose）。
    * 适合切换文件后重新加载内容时使用。
@@ -51,7 +57,12 @@ export const useMonacoEditor = (
     size: { width },
   } = useWindowSize();
 
-  const domRef = useRef<HTMLDivElement | null>(null);
+  // 容器节点用 state 记录：MUI Portal 首次渲染返回 null，子节点要到下一次渲染
+  // 才挂载，仅靠 domRef.current 会在第二次打开对话框时读到 null。
+  const [dom, setDom] = useState<HTMLDivElement | null>(null);
+  const domRef = useCallback<RefCallback<HTMLDivElement>>((node) => {
+    setDom(node);
+  }, []);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const modelRef = useRef<editor.ITextModel | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
@@ -87,7 +98,6 @@ export const useMonacoEditor = (
   // 创建 / 销毁编辑器实例
   useEffect(() => {
     const instance = monacoRef.current;
-    const dom = domRef.current;
     if (!active || !instance || !dom) return;
 
     const {
@@ -118,7 +128,7 @@ export const useMonacoEditor = (
       modelRef.current = null;
       current?.dispose();
     };
-  }, [active, monaco]);
+  }, [active, monaco, dom]);
 
   // 主题 / 只读模式运行时同步
   useEffect(() => {
