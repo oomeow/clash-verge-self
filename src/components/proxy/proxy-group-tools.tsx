@@ -10,7 +10,7 @@ import VisibilityRounded from "@mui/icons-material/VisibilityRounded";
 import WifiTetheringOffRounded from "@mui/icons-material/WifiTetheringOffRounded";
 import WifiTetheringRounded from "@mui/icons-material/WifiTetheringRounded";
 import { Box, IconButton, type SxProps, TextField } from "@mui/material";
-import debounce from "lodash-es/debounce";
+import { useDebounceFn } from "ahooks";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -27,13 +27,24 @@ import type { ProxySortType } from "./use-filter-sort";
 
 interface Props {
   sx?: SxProps;
+  stickyed?: boolean;
   groupName: string;
   onLocation: () => void;
   onCheckDelay: () => void;
+  onGroupLocation: (highlight?: boolean) => void;
 }
 
+const EMPTY_SX: SxProps = {};
+
 export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
-  const { sx = {}, groupName } = props;
+  const {
+    sx = EMPTY_SX,
+    stickyed,
+    groupName,
+    onLocation,
+    onCheckDelay,
+    onGroupLocation,
+  } = props;
   const currentProfileUid = useProfilesStore(
     (s) => s.currentProfile?.uid ?? "",
   );
@@ -52,19 +63,13 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
   const [filterTextInp, setFilterTextInp] = useState(filterText);
 
   // Keep refs to callbacks so onClick can call the latest version after flushSync re-render
-  const onLocationRef = useRef(props.onLocation);
-  const onCheckDelayRef = useRef(props.onCheckDelay);
+  const onLocationRef = useRef(onLocation);
+  const onCheckDelayRef = useRef(onCheckDelay);
   onLocationRef.current = props.onLocation;
   onCheckDelayRef.current = props.onCheckDelay;
 
   const { t } = useTranslation();
-  const [autoFocus, setAutoFocus] = useState(false);
-
-  useEffect(() => {
-    // fix the focus conflict
-    const timer = setTimeout(() => setAutoFocus(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const defaultLatencyTest = useVergeStore((s) => s.verge.default_latency_test);
 
@@ -72,26 +77,27 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
     delayManager.setUrl(groupName, testUrl || defaultLatencyTest);
   }, [groupName, testUrl, defaultLatencyTest]);
 
-  const filterChange = useMemo(
-    () =>
-      debounce((text: string) => {
-        headStateActions.setFilterText(text);
-      }, 500),
-    [headStateActions],
+  const { run: applyFilter, flush: flushFilter } = useDebounceFn(
+    (text: string) => {
+      // 代理组 sticky 时，先滚动到代理组位置，再执行过滤，避免代理列表过滤后滚动位置错乱
+      if (stickyed) onGroupLocation(false);
+      headStateActions.setFilterText(text);
+    },
+    { wait: 600 },
   );
 
+  // 关闭过滤框或卸载时立即应用最后一次输入，避免丢失未生效的过滤条件。
   useEffect(() => {
-    return () => {
-      filterChange.cancel();
-    };
-  }, [filterChange]);
+    if (textState !== "filter") flushFilter();
+  }, [textState, flushFilter]);
+  useEffect(() => () => flushFilter(), [flushFilter]);
 
   return (
     <Box className="flex items-center gap-1" style={sx as React.CSSProperties}>
       {textState === "filter" && (
         <TextField
-          autoFocus={autoFocus}
           hiddenLabel
+          inputRef={inputRef}
           value={filterTextInp}
           size="small"
           variant="outlined"
@@ -103,7 +109,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
           onChange={(e) => {
             const text = e.target.value;
             setFilterTextInp(text);
-            filterChange(text);
+            applyFilter(text);
           }}
           className="ml-1"
           sx={{
@@ -120,8 +126,8 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
 
       {textState === "url" && (
         <TextField
-          autoFocus={autoFocus}
           hiddenLabel
+          inputRef={inputRef}
           autoSave="off"
           autoComplete="off"
           value={testUrl}
@@ -243,6 +249,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+
           if (!headState.open) flushSync(() => headStateActions.setOpen(true));
           setFilterTextInp("");
           headStateActions.setTextState(

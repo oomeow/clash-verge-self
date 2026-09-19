@@ -32,14 +32,14 @@ interface RenderProps {
   onCheckAll: (groupName: string) => void;
   onGroupToggle?: (group: IProxyGroupItem) => void | Promise<void>;
   onChangeProxy: (group: IProxyGroupItem, proxy: ProxyInfo) => void;
-  onGroupLocation: (groupName: string) => void;
+  onGroupLocation: (groupName: string, highlight?: boolean) => void;
 }
 
 interface ProxyColProps {
   item: IRenderItem;
   delayVersion: number;
   onChangeProxy: (group: IProxyGroupItem, proxy: ProxyInfo) => void;
-  onGroupLocation: (groupName: string) => void;
+  onGroupLocation: (groupName: string, highlight?: boolean) => void;
 }
 
 interface ProxyGroupHeaderProps {
@@ -49,13 +49,23 @@ interface ProxyGroupHeaderProps {
   onLocation: (group: IProxyGroupItem) => void;
   onCheckAll: (groupName: string) => void;
   onGroupToggle?: (group: IProxyGroupItem) => void | Promise<void>;
+  onGroupLocation: (groupName: string, highlight?: boolean) => void;
 }
+
+const TOOLS_SX = { pr: 3 };
 
 const ProxyGroupHeader = memo(function ProxyGroupHeader(
   props: ProxyGroupHeaderProps,
 ) {
-  const { group, headState, stickyed, onLocation, onCheckAll, onGroupToggle } =
-    props;
+  const {
+    group,
+    headState,
+    stickyed,
+    onLocation,
+    onCheckAll,
+    onGroupToggle,
+    onGroupLocation,
+  } = props;
   const currentProfileUid = useProfilesStore(
     (s) => s.currentProfile?.uid ?? "",
   );
@@ -79,6 +89,12 @@ const ProxyGroupHeader = memo(function ProxyGroupHeader(
   const handleCheckDelay = useCallback(() => {
     onCheckAll(group.name);
   }, [group.name, onCheckAll]);
+  const handleGroupLocation = useCallback(
+    (highlight: boolean = true) => {
+      onGroupLocation(group.name, highlight);
+    },
+    [group.name, onGroupLocation],
+  );
 
   return (
     <div className="py-1">
@@ -118,10 +134,12 @@ const ProxyGroupHeader = memo(function ProxyGroupHeader(
         </Box>
 
         <ProxyGroupTools
-          sx={{ pr: 3 }}
+          sx={TOOLS_SX}
+          stickyed={stickyed}
           groupName={group.name}
           onLocation={handleLocation}
           onCheckDelay={handleCheckDelay}
+          onGroupLocation={handleGroupLocation}
         />
         {headState.open ? <ExpandLessRounded /> : <ExpandMoreRounded />}
       </Card>
@@ -194,6 +212,7 @@ export const ProxyRender = memo(function ProxyRender(props: RenderProps) {
           onLocation={onLocation}
           onCheckAll={onCheckAll}
           onGroupToggle={onGroupToggle}
+          onGroupLocation={onGroupLocation}
         />
       );
     case RenderType.PROXY_ITEM:

@@ -155,7 +155,7 @@ export const ProxyGroups = (props: Props) => {
 
   // 滚到对应的分组
   const handleGroupLocation = useCallback(
-    async (groupName: string) => {
+    async (groupName: string, highlight: boolean = true) => {
       if (!groupName) return;
 
       const index = renderList.findIndex(
@@ -168,7 +168,8 @@ export const ProxyGroups = (props: Props) => {
           behavior: "auto",
         });
         await stickyListRef.current?.waitForScrollEnd();
-        findAndHighlightElement(groupId(groupName));
+
+        if (highlight) findAndHighlightElement(groupId(groupName));
       }
     },
     [renderList],
