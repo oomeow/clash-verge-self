@@ -95,12 +95,12 @@ const sidecarHost = getTarget(rawArgvs) ?? getRustHost();
 const exeSuffix = getExeSuffix(rawArgvs);
 const platformArch = getPlatformArch(rawArgvs);
 
-function handleCancel<T>(value: T | symbol): T {
+function handleCancel<T>(value: T): Exclude<T, symbol> {
   if (isCancel(value)) {
     cancel("Operation cancelled");
     process.exit(0);
   }
-  return value as T;
+  return value as Exclude<T, symbol>;
 }
 
 function formatResourcePath(filePath: string) {
