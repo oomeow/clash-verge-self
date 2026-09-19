@@ -106,22 +106,22 @@ export const ProfileViewer = forwardRef<ProfileViewerRef, Props>(
     useEffect(() => {
       if (openType === "edit") return;
       if (selfProxy) formIns.setValue("option.with_proxy", false);
-    }, [selfProxy]);
+    }, [openType, selfProxy, formIns.setValue]);
 
     useEffect(() => {
       if (openType === "edit") return;
       if (withProxy) formIns.setValue("option.self_proxy", false);
-    }, [withProxy]);
+    }, [openType, withProxy, formIns.setValue]);
 
     useEffect(() => {
       if (openType === "edit") return;
       formIns.setValue("name", defaultName);
-    }, [formType, defaultName]);
+    }, [openType, defaultName, formIns.setValue]);
 
     useEffect(() => {
       if (isRemote || openType === "edit") return;
       formIns.setValue("option.user_agent", `clash-verge/${appVersion}`);
-    }, [isRemote, appVersion]);
+    }, [isRemote, openType, appVersion, formIns.setValue]);
 
     useImperativeHandle(ref, () => ({
       create: async (profileUid) => {

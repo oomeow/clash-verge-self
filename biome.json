@@ -36,8 +36,7 @@
         "noStaticElementInteractions": "off"
       },
       "style": {
-        "noNonNullAssertion": "off",
-        "useNodejsImportProtocol": "off"
+        "noNonNullAssertion": "off"
       },
       "correctness": {
         "useExhaustiveDependencies": "off"

@@ -1,7 +1,8 @@
-import { execSync } from "child_process";
-import crypto from "crypto";
+import { execSync } from "node:child_process";
+import crypto from "node:crypto";
+import path from "node:path";
+
 import fs from "fs-extra";
-import path from "path";
 
 const cwd = process.cwd();
 export const TEMP_DIR = path.join(cwd, "node_modules/.verge");
@@ -168,7 +169,9 @@ export function snapshotFilesHashOnDir(
   const stack = [dir];
 
   while (stack.length) {
-    const current = stack.pop()!;
+    const current = stack.pop();
+    if (!current) continue;
+
     const entries = fs.readdirSync(current, { withFileTypes: true });
     for (const entry of entries) {
       const full = path.join(current, entry.name);

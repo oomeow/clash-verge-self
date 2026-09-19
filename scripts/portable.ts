@@ -1,8 +1,9 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { context, getOctokit } from "@actions/github";
 import AdmZip from "adm-zip";
 import fs from "fs-extra";
-import { createRequire } from "module";
-import path from "path";
 import * as tar from "tar";
 
 import { getTarget } from "./utils";

@@ -1,3 +1,7 @@
+import { execSync } from "node:child_process";
+import path from "node:path";
+import zlib from "node:zlib";
+
 import {
   cancel,
   confirm,
@@ -11,14 +15,11 @@ import {
   taskLog,
 } from "@clack/prompts";
 import AdmZip from "adm-zip";
-import { execSync } from "child_process";
 import fs from "fs-extra";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import fetch from "node-fetch";
-import path from "path";
 import pc from "picocolors";
 import * as tar from "tar";
-import zlib from "zlib";
 
 import {
   getExeSuffix,

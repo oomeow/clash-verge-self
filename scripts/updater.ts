@@ -1,7 +1,8 @@
+import path from "node:path";
+
 import { context, getOctokit } from "@actions/github";
 import fs from "fs-extra";
 import fetch from "node-fetch";
-import path from "path";
 
 const cwd = process.cwd();
 const arg = process.argv.slice(2)[0];
