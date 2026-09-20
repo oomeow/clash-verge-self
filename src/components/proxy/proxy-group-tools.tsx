@@ -213,6 +213,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
           e.stopPropagation();
           if (!headState.open) flushSync(() => headStateActions.setOpen(true));
           headStateActions.setTextState(textState === "url" ? null : "url");
+          setTimeout(() => inputRef.current?.focus());
         }}>
         {textState === "url" ? (
           <WifiTetheringRounded fontSize="inherit" />
@@ -256,6 +257,7 @@ export const ProxyGroupTools = memo(function ProxyGroupTools(props: Props) {
             textState === "filter" ? null : "filter",
           );
           headStateActions.setFilterText("");
+          setTimeout(() => inputRef.current?.focus());
         }}>
         {textState === "filter" ? (
           <FilterAltRounded fontSize="inherit" />
