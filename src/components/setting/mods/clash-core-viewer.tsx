@@ -35,6 +35,11 @@ import {
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
 import { OS } from "@/utils/get-system";
+import {
+  matchesInstalled,
+  type MihomoSlot,
+  slotChannel,
+} from "@/utils/mihomo-core";
 
 import MihomoVersionManager from "./mihomo-version-manager";
 
@@ -54,7 +59,9 @@ const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
-  const clashCore = useVergeStore((s) => s.verge.clash_core ?? "self-mihomo");
+  const clashCore = useVergeStore(
+    (s) => (s.verge.clash_core ?? "self-mihomo") as MihomoSlot,
+  );
   const patchVerge = useVergeStore((s) => s.patchVerge);
   const { clash } = useClash();
   const { tun } = clash ?? {};
@@ -79,8 +86,7 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       const versions = await getMihomoVersions();
       // 当前槽位对应频道的最新版本（后端已按平台过滤、新→旧排序，
       // 并把标准编译变体排在资产列表首位）。
-      const channel = clashCore === "self-mihomo-alpha" ? "alpha" : "stable";
-      const target = versions.find((v) => v.channel === channel);
+      const target = versions.find((v) => v.channel === slotChannel(clashCore));
       if (!target || target.assets.length === 0) {
         notice("error", t("messages.clash.core.noVersionInfo"), 1500);
         return;
@@ -89,25 +95,20 @@ export const ClashCoreViewer = forwardRef<DialogRef, Props>((_props, ref) => {
       const installed = mihomoCoresInfo.find(
         (info) => info.core === clashCore,
       )?.version;
-      if (installed) {
-        const isLatest =
-          installed === target.tag ||
-          installed.replace(/^v/i, "") === target.semver ||
-          // alpha 槽位只报短哈希（如 alpha-8d71008），tag 对不上，
-          // 直接比对资产名内嵌的同一哈希。
-          target.assets.some((a) => a.name.includes(installed));
-        if (isLatest) {
-          notice("info", t("messages.app.latestVersion"), 1000);
-          return;
-        }
+      if (matchesInstalled(target, installed)) {
+        notice("info", t("messages.app.latestVersion"), 1000);
+        return;
       }
       await installMihomoVersion(target.tag, target.assets[0].name);
       notice("success", t(`messages.clash.core.versionUpdated`), 1000);
+      // 仅在真正安装后刷新已装版本信息，避免无谓的 sidecar 探测。
+      muteMihomoCoresInfo();
     } catch (err: unknown) {
       notice("error", getErrorMessage(err));
+      // 安装失败也可能已替换二进制，刷新一次避免显示过期版本。
+      muteMihomoCoresInfo();
     } finally {
       setUpgrading(false);
-      muteMihomoCoresInfo();
     }
   });
 

@@ -56,6 +56,13 @@ import {
 import { useMihomoDownloadsSWR, useMihomoVersionsSWR } from "@/services/swr";
 import { useVergeStore } from "@/stores";
 import { getErrorMessage } from "@/utils";
+import {
+  isActiveVersionMismatch,
+  matchesInstalled,
+  type MihomoSlot,
+  slotChannel,
+  slotOf,
+} from "@/utils/mihomo-core";
 
 type ChannelFilter = "all" | "stable" | "alpha" | "nightly";
 
@@ -63,15 +70,6 @@ type ChannelFilter = "all" | "stable" | "alpha" | "nightly";
 const CHANNELS: ChannelFilter[] = ["all", "stable", "alpha"];
 
 const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
-
-const slotOf = (version: MihomoVersion) =>
-  version.channel === "alpha" || version.channel === "nightly"
-    ? "self-mihomo-alpha"
-    : "self-mihomo";
-
-// 槽位对应的频道标签（self-mihomo → stable，self-mihomo-alpha → alpha）
-const slotChannel = (slot: string) =>
-  slot === "self-mihomo-alpha" ? "alpha" : "stable";
 
 const baseNameOf = (name: string) =>
   name.replace(/\.(tar\.gz|gz|zip|zst)$/i, "");
@@ -198,8 +196,10 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
   const { t } = useTranslation();
   const { notice } = useNotice();
   const patchVerge = useVergeStore((s) => s.patchVerge);
-  const clashCore = useVergeStore((s) => s.verge.clash_core ?? "self-mihomo");
-  const channelLabel = (slot: string) =>
+  const clashCore = useVergeStore(
+    (s) => (s.verge.clash_core ?? "self-mihomo") as MihomoSlot,
+  );
+  const channelLabel = (slot: MihomoSlot) =>
     t(`pages.settings.clash.versionManager.channel.${slotChannel(slot)}`);
 
   const [open, setOpen] = useState(false);
@@ -245,25 +245,16 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
   const activeVersion = installedBySlot[clashCore];
 
   // alpha 已装版本只报短哈希（如 alpha-3h3248），与列表 tag 对不上时提示可能落后。
-  const activeMismatch =
-    clashCore === "self-mihomo-alpha" &&
-    !!activeVersion &&
-    !(versions ?? []).some(
-      (v) =>
-        v.channel === "alpha" &&
-        (v.tag === activeVersion || v.semver === activeVersion),
-    );
+  const activeMismatch = isActiveVersionMismatch(
+    clashCore,
+    activeVersion,
+    versions,
+  );
 
   const isCurrent = (version: MihomoVersion) => {
     // 仅当前激活槽位（clashCore）中的版本才标记为「当前版本」。
     if (slotOf(version) !== clashCore) return false;
-    const installed = installedBySlot[clashCore];
-    // 稳定版：已装版本号需与 tag/semver 精确一致（substring 会误匹配 v1.19.2 ↔ v1.19.29）。
-    if (
-      installed &&
-      (installed === version.tag || installed === version.semver)
-    )
-      return true;
+    if (matchesInstalled(version, activeVersion)) return true;
     // alpha 频道永远只有一个最新版本，且已装版本只报短哈希（如 alpha-3h3248），
     // 唯一可靠关键字是频道名 —— 用频道关键字判定为当前。
     return clashCore === "self-mihomo-alpha" && version.channel === "alpha";
@@ -364,7 +355,9 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
       ? t("common.actions.use")
       : t("pages.settings.clash.versionManager.downloadAndInstall");
 
-  const targetSlot = selectedVersion ? slotOf(selectedVersion) : "";
+  const targetSlot: MihomoSlot = selectedVersion
+    ? slotOf(selectedVersion)
+    : clashCore;
   const replacesCurrent = targetSlot === clashCore;
 
   const renderVersion = (version: MihomoVersion) => {
