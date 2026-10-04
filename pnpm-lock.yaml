@@ -233,8 +233,8 @@ importers:
         specifier: ~2.3.5
         version: 2.3.6
       '@tauri-apps/plugin-updater':
-        specifier: ~2.11.0
-        version: 2.11.0
+        specifier: ~2.13.0
+        version: 2.13.1
       '@uiw/react-markdown-preview':
         specifier: ^5.2.0
         version: 5.2.1(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -2316,8 +2316,8 @@ packages:
   '@tauri-apps/plugin-shell@2.3.6':
     resolution: {integrity: sha512-C2AG+QmBJPK0E3gccLXfRdjTfGBC9DgwzGi/PfYa61ieAZbYvhvOss4OdSGfn/D28N3THGhJZEhf3lozOh/Uqw==}
 
-  '@tauri-apps/plugin-updater@2.11.0':
-    resolution: {integrity: sha512-AE36XkOoSna24G40jZMY15nzAnkXEPL/73tGoseGrtGOHuI/cZwWzHpZFLjKXDPgzYZ435z1gHu28LgrsBwIxQ==}
+  '@tauri-apps/plugin-updater@2.13.1':
+    resolution: {integrity: sha512-+STDzJ0sdQLImjc63zkv6Nncimqeo6jyCWoTQtbSwgGLNj1qbP9I6LC4p5R5ocBk3gNKAZs6i/AJz0jxysytiw==}
 
   '@types/adm-zip@0.5.8':
     resolution: {integrity: sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q==}
@@ -6129,9 +6129,9 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.11.1
 
-  '@tauri-apps/plugin-updater@2.11.0':
+  '@tauri-apps/plugin-updater@2.13.1':
     dependencies:
-      '@tauri-apps/api': 2.11.1
+      '@tauri-apps/api': 2.12.0
 
   '@types/adm-zip@0.5.8':
     dependencies:
