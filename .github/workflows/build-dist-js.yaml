@@ -39,7 +39,7 @@ jobs:
 
       - name: Install Rust Stable
         if: steps.filter.outputs.mihomo == 'true'
-        uses: dtolnay/rust-toolchain@89b12181fb390509a0842a86cc55eeb8eb928c1d # stable
+        uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
 
       - name: Rust Cache
         if: steps.filter.outputs.mihomo == 'true'
