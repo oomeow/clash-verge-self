@@ -264,7 +264,7 @@ importers:
         version: 13.5.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       nanoid:
         specifier: ^6.0.0
-        version: 6.0.1
+        version: 6.0.2
       notistack:
         specifier: ^3.0.2
         version: 3.0.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -3413,8 +3413,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@6.0.1:
-    resolution: {integrity: sha512-3wVS3i51pE2pi1k5FFL/95BGfVS0kSsvDVuGXHOtxox/TywUmtgq+3qiTOTbs9J7KfHaXPiN171k/A6dBnaXFw==}
+  nanoid@6.0.2:
+    resolution: {integrity: sha512-hIvVOb9Qr1p/9CNNLOe0OlWvgx/ziTsVwKN/GDSsuArN2K0wDiafP3s0SWmsm7o2BdnyS8Z9Z64NFBUbn6ziBg==}
     engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
@@ -7394,7 +7394,7 @@ snapshots:
 
   nanoid@3.3.19: {}
 
-  nanoid@6.0.1: {}
+  nanoid@6.0.2: {}
 
   natural-compare@1.4.0: {}
 
