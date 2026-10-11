@@ -31,7 +31,7 @@ env:
 jobs:
   prepare-matrix:
     name: Prepare Matrix
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-26.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
