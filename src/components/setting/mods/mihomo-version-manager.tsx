@@ -217,7 +217,7 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
 
   const {
     data: versions,
-    isLoading,
+    isValidating,
     mutate: mutateVersions,
   } = useMihomoVersionsSWR();
   const { data: downloads, mutate: mutateDownloads } = useMihomoDownloadsSWR();
@@ -635,9 +635,10 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
                   await deleteMihomoIndexCache();
                 } catch {
                   // ignore
+                } finally {
+                  mutateVersions();
+                  mutateDownloads();
                 }
-                mutateVersions();
-                mutateDownloads();
               }}>
               {t("common.actions.refresh")}
             </Button>
@@ -648,7 +649,7 @@ export const MihomoVersionManager = forwardRef<DialogRef>((_props, ref) => {
       <Divider sx={{ flexShrink: 0 }} />
 
       <Box sx={{ flex: 1, minHeight: 0, overflow: "auto" }}>
-        {isLoading ? (
+        {isValidating ? (
           <Box
             sx={{
               display: "flex",
