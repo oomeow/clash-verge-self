@@ -52,6 +52,8 @@ dialog:
   install:
     service:
       ask: "Служба Clash Verge Self Service не установлена\nУстановить и запустить службу сейчас?"
+  service:
+    reinstall: "Режим службы недоступен из-за отсутствия локальных учётных данных.\nПереустановить службу сейчас?"
   panic:
     title: Сбой Clash Verge Self
     backtrace: "Трассировка стека:\n%{backtrace}"

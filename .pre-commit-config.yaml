@@ -3,6 +3,7 @@ exclude:
   glob:
     - ".agents/*"
     - ".claude/*"
+    - "pnpm-lock.yaml"
 
 repos:
   - repo: builtin

@@ -146,6 +146,9 @@ fn watch_linux_theme_changed() {
 
 pub fn async_initialization() {
     tauri::async_runtime::spawn(async {
+        tracing::trace!("check service mode");
+        crate::feat::check_service_mode_on_start();
+
         tracing::trace!("init startup script");
         log_err!(init::startup_script().await);
 

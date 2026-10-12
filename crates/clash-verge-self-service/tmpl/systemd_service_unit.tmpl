@@ -4,7 +4,7 @@ After=network-online.target nftables.service iptables.service
 
 [Service]
 Type=simple
-ExecStart={} --server-id {}
+ExecStart="{}" --server-id "{}" --psk-path "{}" --core-dir "{}"
 Restart=on-failure
 RestartSec=5
 

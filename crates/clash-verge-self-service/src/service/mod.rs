@@ -185,7 +185,9 @@ impl SecureChannel {
 }
 
 /// The Service
-pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Result<()> {
+pub async fn run_service(server_id: Option<String>, psk: &[u8], core_dir: &std::path::Path) -> Result<()> {
+    // Pin the directory used to resolve the core binary; the client cannot override it.
+    handle::set_core_dir(core_dir);
     // Create shutdown channel early so Windows handler can capture a sender
     let (shutdown_tx, mut shutdown_rx) = channel(());
 
@@ -270,7 +272,7 @@ pub async fn run_service(server_id: Option<String>, psk: Option<&[u8]>) -> Resul
 }
 
 impl SecureChannel {
-    pub async fn handshake_server(mut stream: Connection, psk: Option<&[u8]>) -> Result<SecureChannel> {
+    pub async fn handshake_server(mut stream: Connection, psk: &[u8]) -> Result<SecureChannel> {
         let server_secret = StaticSecret::random();
         let server_pub = PublicKey::from(&server_secret);
 
@@ -281,11 +283,8 @@ impl SecureChannel {
         stream.write_all(server_pub.as_bytes()).await?;
 
         let shared = server_secret.diffie_hellman(&client_pub);
-        // derive symmetric key via HKDF-SHA256, mix in PSK as salt if provided
-        let hk = match psk {
-            Some(salt) => Hkdf::<sha2::Sha256>::new(Some(salt), shared.as_bytes()),
-            None => Hkdf::<sha2::Sha256>::new(None, shared.as_bytes()),
-        };
+        // derive symmetric key via HKDF-SHA256, mixing in the per-install PSK as salt
+        let hk = Hkdf::<sha2::Sha256>::new(Some(psk), shared.as_bytes());
         let mut key = [0u8; 32];
         hk.expand(KEY_INFO, &mut key)
             .map_err(|_| ServiceError::General("hkdf expand failed".into()))?;
@@ -299,7 +298,7 @@ impl SecureChannel {
         })
     }
 
-    pub async fn handshake_client(mut stream: Connection, psk: Option<&[u8]>) -> Result<SecureChannel> {
+    pub async fn handshake_client(mut stream: Connection, psk: &[u8]) -> Result<SecureChannel> {
         let client_secret = StaticSecret::random();
         let client_pub = PublicKey::from(&client_secret);
 
@@ -310,11 +309,8 @@ impl SecureChannel {
         let server_pub = PublicKey::from(server_pub_bytes);
 
         let shared = client_secret.diffie_hellman(&server_pub);
-        // derive symmetric key via HKDF-SHA256, mix in PSK as salt if provided
-        let hk = match psk {
-            Some(salt) => Hkdf::<sha2::Sha256>::new(Some(salt), shared.as_bytes()),
-            None => Hkdf::<sha2::Sha256>::new(None, shared.as_bytes()),
-        };
+        // derive symmetric key via HKDF-SHA256, mixing in the per-install PSK as salt
+        let hk = Hkdf::<sha2::Sha256>::new(Some(psk), shared.as_bytes());
         let mut key = [0u8; 32];
         hk.expand(KEY_INFO, &mut key)
             .map_err(|_| ServiceError::General("hkdf expand failed".into()))?;

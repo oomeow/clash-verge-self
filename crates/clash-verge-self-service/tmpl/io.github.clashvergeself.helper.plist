@@ -20,6 +20,10 @@
             <string>/Library/PrivilegedHelperTools/io.github.clashvergeself.helper</string>
             <string>--server-id</string>
             <string>{}</string>
+            <string>--psk-path</string>
+            <string>{}</string>
+            <string>--core-dir</string>
+            <string>{}</string>
         </array>
     </dict>
 </plist>

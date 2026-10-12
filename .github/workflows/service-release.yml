@@ -63,15 +63,11 @@ jobs:
 
       - name: Build (Windows / MacOS)
         if: matrix.os != 'ubuntu-latest'
-        env:
-          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
         run: cargo build --package clash-verge-self-service --release --target ${{ matrix.target }}
 
       - name: Build (Linux)
         if: matrix.os == 'ubuntu-latest'
         uses: ./.github/build-service-for-linux
-        env:
-          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
         with:
           target: ${{ matrix.target }}
 

@@ -35,6 +35,8 @@ async fn main() -> Result<()> {
     let _handle = init_log();
 
     let server_id = "hello-secured-ipc-dev";
-    clash_verge_self_service::Server::run(server_id, Some(clash_verge_self_service::DEFAULT_PSK)).await?;
+    const DEV_PSK: &[u8; 32] = b"clash-verge-self-dev-key-32bytes";
+    let core_dir = std::env::current_dir()?;
+    clash_verge_self_service::Server::run(server_id, DEV_PSK, &core_dir).await?;
     Ok(())
 }

@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, env::current_exe, path::PathBuf};
+use std::{collections::VecDeque, path::PathBuf};
 
 use anyhow::{Context, Result};
 use clash_verge_self_service::model::{ClashRunInfo, JsonResponse, SocketCommand, StartBody};
@@ -8,9 +8,14 @@ use super::SERVER_ID;
 use crate::{MIHOMO_SOCKET_PATH, config::Config, utils::dirs};
 
 async fn send_command<T: DeserializeOwned>(cmd: SocketCommand) -> Result<JsonResponse<T>> {
-    let psk =
-        option_env!("CLASH_VERGE_SELF_SERVICE_PSK").map_or(clash_verge_self_service::DEFAULT_PSK, |v| v.as_bytes());
-    let mut client = clash_verge_self_service::Client::connect(SERVER_ID, Some(psk))
+    let psk_path = dirs::service_psk_path()?;
+    let psk = clash_verge_self_service::read_psk(&psk_path).with_context(|| {
+        format!(
+            "service key not found at {}, please reinstall the service",
+            psk_path.display()
+        )
+    })?;
+    let mut client = clash_verge_self_service::Client::connect(SERVER_ID, &psk)
         .await
         .context("failed to connect to service server")?;
     let response = client
@@ -45,11 +50,6 @@ pub(in crate::core) async fn run_core_by_service(config_file: &PathBuf, log_path
         .clone()
         .unwrap_or("self-mihomo".to_string());
 
-    let exe_ext = std::env::consts::EXE_SUFFIX;
-    let clash_bin = format!("{clash_core}{exe_ext}");
-    let bin_path = current_exe()?.with_file_name(clash_bin);
-    let bin_path = dirs::path_to_str(&bin_path)?;
-
     let config_dir = dirs::app_home_dir()?;
     let config_dir = dirs::path_to_str(&config_dir)?;
     let config_file = dirs::path_to_str(config_file)?;
@@ -60,7 +60,6 @@ pub(in crate::core) async fn run_core_by_service(config_file: &PathBuf, log_path
     let body = StartBody {
         core_type: Some(clash_core),
         socket_path: Some(MIHOMO_SOCKET_PATH.to_string()),
-        bin_path: bin_path.to_string(),
         config_dir: config_dir.to_string(),
         pid_file: pid_file.to_string(),
         config_file: config_file.to_string(),

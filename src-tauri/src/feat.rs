@@ -244,6 +244,45 @@ async fn install_and_run_service() -> Result<()> {
     Ok(())
 }
 
+/// 启动时检查服务模式：若已开启但本地凭据缺失（旧安装未按新方案重装），
+/// 弹原生对话框询问是否立即重装服务，避免窗口未加载时提示丢失。
+pub fn check_service_mode_on_start() {
+    tauri::async_runtime::spawn(async move {
+        let enable_service_mode = Config::verge().latest().enable_service_mode.unwrap_or(false);
+        if !enable_service_mode {
+            return;
+        }
+        // 凭据存在说明服务已按当前方案安装，无需处理。
+        let psk_missing = dirs::service_psk_path().map(|p| !p.exists()).unwrap_or(true);
+        if !psk_missing {
+            return;
+        }
+
+        let reinstall = handle::Handle::show_block_dialog(
+            "Clash Verge Service",
+            t!("dialog.service.reinstall"),
+            MessageDialogKind::Info,
+            MessageDialogButtons::OkCancel,
+        )
+        .unwrap_or(false);
+
+        if reinstall {
+            log_err!(install_and_run_service().await);
+        } else {
+            // 用户取消：关闭服务模式，回落 sidecar，避免界面与实际情况不一致。
+            if let Err(err) = patch_verge(IVerge {
+                enable_service_mode: Some(false),
+                ..IVerge::default()
+            })
+            .await
+            {
+                tracing::error!("{err}");
+            }
+            handle::Handle::refresh_verge();
+        }
+    });
+}
+
 /// 修改clash的订阅
 pub async fn patch_clash(patch: Mapping) -> Result<()> {
     tracing::debug!("patch clash");

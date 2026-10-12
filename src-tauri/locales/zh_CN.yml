@@ -52,6 +52,8 @@ dialog:
   install:
     service:
       ask: "Clash Verge Self Service 服务未安装\n是否现在安装并运行服务？"
+  service:
+    reinstall: "服务模式因缺少本地凭据无法使用。\n是否立即重新安装服务？"
   panic:
     title: Clash Verge Self 崩溃
     backtrace: "堆栈回溯:\n%{backtrace}"

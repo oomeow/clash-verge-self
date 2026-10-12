@@ -119,7 +119,6 @@ jobs:
           pnpm check --target ${{ matrix.target }} --alpha --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
 
       # frontend lint
       - name: frontend lint

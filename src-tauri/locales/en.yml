@@ -52,6 +52,8 @@ dialog:
   install:
     service:
       ask: "Clash Verge Self Service not installed.\nDo you want to install and run service right now?"
+  service:
+    reinstall: "Service mode is unavailable because the local credentials are missing.\nReinstall the service now?"
   panic:
     title: Clash Verge Self Crash
     backtrace: "stack backtrace:\n%{backtrace}"

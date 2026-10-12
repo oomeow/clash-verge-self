@@ -113,14 +113,12 @@ jobs:
           pnpm check --target ${{ matrix.target }} --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
 
       - name: Tauri build (linux x86_64)
         if: matrix.target == 'x86_64-unknown-linux-gnu'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
         run: |
           pnpm build --target ${{ matrix.target }}
 
@@ -129,7 +127,6 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
         run: |
           pnpm build -r cross --target ${{ matrix.target }} -b deb,rpm
 
@@ -139,7 +136,6 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-          CLASH_VERGE_SELF_SERVICE_PSK: ${{secrets.CLASH_VERGE_SELF_SERVICE_PSK}}
         run: |
           pnpm build --target ${{ matrix.target }}
 

@@ -1,7 +1,22 @@
+use std::path::{Path, PathBuf};
+
 use clash_verge_self_service::{Result, ServiceError};
 
+/// Remove the per-install pre-shared key derived from the logs dir.
+fn remove_psk(log_dir: Option<PathBuf>) {
+    let Some(data_dir) = log_dir.and_then(|dir| dir.parent().map(Path::to_path_buf)) else {
+        return;
+    };
+    let psk_path = clash_verge_self_service::psk_path_from_data_dir(&data_dir);
+    match std::fs::remove_file(&psk_path) {
+        Ok(()) => log::debug!("service key removed: {}", psk_path.display()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+        Err(e) => log::warn!("failed to remove service key {}: {e}", psk_path.display()),
+    }
+}
+
 #[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
-pub fn process() -> Result<()> {
+pub fn process(_log_dir: Option<PathBuf>) -> Result<()> {
     log::error!("Unsupported platform");
     return Err(ServiceError::General(
         "This program is not intended to run on this platform.".into(),
@@ -9,7 +24,7 @@ pub fn process() -> Result<()> {
 }
 
 #[cfg(target_os = "macos")]
-pub fn process() -> Result<()> {
+pub fn process(log_dir: Option<PathBuf>) -> Result<()> {
     use std::{fs::remove_file, path::Path};
 
     log::debug!("Start uninstall Clash Verge Self Service");
@@ -38,12 +53,14 @@ pub fn process() -> Result<()> {
         remove_file(plist_file)?;
     }
 
+    remove_psk(log_dir);
+
     log::debug!("Service uninstalled successfully.");
     Ok(())
 }
 
 #[cfg(target_os = "linux")]
-pub fn process() -> Result<()> {
+pub fn process(log_dir: Option<PathBuf>) -> Result<()> {
     use std::{fs::remove_file, path::Path};
 
     use clash_verge_self_service::SERVICE_NAME;
@@ -75,13 +92,15 @@ pub fn process() -> Result<()> {
         .output()
         .map_err(|e| ServiceError::General(format!("Failed to reload systemd daemon: {e}")))?;
 
+    remove_psk(log_dir);
+
     log::debug!("Service uninstalled successfully.");
     Ok(())
 }
 
 /// stop and uninstall the service
 #[cfg(windows)]
-pub fn process() -> Result<()> {
+pub fn process(log_dir: Option<PathBuf>) -> Result<()> {
     use std::{thread, time::Duration};
 
     use windows_service::{
@@ -117,6 +136,8 @@ pub fn process() -> Result<()> {
 
     log::debug!("Deleting service");
     service.delete().map_err(|e| ServiceError::General(e.to_string()))?;
+
+    remove_psk(log_dir);
 
     log::debug!("Service uninstalled successfully.");
     Ok(())

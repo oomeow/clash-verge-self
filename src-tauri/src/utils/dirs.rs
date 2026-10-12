@@ -107,6 +107,11 @@ pub fn service_bin_path() -> Result<PathBuf> {
     Ok(app_resources_dir()?.join(service_bin))
 }
 
+/// Path of the per-install service pre-shared key provisioned by the installer.
+pub fn service_psk_path() -> Result<PathBuf> {
+    Ok(app_home_dir()?.join(clash_verge_self_service::PSK_FILE_NAME))
+}
+
 pub fn backup_dir() -> Result<PathBuf> {
     Ok(app_home_dir()?.join("backup"))
 }

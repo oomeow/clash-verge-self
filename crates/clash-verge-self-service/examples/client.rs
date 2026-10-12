@@ -44,9 +44,9 @@ async fn main() -> Result<()> {
     let _handle = init_log();
 
     let server_id = "hello-secured-ipc-dev";
+    const DEV_PSK: &[u8; 32] = b"clash-verge-self-dev-key-32bytes";
 
-    let mut client =
-        clash_verge_self_service::Client::connect(server_id, Some(clash_verge_self_service::DEFAULT_PSK)).await?;
+    let mut client = clash_verge_self_service::Client::connect(server_id, DEV_PSK).await?;
     // check version
     let now = Instant::now();
     for _ in 0..=2000 {
@@ -74,9 +74,8 @@ async fn main() -> Result<()> {
 async fn start_core(client: &mut clash_verge_self_service::Client) -> Result<()> {
     let curr_dir = std::env::current_dir()?;
     let start_core = StartBody {
-        core_type: Some("mihomo".into()),
+        core_type: Some("self-mihomo".into()),
         socket_path: Some("/tmp/mihomo-dev.sock".into()),
-        bin_path: "/Applications/Clash Verge Self.app/Contents/MacOS/self-mihomo".into(),
         config_dir: curr_dir.join("examples/mihomo").to_str().unwrap().to_string(),
         pid_file: curr_dir
             .join("examples/mihomo/mihomo.pid")

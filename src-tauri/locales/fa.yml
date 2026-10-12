@@ -52,6 +52,8 @@ dialog:
   install:
     service:
       ask: "سرویس Clash Verge Self Service نصب نشده است\nآیا می‌خواهید اکنون سرویس را نصب و اجرا کنید؟"
+  service:
+    reinstall: "حالت سرویس به دلیل نبود اعتبارنامه محلی در دسترس نیست.\nاکنون سرویس را دوباره نصب کنید؟"
   panic:
     title: خرابی Clash Verge Self
     backtrace: "ردیابی پشته:\n%{backtrace}"

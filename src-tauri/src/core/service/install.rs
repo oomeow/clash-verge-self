@@ -5,6 +5,32 @@ use anyhow::Result;
 use super::SERVER_ID;
 use crate::utils::dirs;
 
+/// Directory holding the app executable and its bundled core sidecars
+/// (Tauri `externalBin` are placed next to the main binary on every platform).
+///
+/// Pinned into the installed service so it only ever launches cores from here.
+/// Note this is the *binary* directory, not [`dirs::app_home_dir`] (the data dir).
+fn core_bin_dir() -> Result<std::path::PathBuf> {
+    std::env::current_exe()?
+        .parent()
+        .map(std::path::Path::to_path_buf)
+        .ok_or_else(|| anyhow::anyhow!("failed to resolve the app executable directory"))
+}
+
+/// Single-quote a value for safe interpolation into a `sh -c` command.
+#[cfg(target_os = "linux")]
+fn sh_quote(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\\''"))
+}
+
+/// Shell-quote a value with single quotes, then escape it for the enclosing
+/// AppleScript double-quoted string literal used by `do shell script`.
+#[cfg(target_os = "macos")]
+fn apple_shell_quote(value: &str) -> String {
+    let shell = format!("'{}'", value.replace('\'', "'\\''"));
+    shell.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
 /// Install the Clash Verge Service
 /// 该函数应该在协程或者线程中执行，避免UAC弹窗阻塞主线程
 ///
@@ -22,6 +48,7 @@ pub async fn install_service() -> Result<()> {
     }
 
     let log_dir = dirs::app_logs_dir()?;
+    let core_dir = core_bin_dir()?;
     let token = Token::with_current_process()?;
     let level = token.privilege_level()?;
 
@@ -32,12 +59,18 @@ pub async fn install_service() -> Result<()> {
             .arg(log_dir)
             .arg("--server-id")
             .arg(SERVER_ID)
+            .arg("--core-dir")
+            .arg(core_dir)
             .show(false)
             .status()?,
         _ => StdCommand::new(install_path)
             .arg("install")
             .arg("--log-dir")
             .arg(log_dir)
+            .arg("--server-id")
+            .arg(SERVER_ID)
+            .arg("--core-dir")
+            .arg(core_dir)
             .creation_flags(0x08000000)
             .status()?,
     };
@@ -61,6 +94,7 @@ pub async fn install_service() -> Result<()> {
 
     let log_dir = dirs::app_logs_dir()?;
     tracing::debug!("log dir: {}", log_dir.display());
+    let core_dir = core_bin_dir()?;
 
     let elevator = crate::utils::unix_helper::linux_elevator();
     let status = match get_effective_uid() {
@@ -70,13 +104,16 @@ pub async fn install_service() -> Result<()> {
             .arg(&log_dir)
             .arg("--server-id")
             .arg(SERVER_ID)
+            .arg("--core-dir")
+            .arg(&core_dir)
             .status()?,
         _ => {
             let execute_cmd = format!(
-                "{} install --log-dir {} --server-id {}",
-                installer_path.display(),
-                log_dir.display(),
-                SERVER_ID
+                "{} install --log-dir {} --server-id {} --core-dir {}",
+                sh_quote(&installer_path.to_string_lossy()),
+                sh_quote(&log_dir.to_string_lossy()),
+                sh_quote(SERVER_ID),
+                sh_quote(&core_dir.to_string_lossy()),
             );
             StdCommand::new(elevator)
                 .arg("sh")
@@ -102,11 +139,13 @@ pub async fn install_service() -> Result<()> {
     }
 
     let log_dir = dirs::app_logs_dir()?;
-    let shell = installer_path.to_string_lossy().replace(" ", "\\\\ ");
-    let log_dir = log_dir.to_string_lossy().replace(" ", "\\\\ ");
+    let core_dir = core_bin_dir()?;
     let command = format!(
-        r#"do shell script "{} install --log-dir {} --server-id {}" with administrator privileges"#,
-        shell, log_dir, SERVER_ID
+        r#"do shell script "{} install --log-dir {} --server-id {} --core-dir {}" with administrator privileges"#,
+        apple_shell_quote(&installer_path.to_string_lossy()),
+        apple_shell_quote(&log_dir.to_string_lossy()),
+        apple_shell_quote(SERVER_ID),
+        apple_shell_quote(&core_dir.to_string_lossy()),
     );
 
     let status = StdCommand::new("osascript").args(vec!["-e", &command]).status()?;
@@ -180,8 +219,8 @@ pub async fn uninstall_service() -> Result<()> {
         _ => {
             let execute_cmd = format!(
                 "{} uninstall --log-dir {}",
-                uninstaller_path.display(),
-                log_dir.display()
+                sh_quote(&uninstaller_path.to_string_lossy()),
+                sh_quote(&log_dir.to_string_lossy()),
             );
             StdCommand::new(elevator)
                 .arg("sh")
@@ -207,11 +246,10 @@ pub async fn uninstall_service() -> Result<()> {
     }
 
     let log_dir = dirs::app_logs_dir()?;
-    let shell = uninstaller_path.to_string_lossy().replace(" ", "\\\\ ");
-    let log_dir = log_dir.to_string_lossy().replace(" ", "\\\\ ");
     let command = format!(
         r#"do shell script "{} uninstall --log-dir {}" with administrator privileges"#,
-        shell, log_dir
+        apple_shell_quote(&uninstaller_path.to_string_lossy()),
+        apple_shell_quote(&log_dir.to_string_lossy()),
     );
 
     let status = StdCommand::new("osascript").args(vec!["-e", &command]).status()?;

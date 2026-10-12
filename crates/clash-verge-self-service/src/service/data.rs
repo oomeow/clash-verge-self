@@ -22,7 +22,6 @@ pub struct ServiceVersionInfo {
 pub struct StartBody {
     pub core_type: Option<String>,
     pub socket_path: Option<String>,
-    pub bin_path: String,
     pub config_dir: String,
     pub pid_file: String,
     pub config_file: String,

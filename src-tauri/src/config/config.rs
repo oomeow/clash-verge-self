@@ -7,7 +7,7 @@ use serde_yaml::Mapping;
 
 use super::{Draft, IClashConfig, IProfiles, IRuntime, IVerge};
 use crate::{
-    core::{service, sysopt},
+    core::sysopt,
     enhance,
     utils::{dirs, help},
 };
@@ -132,16 +132,6 @@ impl Config {
             });
             verge_config.data().save_file()?;
             sysopt::Sysopt::global().update_launch()?;
-        }
-
-        // resolve service mode
-        let enable_service_mode = verge_config.latest().enable_service_mode.unwrap_or(false);
-        if enable_service_mode && service::check_service().await.is_err() {
-            verge_config.data_mut().patch_config(IVerge {
-                enable_service_mode: Some(false),
-                ..IVerge::default()
-            });
-            verge_config.data().save_file()?;
         }
 
         Ok(())
