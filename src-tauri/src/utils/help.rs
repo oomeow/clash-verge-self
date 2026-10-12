@@ -282,7 +282,10 @@ fn test_parse_value() {
     assert_eq!(parse_str::<usize>(test_1, "download").unwrap(), 2222);
     assert_eq!(parse_str::<usize>(test_1, "total").unwrap(), 3333);
     assert_eq!(parse_str::<usize>(test_1, "expire").unwrap(), 444);
-    assert_eq!(parse_str::<String>(test_2, "filename").unwrap(), format!("Clash.yaml"));
+    assert_eq!(
+        parse_str::<String>(test_2, "filename").unwrap(),
+        "Clash.yaml".to_string()
+    );
 
     assert_eq!(parse_str::<usize>(test_1, "aaa"), None);
     assert_eq!(parse_str::<usize>(test_1, "upload1"), None);

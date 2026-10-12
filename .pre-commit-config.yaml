@@ -51,12 +51,12 @@ repos:
         name: cargo nightly fmt
         entry: cargo +nightly fmt --
         language: system
-        types: [rust]
+        types_or: [rust, toml]
         pass_filenames: false
 
       - id: cargo-clippy
         name: cargo clippy
         language: system
-        types: [rust]
+        types_or: [rust, toml]
         pass_filenames: false
         entry: cargo clippy --all-targets --all-features -- -D warnings
