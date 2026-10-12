@@ -343,7 +343,7 @@ importers:
         version: 2.6.0
       '@tauri-apps/plugin-global-shortcut':
         specifier: ~2.4.0
-        version: 2.4.0
+        version: 2.4.1
       '@tauri-apps/plugin-notification':
         specifier: ~2.4.0
         version: 2.4.0
@@ -2284,8 +2284,8 @@ packages:
   '@tauri-apps/plugin-fs@2.6.0':
     resolution: {integrity: sha512-MhBAZ4rryd+h9fijd/GWDfArqiAeGI0ZNduV4wuRyUVI6wDZ+oDBY7atqtoXKDwlTUVSvpvmWJAY0ehQd/v6Uw==}
 
-  '@tauri-apps/plugin-global-shortcut@2.4.0':
-    resolution: {integrity: sha512-XBA4PcRjRdJBp/jwFxc5YZ/yKhZuslpOG/pGaNfhnRDVGMQfoXEKMv/6A6vjzfKLUxr8ml3ay8o2W8Rk6mHICA==}
+  '@tauri-apps/plugin-global-shortcut@2.4.1':
+    resolution: {integrity: sha512-NVCoQ0ShDFncsj9f8iAzhRBTnsJj5sf60vOjcV6emeQHzmEFd6+RXH+fUHHuJAbEYP4mdT2vGlvVOG7tMr/e8g==}
 
   '@tauri-apps/plugin-notification@2.4.0':
     resolution: {integrity: sha512-xlJXMcUoKOjNupzDue5wrEsa1wytf+l/2gCAPhafHyP683Y3N7J/8clUWLZ3vpnwkpT2C1zcLMMQFjjecIG2xg==}
@@ -6005,7 +6005,7 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.12.1
 
-  '@tauri-apps/plugin-global-shortcut@2.4.0':
+  '@tauri-apps/plugin-global-shortcut@2.4.1':
     dependencies:
       '@tauri-apps/api': 2.12.1
 
