@@ -71,11 +71,17 @@ jobs:
         with:
           target: ${{ matrix.target }}
 
-      - name: Rename Clash Verge Service
+      - name: Rename Clash Verge Service (Linux / MacOS)
+        if: matrix.os != 'windows-latest'
         run: |
-          EXT=${{ matrix.os == 'windows-latest' && '.exe' || '' }}
-          cp "target/${{ matrix.target }}/release/clash-verge-self-service${EXT}" \
-            "./clash-verge-self-service-${{ matrix.target }}${EXT}"
+          cp target/${{ matrix.target }}/release/clash-verge-self-service ./clash-verge-self-service-${{ matrix.target }}
+
+      - name: Rename Clash Verge Service (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Copy-Item "target/${{ matrix.target }}/release/clash-verge-self-service.exe" `
+            "./clash-verge-self-service-${{ matrix.target }}.exe"
 
       - name: Create Pre-Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
