@@ -21,7 +21,7 @@
     {
       "matchDatasources": ["github-runners"],
       "matchPackageNames": ["ubuntu"],
-      "versioning": "22.04"
+      "allowedVersions": "22.04"
     },
     {
       "matchPackageNames": ["monaco-editor"],
