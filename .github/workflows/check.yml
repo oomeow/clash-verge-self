@@ -72,7 +72,7 @@ jobs:
       # Keep host and cross caches separate: cross executes Cargo in a
       # container, so its build scripts must not be reused by host Cargo.
       - name: Rust Cache
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           shared-key: ${{ matrix.target }}-${{ matrix.os == 'ubuntu-22.04' && matrix.target != 'x86_64-unknown-linux-gnu' && 'cross' || 'host' }}
 
