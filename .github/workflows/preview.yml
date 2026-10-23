@@ -169,7 +169,7 @@ jobs:
       - name: Pnpm install and check
         run: |
           pnpm i
-          pnpm check --target ${{ matrix.target }} --no-confirm
+          pnpm check --target ${{ matrix.target }} --alpha --no-confirm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
