@@ -246,7 +246,7 @@ importers:
         version: 1.11.23
       i18next:
         specifier: ^26.0.0
-        version: 26.5.7(typescript@6.0.3)
+        version: 26.5.10(typescript@6.0.3)
       immer:
         specifier: ^11.1.7
         version: 11.2.9
@@ -282,7 +282,7 @@ importers:
         version: 7.91.0(@types/react@19.3.0)(react@19.3.1)
       react-i18next:
         specifier: ^17.0.2
-        version: 17.0.18(i18next@26.5.7(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)
+        version: 17.0.18(i18next@26.5.10(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3)
       react-spinners:
         specifier: ^0.17.0
         version: 0.17.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -2880,8 +2880,8 @@ packages:
     resolution: {integrity: sha512-ag87y7cJJ9/3+GxFr8Oy4O5faDsGRGnBGsJj/YjOSsSx/5eadKLYTMPlzuR6obgoCDDm0abAAZitXXQkMOPSpA==}
     engines: {node: '>= 20'}
 
-  i18next@26.5.7:
-    resolution: {integrity: sha512-mY9cECbKtiOqpcB8d8ijNsiPZQoTFULehBlWXZzzURpTm9aLbE2c3T2FKdGZhdEjlTvXUGd0TvCisL06YafO0Q==}
+  i18next@26.5.10:
+    resolution: {integrity: sha512-YS4EiLQhhk0wGThm4Zy+BL2c9rBNIK+kAbksi4l/B+D6kVRQLIFZgu2b/MU2LibJJHwWNTYoOYR52T+jfV8kPQ==}
     peerDependencies:
       typescript: ^5 || ^6 || ^7
     peerDependenciesMeta:
@@ -6677,7 +6677,7 @@ snapshots:
       - kerberos
       - supports-color
 
-  i18next@26.5.7(typescript@6.0.3):
+  i18next@26.5.10(typescript@6.0.3):
     optionalDependencies:
       typescript: 6.0.3
 
@@ -7479,11 +7479,11 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
 
-  react-i18next@17.0.18(i18next@26.5.7(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3):
+  react-i18next@17.0.18(i18next@26.5.10(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(typescript@6.0.3):
     dependencies:
       '@babel/runtime': 7.29.10
       html-parse-stringify: 4.0.1
-      i18next: 26.5.7(typescript@6.0.3)
+      i18next: 26.5.10(typescript@6.0.3)
       react: 19.3.1
       use-sync-external-store: 1.7.0(react@19.3.1)
     optionalDependencies:
