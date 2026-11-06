@@ -82,7 +82,7 @@ jobs:
           cp target/${{ matrix.target }}/release/clash-verge-self-service.exe ./clash-verge-self-service-${{ matrix.target }}.exe
 
       - name: Create Pre-Release
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
         with:
           name: Clash Verge Self Service v${{ needs.get-service-version.outputs.version }}
           tag_name: service-v${{ needs.get-service-version.outputs.version }}
