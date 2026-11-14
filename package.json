@@ -73,7 +73,7 @@
   "devDependencies": {
     "@actions/github": "9.1.1",
     "@biomejs/biome": "2.5.15",
-    "@clack/prompts": "1.8.1",
+    "@clack/prompts": "1.9.0",
     "@eslint/js": "10.0.1",
     "@tailwindcss/vite": "4.3.5",
     "@tanstack/router-cli": "1.168.0",
