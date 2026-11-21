@@ -8,7 +8,6 @@ import { Marquee } from "@/components/base";
 import { ProfileChainList } from "@/components/profile/profile-chain-list";
 import { ProfileMetaForm } from "@/components/profile/profile-meta-form";
 import { ProfileTypeChip } from "@/components/profile/profile-type-chip";
-import { useProfilesStore } from "@/stores";
 
 interface Props {
   profileUid: string;
@@ -35,7 +34,6 @@ export const ProfileEditorSidebar = (props: Props) => {
     onChainDeleted,
   } = props;
   const { t } = useTranslation();
-  const currentProfile = useProfilesStore((s) => s.currentProfile);
 
   const isEditChain = type === "merge" || type === "script";
   const [expand, setExpand] = useState(isEditChain);
@@ -52,7 +50,7 @@ export const ProfileEditorSidebar = (props: Props) => {
           <Marquee pauseOnHover>
             <SidebarTitle />
           </Marquee>
-          <ProfileTypeChip type={currentProfile?.type} />
+          <ProfileTypeChip type={profileItem.type} />
           <ExpandMore
             fontSize="inherit"
             color="primary"
