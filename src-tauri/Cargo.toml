@@ -69,7 +69,7 @@ delay_timer = "0.11.6"
 auto-launch = "0.6"
 percent-encoding = "2.3"
 reqwest_dav = "0.3"
-zip = "8.0"
+zip = "9.0"
 sysproxy = { git = "https://github.com/oomeow/sysproxy-rs", branch = "main" }
 rust-i18n = "4"
 rfd = { version = "0.17", default-features = false, features = [
