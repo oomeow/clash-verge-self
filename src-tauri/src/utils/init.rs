@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use tauri_plugin_shell::ShellExt;
@@ -63,7 +63,7 @@ pub fn init_resources() -> Result<()> {
     // copy the resource file
     // if the source file is newer than the destination file, copy it over
     let file_list = ["Country.mmdb", "geoip.dat", "geosite.dat", "ASN.mmdb"];
-    let handle_copy = |src_path: &PathBuf, dest_path: &PathBuf, file: &str| {
+    let handle_copy = |src_path: &Path, dest_path: &Path, file: &str| {
         match std::fs::copy(src_path, dest_path) {
             Ok(_) => tracing::debug!("resources copied '{file}'"),
             Err(err) => {

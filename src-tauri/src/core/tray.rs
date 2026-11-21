@@ -235,7 +235,7 @@ impl Tray {
         let tun_enabled = clash.get_enable_tun();
         let service_enabled = verge.enable_service_mode.unwrap_or(false);
 
-        let tray = app_handle.tray_by_id(TRAY_ID).expect("tray not found");
+        let tray = app_handle.tray_by_id(TRAY_ID).context("tray not found")?;
         let menu = Self::tray_menu(app_handle)?;
 
         menu.get("rule_mode")
@@ -286,7 +286,7 @@ impl Tray {
                 && let Some(current) = profiles.get_item(current_uid)
                 && let Some(profile_name) = &current.name
             {
-                current_name = profile_name.to_string();
+                current_name.clone_from(profile_name);
             };
             tray.set_tooltip(Some(&format!(
                 "Clash Verge Self v{}\n{}: {}",

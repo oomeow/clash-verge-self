@@ -1,6 +1,6 @@
 use std::{
     ffi::OsString,
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
@@ -199,7 +199,7 @@ impl CoreManager {
         self.run_core().await
     }
 
-    fn build_sidecar_spec(&self, config_path: &PathBuf, clash_log_file: PathBuf) -> Result<ProcessSpec> {
+    fn build_sidecar_spec(&self, config_path: &Path, clash_log_file: PathBuf) -> Result<ProcessSpec> {
         let app_dir = dirs::app_home_dir()?;
         let clash_core = Self::clash_core_name();
         let exe_name = format!("{clash_core}{}", std::env::consts::EXE_SUFFIX);
@@ -265,7 +265,7 @@ impl CoreManager {
         let _ = handle::Handle::mihomo().patch_base_config(&disable_tun).await;
     }
 
-    async fn try_run_core_by_service(&self, config_path: &PathBuf, clash_log_file: &PathBuf) -> Result<bool> {
+    async fn try_run_core_by_service(&self, config_path: &Path, clash_log_file: &Path) -> Result<bool> {
         if !self.use_service_mode.load(Ordering::SeqCst) {
             return Ok(false);
         }

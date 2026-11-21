@@ -40,7 +40,7 @@ async fn mihomo_common_get_base_config() -> Result<()> {
 async fn mihomo_common_patch_base_config() -> Result<()> {
     let mihomo = common::mihomo();
     let mut base_config = mihomo.get_base_config().await?;
-    let origin_mode = base_config.mode.clone();
+    let origin_mode = base_config.mode;
     println!("before changed mode: {}", base_config.mode);
 
     let next_mode = ClashMode::Global;

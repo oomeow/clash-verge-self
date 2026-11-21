@@ -46,7 +46,7 @@ impl VergeLog {
 
     pub fn generate_clash_log_file(&self) -> Result<PathBuf> {
         let clash_log_file = dirs::clash_logs_dir()?.join(dirs::generate_log_filename());
-        *self.clash_log_file.lock() = clash_log_file.clone();
+        self.clash_log_file.lock().clone_from(&clash_log_file);
         Ok(clash_log_file)
     }
 
@@ -58,10 +58,10 @@ impl VergeLog {
         let log_filename = dirs::generate_log_filename();
 
         let app_log_file = dirs::app_logs_dir()?.join(&log_filename);
-        *self.app_log_file.lock() = app_log_file.clone();
+        self.app_log_file.lock().clone_from(&app_log_file);
 
         let clash_log_file = dirs::clash_logs_dir()?.join(&log_filename);
-        *self.clash_log_file.lock() = clash_log_file.clone();
+        self.clash_log_file.lock().clone_from(&clash_log_file);
 
         let timer = tracing_subscriber::fmt::time::LocalTime::new(format_description!(
             "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:3]"

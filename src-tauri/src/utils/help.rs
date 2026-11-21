@@ -1,4 +1,9 @@
-use std::{fs, net::TcpListener, path::PathBuf, str::FromStr};
+use std::{
+    fs,
+    net::TcpListener,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 use anyhow::{Context, Result};
 use nanoid::nanoid;
@@ -8,7 +13,7 @@ use serde_yaml::{Mapping, Value};
 use crate::config::Config;
 
 /// read data from yaml as struct T
-pub fn read_yaml<T: DeserializeOwned>(path: &PathBuf) -> Result<T> {
+pub fn read_yaml<T: DeserializeOwned>(path: &Path) -> Result<T> {
     if !path.exists() {
         anyhow::bail!("file not found \"{}\"", path.display());
     }
@@ -22,7 +27,7 @@ pub fn read_yaml<T: DeserializeOwned>(path: &PathBuf) -> Result<T> {
 }
 
 /// read mapping from yaml fix #165
-pub fn read_merge_mapping(path: &PathBuf) -> Result<Mapping> {
+pub fn read_merge_mapping(path: &Path) -> Result<Mapping> {
     let mut val: Value = read_yaml(path)?;
     if val.is_null() {
         return Ok(Mapping::new());
@@ -38,7 +43,7 @@ pub fn read_merge_mapping(path: &PathBuf) -> Result<Mapping> {
 
 /// save the data to the file
 /// can set `prefix` string to add some comments
-pub fn save_yaml<T: Serialize>(path: &PathBuf, data: &T, prefix: Option<&str>) -> Result<()> {
+pub fn save_yaml<T: Serialize>(path: &Path, data: &T, prefix: Option<&str>) -> Result<()> {
     let data_str = serde_yaml::to_string(data)?;
 
     let yaml_str = match prefix {

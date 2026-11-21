@@ -1,6 +1,6 @@
 use std::{
     ffi::OsString,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::Stdio,
     sync::{
         Arc,
@@ -257,7 +257,7 @@ impl ProcessSupervisor {
         self.inner.restart_count.store(0, Ordering::SeqCst);
     }
 
-    pub fn kill_old_process(&self, pid_file: Option<&PathBuf>) {
+    pub fn kill_old_process(&self, pid_file: Option<&Path>) {
         if self.pid().is_none()
             && let Some(pid_file) = pid_file
             && let Ok(old_pid) = std::fs::read_to_string(pid_file)
@@ -271,7 +271,7 @@ impl ProcessSupervisor {
     /// Stops the current child if needed and starts supervising a new one.
     pub async fn start(&self, spec: ProcessSpec) -> Result<u32> {
         log::info!("start requested for process `{}`", spec.label);
-        self.kill_old_process(spec.pid_file.as_ref());
+        self.kill_old_process(spec.pid_file.as_deref());
         self.stop().await?;
 
         let generation = self.inner.generation.fetch_add(1, Ordering::SeqCst) + 1;
@@ -355,7 +355,7 @@ impl ProcessSupervisor {
 
             let mut log_sink = LogSink::new(
                 &spec.label,
-                spec.log_config.log_file.as_ref(),
+                spec.log_config.log_file.as_deref(),
                 spec.log_config.truncate_on_start && first_spawn,
                 spec.log_config.line_formatter.clone(),
                 spec.log_config.roll_size(),
@@ -638,7 +638,7 @@ async fn pump_stream(
 impl LogSink {
     async fn new(
         label: &str,
-        log_file: Option<&PathBuf>,
+        log_file: Option<&Path>,
         _truncate: bool,
         line_formatter: Option<LineFormatter>,
         roll_size: u64,

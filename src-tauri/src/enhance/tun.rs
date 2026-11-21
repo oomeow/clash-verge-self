@@ -38,20 +38,23 @@ pub fn use_tun(mut config: Mapping, enable: bool) -> Mapping {
             use crate::utils::dirs;
 
             tracing::info!("try to set system dns");
-            let resource_dir = dirs::app_resources_dir().unwrap();
-            let script = resource_dir.join("set_dns.sh");
-            match Command::new("bash").args([script]).current_dir(resource_dir).status() {
-                Ok(status) => {
-                    if status.success() {
-                        tracing::info!("set system dns successfully");
-                    } else {
-                        let code = status.code().unwrap_or(-1);
-                        tracing::error!("set system dns failed: {code}");
+            if let Ok(resource_dir) = dirs::app_resources_dir() {
+                let script = resource_dir.join("set_dns.sh");
+                match Command::new("bash").args([script]).current_dir(resource_dir).status() {
+                    Ok(status) => {
+                        if status.success() {
+                            tracing::info!("set system dns successfully");
+                        } else {
+                            let code = status.code().unwrap_or(-1);
+                            tracing::error!("set system dns failed: {code}");
+                        }
+                    }
+                    Err(err) => {
+                        tracing::error!("set system dns failed: {err}");
                     }
                 }
-                Err(err) => {
-                    tracing::error!("set system dns failed: {err}");
-                }
+            } else {
+                tracing::error!("failed to resolve the app resources directory, skipping set dns");
             }
         }
         use_dns_for_tun(config)
@@ -63,20 +66,23 @@ pub fn use_tun(mut config: Mapping, enable: bool) -> Mapping {
             use crate::utils::dirs;
 
             tracing::info!("try to unset system dns");
-            let resource_dir = dirs::app_resources_dir().unwrap();
-            let script = resource_dir.join("unset_dns.sh");
-            match Command::new("bash").args([script]).current_dir(resource_dir).status() {
-                Ok(status) => {
-                    if status.success() {
-                        tracing::info!("unset system dns successfully");
-                    } else {
-                        let code = status.code().unwrap_or(-1);
-                        tracing::error!("unset system dns failed: {code}");
+            if let Ok(resource_dir) = dirs::app_resources_dir() {
+                let script = resource_dir.join("unset_dns.sh");
+                match Command::new("bash").args([script]).current_dir(resource_dir).status() {
+                    Ok(status) => {
+                        if status.success() {
+                            tracing::info!("unset system dns successfully");
+                        } else {
+                            let code = status.code().unwrap_or(-1);
+                            tracing::error!("unset system dns failed: {code}");
+                        }
+                    }
+                    Err(err) => {
+                        tracing::error!("unset system dns failed: {err}");
                     }
                 }
-                Err(err) => {
-                    tracing::error!("unset system dns failed: {err}");
-                }
+            } else {
+                tracing::error!("failed to resolve the app resources directory, skipping unset dns");
             }
         }
         config

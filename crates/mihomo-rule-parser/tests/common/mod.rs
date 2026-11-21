@@ -17,7 +17,7 @@ pub fn init_meta_rules() -> Result<PathBuf, Box<dyn std::error::Error>> {
     let exists = std::fs::exists(&rules_dir)?;
     if exists {
         let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-        commands.iter().for_each(|args| {
+        for args in &commands {
             Command::new("git")
                 .args(args)
                 .current_dir(&rules_dir)
@@ -25,7 +25,7 @@ pub fn init_meta_rules() -> Result<PathBuf, Box<dyn std::error::Error>> {
                 .expect("failed to spawn command")
                 .wait()
                 .expect("command not running");
-        });
+        }
     } else {
         Command::new("git")
             .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])
@@ -45,14 +45,22 @@ pub fn check_diff<P: AsRef<Path>>(src_file: P, target_file: P) -> Result<(), Str
         .map_err(|_| "src file not found".to_string())?
         .read_to_string(&mut src_str)
         .map_err(|_| "read src file error".to_string())?;
-    let src_lines = src_str.trim().lines().map(|s| s.to_owned()).collect::<Vec<String>>();
+    let src_lines = src_str
+        .trim()
+        .lines()
+        .map(std::borrow::ToOwned::to_owned)
+        .collect::<Vec<String>>();
 
     let mut target_str = String::new();
     std::fs::File::open(target_file.as_ref())
         .map_err(|_| "target file not found".to_string())?
         .read_to_string(&mut target_str)
         .map_err(|_| "read target file error".to_string())?;
-    let target_lines = target_str.trim().lines().map(|s| s.to_owned()).collect::<Vec<String>>();
+    let target_lines = target_str
+        .trim()
+        .lines()
+        .map(std::borrow::ToOwned::to_owned)
+        .collect::<Vec<String>>();
 
     if src_lines.len() != target_lines.len() {
         return Err(format!(

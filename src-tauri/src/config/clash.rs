@@ -127,7 +127,7 @@ impl IClashConfig {
     }
 
     pub fn patch_config(&mut self, patch: Mapping) {
-        for (key, value) in patch.into_iter() {
+        for (key, value) in patch {
             self.0.insert(key, value);
         }
     }
@@ -194,7 +194,7 @@ impl IClashConfig {
             server: Self::guard_client_ctrl(config),
             secret: config
                 .get("secret")
-                .and_then(|value| value.as_str().map(|v| v.to_string())),
+                .and_then(|value| value.as_str().map(std::string::ToString::to_string)),
             cors: Self::guard_ctrl_cors(config),
         }
     }

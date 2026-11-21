@@ -55,7 +55,7 @@ impl DomainSet {
 
     fn keys<F>(&self, mut f: F)
     where
-        F: FnMut(&String) -> bool,
+        F: FnMut(&str) -> bool,
     {
         let mut current_key: Vec<char> = vec![];
         self.traverse(&mut current_key, 0, 0, &mut f);
@@ -63,7 +63,7 @@ impl DomainSet {
 
     fn traverse<F>(&self, current_key: &mut Vec<char>, node_id: isize, bm_idx: isize, f: &mut F) -> bool
     where
-        F: FnMut(&String) -> bool,
+        F: FnMut(&str) -> bool,
     {
         if get_bit(&self.leaves, node_id) != 0 && !f(&current_key.iter().collect::<String>()) {
             return false;
@@ -359,7 +359,7 @@ mod tests {
         let exists = std::fs::exists(&rules_dir)?;
         if exists {
             let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-            commands.iter().for_each(|args| {
+            for args in &commands {
                 Command::new("git")
                     .args(args)
                     .current_dir(&rules_dir)
@@ -367,7 +367,7 @@ mod tests {
                     .expect("failed to spawn command")
                     .wait()
                     .expect("command not running");
-            });
+            }
         } else {
             Command::new("git")
                 .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])

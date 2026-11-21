@@ -40,7 +40,7 @@ mod tests {
         let exists = std::fs::exists(&rules_dir)?;
         if exists {
             let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-            commands.iter().for_each(|args| {
+            for args in &commands {
                 Command::new("git")
                     .args(args)
                     .current_dir(&rules_dir)
@@ -48,7 +48,7 @@ mod tests {
                     .expect("failed to spawn command")
                     .wait()
                     .expect("command not running");
-            });
+            }
         } else {
             Command::new("git")
                 .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])

@@ -88,7 +88,7 @@ fn create_backup(local_save: bool, only_backup_profiles: bool) -> Result<(String
 
     fn add_file_to_zip(
         zip: &mut zip::ZipWriter<fs::File>,
-        path: &PathBuf,
+        path: &Path,
         zip_path: &str,
         options: SimpleFileOptions,
     ) -> Result<()> {
@@ -325,7 +325,7 @@ impl WebDav {
         Ok(files)
     }
 
-    pub async fn download_file(webdav_file_name: &str, storage_path: &PathBuf) -> Result<()> {
+    pub async fn download_file(webdav_file_name: &str, storage_path: &Path) -> Result<()> {
         let client = Self::global().get_client()?;
         let path = format!("{BACKUP_DIR}/{webdav_file_name}");
         let response = client.get(&path).await?;
@@ -334,7 +334,7 @@ impl WebDav {
         Ok(())
     }
 
-    pub async fn upload_file(file_path: &PathBuf, webdav_file_name: &str) -> Result<()> {
+    pub async fn upload_file(file_path: &Path, webdav_file_name: &str) -> Result<()> {
         let client = Self::global().get_client()?;
         let web_dav_path = format!("{BACKUP_DIR}/{webdav_file_name}");
         client.put(&web_dav_path, fs::read(file_path)?).await?;

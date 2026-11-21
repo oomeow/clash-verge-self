@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, path::PathBuf};
+use std::{collections::VecDeque, path::Path};
 
 use anyhow::{Context, Result};
 use clash_verge_self_service::model::{ClashRunInfo, JsonResponse, SocketCommand, StartBody};
@@ -40,7 +40,7 @@ pub async fn check_service() -> Result<JsonResponse<ClashRunInfo>> {
 }
 
 /// start the clash by service
-pub(in crate::core) async fn run_core_by_service(config_file: &PathBuf, log_path: &PathBuf) -> Result<()> {
+pub(in crate::core) async fn run_core_by_service(config_file: &Path, log_path: &Path) -> Result<()> {
     check_service().await?;
     stop_core_by_service().await?;
 

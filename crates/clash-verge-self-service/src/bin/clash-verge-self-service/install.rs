@@ -279,9 +279,7 @@ pub fn process(server_id: Option<String>, log_dir: Option<PathBuf>, core_dir: Op
 
     log::debug!("Start install Clash Verge Self Service.");
 
-    let service_binary_path = std::env::current_exe()
-        .unwrap()
-        .with_file_name("clash-verge-self-service");
+    let service_binary_path = std::env::current_exe()?.with_file_name("clash-verge-self-service");
     if !service_binary_path.exists() {
         log::error!("The clash-verge-self-service binary not found.");
         std::process::exit(2);
@@ -332,7 +330,7 @@ pub fn process(server_id: Option<String>, log_dir: Option<PathBuf>, core_dir: Op
     let unit_file = Path::new(&unit_file);
     let unit_file_content = format!(
         include_str!("../../../tmpl/systemd_service_unit.tmpl"),
-        service_binary_path.to_str().unwrap(),
+        service_binary_path.display(),
         server_id,
         psk_path.display(),
         core_dir.display()
@@ -400,9 +398,7 @@ pub fn process(server_id: Option<String>, log_dir: Option<PathBuf>, core_dir: Op
         }
     }
 
-    let service_binary_path = std::env::current_exe()
-        .unwrap()
-        .with_file_name("clash-verge-self-service.exe");
+    let service_binary_path = std::env::current_exe()?.with_file_name("clash-verge-self-service.exe");
 
     if !service_binary_path.exists() {
         log::error!("clash-verge-self-service.exe not found");

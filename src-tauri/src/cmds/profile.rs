@@ -203,7 +203,7 @@ pub async fn patch_profile(uid: String, profile: PrfItem) -> CommandResult<()> {
                         CoreManager::global().update_config().await?;
                         handle::Handle::refresh_clash();
                     }
-                    Some(ScopeType::Specific) if result_item.parent.as_ref() == profiles.get_current() => {
+                    Some(ScopeType::Specific) if result_item.parent.as_deref() == profiles.get_current() => {
                         CoreManager::global().update_config().await?;
                         handle::Handle::refresh_clash();
                     }
@@ -225,7 +225,7 @@ pub async fn batch_toggle_chains_enable(uids: Vec<String>, enable: bool) -> Comm
         async {
             let mut update_config = false;
             let profiles = Config::profiles().latest().clone();
-            let current_profile = profiles.get_current().cloned();
+            let current_profile = profiles.get_current().map(str::to_owned);
             for uid in uids {
                 Config::profiles().data_mut().patch_item(
                     &uid,

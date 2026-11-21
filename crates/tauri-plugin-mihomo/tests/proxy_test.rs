@@ -54,7 +54,7 @@ async fn bench_proxy_delay() -> Result<()> {
     let arc_mihomo = Arc::new(mihomo);
     println!("total: {}", proxies.len() * 10);
     for _ in 0..=10 {
-        for proxy in proxies.clone().into_iter() {
+        for proxy in proxies.clone() {
             let mihomo_ = Arc::clone(&arc_mihomo);
             tasks.push(tokio::spawn(async move {
                 match mihomo_.delay_proxy_by_name(&proxy, TEST_URL, TIMEOUT).await {
@@ -68,7 +68,7 @@ async fn bench_proxy_delay() -> Result<()> {
             }));
         }
     }
-    for task in tasks.into_iter() {
+    for task in tasks {
         task.await.unwrap();
     }
     Ok(())

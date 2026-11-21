@@ -107,9 +107,9 @@ pub fn run() -> Result<()> {
         )
         .setup(|app| {
             let app_handle = app.handle();
-            APP_HANDLE
-                .set(app_handle.clone())
-                .expect("failed to set global app handle");
+            if APP_HANDLE.set(app_handle.clone()).is_err() {
+                tracing::warn!("global app handle was already initialized");
+            }
 
             #[cfg(any(target_os = "windows", target_os = "linux"))]
             {
@@ -142,7 +142,7 @@ pub fn run() -> Result<()> {
             app.deep_link().on_open_url(|event| {
                 let urls = event.urls();
                 tracing::debug!("handle deep link on open url: {:?}", urls);
-                resolve::resolve_deep_links(urls.iter().map(|url| url.to_string()));
+                resolve::resolve_deep_links(urls.iter().map(std::string::ToString::to_string));
             });
 
             Ok(())
@@ -238,9 +238,7 @@ pub fn run() -> Result<()> {
             cmds::mihomo::delete_mihomo_index_cache,
         ]);
 
-    let app = builder
-        .build(tauri::generate_context!())
-        .expect("error while running tauri application");
+    let app = builder.build(tauri::generate_context!())?;
 
     app.run(|app_handle, e| match e {
         tauri::RunEvent::WindowEvent { label, event, .. } if label == "main" => match event {

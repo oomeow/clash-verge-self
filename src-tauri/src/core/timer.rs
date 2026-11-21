@@ -138,9 +138,8 @@ impl Timer {
                                         }
                                         tracing::error!("Failed to select node for proxy: {group_name}, node: {node}");
                                         return;
-                                    } else {
-                                        tracing::info!("Selected node for proxy: {group_name}, node: {node}");
                                     }
+                                    tracing::info!("Selected node for proxy: {group_name}, node: {node}");
                                 }
                             }
                         }
@@ -188,7 +187,7 @@ impl Timer {
         let mut timer_map = self.timer_map.lock();
         let delay_timer = self.delay_timer.lock();
 
-        for (uid, diff) in diff_map.into_iter() {
+        for (uid, diff) in diff_map {
             match diff {
                 DiffFlag::Del(tid) => {
                     let _ = timer_map.remove(&uid);
@@ -215,7 +214,7 @@ impl Timer {
         let profiles = Config::profiles();
         let profiles = profiles.latest();
         let profiles = profiles.get_profiles();
-        for profile in profiles.iter() {
+        for profile in &profiles {
             if let Some(uid) = profile.uid.as_ref()
                 && let Some(option) = profile.option.as_ref()
             {
@@ -245,12 +244,12 @@ impl Timer {
             }
         });
 
-        new_map.iter().for_each(|(uid, val)| {
+        for (uid, val) in &new_map {
             let count = self.timer_count.fetch_add(1, Ordering::SeqCst);
             if cur_map.get(uid).is_none() {
                 diff_map.insert(uid.clone(), DiffFlag::Add(count, *val));
             }
-        });
+        }
 
         diff_map
     }
@@ -262,7 +261,7 @@ impl Timer {
             .set_maximum_parallel_runnable_num(1)
             .set_frequency_repeated_by_minutes(minutes)
             // .set_frequency_repeated_by_seconds(minutes) // for test
-            .spawn_async_routine(move || Self::update_profile_task(tid, uid.to_owned(), 0))?;
+            .spawn_async_routine(move || Self::update_profile_task(tid, uid.clone(), 0))?;
 
         delay_timer.add_task(task)?;
 

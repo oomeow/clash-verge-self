@@ -19,13 +19,7 @@ async fn mihomo_rule_update_disable() -> Result<()> {
     let rule_index = rules
         .rules
         .first_chunk::<2>()
-        .and_then(|i| {
-            let mut index_list = vec![];
-            for r in i {
-                index_list.push(r.index);
-            }
-            Some(index_list)
-        })
+        .map(|rules| rules.iter().map(|rule| rule.index).collect::<Vec<_>>())
         .ok_or(Error::FailedResponse("".to_string()))?;
     let res = rules
         .rules
@@ -36,7 +30,7 @@ async fn mihomo_rule_update_disable() -> Result<()> {
 
     // disable
     let mut disable_map = HashMap::new();
-    for index in rule_index.clone() {
+    for &index in &rule_index {
         disable_map.insert(index, true);
     }
     mihomo.update_rules_disable(disable_map).await?;
@@ -50,7 +44,7 @@ async fn mihomo_rule_update_disable() -> Result<()> {
 
     // enable
     let mut enable_map = HashMap::new();
-    for index in rule_index.clone() {
+    for &index in &rule_index {
         enable_map.insert(index, false);
     }
     mihomo.update_rules_disable(enable_map).await?;

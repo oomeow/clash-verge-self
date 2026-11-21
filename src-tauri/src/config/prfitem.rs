@@ -312,7 +312,7 @@ impl PrfItem {
                     Some(filename) => {
                         let iter = percent_encoding::percent_decode(filename.as_bytes());
                         let filename = iter.decode_utf8().unwrap_or_default();
-                        filename.split("''").last().map(|s| s.to_string())
+                        filename.split("''").last().map(std::string::ToString::to_string)
                     }
                     None => match help::parse_str::<String>(filename, "filename") {
                         Some(filename) => {

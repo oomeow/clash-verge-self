@@ -47,7 +47,7 @@ pub fn generate_rule_providers(mut config: Mapping) -> Result<Mapping> {
         .get(&key)
         .map_or(Mapping::new(), |val| val.as_mapping().cloned().unwrap_or_default());
     let mut path_map: HashMap<String, PathBuf> = HashMap::new();
-    for (key, value) in mapping.iter_mut() {
+    for (key, value) in &mut mapping {
         let name = key.as_str().context("rule-providers key must be a string")?;
         let val_mapping = value
             .as_mapping_mut()
@@ -85,7 +85,7 @@ pub fn enhance() -> Result<(Mapping, HashMap<String, ResultLog>)> {
         let profiles = Config::profiles();
         let profiles = profiles.latest();
         let current = profiles.current_mapping().unwrap_or_default();
-        let current_uid = profiles.get_current().cloned();
+        let current_uid = profiles.get_current().map(str::to_owned);
 
         // chain
         let global_chain = profiles.get_profile_chains(None, EnableFilter::Enable);
@@ -110,7 +110,7 @@ pub fn enhance() -> Result<(Mapping, HashMap<String, ResultLog>)> {
 
     // 合并 verge 接管的 clash 配置
     tracing::info!("merge clash config file");
-    for (key, value) in clash_config.into_iter() {
+    for (key, value) in clash_config {
         config.insert(key, value);
     }
 
@@ -160,7 +160,7 @@ pub fn get_pre_merge_result(profile_uid: Option<String>, modified_uid: String) -
                     Some(index) => chain[..index].to_vec(),
                     None => chain,
                 };
-                new_chain.into_iter().filter(|c| c.enable).collect()
+                new_chain.into_iter().filter(|c| c.enable).collect::<Vec<_>>()
             };
             // execute new profile chain
             execute_chains(&mut config, &profile_chain, &mut script_logs);
@@ -173,7 +173,7 @@ pub fn get_pre_merge_result(profile_uid: Option<String>, modified_uid: String) -
                     Some(index) => chain[..index].to_vec(),
                     None => chain,
                 };
-                new_chain.into_iter().filter(|c| c.enable).collect()
+                new_chain.into_iter().filter(|c| c.enable).collect::<Vec<_>>()
             };
             // global chain
             execute_chains(&mut config, &global_chain, &mut script_logs);
@@ -252,7 +252,7 @@ pub async fn test_merge_chain(
     if should_build_final_config {
         //合并 verge 接管的配置
         let clash_config = Config::clash().latest().0.clone();
-        for (key, value) in clash_config.into_iter() {
+        for (key, value) in clash_config {
             config.insert(key, value);
         }
         let enable_tun = Config::clash().latest().get_enable_tun();
@@ -268,7 +268,7 @@ pub async fn test_merge_chain(
     })
 }
 
-fn execute_chains(config: &mut Mapping, chains: &Vec<ChainItem>, script_logs: &mut HashMap<String, Vec<LogMessage>>) {
+fn execute_chains(config: &mut Mapping, chains: &[ChainItem], script_logs: &mut HashMap<String, Vec<LogMessage>>) {
     for chain in chains {
         match chain.execute(config) {
             Ok(logs) => {

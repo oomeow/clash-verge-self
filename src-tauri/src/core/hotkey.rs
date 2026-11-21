@@ -138,9 +138,9 @@ impl Hotkey {
 
         let (del, add) = Self::get_diff(old_map, new_map);
 
-        del.iter().for_each(|key| {
+        for key in &del {
             log_err!(self.unregister(key));
-        });
+        }
 
         for (key, func) in add {
             self.register(key, func)?;
@@ -153,11 +153,11 @@ impl Hotkey {
     fn get_map_from_vec(hotkeys: &[String]) -> HashMap<&str, &str> {
         let mut map = HashMap::new();
 
-        hotkeys.iter().for_each(|hotkey| {
+        for hotkey in hotkeys {
             if let Some((func, key)) = Self::parse_hotkey_entry(hotkey) {
                 map.insert(key, func);
             }
-        });
+        }
         map
     }
 
@@ -180,7 +180,7 @@ impl Hotkey {
         let mut del_list = vec![];
         let mut add_list = vec![];
 
-        old_map.iter().for_each(|(&key, func)| {
+        for (&key, func) in &old_map {
             match new_map.get(key) {
                 Some(new_func) => {
                     if new_func != func {
@@ -190,13 +190,13 @@ impl Hotkey {
                 }
                 None => del_list.push(key),
             };
-        });
+        }
 
-        new_map.iter().for_each(|(&key, &func)| {
+        for (&key, &func) in &new_map {
             if !old_map.contains_key(key) {
                 add_list.push((key, func));
             }
-        });
+        }
 
         (del_list, add_list)
     }

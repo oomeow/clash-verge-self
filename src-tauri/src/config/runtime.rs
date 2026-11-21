@@ -27,7 +27,7 @@ impl IRuntime {
                             let mut patch_result = config
                                 .get(key)
                                 .map_or(Mapping::new(), |val| val.as_mapping().cloned().unwrap_or_default());
-                            for (k, v) in patch_val.clone().into_iter() {
+                            for (k, v) in patch_val.clone() {
                                 patch_result.insert(k, v);
                             }
                             config.insert(key.into(), patch_result.into());

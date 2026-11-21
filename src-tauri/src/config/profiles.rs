@@ -91,9 +91,12 @@ impl IProfiles {
                 }
                 match item.itype {
                     Some(ProfileType::Merge) | Some(ProfileType::Script) if item.scope.is_none() => {
-                        let uid = item.uid.as_ref().unwrap();
                         item.scope = Some(ScopeType::Global);
-                        item.enable = Some(enabled_global_chain.contains(uid));
+                        let enabled = item
+                            .uid
+                            .as_deref()
+                            .is_some_and(|uid| enabled_global_chain.iter().any(|enabled| enabled == uid));
+                        item.enable = Some(enabled);
                     }
                     _ => {}
                 }
@@ -183,8 +186,8 @@ impl IProfiles {
         Ok(())
     }
 
-    pub fn get_current(&self) -> Option<&String> {
-        self.current.as_ref()
+    pub fn get_current(&self) -> Option<&str> {
+        self.current.as_deref()
     }
 
     /// find the item by the uid
@@ -301,7 +304,7 @@ impl IProfiles {
         let enable_changed = item.enable.is_some();
         let mut items = self.items.take().unwrap_or_default();
 
-        for each in items.iter_mut() {
+        for each in &mut items {
             if each.uid == Some(uid.to_string()) {
                 let refresh_chains =
                     enable_changed && each.scope.as_ref().is_some_and(|s| matches!(s, ScopeType::Global));
@@ -473,7 +476,7 @@ impl IProfiles {
         let current = self.current.as_ref();
         if let Some(current) = current {
             let mut items = self.items.take().unwrap_or_default();
-            for item in items.iter_mut() {
+            for item in &mut items {
                 if let Some(uid) = item.uid.as_ref()
                     && uid == current
                 {

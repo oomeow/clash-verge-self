@@ -203,7 +203,7 @@ impl IpCidrTransform for IpAddr {
     /// 解映射 IPv4 映射的 IPv6 地址
     fn unmap(&self) -> IpAddr {
         if let IpAddr::V6(v6) = self {
-            v6.to_ipv4_mapped().map(IpAddr::V4).unwrap_or(IpAddr::V6(*v6))
+            v6.to_ipv4_mapped().map_or(IpAddr::V6(*v6), IpAddr::V4)
         } else {
             *self
         }
@@ -375,7 +375,7 @@ mod tests {
         let exists = std::fs::exists(&rules_dir)?;
         if exists {
             let commands: Vec<Vec<&str>> = vec![vec!["restore", "."], vec!["clean", "-fd"], vec!["pull"]];
-            commands.iter().for_each(|args| {
+            for args in &commands {
                 Command::new("git")
                     .args(args)
                     .current_dir(&rules_dir)
@@ -383,7 +383,7 @@ mod tests {
                     .expect("failed to spawn command")
                     .wait()
                     .expect("command not running");
-            });
+            }
         } else {
             Command::new("git")
                 .args(["clone", "-b", "meta", "https://github.com/MetaCubeX/meta-rules-dat.git"])

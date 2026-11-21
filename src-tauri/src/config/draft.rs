@@ -23,22 +23,13 @@ macro_rules! draft_define {
             }
 
             pub fn latest(&self) -> MappedRwLockReadGuard<'_, $id> {
-                RwLockReadGuard::map(self.inner.read(), |inner| {
-                    if inner.1.is_none() {
-                        &inner.0
-                    } else {
-                        inner.1.as_ref().unwrap()
-                    }
-                })
+                RwLockReadGuard::map(self.inner.read(), |inner| inner.1.as_ref().unwrap_or(&inner.0))
             }
 
             pub fn latest_mut(&self) -> MappedRwLockWriteGuard<'_, $id> {
-                RwLockWriteGuard::map(self.inner.write(), |inner| {
-                    if inner.1.is_none() {
-                        &mut inner.0
-                    } else {
-                        inner.1.as_mut().unwrap()
-                    }
+                RwLockWriteGuard::map(self.inner.write(), |inner| match inner.1.as_mut() {
+                    Some(draft) => draft,
+                    None => &mut inner.0,
                 })
             }
 
@@ -48,7 +39,7 @@ macro_rules! draft_define {
                         inner.1 = Some(inner.0.clone());
                     }
 
-                    inner.1.as_mut().unwrap()
+                    inner.1.as_mut().unwrap_or(&mut inner.0)
                 })
             }
 

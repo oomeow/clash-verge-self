@@ -45,9 +45,10 @@ impl SnapshotLogItem {
     }
 
     fn format_log_time(time: &str) -> String {
-        DateTime::parse_from_rfc3339(time)
-            .map(|time| time.with_timezone(&Local).format("%m-%d %H:%M:%S").to_string())
-            .unwrap_or_else(|_| time.to_string())
+        DateTime::parse_from_rfc3339(time).map_or_else(
+            |_| time.to_string(),
+            |time| time.with_timezone(&Local).format("%m-%d %H:%M:%S").to_string(),
+        )
     }
 }
 

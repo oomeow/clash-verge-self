@@ -40,7 +40,7 @@ pub fn format_raw_mihomo_log_line(line: &str) -> String {
     }
 }
 
-pub fn path_to_str<P: AsRef<Path>>(path: &P) -> Result<&str> {
+pub fn path_to_str<P: AsRef<Path> + ?Sized>(path: &P) -> Result<&str> {
     let ref_path = path.as_ref();
     let path_str = ref_path
         .as_os_str()

@@ -25,9 +25,8 @@ pub async fn check_service_and_clash() -> Result<()> {
         if service::check_service().await.is_err() {
             if i == 4 {
                 anyhow::bail!("service check failed");
-            } else {
-                tokio::time::sleep(Duration::from_secs(1)).await;
             }
+            tokio::time::sleep(Duration::from_secs(1)).await;
         };
     }
     let mihomo = handle::Handle::mihomo();
@@ -35,9 +34,8 @@ pub async fn check_service_and_clash() -> Result<()> {
         if mihomo.get_version().await.is_err() {
             if i == 4 {
                 anyhow::bail!("clash check failed");
-            } else {
-                tokio::time::sleep(Duration::from_secs(1)).await;
             }
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     }
     Ok(())

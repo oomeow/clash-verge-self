@@ -743,9 +743,8 @@ impl Mihomo {
                     Some(msg) => {
                         if msg.to_lowercase().contains("already using latest version") {
                             ret_failed_resp!("already using latest version");
-                        } else {
-                            ret_failed_resp!("{}", msg.clone());
                         }
+                        ret_failed_resp!("{}", msg.clone());
                     }
                     None => {
                         ret_failed_resp!("upgrade core failed");

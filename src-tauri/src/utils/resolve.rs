@@ -191,8 +191,7 @@ pub fn setup_panic_hook() {
 
         let location = panic_info
             .location()
-            .map(|l| l.to_string())
-            .unwrap_or("unknown location".to_string());
+            .map_or_else(|| "unknown location".to_string(), ToString::to_string);
 
         let backtrace = Backtrace::capture();
         let backtrace = if backtrace.status() == BacktraceStatus::Captured {

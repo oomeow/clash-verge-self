@@ -263,7 +263,7 @@ pub fn get_net_info() -> CommandResult<Vec<NetInfo>> {
     into_command_result((|| {
         let mut net_list = Vec::new();
         let network_interfaces = network_interface::NetworkInterface::show()?;
-        for network in network_interfaces.into_iter() {
+        for network in network_interfaces {
             let mut net_info = NetInfo {
                 name: network.name,
                 ipv4: None,
@@ -298,10 +298,9 @@ pub async fn restart_app(app_handle: tauri::AppHandle) {
         env.args_os.retain(|i| i != "--hidden");
         app_handle.cleanup_before_exit();
         tauri::process::restart(&env);
-    } else {
-        tracing::debug!("restart the app normally");
-        app_handle.restart();
     }
+    tracing::debug!("restart the app normally");
+    app_handle.restart();
 }
 
 #[tauri::command]

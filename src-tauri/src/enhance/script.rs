@@ -97,7 +97,11 @@ pub fn use_script(script: String, config: Mapping) -> Result<(Mapping, Vec<LogMe
     let call_result: serde_json::Value = serde_json::from_str(&call_str).map_err(|e| anyhow::anyhow!(e.to_string()))?;
 
     // If `main` threw an exception, return it as an error
-    if call_result.get("ok").and_then(|v| v.as_bool()).is_some_and(|ok| !ok) {
+    if call_result
+        .get("ok")
+        .and_then(serde_json::Value::as_bool)
+        .is_some_and(|ok| !ok)
+    {
         let err_str = call_result
             .get("error")
             .and_then(|v| v.as_str())

@@ -173,12 +173,11 @@ impl SecureChannel {
         let mut ids = self.seen_ids.lock();
         if ids.contains(&msg_id) {
             return Err(ServiceError::General("replay attack: duplicate message ID".into()));
-        } else {
-            if ids.len() >= 100 {
-                ids.pop_front();
-            }
-            ids.push_back(msg_id);
         }
+        if ids.len() >= 100 {
+            ids.pop_front();
+        }
+        ids.push_back(msg_id);
 
         Ok(plaintext[24..].to_vec())
     }
@@ -208,8 +207,13 @@ pub async fn run_service(server_id: Option<String>, psk: &[u8], core_dir: &std::
             })
             .map_err(|e| ServiceError::General(e.to_string()))?;
 
-        let _ = SERVICE_STATUS_HANDLE.set(parking_lot::Mutex::new(status_handle));
-        let handle = SERVICE_STATUS_HANDLE.get().unwrap().lock();
+        SERVICE_STATUS_HANDLE
+            .set(parking_lot::Mutex::new(status_handle))
+            .map_err(|_| ServiceError::General("service status handle already initialized".into()))?;
+        let handle = SERVICE_STATUS_HANDLE
+            .get()
+            .ok_or_else(|| ServiceError::General("service status handle not initialized".into()))?
+            .lock();
         handle
             .set_service_status(ServiceStatus {
                 service_type: crate::SERVICE_TYPE,

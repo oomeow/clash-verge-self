@@ -9,7 +9,10 @@ use crate::utils::resolve;
 pub fn register() {
     tauri::async_runtime::spawn(async {
         let signals = [SIGTERM, SIGINT, SIGHUP];
-        let mut sigs = Signals::new(signals).unwrap();
+        let Ok(mut sigs) = Signals::new(signals) else {
+            tracing::error!("failed to register signal handlers");
+            return;
+        };
         for signal in &mut sigs {
             let signal_to_str = |signal: i32| match signal {
                 SIGTERM => "SIGTERM",
@@ -20,7 +23,9 @@ pub fn register() {
             tracing::info!("received signal {}", signal_to_str(signal));
             resolve::resolve_reset().await;
             // After printing it, do whatever the signal was supposed to do in the first place
-            low_level::emulate_default_handler(signal).unwrap();
+            if let Err(err) = low_level::emulate_default_handler(signal) {
+                tracing::error!("failed to emulate the default handler for signal {signal}: {err}");
+            }
         }
     });
 }

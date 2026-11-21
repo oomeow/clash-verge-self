@@ -26,7 +26,7 @@ pub const DEFAULT_FIELDS: [&str; 5] = ["proxies", "proxy-providers", "proxy-grou
 
 pub fn use_filter(config: Mapping, filter: &[String]) -> Mapping {
     let mut res = Mapping::new();
-    for (key, value) in config.into_iter() {
+    for (key, value) in config {
         if let Some(key) = key.as_str()
             && filter.contains(&key.to_string())
         {
@@ -38,7 +38,7 @@ pub fn use_filter(config: Mapping, filter: &[String]) -> Mapping {
 
 pub fn use_lowercase(config: Mapping) -> Mapping {
     let mut ret = Mapping::new();
-    for (key, value) in config.into_iter() {
+    for (key, value) in config {
         if let Some(key_str) = key.as_str() {
             let mut key_str = String::from(key_str);
             key_str.make_ascii_lowercase();
@@ -50,28 +50,28 @@ pub fn use_lowercase(config: Mapping) -> Mapping {
 
 pub fn use_sort(config: Mapping) -> Mapping {
     let mut res = Mapping::new();
-    SORT_FIELDS.into_iter().for_each(|key| {
+    for key in SORT_FIELDS {
         let key = Value::from(key);
         if let Some(value) = config.get(&key) {
             res.insert(key, value.clone());
         }
-    });
+    }
 
     let supported_keys = SORT_FIELDS.into_iter().chain(DEFAULT_FIELDS).collect::<HashSet<&str>>();
 
     let config_keys = config.keys().filter_map(|e| e.as_str()).collect::<HashSet<&str>>();
 
-    config_keys.difference(&supported_keys).for_each(|&key| {
+    for &key in config_keys.difference(&supported_keys) {
         let key = Value::from(key);
         if let Some(value) = config.get(&key) {
             res.insert(key, value.clone());
         }
-    });
-    DEFAULT_FIELDS.into_iter().for_each(|key| {
+    }
+    for key in DEFAULT_FIELDS {
         let key = Value::from(key);
         if let Some(value) = config.get(&key) {
             res.insert(key, value.clone());
         }
-    });
+    }
     res
 }

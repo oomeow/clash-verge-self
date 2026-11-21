@@ -32,7 +32,7 @@ dns:
   fallback-filter:
     geoip: true
     geoip_code: CN
-  enhanced-mode: mapping
+  enhanced-mode: redir-host
   fake-ip-range: 198.18.0.1/16
   fake-ip-filter:
     - dns.msftnsci.com
@@ -52,7 +52,7 @@ ntp:
   write-to-system: false
 tun:
   enable: false
-  stack: gvisor
+  stack: gVisor
   dns-hijack:
     - 0.0.0.0:53
   auto-route: true

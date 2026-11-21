@@ -176,12 +176,12 @@ impl Sysopt {
         let port = Config::clash().latest().get_mixed_port();
         let pac_port = get_embed_server_port();
 
-        let mut sysproxy = cur_sysproxy.take().unwrap();
+        let mut sysproxy = cur_sysproxy.take().context("system proxy state not initialized")?;
         let sysproxy_ = sysproxy.clone();
         sysproxy.bypass = get_bypass();
         sysproxy.port = port;
 
-        let mut autoproxy = cur_autoproxy.take().unwrap();
+        let mut autoproxy = cur_autoproxy.take().context("auto proxy state not initialized")?;
         let autoproxy_ = autoproxy.clone();
         autoproxy.url = format!("http://127.0.0.1:{pac_port}/commands/pac");
 

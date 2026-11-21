@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use dirs::data_dir;
@@ -134,6 +134,6 @@ pub fn generate_log_filename() -> String {
     log_filename
 }
 
-pub fn path_to_str(path: &PathBuf) -> Result<&str> {
+pub fn path_to_str(path: &Path) -> Result<&str> {
     clash_verge_self_utils::path_to_str(path)
 }

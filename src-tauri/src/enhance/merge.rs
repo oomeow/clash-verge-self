@@ -21,16 +21,19 @@ pub fn use_merge(merge: Mapping, config: Mapping) -> Mapping {
     help::deep_merge(&mut config, &Value::from(merge_without_append));
 
     let mut config = config.as_mapping().unwrap().clone();
-    let merge_list = MERGE_FIELDS.iter().map(|s| s.to_string()).collect::<Vec<String>>();
+    let merge_list = MERGE_FIELDS
+        .iter()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<String>>();
     let merge = use_filter(merge, &merge_list);
 
-    ["rules", "proxies", "proxy-groups"].iter().for_each(|key_str| {
+    for key_str in ["rules", "proxies", "proxy-groups"] {
         let key_val = Value::from(key_str.to_string());
 
         let mut list = Sequence::default();
-        list = config
-            .get(&key_val)
-            .map_or(list.clone(), |val| val.as_sequence().map_or(list, |v| v.clone()));
+        list = config.get(&key_val).map_or(list.clone(), |val| {
+            val.as_sequence().map_or(list, std::clone::Clone::clone)
+        });
 
         let pre_key = Value::from(format!("prepend-{key_str}"));
         let post_key = Value::from(format!("append-{key_str}"));
@@ -52,7 +55,7 @@ pub fn use_merge(merge: Mapping, config: Mapping) -> Mapping {
         if !list.is_empty() {
             config.insert(key_val, Value::from(list));
         }
-    });
+    }
     config
 }
 

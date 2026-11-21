@@ -253,7 +253,7 @@ pub fn check_service_mode_on_start() {
             return;
         }
         // 凭据存在说明服务已按当前方案安装，无需处理。
-        let psk_missing = dirs::service_psk_path().map(|p| !p.exists()).unwrap_or(true);
+        let psk_missing = dirs::service_psk_path().map_or(true, |p| !p.exists());
         if !psk_missing {
             return;
         }
@@ -339,7 +339,9 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
     }
 
     if let Some(external_controller) = patch.get("external-controller") {
-        let external_controller = external_controller.as_str().unwrap();
+        let external_controller = external_controller
+            .as_str()
+            .context("`external-controller` must be a string")?;
         let (host, port) = external_controller
             .split_once(':')
             .context("invalid external controller")?;
@@ -349,7 +351,7 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
         mihomo.update_external_port(Some(port));
     }
     if let Some(secret) = patch.get("secret") {
-        let secret = secret.as_str().unwrap();
+        let secret = secret.as_str().context("`secret` must be a string")?;
         handle::Handle::mihomo().update_secret(Some(secret));
     }
 
@@ -364,7 +366,10 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
                 }
                 let mut mapping = Mapping::new();
                 let clash_config_mapping = Config::clash().latest().0.clone();
-                let value = clash_config_mapping.get(key).unwrap();
+                let Some(value) = clash_config_mapping.get(key) else {
+                    tracing::warn!("`{key}` is missing from the clash config, skipping");
+                    continue;
+                };
 
                 mapping.insert(key.into(), value.clone());
                 handle::Handle::mihomo().patch_base_config(&mapping).await?;
@@ -374,8 +379,7 @@ pub async fn patch_clash(patch: Mapping) -> Result<()> {
                     let clash_basic_configs = handle::Handle::mihomo().get_base_config().await?;
                     let tun_enable = value
                         .as_mapping()
-                        .unwrap()
-                        .get("enable")
+                        .and_then(|tun| tun.get("enable"))
                         .is_some_and(|val| val.as_bool().unwrap_or(false));
                     if tun_enable == clash_basic_configs.tun.enable {
                         if Config::verge().latest().auto_close_connection.unwrap_or_default() {
