@@ -101,7 +101,15 @@ pub fn my_service_main(_arguments: Vec<std::ffi::OsString>) {
     }
 }
 
-fn main() -> clash_verge_self_service::Result<()> {
+fn main() {
+    if let Err(err) = run_cli() {
+        log::error!("{err}");
+        eprintln!("{err}");
+        std::process::exit(1);
+    }
+}
+
+fn run_cli() -> clash_verge_self_service::Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Some(Commands::Install {
@@ -126,9 +134,7 @@ fn main() -> clash_verge_self_service::Result<()> {
                 let server_id = server_id.unwrap_or(clash_verge_self_service::DEFAULT_SERVER_ID.to_string());
                 let psk = load_psk(cli.psk_path)?;
                 let core_dir = require_core_dir(cli.core_dir)?;
-                rt.block_on(async move {
-                    let _ = clash_verge_self_service::Server::run(server_id, &psk, &core_dir).await;
-                });
+                rt.block_on(async move { clash_verge_self_service::Server::run(server_id, &psk, &core_dir).await })?;
             }
             #[cfg(windows)]
             {

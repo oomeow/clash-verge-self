@@ -1,4 +1,8 @@
-use std::{fs, path::PathBuf, sync::Arc};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use clash_verge_self_service::{Result, ServiceError};
 use log::LevelFilter;
@@ -46,17 +50,18 @@ impl LogConfig {
             ..
         } = LogConfig::default();
 
-        let log_file_name = log_file_name.clone();
-        let log_level = log_level.unwrap();
+        let config = Self::create_log_config(
+            &log_file_name,
+            log_dir.as_deref(),
+            limited_file_size,
+            log_level.unwrap_or(LevelFilter::Debug),
+        )?;
 
-        let config = Self::create_log_config(&log_file_name, log_dir.clone(), limited_file_size, log_level);
+        let handle = log4rs::init_config(config)
+            .map_err(|err| ServiceError::General(format!("failed to install logger: {err}")))?;
 
-        if let Some(config) = config {
-            let handle = log4rs::init_config(config).unwrap();
-
-            self.log_dir = log_dir;
-            self.log_handle = Some(handle);
-        }
+        self.log_dir = log_dir;
+        self.log_handle = Some(handle);
         Ok(())
     }
 
@@ -71,73 +76,78 @@ impl LogConfig {
             log_file_name: mut c_log_file_name,
             log_dir: mut c_log_dir,
             limited_file_size: mut c_limited_file_size,
-            log_handle: mut c_log_handle,
-            log_level: mut c_log_level,
+            log_handle: c_log_handle,
+            log_level: c_log_level,
         } = self.clone();
-        if c_log_handle.is_none() {
+
+        let Some(handle) = c_log_handle else {
             log::error!("update log config failed, log handle is none, please init first");
             return Err(ServiceError::General(
                 "update log config failed, log handle is none, please init first".into(),
             ));
-        }
+        };
 
         // check if need to update log config
-        let mut need_update = false;
-        if log_file_name != c_log_file_name {
-            need_update = true;
-        }
-        if !need_update && (c_log_dir.is_none() || log_dir != c_log_dir.unwrap()) {
-            need_update = true;
-        }
-        if !need_update && limited_file_size != c_limited_file_size {
-            need_update = true;
-        }
+        let need_update = log_file_name != c_log_file_name
+            || c_log_dir.as_deref() != Some(log_dir.as_path())
+            || limited_file_size != c_limited_file_size;
         if !need_update {
             log::debug!("log config is not changed, no need to update");
             return Ok(());
         }
 
         // let log_level = c_log_level.clone().unwrap();
-        let config = Self::create_log_config(
+        match Self::create_log_config(
             log_file_name,
-            Some(log_dir.clone()),
+            Some(&log_dir),
             limited_file_size,
             c_log_level.unwrap_or(LevelFilter::Info),
-        );
-        if let Some(config) = config {
-            c_log_handle.unwrap().set_config(config);
+        ) {
+            Ok(config) => {
+                handle.set_config(config);
 
-            c_log_file_name = log_file_name.to_string();
-            c_log_dir = Some(log_dir);
-            c_limited_file_size = limited_file_size;
+                c_log_file_name = log_file_name.to_string();
+                c_log_dir = Some(log_dir);
+                c_limited_file_size = limited_file_size;
+            }
+            Err(err) => log::error!("failed to update log config, keeping the current one: {err}"),
         }
         Ok(())
     }
 
     fn create_log_config(
         log_file_name: &str,
-        log_dir: Option<PathBuf>,
+        log_dir: Option<&Path>,
         limited_size: Option<u64>,
         log_level: LevelFilter,
-    ) -> Option<Config> {
+    ) -> Result<Config> {
         let log_pattern = "{d(%Y-%m-%d %H:%M:%S)} {l} - {m}{n}";
         let encoder = Box::new(PatternEncoder::new(log_pattern));
 
-        let mut appenders = Vec::new();
+        let mut appenders = Vec::with_capacity(2);
         let log_to_file = log_dir.is_some();
 
-        if log_to_file {
-            // create log to file appender
-            let log_file = log_dir.unwrap().join(log_file_name);
+        if let Some(log_dir) = log_dir {
+            let log_file = log_dir.join(log_file_name);
             if let Some(limited_size) = limited_size
                 && log_file.exists()
             {
-                let metadata = fs::metadata(log_file.clone()).ok()?;
+                let metadata = fs::metadata(&log_file).map_err(|err| {
+                    ServiceError::General(format!(
+                        "failed to read log file metadata {}: {err}",
+                        log_file.display()
+                    ))
+                })?;
                 if metadata.len() >= limited_size {
-                    let _ = fs::rename(log_file.clone(), log_file.with_extension("old.log"));
+                    let _ = fs::rename(&log_file, log_file.with_extension("old.log"));
                 }
             }
-            let tofile = FileAppender::builder().encoder(encoder.clone()).build(log_file).ok()?;
+            let tofile = FileAppender::builder()
+                .encoder(encoder.clone())
+                .build(&log_file)
+                .map_err(|err| {
+                    ServiceError::General(format!("failed to open log file {}: {err}", log_file.display()))
+                })?;
             let file_appender = Appender::builder().build("file", Box::new(tofile));
             appenders.push(file_appender);
         }
@@ -172,6 +182,6 @@ impl LogConfig {
             .logger(app_logger)
             .logger(mihomo_logger)
             .build(root)
-            .ok()
+            .map_err(|err| ServiceError::General(format!("failed to build log config: {err:?}")))
     }
 }
