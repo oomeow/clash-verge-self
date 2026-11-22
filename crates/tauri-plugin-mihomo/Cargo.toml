@@ -33,3 +33,6 @@ tauri-plugin = { version = "2", features = ["build"] }
 
 [dev-dependencies]
 dotenvy = "=0.15.7"
+
+[lints]
+workspace = true

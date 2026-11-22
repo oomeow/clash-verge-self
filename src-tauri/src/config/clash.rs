@@ -18,7 +18,7 @@ impl IClashConfig {
         let template = Self::default();
         match dirs::clash_path().and_then(|path| help::read_merge_mapping(&path)) {
             Ok(mut result) => {
-                let mut dest = Value::from(template.0.clone());
+                let mut dest = Value::from(template.0);
                 let src = Value::from(result.clone());
                 help::deep_merge(&mut dest, &src);
                 result = dest.as_mapping().unwrap().clone();

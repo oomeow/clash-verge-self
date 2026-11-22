@@ -8,3 +8,6 @@ edition.workspace = true
 anyhow.workspace = true
 
 logfmt = "0.0.2"
+
+[lints]
+workspace = true

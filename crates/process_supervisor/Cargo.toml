@@ -16,3 +16,6 @@ tracing-appender.workspace = true
 logroller.workspace = true
 
 sysinfo = "0.39"
+
+[lints]
+workspace = true

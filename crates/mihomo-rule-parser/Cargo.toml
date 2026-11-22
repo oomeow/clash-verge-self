@@ -15,3 +15,6 @@ thiserror.workspace = true
 
 byteorder = "1.5"
 zstd = "0.14"
+
+[lints]
+workspace = true
