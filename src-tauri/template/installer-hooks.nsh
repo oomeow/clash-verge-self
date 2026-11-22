@@ -6,6 +6,7 @@
   ; MessageBox MB_OK "PreInstall"
 !macroend
 
+; TODO: 移除该自定义 hook
 !macro NSIS_HOOK_PREINSTALL_APPSTOPED
   !insertmacro CheckAllVergeProcesses
 !macroend
