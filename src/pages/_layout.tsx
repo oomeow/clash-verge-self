@@ -105,7 +105,7 @@ const Layout = () => {
           payload: { status, msg, args },
         } = e;
         // 直接通过 i18next 翻译，避免和界面语言不一致的问题
-        notice(status, i18next.exists(msg) ? i18next.t(msg, args) : msg);
+        notice(status, i18next.exists(msg) ? i18next.t(msg, { defaultValue: msg, ...(args ?? {}) }) : msg);
       },
     );
 
