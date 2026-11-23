@@ -142,8 +142,7 @@ function StickyVirtualListInner<TItem>(
 
     if (lastSectionIndex < 0) return [];
 
-    const firstSectionIndex =
-      matchedFirstSectionIndex >= 0 ? matchedFirstSectionIndex : 0;
+    const firstSectionIndex = Math.max(matchedFirstSectionIndex, 0);
 
     return groupSections.slice(
       firstSectionIndex,
