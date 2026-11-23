@@ -749,7 +749,10 @@ impl LogSink {
 /// If sending the signal fails, the process is forcefully killed.
 fn kill_pid(pid: u32) {
     log::debug!("send terminate signal to pid {pid}");
-    let mut system = System::new();
+    let Ok(mut system) = System::new() else {
+        log::error!("failed to initialize system information");
+        return;
+    };
     let pid = Pid::from_u32(pid);
     system.refresh_processes(ProcessesToUpdate::Some(&[pid]), true);
 
