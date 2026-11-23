@@ -13,8 +13,8 @@ use std::{
 
 use bytes::{BufMut, BytesMut};
 use chacha20poly1305::{
-    XChaCha20Poly1305,
-    aead::{Aead, KeyInit, OsRng, rand_core::RngCore},
+    XChaCha20Poly1305, XNonce,
+    aead::{Aead, Generate, KeyInit},
 };
 use data::{JsonResponse, SocketCommand};
 use futures::StreamExt;
@@ -90,8 +90,7 @@ impl SecureChannel {
         let ts_bytes = ts.to_be_bytes();
 
         // message ID (u64 random)
-        let mut msg_id_bytes = [0u8; 8];
-        OsRng.fill_bytes(&mut msg_id_bytes);
+        let msg_id_bytes: [u8; 8] = Generate::generate();
         // let msg_id = u64::from_be_bytes(msg_id_bytes);
         // println!("send msg id: {}", msg_id);
 
@@ -102,8 +101,7 @@ impl SecureChannel {
         full_plaintext.extend_from_slice(&msg_id_bytes);
         full_plaintext.extend_from_slice(plaintext);
 
-        let mut nonce = [0u8; 24];
-        OsRng.fill_bytes(&mut nonce);
+        let nonce: [u8; 24] = Generate::generate();
         let cipher = self
             .aead
             .encrypt(&nonce.into(), full_plaintext.as_slice())
@@ -144,9 +142,12 @@ impl SecureChannel {
         }
 
         let (nonce_bytes, cipher) = buf.split_at(24);
+        let nonce: &XNonce = nonce_bytes
+            .try_into()
+            .map_err(|_| ServiceError::General("invalid nonce length".into()))?;
         let plaintext = self
             .aead
-            .decrypt(nonce_bytes.into(), cipher)
+            .decrypt(nonce, cipher)
             .map_err(|e| ServiceError::General(format!("decrypt failed: {e}")))?;
 
         // the `ts` and `msg_id` strings together are at least 24 bytes long.

@@ -49,11 +49,9 @@ const KEY_INFO: &[u8] = b"7f3b9d2c8a1e4f6b9d0a5c2e1f8b3d7a";
 
 /// Generate a fresh random pre-shared key.
 pub fn generate_psk() -> [u8; PSK_LEN] {
-    use chacha20poly1305::aead::{OsRng, rand_core::RngCore};
+    use chacha20poly1305::aead::Generate;
 
-    let mut psk = [0u8; PSK_LEN];
-    OsRng.fill_bytes(&mut psk);
-    psk
+    Generate::generate()
 }
 
 /// Read and validate a pre-shared key from `path`.
