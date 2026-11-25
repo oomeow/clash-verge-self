@@ -15,7 +15,7 @@ tracing-subscriber.workspace = true
 tracing-appender.workspace = true
 logroller.workspace = true
 
-sysinfo = "0.39"
+sysinfo = "0.40"
 
 [lints]
 workspace = true
