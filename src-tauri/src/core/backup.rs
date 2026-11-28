@@ -279,16 +279,20 @@ impl WebDav {
         Self::build_client(url, username, password)
     }
 
+    async fn ensure_backup_dir(client: &reqwest_dav::Client) -> Result<()> {
+        if client.list(BACKUP_DIR, Depth::Number(1)).await.is_err() {
+            client.mkcol(BACKUP_DIR).await?;
+        }
+        Ok(())
+    }
+
     pub async fn update_webdav_info<S: Into<String>>(url: S, username: S, password: S) -> Result<()> {
         let client = Self::build_client(url.into(), username.into(), password.into())?;
         client
             .list("/", Depth::Number(1))
             .await
             .inspect_err(|e| tracing::error!("invalid webdav config: {e:?}"))?;
-        if client.list(BACKUP_DIR, Depth::Number(1)).await.is_err() {
-            client.mkcol(BACKUP_DIR).await?;
-        }
-        Ok(())
+        Self::ensure_backup_dir(&client).await
     }
 
     pub async fn list_file_by_path(path: &str) -> Result<Vec<ListFile>> {
@@ -322,6 +326,7 @@ impl WebDav {
 
     pub async fn upload_file(file_path: &Path, webdav_file_name: &str) -> Result<()> {
         let client = Self::connect()?;
+        Self::ensure_backup_dir(&client).await?;
         let web_dav_path = format!("{BACKUP_DIR}/{webdav_file_name}");
         client.put(&web_dav_path, fs::read(file_path)?).await?;
         Ok(())
