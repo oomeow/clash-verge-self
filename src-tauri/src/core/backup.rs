@@ -3,12 +3,9 @@ use std::{
     fs,
     io::Write,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 
 use anyhow::{Context, Result};
-use once_cell::sync::OnceCell;
-use parking_lot::Mutex;
 use reqwest_dav::{
     Depth,
     list_cmd::{ListEntity, ListFile},
@@ -16,7 +13,7 @@ use reqwest_dav::{
 use serde::{Deserialize, Serialize};
 use zip::write::SimpleFileOptions;
 
-use crate::{config::Config, trace_err, utils::dirs};
+use crate::{config::Config, utils::dirs};
 
 // new backup dir
 #[cfg(not(feature = "verge-dev"))]
@@ -239,20 +236,17 @@ pub async fn delete_backup_file(backup_type: BackupType, file_name: String) -> R
     Ok(())
 }
 
-pub struct WebDav {
-    client: Arc<Mutex<Option<reqwest_dav::Client>>>,
-}
+pub struct WebDav;
 
 impl WebDav {
-    pub fn global() -> &'static WebDav {
-        static WEBDAV: OnceCell<WebDav> = OnceCell::new();
-
-        WEBDAV.get_or_init(|| WebDav {
-            client: Arc::new(Mutex::new(None)),
-        })
+    fn build_client(url: String, username: String, password: String) -> Result<reqwest_dav::Client> {
+        Ok(reqwest_dav::ClientBuilder::new()
+            .set_host(url)
+            .set_auth(reqwest_dav::Auth::Basic(username, password))
+            .build()?)
     }
 
-    pub async fn init(&self) -> Result<()> {
+    fn connect() -> Result<reqwest_dav::Client> {
         let (url, username, password) = {
             let verge = Config::verge();
             let verge = verge.latest();
@@ -262,51 +256,43 @@ impl WebDav {
                 verge.webdav_password.clone(),
             )
         };
-        if let (Some(url), Some(username), Some(password)) = (url, username, password) {
-            trace_err!(
-                self.update_webdav_info(url, username, password).await,
-                "failed to update webdav info"
-            );
-        } else {
-            tracing::trace!("webdav info config is empty, skip init webdav");
+
+        Self::client_from_options(url, username, password)
+    }
+
+    fn client_from_options(
+        url: Option<String>,
+        username: Option<String>,
+        password: Option<String>,
+    ) -> Result<reqwest_dav::Client> {
+        let (Some(url), Some(username), Some(password)) = (url, username, password) else {
+            let msg = "webdav config is not set";
+            tracing::error!("{msg}");
+            return Err(anyhow::anyhow!("{msg}"));
+        };
+        if url.trim().is_empty() {
+            let msg = "webdav url config is empty";
+            tracing::error!("{msg}");
+            return Err(anyhow::anyhow!("{msg}"));
+        }
+
+        Self::build_client(url, username, password)
+    }
+
+    pub async fn update_webdav_info<S: Into<String>>(url: S, username: S, password: S) -> Result<()> {
+        let client = Self::build_client(url.into(), username.into(), password.into())?;
+        client
+            .list("/", Depth::Number(1))
+            .await
+            .inspect_err(|e| tracing::error!("invalid webdav config: {e:?}"))?;
+        if client.list(BACKUP_DIR, Depth::Number(1)).await.is_err() {
+            client.mkcol(BACKUP_DIR).await?;
         }
         Ok(())
     }
 
-    pub async fn update_webdav_info<S: Into<String>>(&self, url: S, username: S, password: S) -> Result<()> {
-        *self.client.lock() = None;
-        let client = reqwest_dav::ClientBuilder::new()
-            .set_host(url.into())
-            .set_auth(reqwest_dav::Auth::Basic(username.into(), password.into()))
-            .build()?;
-        match client.list("/", Depth::Number(1)).await {
-            Ok(_) => {
-                if client.list(BACKUP_DIR, Depth::Number(1)).await.is_err() {
-                    client.mkcol(BACKUP_DIR).await?;
-                }
-                *self.client.lock() = Some(client);
-                Ok(())
-            }
-            Err(e) => {
-                tracing::error!("invalid webdav config: {e:?}");
-                Err(e.into())
-            }
-        }
-    }
-
-    fn get_client(&self) -> Result<reqwest_dav::Client> {
-        match self.client.lock().clone() {
-            Some(client) => Ok(client),
-            None => {
-                let msg = "Unable to create web dav client, please make sure the webdav config is correct";
-                tracing::error!("{msg}");
-                Err(anyhow::anyhow!("{msg}"))
-            }
-        }
-    }
-
     pub async fn list_file_by_path(path: &str) -> Result<Vec<ListFile>> {
-        let client = Self::global().get_client()?;
+        let client = Self::connect()?;
         let files = client
             .list(path, reqwest_dav::Depth::Number(1))
             .await?
@@ -326,7 +312,7 @@ impl WebDav {
     }
 
     pub async fn download_file(webdav_file_name: &str, storage_path: &Path) -> Result<()> {
-        let client = Self::global().get_client()?;
+        let client = Self::connect()?;
         let path = format!("{BACKUP_DIR}/{webdav_file_name}");
         let response = client.get(&path).await?;
         let content = response.bytes().await?;
@@ -335,14 +321,14 @@ impl WebDav {
     }
 
     pub async fn upload_file(file_path: &Path, webdav_file_name: &str) -> Result<()> {
-        let client = Self::global().get_client()?;
+        let client = Self::connect()?;
         let web_dav_path = format!("{BACKUP_DIR}/{webdav_file_name}");
         client.put(&web_dav_path, fs::read(file_path)?).await?;
         Ok(())
     }
 
     pub async fn delete_file(file_name: String) -> Result<()> {
-        let client = Self::global().get_client()?;
+        let client = Self::connect()?;
         let path = format!("{BACKUP_DIR}/{file_name}");
         client.delete(&path).await?;
         Ok(())
@@ -351,13 +337,41 @@ impl WebDav {
 
 /// cargo test -- --show-output test_webdav
 #[tokio::test]
+#[ignore = "requires network access and live WebDAV credentials"]
 async fn test_webdav() -> Result<()> {
-    WebDav::global()
-        .update_webdav_info("https://dav.jianguoyun.com/dav/", "test", "test")
-        .await?;
-    let files = WebDav::list_file().await?;
+    let client = WebDav::build_client(
+        "https://dav.jianguoyun.com/dav/".to_string(),
+        "test".to_string(),
+        "test".to_string(),
+    )?;
+    let files = client
+        .list(&format!("{BACKUP_DIR}/"), Depth::Number(1))
+        .await?
+        .into_iter()
+        .filter_map(|entity| match entity {
+            ListEntity::File(file) => Some(file),
+            _ => None,
+        })
+        .collect::<Vec<ListFile>>();
     for file in files {
         println!("file: {file:?}");
     }
     Ok(())
+}
+
+#[test]
+fn client_from_options_should_return_error_when_config_missing() {
+    let err = WebDav::client_from_options(None, None, None).unwrap_err();
+    assert_eq!(err.to_string(), "webdav config is not set");
+}
+
+#[test]
+fn client_from_options_should_return_error_when_url_is_blank() {
+    let err = WebDav::client_from_options(
+        Some("  ".to_string()),
+        Some("user".to_string()),
+        Some("password".to_string()),
+    )
+    .unwrap_err();
+    assert_eq!(err.to_string(), "webdav url config is empty");
 }
