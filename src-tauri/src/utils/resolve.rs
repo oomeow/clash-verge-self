@@ -172,9 +172,6 @@ pub fn async_initialization() {
 
         tracing::trace!("init timer");
         log_err!(timer::Timer::global().init());
-
-        tracing::trace!("init webdav config");
-        log_err!(backup::WebDav::global().init().await);
     });
 }
 

@@ -41,5 +41,5 @@ pub async fn delete_backup(backup_type: BackupType, file_name: String) -> Comman
 // web dav
 #[tauri::command]
 pub async fn update_webdav_info(url: String, username: String, password: String) -> CommandResult<()> {
-    into_command_result(WebDav::global().update_webdav_info(url, username, password).await)
+    into_command_result(WebDav::update_webdav_info(url, username, password).await)
 }
